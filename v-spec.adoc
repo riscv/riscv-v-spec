@@ -11,6 +11,9 @@ Version 0.5-draft 20180727
 WARNING: This is a draft of the RISC-V Vector Extension and is likely
 to change substantially before standardization.
 
+WARNING: Even this version is a little behind current discussion, will
+catch up to be primary reference soon.
+
 NOTE:  Contributors: Krste Asanovic, Roger Espasa, many more to be added.
 
 == Vector CSRs
