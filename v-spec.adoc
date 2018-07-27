@@ -1,0 +1,1569 @@
+= Vector extension
+Version 0.5-draft 20180727
+:doctype: article
+:encoding: utf-8
+:lang: en
+:toc: left
+:numbered:
+
+== Background and Motivation
+
+WARNING: This is a draft of the RISC-V Vector Extension and is likely
+to change substantially before standardization.
+
+NOTE:  Contributors: Krste Asanovic, Roger Espasa, many more to be added.
+
+== Vector CSRs
+
+=== `vcfg` CSR holds `vregmax`, `vemaxw`, and `vtypeen`
+
+==== `vregmax[7:0]`
+
+`vregmax` holds the highest-numbered enabled vector register.
+This is an 8-bit `WARL` field to support future expansion to `256` architectural vector registers.
+If `vregmax = 0`, the vector unit is disabled,
+so it is not possible to have a vector unit configuration with only one vector register.
+If `vregmax = 1`, the vector unit has two vector registers `v0` and `v1`,
+if `vregmax = 31`, the vector unit has 32 vector registers, `v0..v31`.
+
+==== `vemaxw[5:3]`
+
+This is a 3-bit `WARL` field, that can be expanded to match the `vew[5:0]`
+expanded width encoding.
+The `vemaxw` field is encoded as:
+
+----
+001     8-bit
+010     16-bit
+011     32-bit
+100     64-bit
+----
+
+This aligns with expanded `vew<n>` encoding, and leave `WARL` space to
+support other max element widths.
+
+==== `vtypeen`
+
+Single-bit `WARL` field that indicates `vtype` CSRs are being used.
+Can be hardwired to zero if vtypes not supported.
+
+=== `vl[XLEN-1:0]` CSR
+
+The vector length register is a `WARL` CSR that holds the current
+active vector length.
+
+=== `vxcfg` CSR holds `vxrm` and `vxcm`
+
+==== `vxrm[1:0]`
+
+Holds fixed-point rounding mode.
+
+----
+00      trn truncate
+01      jam jam (OR bits into LSB)
+10      rne round to nearest-even
+11      rup round-up (+0.5 LSB)
+----
+
+==== `vxcm`
+Holds fixed-point clipping mode
+
+----
+    0 wraparound
+    1 saturate
+----
+
+==== `vxsat`  (in `fcsr`)
+
+Holds sticky fixed-point saturation flag.  Set if any `vclip` or `vclipi`
+instruction causes saturation.
+
+[NOTE]
+Should also pack all `vcsr` fields into `fcsr` for reduced context switch time?
+
+== `vconfig` instruction
+
+Could use `li` + `csrw` instructions to write `vcfg`, or have a `vconfig`
+instruction with the following immediate fields:
+
+[source,asm]
+----
+vregmax[4:0], vemaxw[4:3] # (7 bits total)
+----
+
+to enable setting a base configuration in a single instruction.
+[NOTE]
+Don't need `vtypen` in base instruction.
+
+The `vemax[4:3]` setting encodes `vemaxw` width setting as:
+
+----
+01  8-bit
+10 16-bit
+11 32-bit
+00 64-bit
+----
+
+[IMPORTANT]
+In a system with `vtype` fields, writing to `vconfig` initializes all `vtype<n>` fields to signed integers with width equal to `vemaxw`.
+
+The system calculates a `MAXVL` based on the `vconfig` settings, and the
+vector length `vl` CSR is initialized to `MAXVL`.
+
+[NOTE]
+`vl` is inaccessible if `vregmax=0`.
+
+All vector registers are initialized to zero by a `vconfig` instruction.
+
+A pseudo-instruction `vdisable` is mapped to `vconfig` with all
+immediate bits `0` (`vregmax=0`, `vemaxw=0`).
+
+=== `vl` and `vsetvl` instruction
+
+The `vsetvl rd, rs1` instruction sets `vl` based on the current vector
+configuration and the value in `rs1` treated as an unsigned integer, and
+also writes this value to `rd`.
+
+The `vl` setting must be:
+
+. greater than 0, if rs1 is greater than 0
+. monotonically increasing with the value in rs1, but need not be
+strictly increasing
+. bounded above by min(rs1,MAXVL) 
+. deterministic for any given configuration
+
+If the vector unit is disabled, vsetvl or any read or write of `vl` will
+raise an illegal instruction exception.
+
+The vsetvl instruction is not encoded as a regular `CSRRW` instruction
+as the value returned depends on the input value.
+
+Regular CSR instructions can be used to read and write `vl`.
+
+The value written to `vl` on a CSR write is capped at `MAXVL` (`vl` is `WARL`).
+
+== Vector instruction overview
+
+In the base vector extension, all source vector register operands are
+treated as vectors of elements, but the destination vector registers
+can be either written with a vector of results (a vector shape), or
+with a single scalar value replicated in each vector element position
+(a scalar shape).  This approach avoids the need for explicit
+vector-scalar instructions and is upwards-compatible with shape
+encoding in future vector extensions.  Scalar shapes are intended to
+be microarchitecturally optimized so that only a single value is
+actually written/read.
+
+Simple vector instructions that produce scalar shapes will only use
+`element[0]` of the source vectors as inputs to the computation, but will
+effectively write all elements of the destination vector. A few vector
+instructions perform reductions across source vectors to produce a
+scalar shape.
+
+The active vector length in `vl` determines the number of elements
+processed by each vector instruction.  Instructions producing vector
+shape results, write zero to destination vector elements past the end
+of vl.  Instructions producing scalar shapes, write the scalar to all
+MAXVL elements of the destination vector register regardless of `vl`
+setting.
+
+Masking is supported on almost all vector instructions producing
+vectors, with the mask supplied by vector register `v1`.  The `LSB` of
+each element in `v1` is used as the mask, in either true or complement
+form.  Element operations that are masked off can never generate exceptions.
+Instructions writing vector shapes, write zero to the destination
+elements that are masked off. Instructions producing scalar shapes are
+not maskable.
+
+The scalar/vector shape of the result and the type of masking are
+encoded in a two-bit `m[1:0]` field (`inst[26:25]`) for most vector
+instructions.
+
+`m[1:0]` encoding of "masked-on" condition
+
+----
+00 scalar, always true
+01 vector, always true
+10 vector, where v1.LSB = 0
+11 vector, where v1.LSB = 1
+----
+
+(Might prefer swapping true/false encoding for 10/11)
+
+=== Assembler syntax
+
+Scalar shape destinations are written in assembler with a `.s` after the
+destination vector register specifier.
+Vector masking is written as another vector operand, with `.t` or `.f` indicating if operation occurs
+when `v1.LSB` is `1` or `0` respectively.
+If no masking operand is specified, unmasked vector execution (`m=01`) is assumed.
+
+`vadd v0, v2, v3, vm` implies following combinations:
+
+[source,asm]
+----
+    vadd    v0.s, v2, v3        # scalar shape destination,  m=00
+    vadd    v0,   v2, v3        # unmasked vector operation, m=01
+    vadd    v0,   v2, v3, v1.f  # enabled where v1.LSB=0,    m=10
+    vadd    v0,   v2, v3, v1.t  # enabled where v1.LSB=1,    m=11
+----
+
+
+=== Vector Load/Store Instructions
+
+Vector unit-stride, constant-stride, and indexed (scatter/gather) load/store instructions are supported.
+Vector AMO instructions are not provided in the base vector extension.
+
+Load instructions encode the type of the operand, while store instructions encode only the bit width.
+
+Vector loads to a scalar shape only load one element from memory at
+the same memory address that would be used for vector shape element 0.
+Vector masked loads of vector shapes must not generate architecturally
+visible side-effects (beyond writing zero to the destination element)
+for masked-off elements.
+
+Vector stores of a scalar shape store only one element to memory at
+the same memory address that would be used for vector shape element 0.
+Vector masked stores of vector shapes must not generate
+architecturally visible side-effects for masked-off elements.
+
+=== Vector memory model
+
+Vector memory instructions appear to execute in program order on the
+local hart.  Vector memory instructions follow RVWMO at the
+instruction level, and element operations are ordered within the
+instruction as if performed by an element-ordered sequence of
+syntactically independent scalar instructions.  Vector indexed-ordered
+stores write elements to memory in element order.
+
+[NOTE]
+Other possible vector indexed store instructions include unordered
+and reverse-ordered.  Vector indexed-unordered stores write elements
+to memory in arbitrary order within the vector instruction. Vector
+indexed reverse-ordered writes elements in reverse element order to
+help with vectorized memory alias disambiguation.
+
+==== Integer vector load
+
+Integer vector load instructions encode bit width and signed/unsigned
+extension, similar to base scalar ISA.  Vector integer loads for a
+data type narrower than `vemaxw` are sign- or zero-extended to `vemaxw`
+bits.  Vector integer loads for a data type wider than `vemaxw` cause an
+illegal instruction exception.
+
+===== unit-stride instructions
+[source,asm]
+----
+    # vd destination, rs1 base address
+    vlb     vd, rs1, vm
+    vlbu    vd, rs1, vm
+    
+    vlh     vd, rs1, vm
+    vlhu    vd, rs1, vm
+    
+    vlw     vd, rs1, vm
+    vlwu    vd, rs1, vm
+    
+    vld     vd, rs1, vm
+----
+
+[NOTE]
+Speculative versions for unit-stride loads only in base?
+
+===== constant-stride instructions
+[source,asm]
+----
+    # vd destination, rs1 base address, rs2 byte stride
+    vlsb    vd, offset(rs1), rs2, vm 
+    vlsbu   vd, offset(rs1), rs2, vm
+    
+    vlsh    vd, offset(rs1), rs2, vm
+    vlshu   vd, offset(rs1), rs2, vm
+    
+    vlsw    vd, offset(rs1), rs2, vm
+    vlswu   vd, offset(rs1), rs2, vm
+    
+    vlsd    vd, offset(rs1), rs2, vm
+----
+
+The offset is encoded as an immediate (size TBD) that is then scaled
+by the element size to give a byte offset.
+
+The stride is interpreted as an integer representing a byte offset.
+
+===== indexed (scatter-gather) instructions
+[source,asm]
+----
+    # vd destination, rs1 base address, vs2 indices
+    vlxb    vd, offset(rs1), vs2, vm
+    vlxbu   vd, offset(rs1), vs2, vm
+    
+    vlxh    vd, offset(rs1), vs2, vm
+    vlxhu   vd, offset(rs1), vs2, vm
+    
+    vlxw    vd, offset(rs1), vs2, vm
+    vlxwu   vd, offset(rs1), vs2, vm
+    
+    vlxd    vd, offset(rs1), vs2, vm
+----
+
+The offset is encoded as an immediate (size TBD) that is then scaled
+by the element size to give a byte offset.
+
+Scatter/gather indices are treated as integers of width `vemaxw`
+representing byte offsets.
+
+==== Vector stores
+Vector stores move data values as bits taken from the LSBs of the
+source element.  Vector stores for a data type wider than `vemaxw` cause
+an illegal instruction exception.
+
+===== unit-stride store instructions
+[source,asm]
+----
+    vsb     vs3, rs1, vm
+    vsh     vs3, rs1, vm
+    vsw     vs3, rs1, vm
+    vsd     vs3, rs1, vm
+----
+
+===== constant-stride store instructions
+[source,asm]
+----
+    vssb    vs3, offset(rs1), rs2, vm
+    vssh    vs3, offset(rs1), rs2, vm
+    vssw    vs3, offset(rs1), rs2, vm
+    vssd    vs3, offset(rs1), rs2, vm
+----
+
+===== indexed-ordered store (scatter) instructions
+[source,asm]
+----
+    vsxb    vs3, offset(rs1), vs2, vm
+    vsxh    vs3, offset(rs1), vs2, vm
+    vsxw    vs3, offset(rs1), vs2, vm
+    vsxd    vs3, offset(rs1), vs2, vm
+----
+
+===== indexed-unordered (scatter-gather) instructions (Maybe not in base?)
+[source,asm]
+----
+    vsxub   vs3, offset(rs1), vs2, vm
+    vsxuh   vs3, offset(rs1), vs2, vm
+    vsxuw   vs3, offset(rs1), vs2, vm
+    vsxud   vs3, offset(rs1), vs2, vm
+----
+
+===== indexed-reverse-ordered (scatter-gather) instructions (Maybe not in base?)
+
+[source,asm]
+----
+    vsxrb   vs3, offset(rs1), vs2, vm
+    vsxrh   vs3, offset(rs1), vs2, vm
+    vsxrw   vs3, offset(rs1), vs2, vm
+    vsxrd   vs3, offset(rs1), vs2, vm
+----
+
+=== Arithmetic instructions, general formats
+==== Unary operations
+[source,asm]
+----
+    vop     vd.s, vs1
+    vop     vd,   vs1
+    vop     vd,   vs1, v1.t
+    vop     vd,   vs1, v1.f
+----
+
+==== Binary register-register operations
+[source,asm]
+----
+    vop     vd.s, vs1, vs2
+    vop     vd,   vs1, vs2
+    vop     vd,   vs1, vs2, v1.t
+    vop     vd,   vs1, vs2, v1.f
+----
+
+==== Binary register-immediate operations
+[source,asm]
+----
+    vopi    vd.s,   vs1, imm
+    vopi    vd,     vs1, imm
+    vopi    vd,     vs1, imm, v1.t
+    vopi    vd,     vs1, imm, v1.f
+----
+
+==== Ternary register-register operations
+[source,asm]
+----
+    vop     vd.s,   vs1, vs2, vs3
+    vop     vd,     vs1, vs2, vs3
+    vop     vd,     vs1, vs2, vs3, v1.t
+    vop     vd,     vs1, vs2, vs3, v1.f
+----
+
+==== Vector integer arithmetic instructions
+
+Vector integer arithmetic instructions use the full vemaxw width of
+the source and destination vector registers.  All vector integer
+arithmetic instructions can produce scalar or vector shapes and can be
+masked.
+
+[source,asm]
+----
+    vadd    vd, vs1, vs2, vm
+    vsub    vd, vs1, vs2, vm
+    
+    vsll    vd, vs1, vs2, vm
+    vsra    vd, vs1, vs2, vm
+    vsrl    vd, vs1, vs2, vm
+    
+    vand    vd, vs1, vs2, vm
+    vor     vd, vs1, vs2, vm
+    vxor    vd, vs1, vs2, vm
+----
+
+[NOTE]
+`SNE` not needed with complementing masks
+
+[source,asm]
+----
+    vseq    vd, vs1, vs2, vm
+    vslt    vd, vs1, vs2, vm
+    vsltu   vd, vs1, vs2, vm
+    vsge    vd, vs1, vs2, vm
+    vsgeu   vd, vs1, vs2, vm
+----
+
+
+These conditionals effectively `AND` in the mask when producing `0`/`1` in
+output, e.g,
+
+[source,asm]
+----
+    # (a < b) && (b < c) in two instructions
+    vslt    v1, va, vb
+    vslt    v1, vb, vc, v1
+----
+
+=== Binary register-immediate operations
+These replace vs2 with a short sign-extended immediate (size TBD).
+[source,asm]
+----
+    vaddi   vd, vs1, imm, vm
+
+    vslli   vd, vs1, imm, vm
+    vsrli   vd, vs1, imm, vm
+    vsrai   vd, vs1, imm, vm
+
+    vandi   vd, vs1, imm, vm
+    vori    vd, vs1, imm, vm
+    vxori   vd, vs1, imm, vm
+----
+
+`ELEN > 32` only for compliance with C standards
+
+[source,asm]
+----
+    vaddw   vd, vs1, vs2, vm
+    vsubw   vd, vs1, vs2, vm
+
+    vaddiw  vd, vs1, imm, vm
+----
+
+[NOTE]
+Give up on shiftWs, which need 2 or 3 instructions, use cvt?
+
+== Vector fixed-point instructions
+The `vclip` instructions support fixed-point and block-floating-point
+arithmetic.
+
+These instructions extract a narrower result from a wider integer,
+optionally rounding off lower-order bits, and saturating if the source
+would overflow the result precision.  The rounding mode is encoded in
+`vxrm`, and the saturation mode (clip, wrap) is encoded in `vxcm`.
+
+The instructions encode the number of bits in destination format
+(8, 16 or 32 bits), and whether the destination format is signed or
+unsigned.
+If the destination element width `vemaxw` is greater than the
+destination format, the result is sign- or zero-extended to fill the
+destination element if the destination format is signed or unsigned
+respectively.
+
+The first argument is the source value, the second value is the amount
+by which it is shifted right to round off the lower order bits.
+
+[source,asm]
+----
+    vclip.b     vd, vs1, vs2, vm
+    vclip.h     vd, vs1, vs2, vm
+    vclip.w     vd, vs1, vs2, vm
+
+    vclip.bu    vd, vs1, vs2, vm
+    vclip.hu    vd, vs1, vs2, vm
+    vclip.wu    vd, vs1, vs2, vm
+----
+
+[NOTE]
+The immediate forms were dropped to save encoding space.
+
+=== Vector integer multiply and divides
+==== Full-width multiply/divides
+These are all equivalent to scalar integer multiply/divides, and
+operate on `vemaxw` source and destination widths.
+
+[source,asm]
+----
+    vmul            vd, vs1, vs2, vm
+    vmulh           vd, vs1, vs2, vm
+    vmulhsu         vd, vs1, vs2, vm
+    vmulhu          vd, vs1, vs2, vm
+    vdiv            vd, vs1, vs2, vm
+    vdivu           vd, vs1, vs2, vm
+    vrem            vd, vs1, vs2, vm
+    vremu           vd, vs1, vs2, vm
+----
+
+==== Widening integer multiply
+The widening integer multiply multiplies the bottom halves of elements
+to give a full-width result, i.e., it treats the lower `vemaxw / 2 + 1`
+bits of the two sources as a signed integer and puts lower vemaxw bits
+of the result in the destination (e.g., `17b * 17b` -> `32b` signed multiply).
+The upper `vemaxw / 2 - 1` bits of the sources are ignored.
+
+[source,asm]
+----
+    # signed-signed multiply
+    vmulwdn         vd, vs1, vs2, vm
+----
+
+Including the additional bit above `vemaxw / 2` allows for signed/unsigned
+multiplies of `vemaxw / 2` bits to be supported without separate
+instructions or reduced precision.  Vector loads and clips can be used
+to extend narrower values correctly before using them in widening
+multiplies.
+
+Implementations can fuse a `vclip` onto a vmul2 to round the multiplier
+product and provide accumulation headroom in a `vemaxw` register.
+
+[source,asm]
+----
+    vmulwd  vd, vs1, vs2, vm
+
+    # Scale down and round, can fuse with mul
+    vclip.h vd, vd, vs3
+
+    # Accumulate with headroom.
+    vadd    vsum, vsum, vd
+----
+
+[NOTE]
+Fused integer-multiply add is not provided in base, as it requires too
+much encoding space.  Also, integer `muladds` either want to round
+product before adding (`vclip`) or to sum into a wider accumulator
+(which needs multi-precision arithmetic), so not a good fit in base.
+
+[NOTE]
+Fixed-point arithmetic would benefit from more support in an extension.
+Extended types would better support n-bit.
+`n`-bit products accumulated exactly in `4 * n` - bit accumulators.
+Or could add a `vmulwq` that performed `vemaxw / 4 + 1` multiplies.
+
+== Integer Reduction operations (maybe not in base?)
+These instructions take a vector shape as input and produce a scalar
+shape.
+
+[source,asm]
+----
+    vredsum         vd.s, vs1
+    vredmax         vd.s, vs1
+    vredmaxu        vd.s, vs1
+    vredmin         vd.s, vs1
+    vredminu        vd.s, vs1
+    vredand         vd.s, vs1
+    vredor          vd.s, vs1
+    vredxor         vd.s, vs1
+----
+
+== Vector Floating-Point Operations
+The vector floating-point extension includes vector versions of all
+scalar floating-point operations, for the supported floating-point
+precisions of half-precision (16b), single-precision (32b), and
+double-precision (64b).
+
+[NOTE]
+Quad precision floating-point might be supportable in the base
+encoding for machines with Q extension, but not clear this is best use
+of base encoding.
+
+=== Vector minimum element width
+An illegal instruction exception is raised when trying to execute a
+vector floating-point instruction for a precision that does not fit in
+the current `vemaxw`.
+
+=== Vector `NaN` Boxing
+Vector floating-point operations follow the scalar floating-point NaN
+boxing model, taking their operands from the low bits of each vector
+register but checking the high bits for correct NaN boxing and
+treating the value as a canonical NaN if not correctly NaN boxed.  A
+vector floating-point operation that writes to a wider destination
+register always NaN boxes the result (writing 1s to the high-order
+bits).
+
+=== Vector Floating-Point Loads
+Floating-point vector load instructions encode type
+
+==== unit-stride instructions
+[source,asm]
+----
+    vflh    vd, rs1, vm
+    vflw    vd, rs1, vm
+    vfld    vd, rs1, vm
+----
+
+==== constant-stride instructions
+[source,asm]
+----
+    vflsh   vd, offset(rs1), rs2, vm
+    vflsw   vd, offset(rs1), rs2, vm
+    vflsd   vd, offset(rs1), rs2, vm
+----
+
+==== indexed (scatter-gather) instructions
+[source,asm]
+----
+    vflxh   vd, offset(rs1), vs2, vm
+    vflxw   vd, offset(rs1), vs2, vm
+    vflxd   vd, offset(rs1), vs2, vm
+----
+
+=== Vector floating-point stores
+These use the integer vector stores, reading data from the low bits of
+the source vector register.
+
+=== Vector floating-point rounding mode
+
+The vector arithmetic instructions only use the dynamic rounding mode
+in `frm`.
+
+=== Vector floating-point exception flags
+
+Vector operations that cause floating-point exceptions set vector
+flags in the existing scalar `fflags` bits in the `fcsr`.
+
+=== Binary operations
+The following produce and consume operands of the same floating-point precision:
+
+[source,asm]
+----
+    vfadd.h         vd, vs1, vs2, vm
+    vfadd.s         vd, vs1, vs2, vm
+    vfadd.d         vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfsub.h         vd, vs1, vs2, vm
+    vfsub.s         vd, vs1, vs2, vm
+    vfsub.d         vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfmul.h         vd, vs1, vs2, vm
+    vfmul.s         vd, vs1, vs2, vm
+    vfmul.d         vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfdiv.h         vd, vs1, vs2, vm
+    vfdiv.s         vd, vs1, vs2, vm
+    vfdiv.d         vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfsgnj.h        vd, vs1, vs2, vm
+    vfsgnj.s        vd, vs1, vs2, vm
+    vfsgnj.d        vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfsgnjn.h       vd, vs1, vs2, vm
+    vfsgnjn.s       vd, vs1, vs2, vm
+    vfsgnjn.d       vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfsgnjx.h       vd, vs1, vs2, vm
+    vfsgnjx.s       vd, vs1, vs2, vm
+    vfsgnjx.d       vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfmin.h         vd, vs1, vs2, vm
+    vfmin.s         vd, vs1, vs2, vm
+    vfmin.d         vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfmax.h         vd, vs1, vs2, vm
+    vfmax.s         vd, vs1, vs2, vm
+    vfmax.d         vd, vs1, vs2, vm
+----
+
+The following compare instructions produce an integer binary value:
+
+[source,asm]
+----
+    vfeq.h          vd, vs1, vs2, vm
+    vfeq.s          vd, vs1, vs2, vm
+    vfeq.d          vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vflt.h          vd, vs1, vs2, vm
+    vflt.s          vd, vs1, vs2, vm
+    vflt.d          vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfle.h          vd, vs1, vs2, vm
+    vfle.s          vd, vs1, vs2, vm
+    vfle.d          vd, vs1, vs2, vm
+----
+
+==== Unary operators
+[source,asm]
+----
+        vfsqrt.h        vd, vs1, vm
+        vfsqrt.s        vd, vs1, vm
+        vfsqrt.d        vd, vs1, vm
+----    
+[source,asm]
+----
+        vfclass.h       vd, vs1, vm
+        vfclass.s       vd, vs1, vm
+        vfclass.d       vd, vs1, vm
+----
+
+==== Reduction operations (maybe not in base?)
+These instructions take a vector shape as input and produce a scalar
+shape.
+Cannot mask the vector input, but can preprocess to get
+correct result from a mask (e.g., zero masked elements before sum).
+[source,asm]
+----
+    vfredsum.h vd.s, vs1
+    vfredsum.s vd.s, vs1
+    vfredsum.d vd.s, vs1
+----
+
+[source,asm]
+----
+    vfredmax.h vd.s, vs1
+    vfredmax.s vd.s, vs1
+    vfredmax.d vd.s, vs1
+----
+
+[source,asm]
+----
+    vfredmin.h vd.s, vs1
+    vfredmin.s vd.s, vs1
+    vfredmin.d vd.s, vs1
+----
+
+==== Vector floating-point fused multiply-add
+
+To save opcode space, don't include negating forms.
+[source,asm]
+----
+    vfmadd.h vd, vs1, vs2, vs3, vm
+    vfmadd.s vd, vs1, vs2, vs3, vm
+    vfmadd.d vd, vs1, vs2, vs3, vm
+----
+
+[source,asm]
+----
+    vfmsub.h vd, vs1, vs2, vs3, vm
+    vfmsub.s vd, vs1, vs2, vs3, vm
+    vfmsub.d vd, vs1, vs2, vs3, vm
+----
+
+Widening vector floating-point fused multiply-add, destination
+precision is 2x the source precision.
+[source,asm]
+----
+    vfmaddwdn.h vd, vs1, vs2, vs3, vm
+    vfmaddwdn.s vd, vs1, vs2, vs3, vm
+----
+
+[source,asm]
+----
+    vfmsubwdn.h vd, vs1, vs2, vs3, vm
+    vfmsubwdn.s vd, vs1, vs2, vs3, vm
+----
+==== Vector Convert instructions
+
+Use `.i` for signed integer type, and `.u` for unsigned integer type.
+
+Convert integer to narrower integer
+[source,asm]
+----
+    vcvt.i.b vd, vs1, vm    # Sign-extend 8b
+    vcvt.i.bu vd, vs1, vm   # Zero-extend 8b
+----
+
+[source,asm]
+----
+    vcvt.i.h vd, vs1, vm    # Sign-extend 16b
+    vcvt.i.hu vd, vs1, vm   # Zero-extend 16b
+----
+
+[source,asm]
+----
+    vcvt.i.w vd, vs1, vm    # Sign-extend 32b
+    vcvt.i.wu vd, vs1, vm   # Zero-extend 32b
+----
+Don't need reverse (narrow to wide) as always store in canonical integer
+format.
+
+Don't need unsigned source, as this doesn't affect conversion.
+
+==== Convert integer to float
+[source,asm]
+----
+    vfcvt.h.i vd, vs1, vm
+    vfcvt.h.u vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.s.i vd, vs1, vm
+    vfcvt.s.u vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.d.i vd, vs1, vm
+    vfcvt.d.u vd, vs1, vm
+----
+
+==== Convert float to integer
+[source,asm]
+----
+    vfcvt.i.h vd, vs1, vm
+    vfcvt.u.h vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.i.s vd, vs1, vm
+    vfcvt.u.s vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.i.d vd, vs1, vm
+    vfcvt.u.d vd, vs1, vm
+----
+These all convert to `vemaxw` canonical integers.
+
+Convert float to float
+[source,asm]
+----
+    vfcvt.h.s vd, vs1, vm
+    vfcvt.h.d vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.s.h vd, vs1, vm
+    vfcvt.s.d vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.d.h vd, vs1, vm
+    vfcvt.d.s vd, vs1, vm
+----
+
+=== Move single elements between registers.
+
+==== Move to/from floating-point (f) registers.
+[source,asm]
+----
+    vfmv.v.f  vd, rs1, vm   # vd = rs1
+    vfmv.f.v  rd, vs1       # rd = vs1[0]
+----
+
+Move one vector element as bits to/from FPRs.  If destination is
+narrower than the source, only the least significant bits are copied
+and the upper bits of source are ignored. If the destination is wider
+than the source, the value is one-extended (high bits filled with 1s
+to preserve NaN boxing).  All vector masking options are available for
+vfmv.v.f
+
+Insert/extract elements between x and vector registers,
+[source,asm]
+----
+    vinsx vd, rs1, rs2, vm  # vd[rs2] = rs1
+    vextx rd, vs1, rs2      # rd = vs1[rs2]
+----
+
+Move one vector element as bits to/from GPRs (called insert/extract in
+current space).  If destination is narrower than the source, only the
+least significant bits are copied and the upper bits of source are
+ignored. If the destination is wider than the source, the value is
+sign-extended.  All vector masking options are available for `vinsx`.
+
+If `rs2 > MAXVL`, `vinsx` does nothing.
+If `rs2 > MAXVL`, `vextx` returns `0`.
+
+On archs with reg renaming or ECC, instructions that write single
+elements to a vector register will have to read old dest and merge in
+new value.  These instructions have only a single vector source, so
+can use second/third read port to read `vd`.
+
+==== Insert/extract elements between vector registers,
+[source,asm]
+----
+    vinsv vd, vs1, rs2      # vd[rs2] = vs1[0]
+    vextv vd, vs1, rs2, vm  # vd = vs1[rs2]
+----
+
+If `rs2 > MAXVL`, `vinsv` does nothing.
+If `rs2 > MAXVL`, `vextv` returns 0.
+
+All vector masking options are available on `vextv`.
+
+==== Vector merge
+[source,asm]
+----
+    vmerge  vd, vs1, vs2,  vm   # vd[i] = vm[i] ? vs1[i] : vs2[i]
+    vmergex vd, rs1, vs2,  vm   # vd[i] = vm[i] ? rs1    : vs2[i]
+----
+
+Mask picks between first and second operand to be written to
+destination register.  Scalar shape version copies first operand to
+destination.
+
+==== Vector register gather
+[source,asm]
+----
+    vrgather vd, vs1, vs2, vm # vd[i] = vs1[vs2[i]]
+----
+
+Each destination element is extracted from selected location in source
+vector.  If vs2[i] is out of range 0..MAXVL-1, then 0 is returned.
+
+==== Vector register slideup/slidedown
+[source,asm]
+----
+    vslidedwn vd, vs1, rs2, vm  # vd[i] = vs1[rs2+i]
+----
+
+Writes vl elements to destination vector register taken from start
+index `rs2` in source vector.  If `rs2 + i >= MAXVL`, returns 0s.
+
+All masking operations are available on vslidedwn. Will splat just
+vs1[rs2] to all of vd if destination is scalar shape.
+[source,asm]
+----
+    vslidedup vd, vs1, rs2, vm  # vd[rs2+i] = vs1[i]
+----
+
+Writes `vl` elements taken from start of source vector to destination
+vector register starting at index `rs2`.  Ignores elements where `rs2 + i > MAXVL`.
+All masking operations are available on `vslide`.
+Will splat just `vs1[rs2]` to all of `vd` if destination is scalar shape.
+
+Vector mask to xreg instructions
+
+[source,asm]
+----
+    vmfirst rd, vs1
+----
+Writes rd with the index of the element in vs1 with the first set `LSB`,
+or `-1` if no bits set in v1.
+
+[source,asm]
+----
+    vmpopc rd, vs1
+----
+
+Writes rd with the sum of the set LSBs in the first vl elements of
+vs1.
+
+==== Vector IOTA instruction
+
+[source,asm]
+----
+vmiota vd, vm    # Count bits in preceding mask elements.
+----
+
+[source,C]
+----
+// Pseudo code when vm=v1.true
+s = 0;
+
+for (i = 0; i < vl; ++i) {
+    vd[i]=s;  // Results wrap around (truncate high bits) if too large for destination elements.
+    s += vm[i].lsb;  // Count set bits in mask
+}
+
+for ( ; i < MAXVL; ++i) {
+    vd[i]=0;
+}
+----
+
+
+With `vm == scalar`, writes vd.s with 0.
+With `vm == true`, writes vd[i] with index i.
+With `vm == v1.false`, counts zero bits
+With `vm == v1.true`, counts one bits
+
+[source,C]
+----
+// Pseudo code when vm=v1.true
+s = 0;
+
+for (i=0; i < vl; ++i) {
+    vd[i]=s;  // Results wrap around (truncate high bits) if too large for destination elements.
+    s += vm[i].lsb;  // Count set bits in mask
+}
+
+for ( ; i<MAXVL; ++i) {
+    vd[i]=0;
+}
+----
+
+
+==== Mask operations to support software vector-length speculation
+[source,asm]
+----
+    vmfbf vd, vs1, vm  # Flag before first.
+    vmfif vd, vs1, vm  # Flag including first.
+    vmfof vd, vs1, vm  # Flag only first.
+----
+
+----
+00011001  vs1.lsbs
+11100000  fbf
+11110000  fif
+00010000  fof
+----
+
+[source,c]
+----
+// vmfbf psuedo code 
+s = 1;
+
+for (i = 0; i < vl; ++i) {
+    if(v1[i].lsb) {
+        if (vs1[i].lsb) {
+            s = 0;
+        }
+        vd[i] = s[i].lsb;
+    } else {
+        vd[i] = 0;
+    }
+}
+
+for ( ; i < MAXVL; ++i) {
+    vd[i] = 0;
+}
+----
+
+[source,c]
+----
+// vmfif psuedo code when vm=v1.true
+s = 1;
+
+for (i = 0; i < vl; ++i) {
+    if(v1[i].lsb) {
+        vd[i] = s;
+        if (vs1[i].lsb) {
+            s = 0;
+        }
+    } else {
+        vd[i] = 0;
+    }
+}
+
+for ( ; i < MAXVL; ++i) {
+    vd[i] = 0;
+}
+----
+
+[source,c]
+----
+// vmfof psuedo code when vm=v1.true
+s = 1;
+
+for (i = 0; i < vl; ++i) {
+    if(v1[i].lsb) {
+        if (vm[i].lsb) {
+            vd[i]=s;
+            s=0;
+        } else {
+            vd[i]=0;
+        } 
+    } else {
+        vd[i]=0;
+    }
+}
+
+for ( ; i < MAXVL; ++i) {
+    vd[i] = 0;
+}
+----
+
+=== Base Vector Instruction Set
+[source,asm]
+----
+    vconfig imm
+    vsetvl rd, rs1
+----
+
+=== unit-stride load instructions
+[source,asm]
+----
+    vlb vd, rs1, vm  # vd destination, rs1 base address
+    vlbu vd, rs1, vm
+    vlh vd, rs1, vm
+    vlhu vd, rs1, vm
+    vlw vd, rs1, vm
+    vlwu vd, rs1, vm
+    vld vd, rs1, vm
+----
+
+=== constant-stride load instructions
+[source,asm]
+----
+    vlsb vd, offset(rs1), rs2, vm  # vd destination, rs1 base, rs2 byte stride
+    vlsbu vd, offset(rs1), rs2, vm
+    vlsh vd, offset(rs1), rs2, vm
+    vlshu vd, offset(rs1), rs2, vm
+    vlsw vd, offset(rs1), rs2, vm
+    vlswu vd, offset(rs1), rs2, vm
+    vlsd vd, offset(rs1), rs2, vm
+----
+
+
+=== indexed load (gather) instructions
+[source,asm]
+----
+    vlxb    vd, offset(rs1), vs2, vm  # vd destination, rs1 base address, vs2 indices
+    vlxbu   vd, offset(rs1), vs2, vm
+    vlxh    vd, offset(rs1), vs2, vm
+    vlxhu   vd, offset(rs1), vs2, vm
+    vlxw    vd, offset(rs1), vs2, vm
+    vlxwu   vd, offset(rs1), vs2, vm
+    vlxd    vd, offset(rs1), vs2, vm
+----
+
+
+=== unit-stride store instructions
+[source,asm]
+----
+    vsb     vs3, rs1, vm
+    vsh     vs3, rs1, vm
+    vsw     vs3, rs1, vm
+    vsd     vs3, rs1, vm
+----
+
+=== constant-stride instructions
+[source,asm]
+----
+    vssb    vs3, offset(rs1), rs2, vm
+    vssh    vs3, offset(rs1), rs2, vm
+    vssw    vs3, offset(rs1), rs2, vm
+    vssd    vs3, offset(rs1), rs2, vm
+    
+    vsxb    vs3, offset(rs1), vs2, vm
+    vsxh    vs3, offset(rs1), vs2, vm
+    vsxw    vs3, offset(rs1), vs2, vm
+    vsxd    vs3, offset(rs1), vs2, vm
+----
+
+[source,asm]
+----
+    vadd    vd, vs1, vs2, vm
+    vsub    vd, vs1, vs2, vm
+    vsll    vd, vs1, vs2, vm
+    vsra    vd, vs1, vs2, vm
+    vsrl    vd, vs1, vs2, vm
+    vand    vd, vs1, vs2, vm
+    vor     vd, vs1, vs2, vm
+    vxor    vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vseq    vd, vs1, vs2, vm
+    vslt    vd, vs1, vs2, vm
+    vsltu   vd, vs1, vs2, vm
+    vsge    vd, vs1, vs2, vm
+    vsgeu   vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vaddi   vd, vs1, imm, vm
+----
+
+[source,asm]
+----
+    vslli   vd, vs1, imm, vm
+    vsrli   vd, vs1, imm, vm
+    vsrai   vd, vs1, imm, vm
+----
+
+[source,asm]
+----
+    vandi   vd, vs1, imm, vm
+    vori    vd, vs1, imm, vm
+    vxori   vd, vs1, imm, vm
+----
+
+[source,asm]
+----
+    vaddw   vd, vs1, vs2, vm
+    vsubw   vd, vs1, vs2, vm
+    vaddiw  vd, vs1, imm, vm
+----
+
+[source,asm]
+----
+    vclip.b  vd, vs1, vs2, vm
+    vclip.h  vd, vs1, vs2, vm
+    vclip.w  vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vclip.bu vd, vs1, vs2, vm
+    vclip.hu vd, vs1, vs2, vm
+    vclip.wu vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vmul vd, vs1, vs2, vm
+    vmulh vd, vs1, vs2, vm
+    vmulhsu vd, vs1, vs2, vm
+    vmulhu  vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vdiv vd, vs1, vs2, vm
+    vdivu vd, vs1, vs2, vm
+    vrem vd, vs1, vs2, vm
+    vremu vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vmulwdn   vd, vs1, vs2, vm  # signed-signed multiply
+----
+
+[source,asm]
+----
+    vredsum     vd.s, vs1
+    vredmax     vd.s, vs1
+    vredmaxu    vd.s, vs1
+    vredmin     vd.s, vs1
+    vredminu    vd.s, vs1
+    vredand     vd.s, vs1
+    vredor      vd.s, vs1
+    vredxor     vd.s, vs1
+----
+
+[source,asm]
+----
+    vflh    vd, rs1, vm
+    vflw    vd, rs1, vm
+    vfld    vd, rs1, vm
+----
+[source,asm]
+----
+    vflsh   vd, offset(rs1), rs2, vm
+    vflsw   vd, offset(rs1), rs2, vm
+    vflsd   vd, offset(rs1), rs2, vm
+----
+[source,asm]
+----
+    vflxh   vd, offset(rs1), vs2, vm
+    vflxw   vd, offset(rs1), vs2, vm
+    vflxd   vd, offset(rs1), vs2, vm
+----
+
+[source,asm]
+----
+    vfadd.h     vd, vs1, vs2, vm
+    vfadd.s     vd, vs1, vs2, vm
+    vfadd.d     vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfsub.h     vd, vs1, vs2, vm
+    vfsub.s     vd, vs1, vs2, vm
+    vfsub.d     vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfmul.h     vd, vs1, vs2, vm
+    vfmul.s     vd, vs1, vs2, vm
+    vfmul.d     vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfdiv.h     vd, vs1, vs2, vm
+    vfdiv.s     vd, vs1, vs2, vm
+    vfdiv.d     vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfsgnj.h    vd, vs1, vs2, vm
+    vfsgnj.s    vd, vs1, vs2, vm
+    vfsgnj.d    vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfsgnjn.h   vd, vs1, vs2, vm
+    vfsgnjn.s   vd, vs1, vs2, vm
+    vfsgnjn.d   vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfsgnjx.h   vd, vs1, vs2, vm
+    vfsgnjx.s vd, vs1, vs2, vm
+    vfsgnjx.d vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfmin.h vd, vs1, vs2, vm
+    vfmin.s vd, vs1, vs2, vm
+    vfmin.d vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfmax.h vd, vs1, vs2, vm
+    vfmax.s vd, vs1, vs2, vm
+    vfmax.d vd, vs1, vs2, vm
+----
+[source,asm]
+----
+    vfeq.h vd, vs1, vs2, vm
+    vfeq.s vd, vs1, vs2, vm
+    vfeq.d vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vflt.h vd, vs1, vs2, vm
+    vflt.s vd, vs1, vs2, vm
+    vflt.d vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfle.h vd, vs1, vs2, vm
+    vfle.s vd, vs1, vs2, vm
+    vfle.d vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfsqrt.h vd, vs1, vm
+    vfsqrt.s vd, vs1, vm
+    vfsqrt.d vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfclass.h vd, vs1, vm
+    vfclass.s vd, vs1, vm
+    vfclass.d vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfredsum.h vd.s, vs1
+    vfredsum.s vd.s, vs1
+    vfredsum.d vd.s, vs1
+----
+
+[source,asm]
+----
+    vfredmax.h vd.s, vs1
+    vfredmax.s vd.s, vs1
+    vfredmax.d vd.s, vs1
+----
+
+[source,asm]
+----
+    vfredmin.h vd.s, vs1
+    vfredmin.s vd.s, vs1
+    vfredmin.d vd.s, vs1
+----
+
+[source,asm]
+----
+    vfmadd.h vd, vs1, vs2, vs3, vm
+    vfmadd.s vd, vs1, vs2, vs3, vm
+    vfmadd.d vd, vs1, vs2, vs3, vm
+----
+
+[source,asm]
+----
+    vfmsub.h vd, vs1, vs2, vs3, vm
+    vfmsub.s vd, vs1, vs2, vs3, vm
+    vfmsub.d vd, vs1, vs2, vs3, vm
+----
+
+[source,asm]
+----
+    vfmaddwdn.h vd, vs1, vs2, vs3, vm
+    vfmaddwdn.s vd, vs1, vs2, vs3, vm
+----
+
+[source,asm]
+----
+    vfmsubwdn.h vd, vs1, vs2, vs3, vm
+    vfmsubwdn.s vd, vs1, vs2, vs3, vm
+----
+
+[source,asm]
+----
+    vcvt.i.b vd, vs1, vm
+    vcvt.i.bu vd, vs1, vm
+----
+
+[source,asm]
+----
+    vcvt.i.h vd, vs1, vm
+    vcvt.i.hu vd, vs1, vm
+----
+
+[source,asm]
+----
+    vcvt.i.w vd, vs1, vm
+    vcvt.i.wu vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.h.i vd, vs1, vm
+    vfcvt.h.u vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.s.i vd, vs1, vm
+    vfcvt.s.u vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.d.i vd, vs1, vm
+    vfcvt.d.u vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.i.h vd, vs1, vm
+    vfcvt.u.h vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.i.s vd, vs1, vm
+    vfcvt.u.s vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.i.d vd, vs1, vm
+    vfcvt.u.d vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.h.s vd, vs1, vm
+    vfcvt.h.d vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.s.h vd, vs1, vm
+    vfcvt.s.d vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfcvt.d.h vd, vs1, vm
+    vfcvt.d.s vd, vs1, vm
+----
+
+[source,asm]
+----
+    vfmv.v.f  vd, rs1, vm   # vd = rs1
+    vfmv.f.v  rd, vs1       # rd = vs1[0]
+----
+[source,asm]
+----
+    vinsx vd, rs1, rs2, vm  # vd[rs2] = rs1
+    vextx rd, vs1, rs2      # rd = vs1[rs2]
+----
+[source,asm]
+----
+    vinsv vd, vs1, rs2      # vd[rs2] = vs1[0]
+    vextv vd, vs1, rs2, vm  # vd = vs1[rs2]
+----
+[source,asm]
+----
+    vmerge  vd, vs1, vs2,  vm   # vd[i] = vm[i] ? vs1[i] : vs2[i]
+    vmergex vd, rs1, vs2,  vm   # vd[i] = vm[i] ? rs1    : vs2[i]
+----
+[source,asm]
+----
+    vrgather vd, vs1, vs2, vm # vd[i] = vs1[vs2[i]]
+----
+[source,asm]
+----
+    vslidedwn vd, vs1, rs2, vm  # vd[i] = vs1[rs2+i]
+----
+[source,asm]
+----
+    vslidedup vd, vs1, rs2, vm  # vd[rs2+i] = vs1[i]
+----
+[source,asm]
+----
+    vmfirst rd, vs1
+    vmpopc rd, vs1
+    vmiota vd, vm    # Count bits in preceding mask elements.
+----
+[source,asm]
+----
+    vmfbf vd, vs1, vm  # Flag before first.
+    vmfif vd, vs1, vm  # Flag including first.
+    vmfof vd, vs1, vm  # Flag only first.
+----
