@@ -1,0 +1,3272 @@
+[source, c]
+----
+   sext(value,size) { /* sign extend from size to vemaxw bits */ }
+   zext(value,size) { /* zero extend from size to vemaxw bits */ }
+   nanbox(value,size) { /* fill with '1 from size to vemaxw bis */ }
+   readmem(addr, size) { /* read 'size' bits from memory */ }
+   sreadmem(addr, size) { /* read 'size' bits from memory and sign-extend to vemaxw bits */ }
+   zreadmem(addr, size) { /* read 'size' bits from memory and zero-extend to vemaxw bits */ }
+   nreadmem(addr, size) { /* read 'size' bits from memory and nanbox to vemaxw bits */ }
+
+
+   jam(value, shftamt)
+   {
+           for (i = 0; i < shftamt; i++ )
+           {
+                   low = low | (value & 0x1);
+                   value = value >> 1;
+           }
+           value = value | low;
+           return value;
+   }
+   
+   rne(value, shftamt)
+   {
+   }
+
+   rup(value, shftamt)
+   {
+   }
+
+   clips(value, shftamt, size)
+   {
+       if   ( vxrm[1:0] == 00 ) value = value >> shftamt;
+       else ( vxrm[1:0] == 01 ) value = jam(value, shftamt);
+       else ( vxrm[1:0] == 10 ) value = rne(value, shftamt);
+       else ( vxrm[1:0] == 11 ) value = rup(value, shftamt);
+
+       poslim = (1<<(size-1)) - 1
+       neglim = -(1<<(size-1))
+       if ( vxcm == 0 ) result = value & ((1<<size)-1);
+       if ( vxcm == 1 ) result = max(neglim,min(poslim,value));
+       return result;
+   }
+
+   clipu(value, shftamt, size)
+   {
+       if   ( vxrm[1:0] == 00 ) value = value >> shftamt;
+       else ( vxrm[1:0] == 01 ) value = jam(value, shftamt);
+       else ( vxrm[1:0] == 10 ) value = rne(value, shftamt);
+       else ( vxrm[1:0] == 11 ) value = rup(value, shftamt);
+
+       poslim = (1<<size) - 1
+       if ( vxcm == 0 ) result = value & ((1<<size)-1);
+       if ( vxcm == 1 ) result = max(0,min(poslim,value));
+   }
+----
+
+== `vadd vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> + vs2[i]<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> + vs2[0]<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vaddi vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> + sext(imm) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> + sext(imm): 0;
+   }
+----
+        
+
+== `vaddw vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? sext(vs1[i]<31..0> + vs2[i]<31..0>) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? sext(vs1[0]<31..0> + vs2[0]<31..0>): 0;
+   }
+----
+        
+
+== `vaddiw vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? sext(vs1[i]<31..0> + sext(imm)) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? sext(vs1[0]<31..0> + sext(imm)): 0;
+   }
+----
+        
+
+== `vsub vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> - vs2[i]<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> - vs2[0]<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vsubi vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> - sext(imm) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> - sext(imm): 0;
+   }
+----
+        
+
+== `vmul vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> * vs2[i]<vemaxw-1..0>)<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> * vs2[0]<vemaxw-1..0>)<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vmulh vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> * vs2[i]<vemaxw-1..0>)<2*vemaxw-1..vemaxw> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> * vs2[0]<vemaxw-1..0>)<2*vemaxw-1..vemaxw>: 0;
+   }
+----
+        
+
+== `vmulhu vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> *u vs2[i]<vemaxw-1..0>)<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> *u vs2[0]<vemaxw-1..0>)<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vmulhsu vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> * unsigned(vs2[i]<vemaxw-1..0>))<2*vemaxw-1..vemaxw> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> * unsigned(vs2[0]<vemaxw-1..0>))<2*vemaxw-1..vemaxw>: 0;
+   }
+----
+        
+
+== `vmulwdn vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw/2..0> * vs2[i]<vemaxw/2..0>)<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw/2..0> * vs2[0]<vemaxw/2..0>)<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vdiv vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> / vs2[i]<vemaxw-1..0>)<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> / vs2[0]<vemaxw-1..0>)<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vdivu vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> /u vs2[i]<vemaxw-1..0>)<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> /u vs2[0]<vemaxw-1..0>)<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vrem vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> % vs2[i]<vemaxw-1..0>)<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> % vs2[0]<vemaxw-1..0>)<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vremu vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> %u vs2[i]<vemaxw-1..0>)<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> %u vs2[0]<vemaxw-1..0>)<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vsll vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> << vs2[i]<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> << vs2[0]<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vslli vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> << shamt<5:0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> << shamt<5:0>: 0;
+   }
+----
+        
+
+== `vsra vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> >>a vs2[i]<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> >>a vs2[0]<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vsrai vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> >>a shamt<5:0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> >>a shamt<5:0>: 0;
+   }
+----
+        
+
+== `vsrl vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> >> vs2[i]<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> >> vs2[0]<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vsrli vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> >> shamt<5:0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> >> shamt<5:0>: 0;
+   }
+----
+        
+
+== `vand vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> & vs2[i]<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> & vs2[0]<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vandi vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> & sext(imm) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> & sext(imm): 0;
+   }
+----
+        
+
+== `vor vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> | vs2[i]<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> | vs2[0]<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vori vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> | sext(imm) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> | sext(imm): 0;
+   }
+----
+        
+
+== `vxor vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> ^ vs2[i]<vemaxw-1..0> : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> ^ vs2[0]<vemaxw-1..0>: 0;
+   }
+----
+        
+
+== `vxori vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? vs1[i]<vemaxw-1..0> ^ sext(imm) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> ^ sext(imm): 0;
+   }
+----
+        
+
+== `vseq vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> == sext(imm) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> == sext(imm) ? 1 : 0): 0;
+   }
+----
+        
+
+== `vslt vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> <= sext(imm) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> <= sext(imm) ? 1 : 0): 0;
+   }
+----
+        
+
+== `vsltu vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> <=u sext(imm) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> <=u sext(imm) ? 1 : 0): 0;
+   }
+----
+        
+
+== `vclipb vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? clips(vs1[i]<vemaxw-1..0>, vs2[i]<vemaxw-1..0>, 8) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? clips(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 8): 0;
+   }
+----
+        
+
+== `vclipbu vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? clipu(vs1[i]<vemaxw-1..0>, vs2[i]<vemaxw-1..0>, 8) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? clipu(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 8): 0;
+   }
+----
+        
+
+== `vcliph vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? clips(vs1[i]<vemaxw-1..0>, vs2[i]<vemaxw-1..0>, 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? clips(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 16): 0;
+   }
+----
+        
+
+== `vcliphu vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? clipu(vs1[i]<vemaxw-1..0>, vs2[i]<vemaxw-1..0>, 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? clipu(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 16): 0;
+   }
+----
+        
+
+== `vclipw vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? clips(vs1[i]<vemaxw-1..0>, vs2[i]<vemaxw-1..0>, 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? clips(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 32): 0;
+   }
+----
+        
+
+== `vclipwu vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? clipu(vs1[i]<vemaxw-1..0>, vs2[i]<vemaxw-1..0>, 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? clipu(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 32): 0;
+   }
+----
+        
+
+== `vfadd.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<15..0> +f vs2[i]<15..0>, 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<15..0> +f vs2[0]<15..0>, 16) : 0;
+   }
+----
+        
+
+== `vfadd.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<31..0> +f vs2[i]<31..0>, 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<31..0> +f vs2[0]<31..0>, 32) : 0;
+   }
+----
+        
+
+== `vfadd.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<63..0> +f vs2[i]<63..0>, 64) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<63..0> +f vs2[0]<63..0>, 64) : 0;
+   }
+----
+        
+
+== `vfsub.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<15..0> -f vs2[i]<15..0>, 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<15..0> -f vs2[0]<15..0>, 16) : 0;
+   }
+----
+        
+
+== `vfsub.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<31..0> -f vs2[i]<31..0>, 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<31..0> -f vs2[0]<31..0>, 32) : 0;
+   }
+----
+        
+
+== `vfsub.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<63..0> -f vs2[i]<63..0>, 64) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<63..0> -f vs2[0]<63..0>, 64) : 0;
+   }
+----
+        
+
+== `vfmul.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<15..0> *f vs2[i]<15..0>, 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<15..0> *f vs2[0]<15..0>, 16) : 0;
+   }
+----
+        
+
+== `vfmul.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<31..0> *f vs2[i]<31..0>, 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<31..0> *f vs2[0]<31..0>, 32) : 0;
+   }
+----
+        
+
+== `vfmul.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<63..0> *f vs2[i]<63..0>, 64) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<63..0> *f vs2[0]<63..0>, 64) : 0;
+   }
+----
+        
+
+== `vfdiv.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<15..0> /f vs2[i]<15..0>, 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<15..0> /f vs2[0]<15..0>, 16) : 0;
+   }
+----
+        
+
+== `vfdiv.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<31..0> /f vs2[i]<31..0>, 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<31..0> /f vs2[0]<31..0>, 32) : 0;
+   }
+----
+        
+
+== `vfdiv.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[i]<63..0> /f vs2[i]<63..0>, 64) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(vs1[0]<63..0> /f vs2[0]<63..0>, 64) : 0;
+   }
+----
+        
+
+== `vfsgnj.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnj(vs1[i]<15..0>, vs2[i]<15..0>), 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnj(vs1[0]<15..0>, vs2[0]<15..0>), 16) : 0;
+   }
+----
+        
+
+== `vfsgnjn.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjn(vs1[i]<15..0>, vs2[i]<15..0>), 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjn(vs1[0]<15..0>, vs2[0]<15..0>), 16) : 0;
+   }
+----
+        
+
+== `vfsgnjx.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjx(vs1[i]<15..0>, vs2[i]<15..0>), 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjx(vs1[0]<15..0>, vs2[0]<15..0>), 16) : 0;
+   }
+----
+        
+
+== `vfsgnj.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnj(vs1[i]<31..0>, vs2[i]<15..0>), 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnj(vs1[0]<31..0>, vs2[0]<15..0>), 32) : 0;
+   }
+----
+        
+
+== `vfsgnjn.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjn(vs1[i]<31..0>, vs2[i]<15..0>), 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjn(vs1[0]<31..0>, vs2[0]<15..0>), 32) : 0;
+   }
+----
+        
+
+== `vfsgnjx.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjx(vs1[i]<31..0>, vs2[i]<15..0>), 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjx(vs1[0]<31..0>, vs2[0]<15..0>), 32) : 0;
+   }
+----
+        
+
+== `vfsgnj.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnj(vs1[i]<63..0>, vs2[i]<15..0>), 64) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnj(vs1[0]<63..0>, vs2[0]<15..0>), 64) : 0;
+   }
+----
+        
+
+== `vfsgnjn.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjn(vs1[i]<63..0>, vs2[i]<15..0>), 64) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fsgnjn(vs1[0]<63..0>, vs2[0]<15..0>), 64) : 0;
+   }
+----
+        
+
+== `vfsgnjx.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(sgnjx(vs1[i]<63..0>, vs2[i]<63..0>), 64) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(sgnjx(vs1[0]<63..0>, vs2[0]<63..0>), 64) : 0;
+   }
+----
+        
+
+== `vfmax.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fmax(vs1[i]<15..0>, vs2[i]<15..0>), 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fmax(vs1[0]<15..0>, vs2[0]<15..0>), 16) : 0;
+   }
+----
+        
+
+== `vfmax.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fmax(vs1[i]<31..0>, vs2[i]<15..0>), 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fmax(vs1[0]<31..0>, vs2[0]<15..0>), 32) : 0;
+   }
+----
+        
+
+== `vfmax.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fmax(vs1[i]<63..0>, vs2[i]<63..0>), 64) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fmax(vs1[0]<63..0>, vs2[0]<63..0>), 64) : 0;
+   }
+----
+        
+
+== `vfmin.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fmin(vs1[i]<15..0>, vs2[i]<15..0>), 16) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fmin(vs1[0]<15..0>, vs2[0]<15..0>), 16) : 0;
+   }
+----
+        
+
+== `vfmin.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fmin(vs1[i]<31..0>, vs2[i]<15..0>), 32) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fmin(vs1[0]<31..0>, vs2[0]<15..0>), 32) : 0;
+   }
+----
+        
+
+== `vfmin.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? nanbox(fmin(vs1[i]<63..0>, vs2[i]<63..0>), 64) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? nanbox(fmin(vs1[0]<63..0>, vs2[0]<63..0>), 64) : 0;
+   }
+----
+        
+
+== `vfeq.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (feq(vs1[i]<15..0>, vs2[i]<15..0>) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (feq(vs1[0]<15..0>, vs2[0]<15..0>) ? 1 : 0) : 0;
+   }
+----
+        
+
+== `vfeq.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (feq(vs1[i]<31..0>, vs2[i]<31..0>) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (feq(vs1[0]<31..0>, vs2[0]<31..0>) ? 1 : 0) : 0;
+   }
+----
+        
+
+== `vfeq.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (feq(vs1[i]<63..0>, vs2[i]<63..0>) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (feq(vs1[0]<63..0>, vs2[0]<63..0>) ? 1 : 0) : 0;
+   }
+----
+        
+
+== `vflt.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (flt(vs1[i]<15..0>, vs2[i]<15..0>) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (flt(vs1[0]<15..0>, vs2[0]<15..0>) ? 1 : 0) : 0;
+   }
+----
+        
+
+== `vflt.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (flt(vs1[i]<31..0>, vs2[i]<31..0>) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (flt(vs1[0]<31..0>, vs2[0]<31..0>) ? 1 : 0) : 0;
+   }
+----
+        
+
+== `vflt.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (flt(vs1[i]<63..0>, vs2[i]<63..0>) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (flt(vs1[0]<63..0>, vs2[0]<63..0>) ? 1 : 0) : 0;
+   }
+----
+        
+
+== `vfle.h vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (fle(vs1[i]<15..0>, vs2[i]<15..0>) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (fle(vs1[0]<15..0>, vs2[0]<15..0>) ? 1 : 0) : 0;
+   }
+----
+        
+
+== `vfle.s vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (fle(vs1[i]<31..0>, vs2[i]<31..0>) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (fle(vs1[0]<31..0>, vs2[0]<31..0>) ? 1 : 0) : 0;
+   }
+----
+        
+
+== `vfle.d vd, vs1, vs2, m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+----
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<maxew-1..0> = enable ? (fle(vs1[i]<63..0>, vs2[i]<63..0>) ? 1 : 0) : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<maxew-1..0> = enable ? (fle(vs1[0]<63..0>, vs2[0]<63..0>) ? 1 : 0) : 0;
+   }
+----
+        
+
+== `vlb vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? sreadmem(addr,8)) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 1;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,8))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlbu vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? zreadmem(addr,8)) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 1;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,8))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlh vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? sreadmem(addr,16)) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 2;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,16))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlhu vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? zreadmem(addr,16)) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 2;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,16))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlw vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? sreadmem(addr,32)) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 4;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,32))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlwu vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? zreadmem(addr,32)) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 4;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,32))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vld vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? readmem(addr,64)) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 8;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr,64))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflh vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? nreadmem(addr,16)) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 2;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr,16))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflw vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? nreadmem(addr,32)) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 4;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr,32))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vfld vd, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? readmem(addr,64) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 8;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr,64)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlsb vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? sreadmem(addr,8) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,8)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlsbu vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? zreadmem(addr,8) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,8)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlsh vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? sreadmem(addr,16) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,16)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlshu vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? zreadmem(addr,16) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,16)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlsw vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? sreadmem(addr,32) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,32)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlswu vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? zreadmem(addr,32) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,32)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlsd vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? readmem(addr,64) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr,64)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflsh vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? nreadmem(addr,16) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr,16)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflsw vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? nreadmem(addr,32) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr,32)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflsd vd, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? readmem(addr,64) : 0;
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr,64)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlxb vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? sreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,8) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,8)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlxbu vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? zreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,8) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,8)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlxh vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? sreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,16) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,16)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlxhu vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? zreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,16) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,16)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlxw vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? sreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,32) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,32)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlxwu vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? zreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,32) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,32)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlxd vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? readmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,64) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,64)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflxh vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? nreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,16) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,16)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflxw vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? nreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,32) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,32)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflxd vd, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? readmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,64) : 0;
+           
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr<vemaxw-1..0> + vs2[i]<vemaxw-1..0>,64)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlob vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,8));
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,8))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlobu vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,8));
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,8))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vloh vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,16));
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,16))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlohu vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,16));
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,16))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlow vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,32));
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = sreadmem(addr,32))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlowu vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,32));
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = zreadmem(addr,32))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vlod vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr,64));
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr,64))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vfloh vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr,16));
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr,16))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflow vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr,32));
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = nreadmem(addr,32))
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vflod vd, rs1, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr,64);
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           vd[i]<vemaxw-1..0> = enable ? value : 0;
+   }
+   for (     ; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = 0;
+   }
+----
+Semantics for m=00:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   value<vemaxw-1..0> = readmem(addr,64)
+   for (i = 0; i < maxvl; i++ )
+   {
+           vd[i]<vemaxw-1..0> = value
+   }
+----
+
+== `vsb vs3, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr, vs3[i]<7..0>, 8);
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 1;
+   }
+----
+
+== `vsh vs3, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr, vs3[i]<15..0>, 16));
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 2;
+   }
+----
+
+== `vsw vs3, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr, vs3[i]<31..0>, 32));
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 4;
+   }
+----
+
+== `vsd vs3, offset(rs1), m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr, vs3[i]<63..0>, 64));
+           addr<XLEN-1..0> = addr<XLEN-1..0> + 8;
+   }
+----
+
+== `vssb vs3, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr, vs3[i]<7..0>, 8);
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+----
+
+== `vssh vs3, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr, vs3[i]<15..0>, 16);
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+----
+
+== `vssw vs3, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr, vs3[i]<31..0>, 32);
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+----
+
+== `vssd vs3, offset(rs1), rs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr, vs3[i]<63..0>, 64);
+           addr<XLEN-1..0> = addr<XLEN-1..0> + rs2<63..0>;
+   }
+----
+
+== `vsxb vs3, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr<xlen-1..0> + vs2[i]<vemaxw-1..0>, vs3[i]<7..0>, 8);
+           
+   }
+----
+
+== `vsxh vs3, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr<xlen-1..0> + vs2[i]<vemaxw-1..0>, vs3[i]<15..0>, 16);
+           
+   }
+----
+
+== `vsxw vs3, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr<xlen-1..0> + vs2[i]<vemaxw-1..0>, vs3[i]<31..0>, 32);
+           
+   }
+----
+
+== `vsxd vs3, offset(rs1), vs2, m`
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + imm;
+   for (i = 0; i < vl; i++ )
+   {
+           enable = m<1> == 0 || m<0> == v1[i]<0>;
+           if ( enable ) writemem(addr<xlen-1..0> + vs2[i]<vemaxw-1..0>, vs3[i]<63..0>, 64);
+           
+   }
+----
+
+== `vsob vs3, offset(rs1), m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + offset;
+   writemem(addr, vs3[0]<7..0>, 8);
+----
+
+== `vsoh vs3, offset(rs1), m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + offset;
+   writemem(addr, vs3[0]<15..0>, 16);
+----
+
+== `vsow vs3, offset(rs1), m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + offset;
+   writemem(addr, vs3[0]<31..0>, 32);
+----
+
+== `vsod vs3, offset(rs1), m` 
+Encoding: 
+
+Semantics for m=01,10,11:
+[source, c]
+----
+   addr<XLEN-1..0> = rs1<XLEN-1..0> + offset;
+   writemem(addr, vs3[0]<63..0>, 64);
+----
