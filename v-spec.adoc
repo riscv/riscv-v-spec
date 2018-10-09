@@ -109,7 +109,9 @@ instruction causes saturation.
 [NOTE]
 Should also pack all `vcsr` fields into `fcsr` for reduced context switch time?
 
-== `vconfig` instruction
+== Vector Configuration Instructions
+
+=== `vconfig` instruction
 
 Could use `li` + `csrw` instructions to write `vcfg`, or have a `vconfig`
 instruction with the following immediate fields:
@@ -126,7 +128,7 @@ Don't need `vtypen` in base instruction.
 [IMPORTANT]
 `vfastcfg[7] = 0` for all legal configuration combinations. This is since `vfastcfg[6:0]` encode all legal configuration combinations required in the base.`vfastcfg[7] = 1` is reserved for future use. 
 
-=== vfastcfg
+==== vfastcfg
 TODO: Albert
 
 
