@@ -743,7 +743,7 @@ shape.
     vredxor         vd.s, vs1
 ----
 
-== Vector Floating-Point Operations
+== Vector Floating-Point Compute
 The vector floating-point extension includes vector versions of all
 scalar floating-point operations, for the supported floating-point
 precisions of half-precision (16b), single-precision (32b), and
@@ -767,37 +767,6 @@ treating the value as a canonical NaN if not correctly NaN boxed.  A
 vector floating-point operation that writes to a wider destination
 register always NaN boxes the result (writing 1s to the high-order
 bits).
-
-=== Vector Floating-Point Loads
-Floating-point vector load instructions encode type
-
-==== unit-stride instructions
-[source,asm]
-----
-    vflh    vd, rs1, vm
-    vflw    vd, rs1, vm
-    vfld    vd, rs1, vm
-----
-
-==== constant-stride instructions
-[source,asm]
-----
-    vflsh   vd, offset(rs1), rs2, vm
-    vflsw   vd, offset(rs1), rs2, vm
-    vflsd   vd, offset(rs1), rs2, vm
-----
-
-==== indexed (scatter-gather) instructions
-[source,asm]
-----
-    vflxh   vd, offset(rs1), vs2, vm
-    vflxw   vd, offset(rs1), vs2, vm
-    vflxd   vd, offset(rs1), vs2, vm
-----
-
-=== Vector floating-point stores
-These use the integer vector stores, reading data from the low bits of
-the source vector register.
 
 === Vector floating-point rounding mode
 
@@ -1053,9 +1022,44 @@ Convert float to float
     vfcvt.d.s vd, vs1, vm
 ----
 
-=== Move single elements between registers.
 
-==== Move to/from floating-point (f) registers.
+== Vector Floating-Point Memory Operations
+
+=== Vector Floating-Point Loads
+Floating-point vector load instructions encode type
+
+==== unit-stride instructions
+[source,asm]
+----
+    vflh    vd, rs1, vm
+    vflw    vd, rs1, vm
+    vfld    vd, rs1, vm
+----
+
+==== constant-stride instructions
+[source,asm]
+----
+    vflsh   vd, offset(rs1), rs2, vm
+    vflsw   vd, offset(rs1), rs2, vm
+    vflsd   vd, offset(rs1), rs2, vm
+----
+
+==== indexed (scatter-gather) instructions
+[source,asm]
+----
+    vflxh   vd, offset(rs1), vs2, vm
+    vflxw   vd, offset(rs1), vs2, vm
+    vflxd   vd, offset(rs1), vs2, vm
+----
+
+=== Vector floating-point stores
+These use the integer vector stores, reading data from the low bits of
+the source vector register.
+
+
+== Vector Register Element Movement Instructions
+
+=== Move to/from floating-point (f) registers.
 [source,asm]
 ----
     vfmv.v.f  vd, rs1, vm   # vd = rs1
@@ -1090,7 +1094,7 @@ elements to a vector register will have to read old dest and merge in
 new value.  These instructions have only a single vector source, so
 can use second/third read port to read `vd`.
 
-==== Insert/extract elements between vector registers,
+=== Insert/extract elements between vector registers,
 [source,asm]
 ----
     vinsv vd, vs1, rs2      # vd[rs2] = vs1[0]
@@ -1102,7 +1106,7 @@ If `rs2 > MAXVL`, `vextv` returns 0.
 
 All vector masking options are available on `vextv`.
 
-==== Vector merge
+=== Vector merge
 [source,asm]
 ----
     vmerge  vd, vs1, vs2,  vm   # vd[i] = vm[i] ? vs1[i] : vs2[i]
@@ -1113,7 +1117,7 @@ Mask picks between first and second operand to be written to
 destination register.  Scalar shape version copies first operand to
 destination.
 
-==== Vector register gather
+=== Vector register gather
 [source,asm]
 ----
     vrgather vd, vs1, vs2, vm # vd[i] = vs1[vs2[i]]
@@ -1122,7 +1126,7 @@ destination.
 Each destination element is extracted from selected location in source
 vector.  If vs2[i] is out of range 0..MAXVL-1, then 0 is returned.
 
-==== Vector register slideup/slidedown
+=== Vector register slideup/slidedown
 [source,asm]
 ----
     vslidedwn vd, vs1, rs2, vm  # vd[i] = vs1[rs2+i]
@@ -1160,7 +1164,7 @@ or `-1` if no bits set in v1.
 Writes rd with the sum of the set LSBs in the first vl elements of
 vs1.
 
-==== Vector IOTA instruction
+=== Vector IOTA instruction
 
 [source,asm]
 ----
@@ -1284,7 +1288,8 @@ for ( ; i < MAXVL; ++i) {
 }
 ----
 
-=== Base Vector Instruction Set
+== Base Vector Instruction Encoding
+TODO: Colin
 [source,asm]
 ----
     vconfig imm
