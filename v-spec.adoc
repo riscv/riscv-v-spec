@@ -50,6 +50,31 @@ support other max element widths.
 Single-bit `WARL` field that indicates `vtype` CSRs are being used.
 Can be hardwired to zero if vtypes not supported.
 
+=== `vcancfg` CSR holds `vscfg`, `vdcfg`, `vqcfg`
+
+The `vcancfg` CSR register hold the number of registers of each width (in reference to `vemaxw`) to be used for saving and restoration of state.
+
+[NOTE] 
+--
+A fast config encoding can be re-computed based on the unique combination of `vscfg`,`vdcfg`, and `vqcfg`. If the saved configuration is not a legal configuration (when vtypes is disabled), then the resulting restored state will default to the default configuration: 32 single width registers.
+--
+
+==== `vscfg[7:0]`
+
+`vscfg` holds the number of single width (in reference to `vemaxw` vector registers. The field is populated based on the fast
+configuration instruction, and is used for retrieval of state during context switching
+
+==== `vdcfg[7:0]`
+
+`vdcfg` holds the number of double width (in reference to `vemaxw`) vector registers. The field is populated based on the fast
+configuration instruction, and is used for retrieval of state during context switching
+
+==== `vqcfg[7:0]`
+
+`vqcfg` holds the number of quad width (in reference to `vemaxw`) vector registers. The field is populated based on the fast
+configuration instruction, and is used for retrieval of state during context switching
+
+
 === `vl[XLEN-1:0]` CSR
 
 The vector length register is a `WARL` CSR that holds the current
@@ -91,35 +116,28 @@ instruction with the following immediate fields:
 
 [source,asm]
 ----
-vregmax[4:0], vemaxw[4:3] # (7 bits total)
+vfastcfg[7:0] # (7 bits total)
 ----
 
 to enable setting a base configuration in a single instruction.
 [NOTE]
 Don't need `vtypen` in base instruction.
 
-The `vemax[4:3]` setting encodes `vemaxw` width setting as:
-
-----
-01  8-bit
-10 16-bit
-11 32-bit
-00 64-bit
-----
-
 [IMPORTANT]
-In a system with `vtype` fields, writing to `vconfig` initializes all `vtype<n>` fields to signed integers with width equal to `vemaxw`.
+`vfastcfg[7] = 0` for all legal configuration combinations. This is since `vfastcfg[6:0]` encode all legal configuration combinations required in the base.`vfastcfg[7] = 1` is reserved for future use. 
+
+=== vfastcfg
+TODO: Albert
+
 
 The system calculates a `MAXVL` based on the `vconfig` settings, and the
 vector length `vl` CSR is initialized to `MAXVL`.
 
 [NOTE]
-`vl` is inaccessible if `vregmax=0`.
-
 All vector registers are initialized to zero by a `vconfig` instruction.
 
 A pseudo-instruction `vdisable` is mapped to `vconfig` with all
-immediate bits `0` (`vregmax=0`, `vemaxw=0`).
+immediate bits `1` (`vregmax=0`, `vl=0`).
 
 === `vl` and `vsetvl` instruction
 
@@ -142,6 +160,9 @@ The vsetvl instruction is not encoded as a regular `CSRRW` instruction
 as the value returned depends on the input value.
 
 Regular CSR instructions can be used to read and write `vl`.
+[NOTE]
+It is sufficient to make `vl` a read-only registers, since the `vsetvl` instruction
+can be used to re-populate the register during context swaps.
 
 The value written to `vl` on a CSR write is capped at `MAXVL` (`vl` is `WARL`).
 
@@ -234,7 +255,7 @@ The table makes several assumptions:
 
 [format="csv", separator=",", options="header"]
 |===
-Base/Vtypes,Mnemonic,Category,V operands,G operands,Description,Src Type,Dst Type (dst_width = src_width),Dst Type (dst_width = 2*src_width),Dst Type (dst_width = src_width / 2),"Dst Vector/Scalar Behavior: vector src,  scalar dst (instruction mask bits = ""00"", or scalar shape when vtypes is enabled)","Dst Scalar/Vector Behavior: vector dst,  ""scalar"" src (src was written previously as a scalar using ""00"" mask bits)"
+Base/Vtypes,Mnemonic,Category,V operands,G operands,Description,Src Type,Dst Type (dst_width = src_width),Dst Type (dst_width = 2*src_width),Dst Type (dst_width = src_width / 2),"Dst Vector/Scalar Behavior: vector src,  scalar dst (instruction mask bits = "'00'", or scalar shape when vtypes is enabled)","Dst Scalar/Vector Behavior: vector dst,  "'scalar'" src (src was written previously as a scalar using "'00'" mask bits)"
 Vtypes,VADD,arith,2,0,add,"S/U,F","S/U,F",S/U,ILLEGAL,Reduction,Splat
 Base,VADD.X,arith,2,0,add,S/U,S/U,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFADD.[H,S,D]",arith,2,0,add,F,F,ILLEGAL,ILLEGAL,First Element,Splat
@@ -341,160 +362,8 @@ Base,VAMOMIN,xAtomic:select,2,0,Atomic: VMin,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,W
 Base,VAMOSWAP,xAtomic:swap,2,0,Atomic: VSwap,B,B,ILLEGAL,ILLEGAL,First Element,Write a single value
 |=== 
 
-=== Vector Load/Store Instructions
 
-Vector unit-stride, constant-stride, and indexed (scatter/gather) load/store instructions are supported.
-Vector AMO instructions are not provided in the base vector extension.
-
-Load instructions encode the type of the operand, while store instructions encode only the bit width.
-
-Vector loads to a scalar shape only load one element from memory at
-the same memory address that would be used for vector shape element 0.
-Vector masked loads of vector shapes must not generate architecturally
-visible side-effects (beyond writing zero to the destination element)
-for masked-off elements.
-
-Vector stores of a scalar shape store only one element to memory at
-the same memory address that would be used for vector shape element 0.
-Vector masked stores of vector shapes must not generate
-architecturally visible side-effects for masked-off elements.
-
-=== Vector memory model
-
-Vector memory instructions appear to execute in program order on the
-local hart.  Vector memory instructions follow RVWMO at the
-instruction level, and element operations are ordered within the
-instruction as if performed by an element-ordered sequence of
-syntactically independent scalar instructions.  Vector indexed-ordered
-stores write elements to memory in element order.
-
-[NOTE]
-Other possible vector indexed store instructions include unordered
-and reverse-ordered.  Vector indexed-unordered stores write elements
-to memory in arbitrary order within the vector instruction. Vector
-indexed reverse-ordered writes elements in reverse element order to
-help with vectorized memory alias disambiguation.
-
-==== Integer vector load
-
-Integer vector load instructions encode bit width and signed/unsigned
-extension, similar to base scalar ISA.  Vector integer loads for a
-data type narrower than `vemaxw` are sign- or zero-extended to `vemaxw`
-bits.  Vector integer loads for a data type wider than `vemaxw` cause an
-illegal instruction exception.
-
-===== unit-stride instructions
-[source,asm]
-----
-    # vd destination, rs1 base address
-    vlb     vd, rs1, vm
-    vlbu    vd, rs1, vm
-    
-    vlh     vd, rs1, vm
-    vlhu    vd, rs1, vm
-    
-    vlw     vd, rs1, vm
-    vlwu    vd, rs1, vm
-    
-    vld     vd, rs1, vm
-----
-
-[NOTE]
-Speculative versions for unit-stride loads only in base?
-
-===== constant-stride instructions
-[source,asm]
-----
-    # vd destination, rs1 base address, rs2 byte stride
-    vlsb    vd, offset(rs1), rs2, vm 
-    vlsbu   vd, offset(rs1), rs2, vm
-    
-    vlsh    vd, offset(rs1), rs2, vm
-    vlshu   vd, offset(rs1), rs2, vm
-    
-    vlsw    vd, offset(rs1), rs2, vm
-    vlswu   vd, offset(rs1), rs2, vm
-    
-    vlsd    vd, offset(rs1), rs2, vm
-----
-
-The offset is encoded as an immediate (size TBD) that is then scaled
-by the element size to give a byte offset.
-
-The stride is interpreted as an integer representing a byte offset.
-
-===== indexed (scatter-gather) instructions
-[source,asm]
-----
-    # vd destination, rs1 base address, vs2 indices
-    vlxb    vd, offset(rs1), vs2, vm
-    vlxbu   vd, offset(rs1), vs2, vm
-    
-    vlxh    vd, offset(rs1), vs2, vm
-    vlxhu   vd, offset(rs1), vs2, vm
-    
-    vlxw    vd, offset(rs1), vs2, vm
-    vlxwu   vd, offset(rs1), vs2, vm
-    
-    vlxd    vd, offset(rs1), vs2, vm
-----
-
-The offset is encoded as an immediate (size TBD) that is then scaled
-by the element size to give a byte offset.
-
-Scatter/gather indices are treated as integers of width `vemaxw`
-representing byte offsets.
-
-==== Vector stores
-Vector stores move data values as bits taken from the LSBs of the
-source element.  Vector stores for a data type wider than `vemaxw` cause
-an illegal instruction exception.
-
-===== unit-stride store instructions
-[source,asm]
-----
-    vsb     vs3, rs1, vm
-    vsh     vs3, rs1, vm
-    vsw     vs3, rs1, vm
-    vsd     vs3, rs1, vm
-----
-
-===== constant-stride store instructions
-[source,asm]
-----
-    vssb    vs3, offset(rs1), rs2, vm
-    vssh    vs3, offset(rs1), rs2, vm
-    vssw    vs3, offset(rs1), rs2, vm
-    vssd    vs3, offset(rs1), rs2, vm
-----
-
-===== indexed-ordered store (scatter) instructions
-[source,asm]
-----
-    vsxb    vs3, offset(rs1), vs2, vm
-    vsxh    vs3, offset(rs1), vs2, vm
-    vsxw    vs3, offset(rs1), vs2, vm
-    vsxd    vs3, offset(rs1), vs2, vm
-----
-
-===== indexed-unordered (scatter-gather) instructions (Maybe not in base?)
-[source,asm]
-----
-    vsxub   vs3, offset(rs1), vs2, vm
-    vsxuh   vs3, offset(rs1), vs2, vm
-    vsxuw   vs3, offset(rs1), vs2, vm
-    vsxud   vs3, offset(rs1), vs2, vm
-----
-
-===== indexed-reverse-ordered (scatter-gather) instructions (Maybe not in base?)
-
-[source,asm]
-----
-    vsxrb   vs3, offset(rs1), vs2, vm
-    vsxrh   vs3, offset(rs1), vs2, vm
-    vsxrw   vs3, offset(rs1), vs2, vm
-    vsxrd   vs3, offset(rs1), vs2, vm
-----
+== Integer Compute Instructions
 
 === Arithmetic instructions, general formats
 ==== Unary operations
@@ -533,7 +402,7 @@ an illegal instruction exception.
     vop     vd,     vs1, vs2, vs3, v1.f
 ----
 
-==== Vector integer arithmetic instructions
+=== Vector integer arithmetic instructions
 
 Vector integer arithmetic instructions use the full vemaxw width of
 the source and destination vector registers.  All vector integer
@@ -604,6 +473,163 @@ These replace vs2 with a short sign-extended immediate (size TBD).
 
 [NOTE]
 Give up on shiftWs, which need 2 or 3 instructions, use cvt?
+
+
+
+== Vector Load/Store Instructions
+
+Vector unit-stride, constant-stride, and indexed (scatter/gather) load/store instructions are supported.
+Vector AMO instructions are not provided in the base vector extension.
+
+Load instructions encode the type of the operand, while store instructions encode only the bit width.
+
+Vector loads to a scalar shape only load one element from memory at
+the same memory address that would be used for vector shape element 0.
+Vector masked loads of vector shapes must not generate architecturally
+visible side-effects (beyond writing zero to the destination element)
+for masked-off elements.
+
+Vector stores of a scalar shape store only one element to memory at
+the same memory address that would be used for vector shape element 0.
+Vector masked stores of vector shapes must not generate
+architecturally visible side-effects for masked-off elements.
+
+=== Vector memory model
+
+Vector memory instructions appear to execute in program order on the
+local hart.  Vector memory instructions follow RVWMO at the
+instruction level, and element operations are ordered within the
+instruction as if performed by an element-ordered sequence of
+syntactically independent scalar instructions.  Vector indexed-ordered
+stores write elements to memory in element order.
+
+[NOTE]
+Other possible vector indexed store instructions include unordered
+and reverse-ordered.  Vector indexed-unordered stores write elements
+to memory in arbitrary order within the vector instruction. Vector
+indexed reverse-ordered writes elements in reverse element order to
+help with vectorized memory alias disambiguation.
+
+=== Integer vector load
+
+Integer vector load instructions encode bit width and signed/unsigned
+extension, similar to base scalar ISA.  Vector integer loads for a
+data type narrower than `vemaxw` are sign- or zero-extended to `vemaxw`
+bits.  Vector integer loads for a data type wider than `vemaxw` cause an
+illegal instruction exception.
+
+==== unit-stride instructions
+[source,asm]
+----
+    # vd destination, rs1 base address
+    vlb     vd, rs1, vm
+    vlbu    vd, rs1, vm
+    
+    vlh     vd, rs1, vm
+    vlhu    vd, rs1, vm
+    
+    vlw     vd, rs1, vm
+    vlwu    vd, rs1, vm
+    
+    vld     vd, rs1, vm
+----
+
+[NOTE]
+Speculative versions for unit-stride loads only in base?
+
+==== constant-stride instructions
+[source,asm]
+----
+    # vd destination, rs1 base address, rs2 byte stride
+    vlsb    vd, offset(rs1), rs2, vm 
+    vlsbu   vd, offset(rs1), rs2, vm
+    
+    vlsh    vd, offset(rs1), rs2, vm
+    vlshu   vd, offset(rs1), rs2, vm
+    
+    vlsw    vd, offset(rs1), rs2, vm
+    vlswu   vd, offset(rs1), rs2, vm
+    
+    vlsd    vd, offset(rs1), rs2, vm
+----
+
+The offset is encoded as an immediate (size TBD) that is then scaled
+by the element size to give a byte offset.
+
+The stride is interpreted as an integer representing a byte offset.
+
+==== indexed (scatter-gather) instructions
+[source,asm]
+----
+    # vd destination, rs1 base address, vs2 indices
+    vlxb    vd, offset(rs1), vs2, vm
+    vlxbu   vd, offset(rs1), vs2, vm
+    
+    vlxh    vd, offset(rs1), vs2, vm
+    vlxhu   vd, offset(rs1), vs2, vm
+    
+    vlxw    vd, offset(rs1), vs2, vm
+    vlxwu   vd, offset(rs1), vs2, vm
+    
+    vlxd    vd, offset(rs1), vs2, vm
+----
+
+The offset is encoded as an immediate (size TBD) that is then scaled
+by the element size to give a byte offset.
+
+Scatter/gather indices are treated as integers of width `vemaxw`
+representing byte offsets.
+
+=== Vector stores
+Vector stores move data values as bits taken from the LSBs of the
+source element.  Vector stores for a data type wider than `vemaxw` cause
+an illegal instruction exception.
+
+==== unit-stride store instructions
+[source,asm]
+----
+    vsb     vs3, rs1, vm
+    vsh     vs3, rs1, vm
+    vsw     vs3, rs1, vm
+    vsd     vs3, rs1, vm
+----
+
+==== constant-stride store instructions
+[source,asm]
+----
+    vssb    vs3, offset(rs1), rs2, vm
+    vssh    vs3, offset(rs1), rs2, vm
+    vssw    vs3, offset(rs1), rs2, vm
+    vssd    vs3, offset(rs1), rs2, vm
+----
+
+==== indexed-ordered store (scatter) instructions
+[source,asm]
+----
+    vsxb    vs3, offset(rs1), vs2, vm
+    vsxh    vs3, offset(rs1), vs2, vm
+    vsxw    vs3, offset(rs1), vs2, vm
+    vsxd    vs3, offset(rs1), vs2, vm
+----
+
+==== indexed-unordered (scatter-gather) instructions (Maybe not in base?)
+[source,asm]
+----
+    vsxub   vs3, offset(rs1), vs2, vm
+    vsxuh   vs3, offset(rs1), vs2, vm
+    vsxuw   vs3, offset(rs1), vs2, vm
+    vsxud   vs3, offset(rs1), vs2, vm
+----
+
+==== indexed-reverse-ordered (scatter-gather) instructions (Maybe not in base?)
+
+[source,asm]
+----
+    vsxrb   vs3, offset(rs1), vs2, vm
+    vsxrh   vs3, offset(rs1), vs2, vm
+    vsxrw   vs3, offset(rs1), vs2, vm
+    vsxrd   vs3, offset(rs1), vs2, vm
+----
 
 == Vector fixed-point instructions
 The `vclip` instructions support fixed-point and block-floating-point
