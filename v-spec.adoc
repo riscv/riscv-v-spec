@@ -114,23 +114,11 @@ Should also pack all `vcsr` fields into `fcsr` for reduced context switch time?
 === `vconfig` instruction
 
 Could use `li` + `csrw` instructions to write `vcfg`, or have a `vconfig`
-instruction with the following immediate fields:
+instruction with an 8-bit `vfastcfg` immediate field to enable setting a
+base configuration in a single instruction.
 
-[source,asm]
-----
-vfastcfg[7:0] # (7 bits total)
-----
-
-to enable setting a base configuration in a single instruction.
 [NOTE]
 Don't need `vtypen` in base instruction.
-
-[IMPORTANT]
-`vfastcfg[7] = 0` for all legal configuration combinations. This is since `vfastcfg[6:0]` encode all legal configuration combinations required in the base.`vfastcfg[7] = 1` is reserved for future use. 
-
-==== vfastcfg
-TODO: Albert
-
 
 The system calculates a `MAXVL` based on the `vconfig` settings, and the
 vector length `vl` CSR is initialized to `MAXVL`.
@@ -138,8 +126,200 @@ vector length `vl` CSR is initialized to `MAXVL`.
 [NOTE]
 All vector registers are initialized to zero by a `vconfig` instruction.
 
-A pseudo-instruction `vdisable` is mapped to `vconfig` with all
-immediate bits `1` (`vregmax=0`, `vl=0`).
+A pseudo-instruction `vdisable` is mapped to `vconfig` with immediate
+bits `0xff`, resulting in `vregmax = 0` and `vl = 0`.
+
+[IMPORTANT]
+`vfastcfg[7] = 0` for all cases except `vdisable`, since `vfastcfg[6:0]`
+suffices to encode all legal configurations required in the base.
+Other instances of `vfastcfg[7] = 1` are reserved for future use.
+
+==== `vfastcfg` immediate
+
+`vfastcfg` uses a 7-bit encoding to configure the number of vector
+registers along with their element widths.
+
+The upper bits (`vregmax`) correspond to the maximum number of
+architectural vector registers available, alternatively interpreted to
+be a "vector length multiplier".
+
+----
+vlenmul = floor(32 / vregmax)
+----
+
+The lower bits (`vregsel`) denote a configuration as a set of
+single-word (`s`), double-word (`d`), and quad-word (`q`) vector
+registers conceptually mapped to `vregmax` units of storage.
+`s` registers have `vemaxw`-bit elements.
+Wider `d` and `q` vector registers are created by combining two or
+four logically adjacent `s` registers, respectively.
+
+It is always possible to construct a homogenous register file of a wider
+element type by setting a larger `vemaxw` as the base width.
+`v0` always holds the smallest type for use in masking.
+
+These conditions determine the complete set of theoretically possible
+`(s, d, q)` configurations, of which not all have valid encodings due to
+limited `vregcfg` state:
+
+----
+s + 2d + 4q = vregmax
+1 <= s <= vregmax
+0 <= d <= max(floor(vregmax / 2) - 1, 0)
+0 <= q <= max(floor(vregmax / 4) - 1, 0)
+----
+
+[cols="3*>1,^2", options="header"]
+|===
+|`vregmax`
+|`vlenmul`
+|#Configurations
+|Prefix
+
+|32
+|1
+|72
+|`00-----`
+
+|16
+|2
+|20
+|`01-----`
+
+|10
+|3
+|8
+|`100----`
+
+|8
+|4
+|6
+|`101----`
+
+|6
+|5
+|3
+|`1100---`
+
+|5
+|6
+|2
+|`1101---`
+
+|4
+|8
+|2
+|`11100--`
+
+|3
+|10
+|1
+|`11101--`
+
+|2
+|16
+|1
+|`11110--`
+
+|1
+|32
+|1
+|`11111--`
+
+|===
+
+[NOTE]
+*Rationale for variable-length prefix encoding*:
+The number of theoretical combinations grows roughly quadratically with
+`vregmax`, so the number of bits for `vregsel` should scale linearly.
+This permits the complete set of configurations for `vregmax \<= 16` to be
+encoded, while reserving space to encode the 32 most useful combinations
+for `vregmax = 32`.
+
+
+[cols=">1,^2,<8", options="header"]
+|===
+^|`vregmax`
+^|Encoding
+^|Register mapping (`v0`...`v31`)
+
+|32
+|`00 00 000`
+|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s`
+
+.20+|16
+^|`01 00 000` <|`s s s s s s s s s s s s s s s s`
+^|`01 00 001` <|`s s s s s s s s s s s s s s d -`
+^|`01 00 010` <|`s s s s s s s s s s s s d - d -`
+^|`01 00 011` <|`s s s s s s s s s s d - d - d -`
+^|`01 00 100` <|`s s s s s s s s d - d - d - d -`
+^|`01 00 101` <|`s s s s s s d - d - d - d - d -`
+^|`01 00 110` <|`s s s s d - d - d - d - d - d -`
+^|`01 00 111` <|`s s d - d - d - d - d - d - d -`
+
+^|`01 01 000` <|`s s s s s s s s s s s s q - - -`
+^|`01 01 001` <|`s s s s s s s s s s d - q - - -`
+^|`01 01 010` <|`s s s s s s s s d - d - q - - -`
+^|`01 01 011` <|`s s s s s s d - d - d - q - - -`
+^|`01 01 100` <|`s s s s d - d - d - d - q - - -`
+^|`01 01 101` <|`s s d - d - d - d - d - q - - -`
+
+^|`01 10 000` <|`s s s s s s s s q - - - q - - -`
+^|`01 10 001` <|`s s s s s s d - q - - - q - - -`
+^|`01 10 010` <|`s s s s d - d - q - - - q - - -`
+^|`01 10 011` <|`s s d - d - d - q - - - q - - -`
+
+^|`01 11 000` <|`s s s s q - - - q - - - q - - -`
+^|`01 11 001` <|`s s d - q - - - q - - - q - - -`
+
+.8+|10
+^|`100 0 000` <|`s s s s s s s s s s`
+^|`100 0 001` <|`s s s s s s s s d -`
+^|`100 0 010` <|`s s s s s s d - d -`
+^|`100 0 011` <|`s s s s d - d - d -`
+^|`100 0 100` <|`s s d - d - d - d -`
+^|`100 1 000` <|`s s s s q - - - s s`
+^|`100 1 001` <|`s s s s q - - - d -`
+^|`100 1 010` <|`s s d - q - - - d -`
+
+.6+|8
+^|`101 0 000` <|`s s s s s s s s`
+^|`101 0 001` <|`s s s s s s d -`
+^|`101 0 010` <|`s s s s d - d -`
+^|`101 0 011` <|`s s d - d - d -`
+^|`101 1 000` <|`s s s s q - - -`
+^|`101 1 001` <|`s s d - q - - -`
+
+.3+|6
+^|`1100  000` <|`s s s s s s`
+^|`1100  001` <|`s s s s d -`
+^|`1100  010` <|`s s d - d -`
+
+.2+|5
+^|`1101  000` <|`s s s s s`
+^|`1101  001` <|`s s d - s`
+
+.2+|4
+^|`11100  00` <|`s s s s`
+^|`11100  01` <|`s s d -`
+
+|3
+|`11101  00` |`s s s`
+
+|2
+|`11110  00` |`s s`
+
+|1
+|`11111  00` |`s`
+
+|===
+
+[NOTE]
+`vregsel[2:0]` encodes the number of `d` registers, and
+`vregsel[4:3]` encodes the number of `q` registers
+(if the `vregsel` bits that overlap with the `vregmax` prefix are
+implicitly treated as zero).
+
 
 === `vl` and `vsetvl` instruction
 
