@@ -18,125 +18,13 @@ NOTE:  Contributors: Krste Asanovic, Roger Espasa, many more to be added.
 
 == Vector CSRs
 
-=== `vcfg` CSR holds `vregmax`, `vemaxw`, and `vtypeen`
+=== `vcfg` CSR
 
-==== `vregmax[7:0]`
+The `vcfg` CSR holds `vregcfg`, `vemaxw`, and `vtypeen`.
 
-`vregmax` holds the highest-numbered enabled vector register.
-This is an 8-bit `WARL` field to support future expansion to `256` architectural vector registers.
-If `vregmax = 0`, the vector unit is disabled,
-so it is not possible to have a vector unit configuration with only one vector register.
-If `vregmax = 1`, the vector unit has two vector registers `v0` and `v1`,
-if `vregmax = 31`, the vector unit has 32 vector registers, `v0..v31`.
+==== `vregcfg[6:0]`
 
-==== `vemaxw[5:3]`
-
-This is a 3-bit `WARL` field, that can be expanded to match the `vew[5:0]`
-expanded width encoding.
-The `vemaxw` field is encoded as:
-
-----
-001     8-bit
-010     16-bit
-011     32-bit
-100     64-bit
-----
-
-This aligns with expanded `vew<n>` encoding, and leave `WARL` space to
-support other max element widths.
-
-==== `vtypeen`
-
-Single-bit `WARL` field that indicates `vtype` CSRs are being used.
-Can be hardwired to zero if vtypes not supported.
-
-=== `vcancfg` CSR holds `vscfg`, `vdcfg`, `vqcfg`
-
-The `vcancfg` CSR register hold the number of registers of each width (in reference to `vemaxw`) to be used for saving and restoration of state.
-
-[NOTE] 
---
-A fast config encoding can be re-computed based on the unique combination of `vscfg`,`vdcfg`, and `vqcfg`. If the saved configuration is not a legal configuration (when vtypes is disabled), then the resulting restored state will default to the default configuration: 32 single width registers.
---
-
-==== `vscfg[7:0]`
-
-`vscfg` holds the number of single width (in reference to `vemaxw` vector registers. The field is populated based on the fast
-configuration instruction, and is used for retrieval of state during context switching
-
-==== `vdcfg[7:0]`
-
-`vdcfg` holds the number of double width (in reference to `vemaxw`) vector registers. The field is populated based on the fast
-configuration instruction, and is used for retrieval of state during context switching
-
-==== `vqcfg[7:0]`
-
-`vqcfg` holds the number of quad width (in reference to `vemaxw`) vector registers. The field is populated based on the fast
-configuration instruction, and is used for retrieval of state during context switching
-
-
-=== `vl[XLEN-1:0]` CSR
-
-The vector length register is a `WARL` CSR that holds the current
-active vector length.
-
-=== `vxcfg` CSR holds `vxrm` and `vxcm`
-
-==== `vxrm[1:0]`
-
-Holds fixed-point rounding mode.
-
-----
-00      trn truncate
-01      jam jam (OR bits into LSB)
-10      rne round to nearest-even
-11      rup round-up (+0.5 LSB)
-----
-
-==== `vxcm`
-Holds fixed-point clipping mode
-
-----
-    0 wraparound
-    1 saturate
-----
-
-==== `vxsat`  (in `fcsr`)
-
-Holds sticky fixed-point saturation flag.  Set if any `vclip` or `vclipi`
-instruction causes saturation.
-
-[NOTE]
-Should also pack all `vcsr` fields into `fcsr` for reduced context switch time?
-
-== Vector Configuration Instructions
-
-=== `vconfig` instruction
-
-Could use `li` + `csrw` instructions to write `vcfg`, or have a `vconfig`
-instruction with an 8-bit `vfastcfg` immediate field to enable setting a
-base configuration in a single instruction.
-
-[NOTE]
-Don't need `vtypen` in base instruction.
-
-The system calculates a `MAXVL` based on the `vconfig` settings, and the
-vector length `vl` CSR is initialized to `MAXVL`.
-
-[NOTE]
-All vector registers are initialized to zero by a `vconfig` instruction.
-
-A pseudo-instruction `vdisable` is mapped to `vconfig` with immediate
-bits `0xff`, resulting in `vregmax = 0` and `vl = 0`.
-
-[IMPORTANT]
-`vfastcfg[7] = 0` for all cases except `vdisable`, since `vfastcfg[6:0]`
-suffices to encode all legal configurations required in the base.
-Other instances of `vfastcfg[7] = 1` are reserved for future use.
-
-==== `vfastcfg` immediate
-
-`vfastcfg` uses a 7-bit encoding to configure the number of vector
+`vregcfg` uses a 7-bit encoding to configure the number of vector
 registers along with their element widths.
 
 The upper bits (`vregmax`) correspond to the maximum number of
@@ -243,9 +131,42 @@ for `vregmax = 32`.
 ^|Encoding
 ^|Register mapping (`v0`...`v31`)
 
-|32
-|`00 00 000`
-|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s`
+.32+|32
+^|`00 00 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s`
+^|`01 00 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s d -`
+^|`01 00 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s d - d -`
+^|`01 00 011` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - d - d -`
+^|`01 00 100` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - d - d -`
+^|`01 00 101` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - d - d -`
+^|`01 00 110` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - d - d -`
+^|`01 00 111` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - d - d -`
+
+^|`01 01 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s q - - -`
+^|`01 01 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - q - - -`
+^|`01 01 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - q - - -`
+^|`01 01 011` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - q - - -`
+^|`01 01 100` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - q - - -`
+^|`01 01 101` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - q - - -`
+^|`01 01 110` <|`s s s s s s s s s s s s s s s s d - d - d - d - d - d - q - - -`
+^|`01 01 111` <|`s s s s s s s s s s s s s s d - d - d - d - d - d - d - q - - -`
+
+^|`01 10 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s q - - - q - - -`
+^|`01 10 001` <|`s s s s s s s s s s s s s s s s s s s s s s d - q - - - q - - -`
+^|`01 10 010` <|`s s s s s s s s s s s s s s s s s s s s d - d - q - - - q - - -`
+^|`01 10 011` <|`s s s s s s s s s s s s s s s s s s d - d - d - q - - - q - - -`
+^|`01 10 100` <|`s s s s s s s s s s s s s s s s d - d - d - d - q - - - q - - -`
+^|`01 10 101` <|`s s s s s s s s s s s s s s d - d - d - d - d - q - - - q - - -`
+^|`01 10 110` <|`s s s s s s s s s s s s d - d - d - d - d - d - q - - - q - - -`
+^|`01 10 111` <|`s s s s s s s s s s d - d - d - d - d - d - d - q - - - q - - -`
+
+^|`01 11 000` <|`s s s s s s s s s s s s s s s s s s s s q - - - q - - - q - - -`
+^|`01 11 001` <|`s s s s s s s s s s s s s s s s s s d - q - - - q - - - q - - -`
+^|`01 11 010` <|`s s s s s s s s s s s s s s s s d - d - q - - - q - - - q - - -`
+^|`01 11 011` <|`s s s s s s s s s s s s s s d - d - d - q - - - q - - - q - - -`
+^|`01 11 100` <|`s s s s s s s s s s s s d - d - d - d - q - - - q - - - q - - -`
+^|`01 11 101` <|`s s s s s s s s s s d - d - d - d - d - q - - - q - - - q - - -`
+^|`01 11 110` <|`s s s s s s s s d - d - d - d - d - d - q - - - q - - - q - - -`
+^|`01 11 111` <|`s s s s s s d - d - d - d - d - d - d - q - - - q - - - q - - -`
 
 .20+|16
 ^|`01 00 000` <|`s s s s s s s s s s s s s s s s`
@@ -320,6 +241,104 @@ for `vregmax = 32`.
 (if the `vregsel` bits that overlap with the `vregmax` prefix are
 implicitly treated as zero).
 
+==== `vemaxw[5:3]`
+
+`vemaxw` is a 3-bit `WARL` field that can be expanded to match the
+`vew[5:0]` expanded width encoding.
+
+----
+001     8-bit
+010     16-bit
+011     32-bit
+100     64-bit
+----
+
+This aligns with expanded `vew<n>` encoding and leaves `WARL` space to
+support other max element widths.
+
+==== `vtypeen`
+
+`vtypeen` is a single-bit `WARL` field that indicates `vtype` CSRs are
+being used.
+It can be hardwired to zero if vtypes not supported.
+
+
+=== `vl[XLEN-1:0]` CSR
+
+`vl` is a `WARL` CSR that holds the current active vector length.
+
+=== `vlmax[XLEN-1:0]` CSR
+
+`vlmax` is a read-only CSR that holds the current maximum hardware
+vector length (`MAXVL`).
+
+This is primarily intended to assist context switching by simplifying
+size calculations for memory allocation.
+
+=== `vregmask[31:0]` CSR
+
+`vregmask` is a read-only CSR that indicates which vector registers are
+enabled under the current configuration.
+Bitfield `vregmask[0]` is set if `v0` is a legal register, `vregmask[1]` for
+`v1`, and so on.
+
+This is primarily intended to simplify context switching, so software
+can determine which registers must be saved without needing to decode
+`vregcfg` itself.
+
+=== `vxcfg` CSR holds `vxrm` and `vxcm`
+
+==== `vxrm[1:0]`
+
+Holds fixed-point rounding mode.
+
+----
+00      trn truncate
+01      jam jam (OR bits into LSB)
+10      rne round to nearest-even
+11      rup round-up (+0.5 LSB)
+----
+
+==== `vxcm`
+Holds fixed-point clipping mode
+
+----
+    0 wraparound
+    1 saturate
+----
+
+==== `vxsat`  (in `fcsr`)
+
+Holds sticky fixed-point saturation flag.  Set if any `vclip` or `vclipi`
+instruction causes saturation.
+
+[NOTE]
+Should also pack all `vcsr` fields into `fcsr` for reduced context switch time?
+
+== Vector Configuration Instructions
+
+=== `vconfig` instruction
+
+Could use `li` + `csrw` instructions to write `vcfg`, or have a `vconfig`
+instruction with an 8-bit `vregcfg` immediate field to enable setting a
+base configuration in a single instruction.
+
+[NOTE]
+Don't need `vtypen` in base instruction.
+
+The system calculates a `MAXVL` based on the `vconfig` settings, and the
+vector length `vl` CSR is initialized to `MAXVL`.
+
+[NOTE]
+All vector registers are initialized to zero by a `vconfig` instruction.
+
+A pseudo-instruction `vdisable` is mapped to `vconfig` with immediate
+bits `0xff`, resulting in `vregmax = 0` and `vl = 0`.
+
+[IMPORTANT]
+`vregcfg[7] = 0` for all cases except `vdisable`, since `vregcfg[6:0]`
+suffices to encode all legal configurations required in the base.
+Other instances of `vregcfg[7] = 1` are reserved for future use.
 
 === `vl` and `vsetvl` instruction
 
@@ -343,7 +362,7 @@ as the value returned depends on the input value.
 
 Regular CSR instructions can be used to read and write `vl`.
 [NOTE]
-It is sufficient to make `vl` a read-only registers, since the `vsetvl` instruction
+It is sufficient to make `vl` a read-only register, since the `vsetvl` instruction
 can be used to re-populate the register during context swaps.
 
 The value written to `vl` on a CSR write is capped at `MAXVL` (`vl` is `WARL`).
