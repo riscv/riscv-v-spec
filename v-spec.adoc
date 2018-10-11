@@ -425,6 +425,7 @@ The table makes several assumptions:
 . Source operands can be of different widths, but with a difference of no more than a single factor of 2
 . An instruction with a "00" mask value ("scalar destination indication") with a non-scalar vtypes destination register shape is illegal (should trap)
 . An instruction with a mask value which is not "00" ("vector destination indication") with a scalar vtypes destination register shape is illegal (should trap)
+. AMO operands must be of the same shape (trap otherwise)
 . The types are described as follows:
 
 	I - Integer
@@ -535,13 +536,13 @@ Base,"VSX.[H,S,D]",store,1,1,store vector indexed (scatter),I,F,ILLEGAL,ILLEGAL,
 Vtypes,VSO,store,0,1,store vector ordered,I,"B,F",ILLEGAL,ILLEGAL,First Element,Write a single value
 Base,"VSO.[B,H,W,D][U]",store,0,1,store vector ordered,I,B,ILLEGAL,ILLEGAL,First Element,Write a single value
 Base,"VSO.[H,S,D]",store,0,1,store vector ordered,I,F,ILLEGAL,ILLEGAL,First Element,Write a single value
-Base,VAMOADD,xAtomic:arith,2,0,Atomic: VAdd,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Write a single value
-Base,VAMOAND,xAtomic:logical,2,0,Atomic: AND,B,B,ILLEGAL,ILLEGAL,Reduction,Write a single value
-Base,VAMOOR,xAtomic:logical,2,0,Atomic: OR,B,B,ILLEGAL,ILLEGAL,Reduction,Write a single value
-Base,VAMOXOR,xAtomic:logical,2,0,Atomic: XOR,B,B,ILLEGAL,ILLEGAL,Reduction,Write a single value
-Base,VAMOMAX,xAtomic:select,2,0,Atomic: Vmax,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Write a single value
-Base,VAMOMIN,xAtomic:select,2,0,Atomic: VMin,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Write a single value
-Base,VAMOSWAP,xAtomic:swap,2,0,Atomic: VSwap,B,B,ILLEGAL,ILLEGAL,First Element,Write a single value
+Base,VAMOADD,xAtomic:arith,2,0,Atomic: VAdd,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,ILLEGAL
+Base,VAMOAND,xAtomic:logical,2,0,Atomic: AND,B,B,ILLEGAL,ILLEGAL,Reduction,ILLEGAL
+Base,VAMOOR,xAtomic:logical,2,0,Atomic: OR,B,B,ILLEGAL,ILLEGAL,Reduction,ILLEGAL
+Base,VAMOXOR,xAtomic:logical,2,0,Atomic: XOR,B,B,ILLEGAL,ILLEGAL,Reduction,ILLEGAL
+Base,VAMOMAX,xAtomic:select,2,0,Atomic: Vmax,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,ILLEGAL
+Base,VAMOMIN,xAtomic:select,2,0,Atomic: VMin,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,ILLEGAL
+Base,VAMOSWAP,xAtomic:swap,2,0,Atomic: VSwap,B,B,ILLEGAL,ILLEGAL,First Element,ILLEGAL
 |=== 
 
 
