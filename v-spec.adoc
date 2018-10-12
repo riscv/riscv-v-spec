@@ -1,5 +1,5 @@
 = Vector extension
-Version 0.5-draft 20180727
+Version 0.5-draft 20181011
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -14,7 +14,7 @@ to change substantially before standardization.
 WARNING: Even this version is a little behind current discussion, will
 catch up to be primary reference soon.
 
-NOTE:  Contributors: Krste Asanovic, Roger Espasa, many more to be added.
+NOTE:  Contributors: Krste Asanovic, Roger Espasa, Alon Amid, Rich Newell, Albert Ou, Colin Schmidt, Steve Wallach, plus many more to be added
 
 == Vector CSRs
 
