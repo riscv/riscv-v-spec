@@ -42,6 +42,14 @@ registers conceptually mapped to `vregmax` units of storage.
 Wider `d` and `q` vector registers are created by combining two or
 four logically adjacent `s` registers, respectively.
 
+These combined registers are aligned such that their number is divisible by
+two for `d` and by four for `q` registers.
+The other `s` registers that are combined to form the larger register cannot
+be used in isolation: if `vN` is double-word then instructions that read or
+write `v(N+1)` raise an illegal instruction exception, and likewise if `vN` is
+quad-word then instructions that read or write any of `v(N+1)`, `v(N+2)` and
+`v(N+3)` raise an illegal instruction exception.
+
 It is always possible to construct a homogenous register file of a wider
 element type by setting a larger `vemaxw` as the base width.
 `v0` always holds the smallest type for use in masking.
