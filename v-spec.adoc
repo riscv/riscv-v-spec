@@ -135,40 +135,40 @@ A `vregcfg` value of `0x7f` indicates that the vector unit is disabled.
 
 .32+|32
 ^|`00 00 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s`
-^|`01 00 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s d -`
-^|`01 00 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s d - d -`
-^|`01 00 011` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - d - d -`
-^|`01 00 100` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - d - d -`
-^|`01 00 101` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - d - d -`
-^|`01 00 110` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - d - d -`
-^|`01 00 111` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - d - d -`
+^|`00 00 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s d -`
+^|`00 00 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s d - d -`
+^|`00 00 011` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - d - d -`
+^|`00 00 100` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - d - d -`
+^|`00 00 101` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - d - d -`
+^|`00 00 110` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - d - d -`
+^|`00 00 111` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - d - d -`
 
-^|`01 01 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s q - - -`
-^|`01 01 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - q - - -`
-^|`01 01 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - q - - -`
-^|`01 01 011` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - q - - -`
-^|`01 01 100` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - q - - -`
-^|`01 01 101` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - q - - -`
-^|`01 01 110` <|`s s s s s s s s s s s s s s s s d - d - d - d - d - d - q - - -`
-^|`01 01 111` <|`s s s s s s s s s s s s s s d - d - d - d - d - d - d - q - - -`
+^|`00 01 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s q - - -`
+^|`00 01 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - q - - -`
+^|`00 01 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - q - - -`
+^|`00 01 011` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - q - - -`
+^|`00 01 100` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - q - - -`
+^|`00 01 101` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - q - - -`
+^|`00 01 110` <|`s s s s s s s s s s s s s s s s d - d - d - d - d - d - q - - -`
+^|`00 01 111` <|`s s s s s s s s s s s s s s d - d - d - d - d - d - d - q - - -`
 
-^|`01 10 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s q - - - q - - -`
-^|`01 10 001` <|`s s s s s s s s s s s s s s s s s s s s s s d - q - - - q - - -`
-^|`01 10 010` <|`s s s s s s s s s s s s s s s s s s s s d - d - q - - - q - - -`
-^|`01 10 011` <|`s s s s s s s s s s s s s s s s s s d - d - d - q - - - q - - -`
-^|`01 10 100` <|`s s s s s s s s s s s s s s s s d - d - d - d - q - - - q - - -`
-^|`01 10 101` <|`s s s s s s s s s s s s s s d - d - d - d - d - q - - - q - - -`
-^|`01 10 110` <|`s s s s s s s s s s s s d - d - d - d - d - d - q - - - q - - -`
-^|`01 10 111` <|`s s s s s s s s s s d - d - d - d - d - d - d - q - - - q - - -`
+^|`00 10 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s q - - - q - - -`
+^|`00 10 001` <|`s s s s s s s s s s s s s s s s s s s s s s d - q - - - q - - -`
+^|`00 10 010` <|`s s s s s s s s s s s s s s s s s s s s d - d - q - - - q - - -`
+^|`00 10 011` <|`s s s s s s s s s s s s s s s s s s d - d - d - q - - - q - - -`
+^|`00 10 100` <|`s s s s s s s s s s s s s s s s d - d - d - d - q - - - q - - -`
+^|`00 10 101` <|`s s s s s s s s s s s s s s d - d - d - d - d - q - - - q - - -`
+^|`00 10 110` <|`s s s s s s s s s s s s d - d - d - d - d - d - q - - - q - - -`
+^|`00 10 111` <|`s s s s s s s s s s d - d - d - d - d - d - d - q - - - q - - -`
 
-^|`01 11 000` <|`s s s s s s s s s s s s s s s s s s s s q - - - q - - - q - - -`
-^|`01 11 001` <|`s s s s s s s s s s s s s s s s s s d - q - - - q - - - q - - -`
-^|`01 11 010` <|`s s s s s s s s s s s s s s s s d - d - q - - - q - - - q - - -`
-^|`01 11 011` <|`s s s s s s s s s s s s s s d - d - d - q - - - q - - - q - - -`
-^|`01 11 100` <|`s s s s s s s s s s s s d - d - d - d - q - - - q - - - q - - -`
-^|`01 11 101` <|`s s s s s s s s s s d - d - d - d - d - q - - - q - - - q - - -`
-^|`01 11 110` <|`s s s s s s s s d - d - d - d - d - d - q - - - q - - - q - - -`
-^|`01 11 111` <|`s s s s s s d - d - d - d - d - d - d - q - - - q - - - q - - -`
+^|`00 11 000` <|`s s s s s s s s s s s s s s s s s s s s q - - - q - - - q - - -`
+^|`00 11 001` <|`s s s s s s s s s s s s s s s s s s d - q - - - q - - - q - - -`
+^|`00 11 010` <|`s s s s s s s s s s s s s s s s d - d - q - - - q - - - q - - -`
+^|`00 11 011` <|`s s s s s s s s s s s s s s d - d - d - q - - - q - - - q - - -`
+^|`00 11 100` <|`s s s s s s s s s s s s d - d - d - d - q - - - q - - - q - - -`
+^|`00 11 101` <|`s s s s s s s s s s d - d - d - d - d - q - - - q - - - q - - -`
+^|`00 11 110` <|`s s s s s s s s d - d - d - d - d - d - q - - - q - - - q - - -`
+^|`00 11 111` <|`s s s s s s d - d - d - d - d - d - d - q - - - q - - - q - - -`
 
 .20+|16
 ^|`01 00 000` <|`s s s s s s s s s s s s s s s s`
