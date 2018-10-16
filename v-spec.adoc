@@ -22,6 +22,26 @@ NOTE:  Contributors: Krste Asanovic, Roger Espasa, Alon Amid, Rich Newell, Alber
 
 The `vcfg` CSR holds `vregcfg`, `vemaxw`, and `vtypeen`.
 
+==== `vemaxw[5:3]`
+
+`vemaxw` is a 3-bit `WARL` field that can be expanded to match the
+`vew[5:0]` expanded width encoding in <<vewn>>.
+
+.Table `vemaxw[5:3]` Base Encoding
+[#vemaxw,options="header"]
+|===
+|`vemaxw[5:3]` | Width | Required in base
+|001 | 8 | All
+|010 | 16 | All
+|011 | 32 | All
+|100 | 64 | RV32D, RV64, RV128
+|===
+
+[NOTE]
+This aligns with expanded `vew<n>` encoding and leaves `WARL` space to
+support other max element widths.
+Only the encodings in <<vemaxw>> are valid in the base.
+
 ==== `vregcfg[6:0]`
 
 `vregcfg` uses a 7-bit encoding to configure the number of vector
@@ -251,21 +271,6 @@ A `vregcfg` value of `0x7f` indicates that the vector unit is disabled.
 (if the `vregsel` bits that overlap with the `vregmax` prefix are
 implicitly treated as zero).
 
-==== `vemaxw[5:3]`
-
-`vemaxw` is a 3-bit `WARL` field that can be expanded to match the
-`vew[5:0]` expanded width encoding.
-
-----
-001     8-bit
-010     16-bit
-011     32-bit
-100     64-bit
-----
-
-This aligns with expanded `vew<n>` encoding and leaves `WARL` space to
-support other max element widths.
-
 ==== `vtypeen`
 
 `vtypeen` is a single-bit `WARL` field that indicates `vtype` CSRs are
@@ -386,6 +391,47 @@ can be used to re-populate the register during context swaps.
 
 The value written to `vl` on a CSR write is capped at `MAXVL` (`vl` is `WARL`).
 
+== VTypes
+
+This is a place holder for an explanation regarding polymorphic instructions when the vtypes
+option is enabled.
+
+=== `vtype<n>` CSR
+
+The vector unit must be configured before use.  Each architectural
+vector register, `v<n>`, is configured via 16 bits of vector type
+configuration state `vtype<n>`, which can be accessed via vector
+configuration (`vcfg`) CSRs and other rapid vector configuration
+instructions as described below.  The vector register type
+configuration encodes the overall organization, or _shape_, of the
+elements in each vector register (e.g., scalar versus 1-D vector), as
+well as the bitwidth and numeric representation of each element.
+The 16-bit `vtype<n>` encoding is divided into a 5-bit current shape
+field `vshape<n>`, a 5-bit representation field `verep<n>`, and a
+6-bit element bit-width field `vew<n>`, held in the `vcfg<n>` CSRs.
+The combination of an element numeric representation and an element
+bitwidth is called an element _format_.
+Each vector register can also be disabled to free physical vector
+storage for other architectural vector registers.
+
+==== `vew<n>`
+
+Each vector register, `v<n>`, has a 6-bit element width register,
+`vew<n>`, to specify the number of bits for each element of the current
+type in the vector register.
+
+.Table `vew<n>` Extended Encoding
+[#vewn,options="header"]
+|===
+|`vew` | Width | Required in base
+|000 000 | disabled | All
+|001 000 | 8 | All
+|010 000 | 16 | All
+|011 000 | 32 | All
+|100 000 | 64 | RV32D, RV64, RV128
+|101 000 | 128 | RV64Q, RV128
+|===
+
 == Vector instruction overview
 
 In the base vector extension, all source vector register operands are
@@ -451,12 +497,6 @@ If no masking operand is specified, unmasked vector execution (`m=01`) is assume
     vadd    v0,   v2, v3, v0.f  # enabled where v0.LSB=0,    m=10
     vadd    v0,   v2, v3, v0.t  # enabled where v0.LSB=1,    m=11
 ----
-
-
-=== Vtypes
-This is a place holder for an explanation regarding polymorphic instructions when the vtypes
-option is enabled.
-
 
 === Operations and Types
 
