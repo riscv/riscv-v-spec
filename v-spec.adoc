@@ -18,6 +18,10 @@ NOTE:  Contributors: Krste Asanovic, Roger Espasa, Alon Amid, Rich Newell, Alber
 
 == Vector CSRs
 
+[IMPORTANT]
+Bitfield encodings that are not explicitly enumerated in tables are
+reserved by default for future use.
+
 === `vcfg` CSR
 
 The `vcfg` CSR holds `vregcfg`, `vemaxw`, and `vtypeen`.
@@ -428,9 +432,6 @@ within the vector register.
 |00100 | 1-D vector (length controlled by `vl`)
 |===
 
-[NOTE]
-Other encodings are reserved for additional shapes.
-
 ==== `verep<n>`
 
 The 5-bit `verep<n>` field sets the numeric representation of each
@@ -445,9 +446,6 @@ element of the vector register.
 |00010 | _Reserved_
 |00011 | IEEE 754 floating-point
 |===
-
-[NOTE]
-Other encodings are reserved for additional representations.
 
 ==== `vew<n>`
 
@@ -465,9 +463,6 @@ current type in the vector register.
 |100 000 | 64 | RV32D, RV64, RV128
 |101 000 | 128 | RV64Q, RV128
 |===
-
-[NOTE]
-Other encodings are reserved for additional element widths.
 
 == Vector instruction overview
 
