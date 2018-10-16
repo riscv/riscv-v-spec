@@ -795,9 +795,9 @@ help with vectorized memory alias disambiguation.
 
 Integer vector load instructions encode bit width and signed/unsigned
 extension, similar to base scalar ISA.  Vector integer loads for a
-data type narrower than `vemaxw` are sign- or zero-extended to `vemaxw`
-bits.  Vector integer loads for a data type wider than `vemaxw` cause an
-illegal instruction exception.
+data type narrower than the configured vector register element width are sign- or
+zero-extended to the configured vector register element width.  Vector integer loads
+for a data type wider than `vemaxw` cause an illegal instruction exception.
 
 ==== unit-stride instructions
 [source,asm]
