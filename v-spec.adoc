@@ -275,8 +275,9 @@ implicitly treated as zero).
 
 `vtypeen` is a single-bit `WARL` field that indicates `vtype` CSRs are
 being used.
-It can be hardwired to zero if vtypes not supported.
-Further details about `vtype` CSRs can be found in <<VTypes>> 
+It can be hardwired to zero if vtypes not supported, as in the base
+vector extension.
+Further details about `vtype` CSRs can be found in <<VTypes>>.
 
 
 === `vl[XLEN-1:0]` CSR
@@ -393,32 +394,65 @@ The value written to `vl` on a CSR write is capped at `MAXVL` (`vl` is `WARL`).
 
 == VTypes
 
-This is a place holder for an explanation regarding polymorphic instructions when the vtypes
+This is a placeholder for an explanation regarding polymorphic instructions when the vtypes
 option is enabled.
+
+[NOTE]
+vtypes are not mandated by the base vector extension.
 
 === `vtype<n>` CSR
 
-The vector unit must be configured before use.  Each architectural
-vector register, `v<n>`, is configured via 16 bits of vector type
-configuration state `vtype<n>`, which can be accessed via vector
-configuration (`vcfg`) CSRs and other rapid vector configuration
-instructions as described below.  The vector register type
+Each architectural vector register `v<n>` is configured via 16 bits of
+vector type configuration state `vtype<n>`.  The vector register type
 configuration encodes the overall organization, or _shape_, of the
-elements in each vector register (e.g., scalar versus 1-D vector), as
-well as the bitwidth and numeric representation of each element.
+elements in each vector register, as well as the bitwidth and numeric
+representation of each element.
 The 16-bit `vtype<n>` encoding is divided into a 5-bit current shape
 field `vshape<n>`, a 5-bit representation field `verep<n>`, and a
-6-bit element bit-width field `vew<n>`, held in the `vcfg<n>` CSRs.
+6-bit element bit-width field `vew<n>`.
 The combination of an element numeric representation and an element
 bitwidth is called an element _format_.
 Each vector register can also be disabled to free physical vector
 storage for other architectural vector registers.
 
+==== `vshape<n>`
+
+The 5-bit `vshape<n>` field describes the structure of the elements
+within the vector register.
+
+.Table `vshape<n>` Extended Encoding
+[#vshapen,options="header"]
+|===
+|`vshape` | Shape
+|00000 | scalar
+|00100 | 1-D vector (length controlled by `vl`)
+|===
+
+[NOTE]
+Other encodings are reserved for additional shapes.
+
+==== `verep<n>`
+
+The 5-bit `verep<n>` field sets the numeric representation of each
+element of the vector register.
+
+.Table `verep<n>` Extended Encoding
+[#verepn,options="header"]
+|===
+|`verep` | Representation
+|00000 | Unsigned integer
+|00001 | Two's-complement signed integer
+|00010 | _Reserved_
+|00011 | IEEE 754 floating-point
+|===
+
+[NOTE]
+Other encodings are reserved for additional representations.
+
 ==== `vew<n>`
 
-Each vector register, `v<n>`, has a 6-bit element width register,
-`vew<n>`, to specify the number of bits for each element of the current
-type in the vector register.
+The `vew<n>` field specifies the number of bits for each element of the
+current type in the vector register.
 
 .Table `vew<n>` Extended Encoding
 [#vewn,options="header"]
@@ -431,6 +465,9 @@ type in the vector register.
 |100 000 | 64 | RV32D, RV64, RV128
 |101 000 | 128 | RV64Q, RV128
 |===
+
+[NOTE]
+Other encodings are reserved for additional element widths.
 
 == Vector instruction overview
 
