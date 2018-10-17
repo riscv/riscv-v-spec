@@ -406,7 +406,7 @@ vtypes are not mandated by the base vector extension.
 
 === `vtype<n>` CSR
 
-Each architectural vector register `v<n>` is configured via 16 bits of
+Each architectural vector register `v<n>` (`v0`...`v31`) is configured via 16 bits of
 vector type configuration state `vtype<n>`.  The vector register type
 configuration encodes the overall organization, or _shape_, of the
 elements in each vector register, as well as the bitwidth and numeric
