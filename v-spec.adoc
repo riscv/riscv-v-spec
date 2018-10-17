@@ -349,7 +349,7 @@ instruction with an 8-bit `vregcfg` immediate field to enable setting a
 base configuration in a single instruction.
 
 [NOTE]
-Don't need `vtypen` in base instruction.
+Don't need `vtypeen` in base instruction.
 
 The system calculates a `MAXVL` based on the `vconfig` settings, and the
 vector length `vl` CSR is initialized to `MAXVL`.
