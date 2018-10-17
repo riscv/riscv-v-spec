@@ -31,7 +31,7 @@ The `vcfg` CSR holds `vregcfg`, `vemaxw`, and `vtypeen`.
 `vemaxw` is a 3-bit `WARL` field that can be expanded to match the
 `vew[5:0]` expanded width encoding in <<vewn>>.
 
-.Table `vemaxw[5:3]` Base Encoding
+.`vemaxw[5:3]` Base Encoding
 [#vemaxw,options="header"]
 |===
 |`vemaxw[5:3]` | Width | Required in base
@@ -422,7 +422,7 @@ storage for other architectural vector registers.
 The 5-bit `vshape<n>` field describes the structure of the elements
 within the vector register.
 
-.Table `vshape<n>` Extended Encoding
+.`vshape<n>` Extended Encoding
 [#vshapen,options="header"]
 |===
 |`vshape` | Shape
@@ -435,7 +435,7 @@ within the vector register.
 The 5-bit `verep<n>` field sets the numeric representation of each
 element of the vector register.
 
-.Table `verep<n>` Extended Encoding
+.`verep<n>` Extended Encoding
 [#verepn,options="header"]
 |===
 |`verep` | Representation
@@ -450,7 +450,7 @@ element of the vector register.
 The `vew<n>` field specifies the number of bits for each element of the
 current type in the vector register.
 
-.Table `vew<n>` Extended Encoding
+.`vew<n>` Extended Encoding
 [#vewn,options="header"]
 |===
 |`vew` | Width | Required in base
