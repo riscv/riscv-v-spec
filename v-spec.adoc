@@ -277,12 +277,11 @@ implicitly treated as zero).
 
 ==== `vtypeen`
 
-`vtypeen` is a single-bit `WARL` field that indicates `vtype` CSRs are
-being used.
-It can be hardwired to zero if vtypes not supported, as in the base
-vector extension.
-Further details about `vtype` CSRs can be found in <<VTypes>>.
-
+`vtypeen` is a single-bit `WARL` field which, when set, indicates that
+the vector register configuration obeys the `vtype<n>` CSRs instead of
+`vregcfg`.
+It should be hardwired to zero if <<VTypes,vtypes>> are not supported,
+as in the base vector extension.
 
 === `vl[XLEN-1:0]` CSR
 
@@ -348,9 +347,6 @@ Could use `li` + `csrw` instructions to write `vcfg`, or have a `vconfig`
 instruction with an 8-bit `vregcfg` immediate field to enable setting a
 base configuration in a single instruction.
 
-[NOTE]
-Don't need `vtypen` in base instruction.
-
 The system calculates a `MAXVL` based on the `vconfig` settings, and the
 vector length `vl` CSR is initialized to `MAXVL`.
 
@@ -399,12 +395,14 @@ The value written to `vl` on a CSR write is capped at `MAXVL` (`vl` is `WARL`).
 == VTypes
 
 This is a placeholder for an explanation regarding polymorphic instructions when the vtypes
-option is enabled.
+option is enabled with `vtypeen = 1`.
 
 [NOTE]
 vtypes are not mandated by the base vector extension.
+If vtypes are not implemented, then the `vtype<n>` CSRs are not present
+and attempts to access them raise an illegal instruction exception.
 
-=== `vtype<n>` CSR
+=== `vtype<n>` CSRs
 
 Each architectural vector register `v<n>` (`v0`...`v31`) is configured via 16 bits of
 vector type configuration state `vtype<n>`.  The vector register type
