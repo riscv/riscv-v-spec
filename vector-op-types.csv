@@ -70,6 +70,7 @@ Base,VINSERT,permute,1,1,insert element(s),B,B,ILLEGAL,ILLEGAL,First Element,Pla
 Base,VMERGE,permute,2,0,merge registers,B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VSELECT,permute,2,0,select from source by indicies,B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VSLIDE,permute,1,1,shift elements,B,B,ILLEGAL,ILLEGAL,First Element,Splat
+Base,VRGATHER,permute,2,0,gather elements from vector register,B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VCLIP,round,1,1,clip to narrow,S/U,S/U,ILLEGAL,S/U,First Element,Splat
 Base,VCLIPI,round,1,0,"Clip, shift by imm",S/U,S/U,ILLEGAL,S/U,First Element,Splat
 Vtypes,VMAX,select,2,0,return max element,"S/U,F","S/U,F",ILLEGAL,ILLEGAL,Reduction,Splat
