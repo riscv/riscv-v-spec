@@ -697,8 +697,9 @@ The stride is interpreted as an integer representing a byte offset.
 The offset is encoded as an immediate (size TBD) that is then scaled
 by the element size to give a byte offset.
 
-Scatter/gather indices are treated as integers of width `vemaxw`
-representing byte offsets.
+Scatter/gather indices are treated as signed integers and are sign-extended
+from the currently configured element width to `XLEN` representing byte
+offsets.
 
 === Vector stores
 Vector stores move data values as bits taken from the LSBs of the
