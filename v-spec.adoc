@@ -46,41 +46,68 @@ This aligns with expanded `vew<n>` encoding and leaves `WARL` space to
 support other max element widths.
 Only the encodings in <<vemaxw>> are valid in the base.
 
-==== `vregcfg[6:0]`
+==== `vregcfg`
 
-`vregcfg` uses a 7-bit encoding to configure the number of vector
+`vregcfg` is a 12-bit field further divided into `vregmax`, `vregd`, and
+`vregq`, which collectively configure the number of architectural vector
 registers along with their element widths.
 
-The upper bits (`vregmax`) correspond to the maximum number of
-architectural vector registers available, alternatively interpreted to
-be a "vector length multiplier".
+`vregmax` is a 5-bit `WARL` subfield that sets the maximum number of
+architectural vector registers available.
+Values are represented with an offset of -1, where `n` is encoded as
+binary `n - 1` to permit the range 1 \<= n \<= 32.
+At most, the first `n` vector registers (`v0`...`v<n-1>`) become legal
+to use, and the remainder are disabled.
+Accesses to registers `v<n>` and above raise an illegal instruction
+exception.
+
+[NOTE]
+--
+For a given size of physical vector storage, disabling unused
+architectural registers enables an implementation to increase `MAXVL`
+up to a factor of the _vector length multiplier_:
 
 ----
-vlenmul = floor(32 / vregmax)
+vlenmul = 32 / vregmax
 ----
+--
 
-The lower bits (`vregsel`) denote a configuration as a set of
-single-word (`s`), double-word (`d`), and quad-word (`q`) vector
-registers conceptually mapped to `vregmax` units of storage.
-`s` registers have `vemaxw`-bit elements.
-Wider `d` and `q` vector registers are created by combining two or
+A _configuration_ refers to a set of single-word (`s`), double-word
+(`d`), and quad-word (`q`) vector registers conceptually mapped to
+`vregmax` units of storage.
+`s` registers have elements of `vemaxw` bits.
+`d` and `q` vector registers are created by combining two or
 four logically adjacent `s` registers, respectively.
+
+`vregd` is a 4-bit `WARL` subfield that sets the number of `d` registers
+whose elements are `2 * vemaxw` bits wide.
+
+`vregq` is a 3-bit `WARL` subfield that sets the number of `q` registers
+whose elements are `4 * vemaxw` bits wide.
 
 These combined registers are aligned such that their number is divisible by
 two for `d` and by four for `q` registers.
 The other `s` registers that are combined to form the larger register cannot
-be used in isolation: if `vN` is double-word then instructions that read or
-write `v(N+1)` raise an illegal instruction exception, and likewise if `vN` is
-quad-word then instructions that read or write any of `v(N+1)`, `v(N+2)` and
-`v(N+3)` raise an illegal instruction exception.
+be used in isolation: if `v<n>` is double-word then instructions that read or
+write `v<n+1>` raise an illegal instruction exception, and likewise if `v<n>` is
+quad-word then instructions that read or write any of `v<n+1>`, `v<n+2>` and
+`v<n+3>` raise an illegal instruction exception.
+
+The `q` registers are grouped in a contiguous segment at the
+highest-numbered aligned position, starting from
+`v<Q>` where `Q = 4 * (floor(vregmax / 4) - vregq)`.
+The `d` registers then occupy the highest-numbered aligned positions
+not already assigned to `q` registers, starting from `v<D>` where
+`D = Q - (2 * (vregd - D'))` and `D' = floor(vregmax / 2) - (2 * floor(vregmax / 4))`.
+(`D'` corresponds to the potential "hole" after the quad-word segment
+caused by the alignment constraint.)
 
 It is always possible to construct a homogenous register file of a wider
 element type by setting a larger `vemaxw` as the base width.
 `v0` always holds the smallest type for use in masking.
 
 These conditions determine the complete set of theoretically possible
-`(s, d, q)` configurations, of which not all have valid encodings due to
-limited `vregcfg` state:
+`(s, d, q)` configurations:
 
 ----
 s + 2d + 4q = vregmax
@@ -89,191 +116,31 @@ s + 2d + 4q = vregmax
 0 <= q <= max(floor(vregmax / 4) - 1, 0)
 ----
 
-[cols="3*>1,^2", options="header"]
-|===
-|`vregmax`
-|`vlenmul`
-|#Configurations
-|Prefix
+[TIP]
+--
+For example, `vregmax = 16`, `vregd = 3`, `vregq = 2` yields the
+following configuration:
 
-|32
-|1
-|72
-|`00-----`
-
-|16
-|2
-|20
-|`01-----`
-
-|10
-|3
-|8
-|`100----`
-
-|8
-|4
-|6
-|`101----`
-
-|6
-|5
-|3
-|`1100---`
-
-|5
-|6
-|2
-|`1101---`
-
-|4
-|8
-|2
-|`11100--`
-
-|3
-|10
-|1
-|`11101--`
-
-|2
-|16
-|1
-|`11110--`
-
-|1
-|32
-|1
-|`11111--`
-
-|===
-
-[NOTE]
-*Rationale for variable-length prefix encoding*:
-The number of theoretical combinations grows roughly quadratically with
-`vregmax`, so the number of bits for `vregsel` should scale linearly.
-This permits the complete set of configurations for `vregmax \<= 16` to be
-encoded, while reserving space to encode the 32 most useful combinations
-for `vregmax = 32`.
+----
+ name: v0 v1 v2    v4    v6    v8          v12
+width:  s  s  d  -  d  -  d  -  q  -  -  -  q  -  -  -
+----
+--
 
 [IMPORTANT]
-A `vregcfg` value of `0x7f` indicates that the vector unit is disabled.
+Implementations may exploit configurations with reduced `vemaxw` and
+`vregmax` parameters to increase packing efficiency and extend the `MVL`
+dynamically, but such optimizations are not strictly needed to comply
+with the specification.
+A static mapping of 32 * `MVL` * 64-bit vector registers where `MVL` is
+constant also serves as a valid implementation.
+The only requirement is preserving the same truncation and exception
+behavior -- trapping on instructions that use disabled registers or
+involve wider source or destination element widths than configured.
 
-[cols=">1,^2,<8", options="header"]
-|===
-^|`vregmax`
-^|Encoding
-^|Register mapping (`v0`...`v31`)
-
-.32+|32
-^|`00 00 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s`
-^|`00 00 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s d -`
-^|`00 00 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s d - d -`
-^|`00 00 011` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - d - d -`
-^|`00 00 100` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - d - d -`
-^|`00 00 101` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - d - d -`
-^|`00 00 110` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - d - d -`
-^|`00 00 111` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - d - d -`
-
-^|`00 01 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s q - - -`
-^|`00 01 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - q - - -`
-^|`00 01 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - q - - -`
-^|`00 01 011` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - q - - -`
-^|`00 01 100` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - q - - -`
-^|`00 01 101` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - q - - -`
-^|`00 01 110` <|`s s s s s s s s s s s s s s s s d - d - d - d - d - d - q - - -`
-^|`00 01 111` <|`s s s s s s s s s s s s s s d - d - d - d - d - d - d - q - - -`
-
-^|`00 10 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s q - - - q - - -`
-^|`00 10 001` <|`s s s s s s s s s s s s s s s s s s s s s s d - q - - - q - - -`
-^|`00 10 010` <|`s s s s s s s s s s s s s s s s s s s s d - d - q - - - q - - -`
-^|`00 10 011` <|`s s s s s s s s s s s s s s s s s s d - d - d - q - - - q - - -`
-^|`00 10 100` <|`s s s s s s s s s s s s s s s s d - d - d - d - q - - - q - - -`
-^|`00 10 101` <|`s s s s s s s s s s s s s s d - d - d - d - d - q - - - q - - -`
-^|`00 10 110` <|`s s s s s s s s s s s s d - d - d - d - d - d - q - - - q - - -`
-^|`00 10 111` <|`s s s s s s s s s s d - d - d - d - d - d - d - q - - - q - - -`
-
-^|`00 11 000` <|`s s s s s s s s s s s s s s s s s s s s q - - - q - - - q - - -`
-^|`00 11 001` <|`s s s s s s s s s s s s s s s s s s d - q - - - q - - - q - - -`
-^|`00 11 010` <|`s s s s s s s s s s s s s s s s d - d - q - - - q - - - q - - -`
-^|`00 11 011` <|`s s s s s s s s s s s s s s d - d - d - q - - - q - - - q - - -`
-^|`00 11 100` <|`s s s s s s s s s s s s d - d - d - d - q - - - q - - - q - - -`
-^|`00 11 101` <|`s s s s s s s s s s d - d - d - d - d - q - - - q - - - q - - -`
-^|`00 11 110` <|`s s s s s s s s d - d - d - d - d - d - q - - - q - - - q - - -`
-^|`00 11 111` <|`s s s s s s d - d - d - d - d - d - d - q - - - q - - - q - - -`
-
-.20+|16
-^|`01 00 000` <|`s s s s s s s s s s s s s s s s`
-^|`01 00 001` <|`s s s s s s s s s s s s s s d -`
-^|`01 00 010` <|`s s s s s s s s s s s s d - d -`
-^|`01 00 011` <|`s s s s s s s s s s d - d - d -`
-^|`01 00 100` <|`s s s s s s s s d - d - d - d -`
-^|`01 00 101` <|`s s s s s s d - d - d - d - d -`
-^|`01 00 110` <|`s s s s d - d - d - d - d - d -`
-^|`01 00 111` <|`s s d - d - d - d - d - d - d -`
-
-^|`01 01 000` <|`s s s s s s s s s s s s q - - -`
-^|`01 01 001` <|`s s s s s s s s s s d - q - - -`
-^|`01 01 010` <|`s s s s s s s s d - d - q - - -`
-^|`01 01 011` <|`s s s s s s d - d - d - q - - -`
-^|`01 01 100` <|`s s s s d - d - d - d - q - - -`
-^|`01 01 101` <|`s s d - d - d - d - d - q - - -`
-
-^|`01 10 000` <|`s s s s s s s s q - - - q - - -`
-^|`01 10 001` <|`s s s s s s d - q - - - q - - -`
-^|`01 10 010` <|`s s s s d - d - q - - - q - - -`
-^|`01 10 011` <|`s s d - d - d - q - - - q - - -`
-
-^|`01 11 000` <|`s s s s q - - - q - - - q - - -`
-^|`01 11 001` <|`s s d - q - - - q - - - q - - -`
-
-.8+|10
-^|`100 0 000` <|`s s s s s s s s s s`
-^|`100 0 001` <|`s s s s s s s s d -`
-^|`100 0 010` <|`s s s s s s d - d -`
-^|`100 0 011` <|`s s s s d - d - d -`
-^|`100 0 100` <|`s s d - d - d - d -`
-^|`100 1 000` <|`s s s s q - - - s s`
-^|`100 1 001` <|`s s s s q - - - d -`
-^|`100 1 010` <|`s s d - q - - - d -`
-
-.6+|8
-^|`101 0 000` <|`s s s s s s s s`
-^|`101 0 001` <|`s s s s s s d -`
-^|`101 0 010` <|`s s s s d - d -`
-^|`101 0 011` <|`s s d - d - d -`
-^|`101 1 000` <|`s s s s q - - -`
-^|`101 1 001` <|`s s d - q - - -`
-
-.3+|6
-^|`1100  000` <|`s s s s s s`
-^|`1100  001` <|`s s s s d -`
-^|`1100  010` <|`s s d - d -`
-
-.2+|5
-^|`1101  000` <|`s s s s s`
-^|`1101  001` <|`s s d - s`
-
-.2+|4
-^|`11100  00` <|`s s s s`
-^|`11100  01` <|`s s d -`
-
-|3
-|`11101  00` |`s s s`
-
-|2
-|`11110  00` |`s s`
-
-|1
-|`11111  00` |`s`
-
-|===
-
-[NOTE]
-`vregsel[2:0]` encodes the number of `d` registers, and
-`vregsel[4:3]` encodes the number of `q` registers
-(if the `vregsel` bits that overlap with the `vregmax` prefix are
-implicitly treated as zero).
+[IMPORTANT]
+`vregmax = 1`, `vregd = 1`, `vregq = 0` indicates that the vector unit
+is disabled.
 
 ==== `vtypeen`
 
@@ -344,7 +211,7 @@ Should also pack all `vcsr` fields into `fcsr` for reduced context switch time?
 === `vconfig` instruction
 
 Could use `li` + `csrw` instructions to write `vcfg`, or have a `vconfig`
-instruction with an 8-bit `vregcfg` immediate field to enable setting a
+instruction with an 8-bit `vfastcfg` immediate field to enable setting a
 base configuration in a single instruction.
 
 The system calculates a `MAXVL` based on the `vconfig` settings, and the
@@ -354,12 +221,91 @@ vector length `vl` CSR is initialized to `MAXVL`.
 All vector registers are initialized to zero by a `vconfig` instruction.
 
 A pseudo-instruction `vdisable` is mapped to `vconfig` with immediate
-bits `0x7f`, resulting in `vregmax = 0` and `vl = 0`.
+bits `0x01`, resulting in `vl = 0`.
 
 [IMPORTANT]
-`vregcfg[7] = 0` for all cases, since `vregcfg[6:0]`
-suffices to encode all legal configurations required in the base.
-All instances of `vregcfg[7] = 1` are reserved for future use.
+`vfastcfg[7]` is reserved for future use and should be set to 0 in the
+interim.
+
+==== `vfastcfg` immediate
+
+The lower 7 bits of the `vfastcfg` immediate field form a compressed
+encoding of the `vregcfg` CSR.
+
+See also <<vfastcfg-visual>> for an expanded table.
+
+.`vfastcfg` Base Encoding
+[#vfastcfg,cols="3*>1,<,^,^", options="header"]
+|===
+|`vregmax`
+|`vlenmul`
+|#Configurations
+3+^|Encoding
+
+|32
+|1
+|72
+|`11`|`vregq[1:0]`|`vregd[2:0]`
+
+|16
+|2
+|20
+|`10`|`vregq[1:0]`|`vregd[2:0]`
+
+|10
+|3
+|8
+|`011`|`vregq[0]`|`vregd[2:0]`
+
+|8
+|4
+|6
+|`010`|`vregq[0]`|`vregd[2:0]`
+
+|6
+|5
+|3
+|`0011`||`vregd[2:0]`
+
+|5
+|6
+|2
+|`0010`||`vregd[2:0]`
+
+|4
+|8
+|2
+|`00011`||`vregd[1:0]`
+
+|3
+|10
+|1
+|`00010`||`vregd[1:0]`
+
+|2
+|16
+|1
+|`00001`||`vregd[1:0]`
+
+|1
+|32
+|1
+|`00000`||`vregd[1:0]`
+
+|===
+
+[NOTE]
+*Rationale for variable-length prefix encoding*:
+The number of legal configurations grows roughly quadratically with
+`vregmax`, so the number of bits allocated for `vregd` and `vregq`
+should scale linearly.
+This permits the complete set of configurations for `vregmax \<= 16` to be
+encoded, while reserving space to encode the 32 most useful combinations
+for `vregmax = 32`.
+
+[NOTE]
+The subset of `vregmax` values are chosen to provide a significant
+`vlenmul` benefit.
 
 === `vl` and `vsetvl` instruction
 
@@ -1467,3 +1413,121 @@ for ( ; i < MAXVL; ++i) {
 
 == Base Vector Instruction Encoding
 include::inst-table.adoc[]
+
+[appendix]
+== `vfastcfg` Reference
+
+.`vfastcfg` Visual Reference
+[#vfastcfg-visual,cols=">1,^2,<8", options="header"]
+|===
+^|`vregmax`
+^|Encoding
+^|Register mapping (`v0`...`v31`)
+
+.32+|32
+^|`11 00 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s`
+^|`11 00 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s s s d -`
+^|`11 00 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s d - d -`
+^|`11 00 011` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - d - d -`
+^|`11 00 100` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - d - d -`
+^|`11 00 101` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - d - d -`
+^|`11 00 110` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - d - d -`
+^|`11 00 111` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - d - d -`
+
+^|`11 01 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s s s q - - -`
+^|`11 01 001` <|`s s s s s s s s s s s s s s s s s s s s s s s s s s d - q - - -`
+^|`11 01 010` <|`s s s s s s s s s s s s s s s s s s s s s s s s d - d - q - - -`
+^|`11 01 011` <|`s s s s s s s s s s s s s s s s s s s s s s d - d - d - q - - -`
+^|`11 01 100` <|`s s s s s s s s s s s s s s s s s s s s d - d - d - d - q - - -`
+^|`11 01 101` <|`s s s s s s s s s s s s s s s s s s d - d - d - d - d - q - - -`
+^|`11 01 110` <|`s s s s s s s s s s s s s s s s d - d - d - d - d - d - q - - -`
+^|`11 01 111` <|`s s s s s s s s s s s s s s d - d - d - d - d - d - d - q - - -`
+
+^|`11 10 000` <|`s s s s s s s s s s s s s s s s s s s s s s s s q - - - q - - -`
+^|`11 10 001` <|`s s s s s s s s s s s s s s s s s s s s s s d - q - - - q - - -`
+^|`11 10 010` <|`s s s s s s s s s s s s s s s s s s s s d - d - q - - - q - - -`
+^|`11 10 011` <|`s s s s s s s s s s s s s s s s s s d - d - d - q - - - q - - -`
+^|`11 10 100` <|`s s s s s s s s s s s s s s s s d - d - d - d - q - - - q - - -`
+^|`11 10 101` <|`s s s s s s s s s s s s s s d - d - d - d - d - q - - - q - - -`
+^|`11 10 110` <|`s s s s s s s s s s s s d - d - d - d - d - d - q - - - q - - -`
+^|`11 10 111` <|`s s s s s s s s s s d - d - d - d - d - d - d - q - - - q - - -`
+
+^|`11 11 000` <|`s s s s s s s s s s s s s s s s s s s s q - - - q - - - q - - -`
+^|`11 11 001` <|`s s s s s s s s s s s s s s s s s s d - q - - - q - - - q - - -`
+^|`11 11 010` <|`s s s s s s s s s s s s s s s s d - d - q - - - q - - - q - - -`
+^|`11 11 011` <|`s s s s s s s s s s s s s s d - d - d - q - - - q - - - q - - -`
+^|`11 11 100` <|`s s s s s s s s s s s s d - d - d - d - q - - - q - - - q - - -`
+^|`11 11 101` <|`s s s s s s s s s s d - d - d - d - d - q - - - q - - - q - - -`
+^|`11 11 110` <|`s s s s s s s s d - d - d - d - d - d - q - - - q - - - q - - -`
+^|`11 11 111` <|`s s s s s s d - d - d - d - d - d - d - q - - - q - - - q - - -`
+
+.20+|16
+^|`10 00 000` <|`s s s s s s s s s s s s s s s s`
+^|`10 00 001` <|`s s s s s s s s s s s s s s d -`
+^|`10 00 010` <|`s s s s s s s s s s s s d - d -`
+^|`10 00 011` <|`s s s s s s s s s s d - d - d -`
+^|`10 00 100` <|`s s s s s s s s d - d - d - d -`
+^|`10 00 101` <|`s s s s s s d - d - d - d - d -`
+^|`10 00 110` <|`s s s s d - d - d - d - d - d -`
+^|`10 00 111` <|`s s d - d - d - d - d - d - d -`
+
+^|`10 01 000` <|`s s s s s s s s s s s s q - - -`
+^|`10 01 001` <|`s s s s s s s s s s d - q - - -`
+^|`10 01 010` <|`s s s s s s s s d - d - q - - -`
+^|`10 01 011` <|`s s s s s s d - d - d - q - - -`
+^|`10 01 100` <|`s s s s d - d - d - d - q - - -`
+^|`10 01 101` <|`s s d - d - d - d - d - q - - -`
+
+^|`10 10 000` <|`s s s s s s s s q - - - q - - -`
+^|`10 10 001` <|`s s s s s s d - q - - - q - - -`
+^|`10 10 010` <|`s s s s d - d - q - - - q - - -`
+^|`10 10 011` <|`s s d - d - d - q - - - q - - -`
+
+^|`10 11 000` <|`s s s s q - - - q - - - q - - -`
+^|`10 11 001` <|`s s d - q - - - q - - - q - - -`
+
+.8+|10
+^|`011 0 000` <|`s s s s s s s s s s`
+^|`011 0 001` <|`s s s s s s s s d -`
+^|`011 0 010` <|`s s s s s s d - d -`
+^|`011 0 011` <|`s s s s d - d - d -`
+^|`011 0 100` <|`s s d - d - d - d -`
+^|`011 1 000` <|`s s s s q - - - s s`
+^|`011 1 001` <|`s s s s q - - - d -`
+^|`011 1 010` <|`s s d - q - - - d -`
+
+.6+|8
+^|`010 0 000` <|`s s s s s s s s`
+^|`010 0 001` <|`s s s s s s d -`
+^|`010 0 010` <|`s s s s d - d -`
+^|`010 0 011` <|`s s d - d - d -`
+^|`010 1 000` <|`s s s s q - - -`
+^|`010 1 001` <|`s s d - q - - -`
+
+.3+|6
+^|`0011  000` <|`s s s s s s`
+^|`0011  001` <|`s s s s d -`
+^|`0011  010` <|`s s d - d -`
+
+.2+|5
+^|`0010  000` <|`s s s s s`
+^|`0010  001` <|`s s d - s`
+
+.2+|4
+^|`00011  00` <|`s s s s`
+^|`00011  01` <|`s s d -`
+
+|3
+|`00010  00` |`s s s`
+
+|2
+|`00001  00` |`s s`
+
+|1
+|`00000  00` |`s`
+
+|===
+
+[NOTE]
+Dashes (`-`) denote disabled vector registers.
+
