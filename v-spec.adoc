@@ -528,11 +528,22 @@ masked.
 ----
     vadd    vd, vs1, vs2, v0.t
     vsub    vd, vs1, vs2, v0.t
-    
+----
+
+
+Vector shifts use `log2(max(x, y))` lower bits of `vs2` for the shift value,
+where `x` is the current configured element width of `vd`, and `y` is the
+current configured element width of `vs1`.
+
+[source,asm]
+----
     vsll    vd, vs1, vs2, v0.t
     vsra    vd, vs1, vs2, v0.t
     vsrl    vd, vs1, vs2, v0.t
+----
     
+[source,asm]
+----
     vand    vd, vs1, vs2, v0.t
     vor     vd, vs1, vs2, v0.t
     vxor    vd, vs1, vs2, v0.t
