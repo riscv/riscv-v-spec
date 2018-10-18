@@ -820,8 +820,8 @@ of base encoding.
 
 === Vector minimum element width
 An illegal instruction exception is raised when trying to execute a
-vector floating-point instruction for a precision that does not fit in
-the current `vemaxw`.
+vector floating-point instruction for a precision that is larger than
+the current configured vector element width.
 
 === Vector `NaN` Boxing
 Vector floating-point operations follow the scalar floating-point NaN
