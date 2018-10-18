@@ -1,4 +1,4 @@
-Base/Vtypes,Mnemonic,Category,V operands,G operands,Description,Src Type,Dst Type (dst_width = src_width),Dst Type (dst_width = 2*src_width),Dst Type (dst_width = src_width / 2),"Dst Vector/Scalar Behavior: vector src, scalar dst (instruction mask bits = 00 or scalar shape when vtypes is enabled)","Dst Scalar/Vector Behavior: vector dst, scalar src (src was written previously as a scalar using 00 mask bits)"
+Base/Vtypes,Mnemonic,Category,V operands,G operands,Description,Src Type,Dst Type (dst_width = src_width),Dst Type (dst_width = 2*src_width),Dst Type (dst_width = src_width / 2),"Dst Vector/Scalar Behavior: vector src,  scalar dst (instruction mask bits = 00, or scalar shape when vtypes is enabled)","Dst Scalar/Vector Behavior: vector dst,  scalar src (src was written previously as a scalar using 00 mask bits)"
 Vtypes,VADD,arith,2,0,add,"S/U,F","S/U,F",S/U,ILLEGAL,Reduction,Splat
 Base,VADD.X,arith,2,0,add,S/U,S/U,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFADD.[H,S,D]",arith,2,0,add,F,F,ILLEGAL,ILLEGAL,First Element,Splat
@@ -10,16 +10,16 @@ Base,VSUB.X,arith,2,0,subtract,I,I,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFSUB.[H,S,D]",arith,2,0,subtract,F,F,ILLEGAL,ILLEGAL,First Element,Splat
 Vtypes,VSEQ,compare,2,0,"1 if ==, else 0","S/U,F",ן,I,ILLEGAL,First Element,Splat
 Base,VSEQ.X,compare,2,0,"1 if ==, else 0",S/U,I,I,ILLEGAL,First Element,Splat
-Base,VFSEQ.[H.S.D],compare,2,0,"1 if ==, else 0",F,I,I,ILLEGAL,First Element,Splat
+Base,VFEQ.[H.S.D],compare,2,0,"1 if ==, else 0",F,I,I,ILLEGAL,First Element,Splat
 Vtypes,VSGE,compare,2,0,"1 if >=, else 0","S/U,F",I,I,ILLEGAL,First Element,Splat
 Base,VSGE.X,compare,2,0,"1 if >=, else 0",S/U,I,I,ILLEGAL,First Element,Splat
-Base,"VFSGE.[H,S,D]",compare,2,0,"1 if >=, else 0",F,I,I,ILLEGAL,First Element,Splat
+Base,"VFLE.[H,S,D]",compare,2,0,"1 if <=, else 0",F,I,I,ILLEGAL,First Element,Splat
 Vtypes,VSLT,compare,2,0,"1 if <, else 0","S/U,F",ן,I,ILLEGAL,First Element,Splat
 Base,VSLT.X,compare,2,0,"1 if <, else 0",S/U,ן,I,ILLEGAL,First Element,Splat
-Base,"VFSLT.[H,S,D]",compare,2,0,"1 if <, else 0",F,ן,I,ILLEGAL,First Element,Splat
+Base,"VFLT.[H,S,D]",compare,2,0,"1 if <, else 0",F,ן,I,ILLEGAL,First Element,Splat
 Vtypes,VSNE,compare,2,0,"1 if <>, else 0","S/U,F",ן,I,ILLEGAL,First Element,Splat
 Base,VSNE.X,compare,2,0,"1 if <>, else 0",S/U,ן,I,ILLEGAL,First Element,Splat
-Base,"VFSNE.[H,S,D]",compare,2,0,"1 if <>, else 0",F,ן,I,ILLEGAL,First Element,Splat
+Base,"VFNE.[H,S,D]",compare,2,0,"1 if <>, else 0",F,ן,I,ILLEGAL,First Element,Splat
 Vtypes,VCVT,convert,1,1,convert type,"S/U,F","F,S/U",ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFCVT.[X,H,S,D].[X,H,S,D]",convert,1,1,convert type,"S/U,F","F,S/U",ILLEGAL,ILLEGAL,First Element,Splat
 Vtypes,VSGNJ,copy/sign,2,0,FP sign injection,F,F,ILLEGAL,ILLEGAL,First Element,Splat

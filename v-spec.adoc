@@ -538,12 +538,16 @@ masked.
     vxor    vd, vs1, vs2, v0.t
 ----
 
+The following compare instructions write `1` to the destination register if the
+comparison evaluates to true and produces `0` otherwise.
 [NOTE]
-`SNE` not needed with complementing masks
+`VSNE` is not needed with complementing masks but sometimes predicate results feed
+into things other than predicate inputs and so `VSNE` can save an instruction.
 
 [source,asm]
 ----
     vseq    vd, vs1, vs2, v0.t
+    vsne    vd, vs1, vs2, v0.t
     vslt    vd, vs1, vs2, v0.t
     vsltu   vd, vs1, vs2, v0.t
     vsge    vd, vs1, vs2, v0.t
@@ -904,13 +908,25 @@ The following produce and consume operands of the same floating-point precision:
     vfmax.d         vd, vs1, vs2, vm
 ----
 
-The following compare instructions produce an integer binary value:
+The following compare instructions behave similarly to `FEQ`, `FLE`, and `FLT`
+from the `F` and `D` extensions.
+[NOTE]
+The inconsistency between `VFLE` and `VSGE` is to maintain consistency between
+the scalar branch instructions and the vector comparison instructions, which
+are often used to emulate branches.
 
 [source,asm]
 ----
     vfeq.h          vd, vs1, vs2, vm
     vfeq.s          vd, vs1, vs2, vm
     vfeq.d          vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfne.h          vd, vs1, vs2, vm
+    vfne.s          vd, vs1, vs2, vm
+    vfne.d          vd, vs1, vs2, vm
 ----
 
 [source,asm]
