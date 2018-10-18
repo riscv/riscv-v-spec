@@ -695,10 +695,10 @@ Vtypes,VAMOSWAP,xAtomic:swap,2,0,Atomic: VSwap,B,B,ILLEGAL,ILLEGAL,First Element
 
 === Vector integer arithmetic instructions
 
-Vector integer arithmetic instructions use the full vemaxw width of
-the source and destination vector registers.  All vector integer
-arithmetic instructions can produce scalar or vector shapes and can be
-masked.
+Vector integer arithmetic instructions use the configured vector
+register element width of the source and destination vector registers.
+All vector integer arithmetic instructions can produce scalar or vector
+shapes and can be masked.
 
 [source,asm]
 ----
