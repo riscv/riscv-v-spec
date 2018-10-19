@@ -478,6 +478,38 @@ If no masking operand is specified, unmasked vector execution (`m=01`) is assume
 
 There is a table of operations, and the affect of the operand and destination types on the result of the operations in appendix <<vector-op-table>>
 
+The types supported by the base V extension depend upon the base
+scalar ISA and supported extensions.  When the base V extension is
+added to a base scalar ISA, it must support the vector data element
+types and operations implied by the supported scalar types as defined by
+tables <<velemtypes-int>> and <<velemtypes-fp>>.
+
+[#velemtypes-int]
+.Supported Fixed-Point Formats
+|===
+  |RV32I  |I8, U8, I16, U16, I32, U32
+  |RV64I  |I8, U8, I16, U16, I32, U32, I64, U64
+  |RV128I |I8, U8, I16, U16, I32, U32, I64, U64, I128, U128
+|===
+
+[#velemtypes-fp]
+.Supported Floating-Point Formats
+|===
+|F      |F16, F32
+|FD     |F16, F32, F64
+|FDQ    |F16, F32, F64, F128
+|===
+
+Supported data element formats depend on base integer ISA
+and supported floating-point extensions.  `Ix` indicates a signed
+integer of `x` bits, `Ux` indicates an unsigned integer of `x` bits,
+and `Fx` indicates an IEEE floating-point number of `x` bits.
+
+[NOTE]
+Future vector extensions might expand the set of supported
+datatypes, including custom application-specific datatypes.
+
+
 == Integer Compute Instructions
 
 === Arithmetic instructions, general formats
