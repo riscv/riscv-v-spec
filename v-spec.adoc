@@ -551,8 +551,8 @@ datatypes, including custom application-specific datatypes.
 
 === Vector integer arithmetic instructions
 
-Vector integer arithmetic instructions use the configured vector
-register element width of the source and destination vector registers.
+Vector integer arithmetic instructions use the currently configured
+element width of the source and destination vector registers.
 All vector integer arithmetic instructions can produce scalar or vector
 shapes and can be masked.
 
@@ -865,7 +865,7 @@ of base encoding.
 === Vector minimum element width
 An illegal instruction exception is raised when trying to execute a
 vector floating-point instruction for a precision that is larger than
-the current configured vector element width.
+the current configured element width.
 
 === Vector `NaN` Boxing
 Vector floating-point operations follow the scalar floating-point NaN
