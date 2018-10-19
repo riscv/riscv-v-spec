@@ -84,11 +84,11 @@ Base,VSLI,shift,1,0,shift left by immediate,I,B,ILLEGAL,ILLEGAL,First Element,Sp
 Base,VSR,shift,2,0,Shift Right (arithmetic),I,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VSRI,shift,1,0,shift right by immediate,I,B,ILLEGAL,ILLEGAL,First Element,Splat
 Vtypes,VS,store,0,1,store vector (unit stride),I,"B,F",ILLEGAL,ILLEGAL,First Element,Splat
-Base,"VS.[B,H,W,D][U]",store,0,1,store vector (unit stride),I,B,ILLEGAL,ILLEGAL,First Element,Write a single value
+Base,"VS.[B,H,W,D][U]",store,0,1,store vector (unit stride),I,B,ILLEGAL,ILLEGAL,Write First Element,Splat
 Vtypes,VSS,store,0,2,store vector (stride),I,"B,F",ILLEGAL,ILLEGAL,First Element,Write a single value
-Base,"VSS.[B,H,W,D][U]",store,0,2,store vector (stride),I,B,ILLEGAL,ILLEGAL,First Element,Write a single value
+Base,"VSS.[B,H,W,D][U]",store,0,2,store vector (stride),I,B,ILLEGAL,ILLEGAL,Write First Element,Splat
 Vtypes,VSX,store,1,1,store vector indexed (scatter),I,"B,F",ILLEGAL,ILLEGAL,First Element,Write a single value
-Base,"VSX.[B,H,W,D][U]",store,1,1,store vector indexed (scatter),I,B,ILLEGAL,ILLEGAL,First Element,Write a single value (first value of index vector)
+Base,"VSX.[B,H,W,D][U]",store,1,1,store vector indexed (scatter),I,B,ILLEGAL,ILLEGAL,Write First Element,Splat
 Vtypes,VSO,store,0,1,store vector ordered,I,"B,F",ILLEGAL,ILLEGAL,First Element,Write a single value
 Vtypes,VAMOADD,xAtomic:arith,2,0,Atomic: VAdd,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,ILLEGAL
 Vtypes,VAMOAND,xAtomic:logical,2,0,Atomic: AND,B,B,ILLEGAL,ILLEGAL,Reduction,ILLEGAL
