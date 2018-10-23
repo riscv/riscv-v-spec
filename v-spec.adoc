@@ -446,13 +446,33 @@ The value written to `vl` on a CSR write is capped at `MAXVL` (`vl` is `WARL`).
 
 == VTypes
 
-This is a placeholder for an explanation regarding polymorphic instructions when the vtypes
+This is a placeholder for an explanation regarding polymorphic instructions when the VTypes
 option is enabled with `vtypeen = 1`.
 
 [NOTE]
-vtypes are not mandated by the base vector extension.
-If vtypes are not implemented, then the `vtype<n>` CSRs are not present
+VTypes are not mandated by the base vector extension.
+If VTypes are not implemented, then the `vtype<n>` CSRs are not present
 and attempts to access them raise an illegal instruction exception.
+
+=== Polymorphic Vector Instructions
+
+When the VTypes option is enabled the vector extension can use a polymorphic
+instruction encoding where the opcode is combined with the types of the source
+and destination registers to determine the operation to be performed.  For
+example, a `vadd` opcode will perform a 32-bit integer vector-vector add if both
+vector source operands and the vector destination register are 32-bit integers,
+but will perform a 16-bit floating-point vector-vector operation if both vector
+source operands and the vector destination are 16-bit floats.
+
+The polymorphic encoding also naturally supports operations with mixed
+precisions on the input and output, and also supports extending the
+instruction set with new types without necessarily increasing the
+opcode space.
+
+Not all combinations of source and destination argument types need be
+supported.  The minimal VTypes option mandates only that
+implementations provide a subset of combinations of types on inputs
+and outputs.
 
 === `vtype<n>` Fields
 
@@ -613,6 +633,14 @@ increase both the opcode space and the set of architectural
 registers.  The 64-bit vector encoding could support 256
 architectural vector registers and orthogonal specification of a
 predicate register in each instruction.
+
+[NOTE]
+The original draft of the base vector extension used a fully polymorphic
+instruction encoding. After many discussions and the desire to simplify
+the minimum required implementation, the current hybrid approach emerged.
+The current hybrid approach enables both very small and simple base
+implementations with explicitly encoded operations as well as optional more
+fully-featured implementations using VTypes and polymorphic operations.
 
 === Assembler syntax
 
