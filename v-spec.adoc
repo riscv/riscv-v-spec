@@ -8,13 +8,69 @@ Version 0.5-draft 20181011
 
 == Background and Motivation
 
-WARNING: This is a draft of the RISC-V Vector Extension and is likely
+[WARNING]
+This is a draft of the RISC-V Vector Extension and is likely
 to change substantially before standardization.
 
-WARNING: Even this version is a little behind current discussion, will
+[WARNING]
+Even this version is a little behind current discussion, will
 catch up to be primary reference soon.
 
-NOTE:  Contributors: Krste Asanovic, Roger Espasa, Alon Amid, Rich Newell, Albert Ou, Colin Schmidt, Steve Wallach, plus many more to be added
+This chapter presents a proposal for the RISC-V base vector
+instruction-set extension.  The base vector extension is intended to
+provide general support for data-parallel execution within the 32-bit
+instruction encoding space, with later vector extensions supporting
+richer functionality for certain domains.
+
+[NOTE]
+The vector extension is based on the style of vector register
+architecture introduced by Seymour Cray in the 1970s, as opposed to
+the earlier packed SIMD approach, introduced with the Lincoln Labs
+TX-2 in 1957 and now adopted by most other commercial instruction
+sets.
+
+The base vector extension defines the components that must be included
+when the "V" bit is set in the `misa` register, and consequently
+those that will be assumed to exist by software written for an ABI
+specifying V.
+
+[NOTE]
+This draft version of the chapter includes additional specifications
+of proposed extensions to the base vector extension to explain some
+of the encoding choices made for the base.
+
+The vector extension supports a configurable vector unit, to enable
+implementations to tradeoff the number of active architectural vector
+registers and supported element widths against available maximum
+vector length.  The vector extension is designed to allow the same
+binary code to work efficiently across a variety of hardware
+implementations varying in physical vector storage capacity and
+datapath spatial and/or temporal parallelism.
+
+[NOTE]
+The vector instruction set contains many features developed in earlier
+research projects, including the Berkeley T0[CITE] and VIRAM[CITE]
+vector microprocessors, the MIT Scale vector-thread processor[CITE]
+and the Berkeley Maven[CITE] and Hwacha[CITE] projects.
+
+[NOTE]
+Contributors: Krste Asanovic, Roger Espasa, Alon Amid, Rich Newell, Albert Ou, Colin Schmidt, Steve Wallach, plus many more to be added
+
+== Vector Unit State
+
+The additional vector unit architectural state includes 32 vector
+registers (`v0`--`v31`), and an XLEN-bit WARL vector length
+CSR, `vl`. In addition, there are several configuration CSRs
+described in <<Vector CSRs>>.
+
+[NOTE]
+Future vector extensions using wider instruction encodings can
+support more architectural vector registers. For example, 256
+architectural vector registers in a 64-bit instruction encoding.
+
+[NOTE]
+Future 2D shape extensions add two more vector length registers,
+`vm` and `vn`.
 
 == Vector CSRs
 
@@ -25,6 +81,26 @@ reserved by default for future use.
 === `vcfg` CSR
 
 The `vcfg` CSR holds `vregcfg`, `vemaxw`, and `vtypeen`.
+
+Any change to the vector configuration that might change MAXVL cause the
+entire vector unit registers to be zeroed.  Any write to the global
+`vemaxw` causes the entire vector unit state to be zeroed, even if
+the value in `vemaxw` is unchanged.
+
+[NOTE]
+--
+The state is zeroed to hide implementation-dependent bit mappings
+and to provide additional security when context swapping.  Zero is
+also a convenient initial value for some loops.
+
+In-order implementations will probably use a flag bit per register to
+mux in 0 instead of garbage values on each source until it is
+overwritten.  For in-order machines, vector lengths less than MAXVL
+complicate this zeroing, but these cases can be handled by adding a
+zero bit per element or element group.  Machines with vector
+register renaming can just initialize the rename table to point
+entries at a physical zero register.
+--
 
 ==== `vemaxw[5:3]`
 
@@ -45,6 +121,15 @@ The `vcfg` CSR holds `vregcfg`, `vemaxw`, and `vtypeen`.
 This aligns with expanded `vew<n>` encoding and leaves `WARL` space to
 support other max element widths.
 Only the encodings in <<vemaxw>> are valid in the base.
+
+[NOTE]
+It was also common in earlier vector machines to support multiple
+precisions within the vector datapath.  In particular, the CDC
+STAR-100[CITE] supported single-precision and
+double-precision floating-point operations and also bit, byte, and
+nibble operations in the vector unit; TI ASC[CITE] designs
+supported dividing 64-bit vector lanes into two 32-bit lanes for
+double throughput.
 
 ==== `vregcfg`
 
@@ -129,10 +214,10 @@ width:  s  s  d  -  d  -  d  -  q  -  -  -  q  -  -  -
 
 [IMPORTANT]
 Implementations may exploit configurations with reduced `vemaxw` and
-`vregmax` parameters to increase packing efficiency and extend the `MVL`
+`vregmax` parameters to increase packing efficiency and extend the `MAXVL`
 dynamically, but such optimizations are not strictly needed to comply
 with the specification.
-A static mapping of 32 * `MVL` * 64-bit vector registers where `MVL` is
+A static mapping of 32 * `MAXVL` * `ELEN` vector registers where `MAXVL` is
 constant also serves as a valid implementation.
 The only requirement is preserving the same truncation and exception
 behavior -- trapping on instructions that use disabled registers or
@@ -163,7 +248,7 @@ This is primarily intended to assist context switching by simplifying
 size calculations for memory allocation.
 
 [NOTE]
-We can compute `MAXVL` using the `vsetvl` instruction with a requested vector 
+We can compute `MAXVL` using the `vsetvl` instruction with a requested vector
 length of 2\^xlen - 1 (the equivalent of "infinity")
 
 === `vregmask[31:0]` CSR
@@ -307,6 +392,27 @@ for `vregmax = 32`.
 The subset of `vregmax` values are chosen to provide a significant
 `vlenmul` benefit.
 
+=== Maximum Vector Length (MAXVL)
+
+The implementation determines an available _maximum vector length_
+(MAXVL) dependent on the current vector type configuration held in
+`vcfg` if `vtypeen == 0` or `vtype<n>` if `vtypeen == 1`.
+The available MAXVL depends on the configuration setting and on the
+implementation's microarchitecture, but MAXVL must always have the same value for
+the same configuration parameters on a given hart.
+
+[NOTE]
+--
+Several earlier vector machines had the ability to configure
+physical vector register storage into a larger number of short
+vectors or a shorter number of long vectors. In particular the
+Fujitsu VP series[CITE] supported combining power-of-2 base
+vector registers into longer vector registers.
+
+The Scale[CITE], Maven[CITE] and Hwacha[CITE] processors also
+support configuration-dependent MAXVL.
+--
+
 === `vl` and `vsetvl` instruction
 
 The `vsetvl rd, rs1` instruction sets `vl` based on the current vector
@@ -318,7 +424,7 @@ The `vl` setting must be:
 . greater than 0, if rs1 is greater than 0
 . monotonically increasing with the value in rs1, but need not be
 strictly increasing
-. bounded above by min(rs1,MAXVL) 
+. bounded above by min(rs1,MAXVL)
 . deterministic for any given configuration
 
 If the vector unit is disabled, vsetvl or any read or write of `vl` will
@@ -348,7 +454,7 @@ vtypes are not mandated by the base vector extension.
 If vtypes are not implemented, then the `vtype<n>` CSRs are not present
 and attempts to access them raise an illegal instruction exception.
 
-=== `vtype<n>` CSRs
+=== `vtype<n>` Fields
 
 Each architectural vector register `v<n>` (`v0`...`v31`) is configured via 16 bits of
 vector type configuration state `vtype<n>`.  The vector register type
@@ -375,6 +481,11 @@ within the vector register.
 |00000 | scalar
 |00100 | 1-D vector (length controlled by `vl`)
 |===
+
+[NOTE]
+For the minimum VTypes implementation, only a single bit is required in each
+`vshape` field to select between scalar and 1-D vector elements
+with the other bits hardwired to zero.
 
 ==== `verep<n>`
 
@@ -407,6 +518,43 @@ current type in the vector register.
 |100 000 | 64 | RV32D, RV64, RV128
 |101 000 | 128 | RV64Q, RV128
 |===
+
+[NOTE]
+The largest element width supported is
+termed ELEN, and is defined to be the larger of the supported integer
+and floating-point type widths:
+`ELEN = max(XLEN,FLEN)`
+
+=== Vector Type Configuration CSRs `vtcfg0`--`vtcfg15`
+
+The vector type configuration requires 512 bits of state (32 vector
+registers each with 16-bit `vtype<n>` field) that can be accessed
+via the `vtcfg` CSRs.
+
+RV128 uses four vector configuration CSRs: `vtcfg0` holds
+configuration data for `v0`--`v7` with bits `16n` to `16n+15`
+holding `vtype<n>`, while `vtcfg4`, `vtcfg8` and
+`vtcfg12` similarly holds configuration data for `v8`--`v15`,
+  `v16`--`v23`, and `v24`--`v31` respectively.
+
+In RV64, the `vtcfg2` CSR provides access to the upper 64 bits of
+`vtcfg0` and `vtcfg6` provides access to the upper 64 bits of
+`vtcfg4`.  In RV32, the `vtcfg1`, `vtcfg3`, `vtcfg5`
+and `vtcfg7` CSRs provides access to the upper bits of `vtcfg0`,
+`vtcfg2`, `vtcfg4` and `vtcfg6` respectively.
+
+Any CSR write to a `vtcfg<x>` register zeros all `vtcfg<y>`
+registers, for `y>x`.  As a result configuration data should be
+written from the `vtcfg0` CSR upwards.
+
+[NOTE]
+Zeroing higher-numbered `vtcfg<y>` registers allows more rapid
+reconfiguration of the vector register file via CSR writes, and
+provides backward-compatibility for extensions that increase the
+number of possible architectural vector registers.  This choice does
+prevent the use of CSRRW instructions to swap the configuration
+context; an entire old configuration must be read out before a new
+configuration is written in.
 
 == Vector instruction overview
 
@@ -455,6 +603,16 @@ instructions.
 ----
 
 (Might prefer swapping true/false encoding for 10/11)
+
+=== Vector Instruction Formats
+[NOTE]
+An important design goal was that the base vector extension fit
+within a few major opcodes of the 32-bit encoding.  It is envisioned
+that future vector extensions will use 48-bit or 64-bit encodings to
+increase both the opcode space and the set of architectural
+registers.  The 64-bit vector encoding could support 256
+architectural vector registers and orthogonal specification of a
+predicate register in each instruction.
 
 === Assembler syntax
 
@@ -573,7 +731,7 @@ current configured element width of `vs1`.
     vsra    vd, vs1, vs2, v0.t
     vsrl    vd, vs1, vs2, v0.t
 ----
-    
+
 [source,asm]
 ----
     vand    vd, vs1, vs2, v0.t
@@ -672,13 +830,13 @@ illegal instruction exception.
     # vd destination, rs1 base address
     vlb     vd, rs1, vm
     vlbu    vd, rs1, vm
-    
+
     vlh     vd, rs1, vm
     vlhu    vd, rs1, vm
-    
+
     vlw     vd, rs1, vm
     vlwu    vd, rs1, vm
-    
+
     vld     vd, rs1, vm
 ----
 
@@ -693,15 +851,15 @@ of a constant stride instruction
 [source,asm]
 ----
     # vd destination, rs1 base address, rs2 byte stride
-    vlsb    vd, offset(rs1), rs2, vm 
+    vlsb    vd, offset(rs1), rs2, vm
     vlsbu   vd, offset(rs1), rs2, vm
-    
+
     vlsh    vd, offset(rs1), rs2, vm
     vlshu   vd, offset(rs1), rs2, vm
-    
+
     vlsw    vd, offset(rs1), rs2, vm
     vlswu   vd, offset(rs1), rs2, vm
-    
+
     vlsd    vd, offset(rs1), rs2, vm
 ----
 
@@ -716,13 +874,13 @@ The stride is interpreted as an integer representing a byte offset.
     # vd destination, rs1 base address, vs2 indices
     vlxb    vd, offset(rs1), vs2, vm
     vlxbu   vd, offset(rs1), vs2, vm
-    
+
     vlxh    vd, offset(rs1), vs2, vm
     vlxhu   vd, offset(rs1), vs2, vm
-    
+
     vlxw    vd, offset(rs1), vs2, vm
     vlxwu   vd, offset(rs1), vs2, vm
-    
+
     vlxd    vd, offset(rs1), vs2, vm
 ----
 
@@ -1044,7 +1202,7 @@ Use `.i` for signed integer type, and `.u` for unsigned integer type.
 Convert integer to narrower integer
 [source,asm]
 ----
-    vcvt vd, vs1, vm 
+    vcvt vd, vs1, vm
 ----
 Don't need unsigned source, as this doesn't affect conversion.
 
@@ -1274,7 +1432,7 @@ for ( ; i<MAXVL; ++i) {
 
 [source,c]
 ----
-// vmfbf psuedo code 
+// vmfbf psuedo code
 s = 1;
 
 for (i = 0; i < vl; ++i) {
@@ -1326,7 +1484,7 @@ for (i = 0; i < vl; ++i) {
             s=0;
         } else {
             vd[i]=0;
-        } 
+        }
     } else {
         vd[i]=0;
     }
@@ -1339,6 +1497,9 @@ for ( ; i < MAXVL; ++i) {
 
 == Base Vector Instruction Encoding
 include::inst-table.adoc[]
+
+== Privileged Spec
+This is a place holder to discuss precise-per-element exceptions.
 
 [appendix]
 == `vfastcfg` Reference
