@@ -81,7 +81,7 @@ Semantics for m=00:
 ----
         
 
-== `vaddi vd, vs1, vs2, m` 
+== `vaddi vd, vs1, imm, m` 
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -102,7 +102,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> + sext(imm): 0;
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> + sext(imm) : 0;
    }
 ----
         
@@ -128,12 +128,12 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? sext(vs1[0]<31..0> + vs2[0]<31..0>): 0;
+           vd[i]<maxew-1..0> = enable ? sext(vs1[0]<31..0> + vs2[0]<31..0>) : 0;
    }
 ----
         
 
-== `vaddiw vd, vs1, vs2, m` 
+== `vaddiw vd, vs1, imm, m` 
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -154,7 +154,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? sext(vs1[0]<31..0> + sext(imm)): 0;
+           vd[i]<maxew-1..0> = enable ? sext(vs1[0]<31..0> + sext(imm)) : 0;
    }
 ----
         
@@ -185,7 +185,7 @@ Semantics for m=00:
 ----
         
 
-== `vsubi vd, vs1, vs2, m` 
+== `vsubi vd, vs1, imm, m` 
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -206,7 +206,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> - sext(imm): 0;
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> - sext(imm) : 0;
    }
 ----
         
@@ -471,7 +471,7 @@ Semantics for m=00:
 ----
         
 
-== `vslli vd, vs1, vs2, m` 
+== `vslli vd, vs1, shamt, m` 
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -523,7 +523,7 @@ Semantics for m=00:
 ----
         
 
-== `vsrai vd, vs1, vs2, m` 
+== `vsrai vd, vs1, shamt, m` 
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -575,7 +575,7 @@ Semantics for m=00:
 ----
         
 
-== `vsrli vd, vs1, vs2, m` 
+== `vsrli vd, vs1, shamt, m` 
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -627,7 +627,7 @@ Semantics for m=00:
 ----
         
 
-== `vandi vd, vs1, vs2, m` 
+== `vandi vd, vs1, imm, m` 
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -648,7 +648,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> & sext(imm): 0;
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> & sext(imm) : 0;
    }
 ----
         
@@ -679,7 +679,7 @@ Semantics for m=00:
 ----
         
 
-== `vori vd, vs1, vs2, m` 
+== `vori vd, vs1, imm, m` 
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -700,7 +700,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> | sext(imm): 0;
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> | sext(imm) : 0;
    }
 ----
         
@@ -731,7 +731,7 @@ Semantics for m=00:
 ----
         
 
-== `vxori vd, vs1, vs2, m` 
+== `vxori vd, vs1, imm, m` 
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -752,7 +752,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> ^ sext(imm): 0;
+           vd[i]<maxew-1..0> = enable ? vs1[0]<vemaxw-1..0> ^ sext(imm) : 0;
    }
 ----
         
@@ -766,7 +766,7 @@ Semantics for m=01,10,11:
    for (i = 0; i < vl; i++ )
    {
            enable = m<1> == 0 || m<0> == v1[i]<0>;
-           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> == sext(imm) ? 1 : 0) : 0;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> == vs2[i]<vemaxw-1..0> ? 1 : 0) : 0;
    }
    for (     ; i < maxvl; i++ )
    {
@@ -778,7 +778,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> == sext(imm) ? 1 : 0): 0;
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> == vs2[0]<vemaxw-1..0> ? 1 : 0) : 0;
    }
 ----
         
@@ -792,7 +792,7 @@ Semantics for m=01,10,11:
    for (i = 0; i < vl; i++ )
    {
            enable = m<1> == 0 || m<0> == v1[i]<0>;
-           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> <= sext(imm) ? 1 : 0) : 0;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> <= vs2[i]<vemaxw-1..0> ? 1 : 0) : 0;
    }
    for (     ; i < maxvl; i++ )
    {
@@ -804,7 +804,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> <= sext(imm) ? 1 : 0): 0;
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> <= vs2[0]<vemaxw-1..0> ? 1 : 0) : 0;
    }
 ----
         
@@ -818,7 +818,7 @@ Semantics for m=01,10,11:
    for (i = 0; i < vl; i++ )
    {
            enable = m<1> == 0 || m<0> == v1[i]<0>;
-           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> <=u sext(imm) ? 1 : 0) : 0;
+           vd[i]<maxew-1..0> = enable ? (vs1[i]<vemaxw-1..0> <= static_cast<unsigned>(vs2[i]<vemaxw-1..0>) ? 1 : 0) : 0;
    }
    for (     ; i < maxvl; i++ )
    {
@@ -830,7 +830,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> <=u sext(imm) ? 1 : 0): 0;
+           vd[i]<maxew-1..0> = enable ? (vs1[0]<vemaxw-1..0> <= static_cast<unsigned>(vs2[0]<vemaxw-1..0>) ? 1 : 0) : 0;
    }
 ----
         
@@ -856,7 +856,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? clips(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 8): 0;
+           vd[i]<maxew-1..0> = enable ? clips(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 8) : 0;
    }
 ----
         
@@ -882,7 +882,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? clipu(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 8): 0;
+           vd[i]<maxew-1..0> = enable ? clipu(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 8) : 0;
    }
 ----
         
@@ -908,7 +908,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? clips(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 16): 0;
+           vd[i]<maxew-1..0> = enable ? clips(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 16) : 0;
    }
 ----
         
@@ -934,7 +934,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? clipu(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 16): 0;
+           vd[i]<maxew-1..0> = enable ? clipu(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 16) : 0;
    }
 ----
         
@@ -960,7 +960,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? clips(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 32): 0;
+           vd[i]<maxew-1..0> = enable ? clips(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 32) : 0;
    }
 ----
         
@@ -986,7 +986,7 @@ Semantics for m=00:
 ----
    for (i = 0; i < maxvl; i++ )
    {
-           vd[i]<maxew-1..0> = enable ? clipu(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 32): 0;
+           vd[i]<maxew-1..0> = enable ? clipu(vs1[0]<vemaxw-1..0>, vs2[0]<vemaxw-1..0>, 32) : 0;
    }
 ----
         
