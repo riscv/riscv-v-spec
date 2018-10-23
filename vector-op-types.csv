@@ -66,7 +66,7 @@ Base + M,VMULH.X,multiply-add,2,0,Multiply - return high half,S/U,S/U,ILLEGAL,S/
 Vtypes + M,VNMADD,multiply-add,3,0,negated multiply add,"S/U,F","S/U,F","S/U,F",ILLEGAL,Reduction,Splat
 Vtypes + M,VNMSUB,multiply-add,3,0,negated multiply sub,"S/U,F","S/U,F","S/U,F",ILLEGAL,ILLEGAL,Splat
 Base,VEXTRACT,permute,1,1,extract element -> GPR,B,B,ILLEGAL,ILLEGAL,GPR,N/A
-Base,VINSERT,permute,1,1,insert element(s),B,B,ILLEGAL,ILLEGAL,First Element,Placement
+Base,VINSERT,permute,1,1,insert element(s),B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VMERGE,permute,2,0,merge registers,B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VSELECT,permute,2,0,select from source by indicies,B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VSLIDE,permute,1,1,shift elements,B,B,ILLEGAL,ILLEGAL,First Element,Splat

@@ -1143,21 +1143,7 @@ the source vector register.
 
 == Vector Register Element Movement Instructions
 
-=== Move to/from floating-point (f) registers.
-[source,asm]
-----
-    vfmv.v.f  vd, rs1, vm   # vd = rs1
-    vfmv.f.v  rd, vs1       # rd = vs1[0]
-----
-
-Move one vector element as bits to/from FPRs.  If destination is
-narrower than the source, only the least significant bits are copied
-and the upper bits of source are ignored. If the destination is wider
-than the source, the value is one-extended (high bits filled with 1s
-to preserve NaN boxing).  All vector masking options are available for
-vfmv.v.f
-
-Insert/extract elements between x and vector registers,
+=== Insert/extract elements between x and vector registers
 [source,asm]
 ----
     vinsert vd, rs1, rs2, vm  # vd[rs2] = rs1
