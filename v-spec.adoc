@@ -605,7 +605,7 @@ be microarchitecturally optimized so that only a single value is
 actually written/read.
 
 Simple vector instructions that produce scalar shapes will only use
-`element[0]` of the source vectors as inputs to the computation, but will
+`element{0}` of the source vectors as inputs to the computation, but will
 effectively write all elements of the destination vector. A few vector
 instructions perform reductions across source vectors to produce a
 scalar shape.
@@ -634,8 +634,8 @@ instructions.
 ----
 00 scalar, always true
 01 vector, always true
-10 vector, where v0.LSB = 0
-11 vector, where v0.LSB = 1
+10 vector, where v0[0] = 0
+11 vector, where v0[0] = 1
 ----
 
 (Might prefer swapping true/false encoding for 10/11)
@@ -663,7 +663,7 @@ fully-featured implementations using VTypes and polymorphic operations.
 Scalar shape destinations are written in assembler with a `.s` after the
 destination vector register specifier.
 Vector masking is written as another vector operand, with `.t` or `.f` indicating if operation occurs
-when `v0.LSB` is `1` or `0` respectively.
+when `v0[0]` is `1` or `0` respectively.
 If no masking operand is specified, unmasked vector execution (`m=01`) is assumed.
 
 `vadd v0, v2, v3, vm` implies following combinations:
@@ -672,8 +672,8 @@ If no masking operand is specified, unmasked vector execution (`m=01`) is assume
 ----
     vadd    v0.s, v2, v3        # scalar shape destination,  m=00
     vadd    v0,   v2, v3        # unmasked vector operation, m=01
-    vadd    v0,   v2, v3, v0.f  # enabled where v0.LSB=0,    m=10
-    vadd    v0,   v2, v3, v0.t  # enabled where v0.LSB=1,    m=11
+    vadd    v0,   v2, v3, v0.f  # enabled where v0[0]=0,     m=10
+    vadd    v0,   v2, v3, v0.t  # enabled where v0[0]=1,     m=11
 ----
 
 === Operations and Types
@@ -1348,8 +1348,8 @@ the source vector register.
 === Insert/extract elements between x and vector registers
 [source,asm]
 ----
-    vinsert vd, rs1, rs2, vm  # vd[rs2] = rs1
-    vextract rd, vs1, rs2      # rd = vs1[rs2]
+    vinsert vd, rs1, rs2, vm   # vd{rs2} = rs1
+    vextract rd, vs1, rs2      # rd = vs1{rs2}
 ----
 
 Move one vector element as bits to/from GPRs (called insert/extract in
@@ -1369,8 +1369,8 @@ can use second/third read port to read `vd`.
 === Vector merge
 [source,asm]
 ----
-    vmerge  vd, vs1, vs2,  vm   # vd[i] = vm[i] ? vs1[i] : vs2[i]
-    vmergex vd, rs1, vs2,  vm   # vd[i] = vm[i] ? rs1    : vs2[i]
+    vmerge  vd, vs1, vs2,  vm   # vd{i} = vm{i} ? vs1{i} : vs2{i}
+    vmergex vd, rs1, vs2,  vm   # vd{i} = vm{i} ? rs1    : vs2{i}
 ----
 
 Mask picks between first and second operand to be written to
@@ -1380,23 +1380,23 @@ destination.
 === Vector register gather
 [source,asm]
 ----
-    vrgather vd, vs1, vs2, vm # vd[i] = vs1[vs2[i]]
+    vrgather vd, vs1, vs2, vm # vd{i} = vs1{vs2{i}}
 ----
 
 Each destination element is extracted from selected location in source
-vector.  If vs2[i] is out of range 0..MAXVL-1, then 0 is returned.
+vector.  If vs2\{i\} is out of range 0..MAXVL-1, then 0 is returned.
 
 === Vector register slide
 [source,asm]
 ----
-    vslide vd, vs1, rs2, vm  # vd[i] = vs1[rs2+i]
+    vslide vd, vs1, rs2, vm  # vd{i} = vs1{rs2+i}
 ----
 
 Writes vl elements to destination vector register taken from start
 index `rs2` in source vector.  If `rs2 + i >= MAXVL`, returns 0s.
 
 All masking operations are available on vslide. Will splat just
-vs1[rs2] to all of vd if destination is scalar shape.
+vs1\{rs2\} to all of vd if destination is scalar shape.
 
 === Vector mask to xreg instructions
 
@@ -1428,18 +1428,18 @@ vselect vd, vm    # Count bits in preceding mask elements.
 s = 0;
 
 for (i = 0; i < vl; ++i) {
-    vd[i]=s;  // Results wrap around (truncate high bits) if too large for destination elements.
-    s += vm[i].lsb;  // Count set bits in mask
+    vd{i}=s;  // Results wrap around (truncate high bits) if too large for destination elements.
+    s += vm{i}[0];  // Count set bits in mask
 }
 
 for ( ; i < MAXVL; ++i) {
-    vd[i]=0;
+    vd{i}=0;
 }
 ----
 
 
 With `vm == scalar`, writes vd.s with 0.
-With `vm == true`, writes vd[i] with index i.
+With `vm == true`, writes vd\{i\} with index i.
 With `vm == v0.false`, counts zero bits
 With `vm == v0.true`, counts one bits
 
@@ -1449,12 +1449,12 @@ With `vm == v0.true`, counts one bits
 s = 0;
 
 for (i=0; i < vl; ++i) {
-    vd[i]=s;  // Results wrap around (truncate high bits) if too large for destination elements.
-    s += vm[i].lsb;  // Count set bits in mask
+    vd{i}=s;  // Results wrap around (truncate high bits) if too large for destination elements.
+    s += vm{i}[0];  // Count set bits in mask
 }
 
 for ( ; i<MAXVL; ++i) {
-    vd[i]=0;
+    vd{i}=0;
 }
 ----
 
@@ -1468,7 +1468,7 @@ for ( ; i<MAXVL; ++i) {
 ----
 
 ----
-00011001  vs1.lsbs
+00011001  vs1{i}[0]
 11100000  fbf
 11110000  fif
 00010000  fof
@@ -1480,18 +1480,18 @@ for ( ; i<MAXVL; ++i) {
 s = 1;
 
 for (i = 0; i < vl; ++i) {
-    if(v0[i].lsb) {
-        if (vs1[i].lsb) {
+    if(v0{i}[0]) {
+        if (vs1{i}[0]) {
             s = 0;
         }
-        vd[i] = s[i].lsb;
+        vd{i} = s{i}[0];
     } else {
-        vd[i] = 0;
+        vd{i} = 0;
     }
 }
 
 for ( ; i < MAXVL; ++i) {
-    vd[i] = 0;
+    vd{i} = 0;
 }
 ----
 
@@ -1501,18 +1501,18 @@ for ( ; i < MAXVL; ++i) {
 s = 1;
 
 for (i = 0; i < vl; ++i) {
-    if(v0[i].lsb) {
-        vd[i] = s;
-        if (vs1[i].lsb) {
+    if(v0{i}[0]) {
+        vd{i} = s;
+        if (vs1{i}[0]) {
             s = 0;
         }
     } else {
-        vd[i] = 0;
+        vd{i} = 0;
     }
 }
 
 for ( ; i < MAXVL; ++i) {
-    vd[i] = 0;
+    vd{i} = 0;
 }
 ----
 
@@ -1522,20 +1522,20 @@ for ( ; i < MAXVL; ++i) {
 s = 1;
 
 for (i = 0; i < vl; ++i) {
-    if(v0[i].lsb) {
-        if (vm[i].lsb) {
-            vd[i]=s;
+    if(v0{i}[0]) {
+        if (vm{i}[0]) {
+            vd{i}=s;
             s=0;
         } else {
-            vd[i]=0;
+            vd{i}=0;
         }
     } else {
-        vd[i]=0;
+        vd{i}=0;
     }
 }
 
 for ( ; i < MAXVL; ++i) {
-    vd[i] = 0;
+    vd{i} = 0;
 }
 ----
 
