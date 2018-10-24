@@ -247,9 +247,11 @@ vector length (`MAXVL`).
 This is primarily intended to assist context switching by simplifying
 size calculations for memory allocation.
 
-[NOTE]
-We can compute `MAXVL` using the `vsetvl` instruction with a requested vector
-length of 2\^xlen - 1 (the equivalent of "infinity")
+[TIP]
+Given the current set of relaxed <<vsetvl,`vl` settings rules>>,
+requesting a vector length of `2^XLEN - 1` does not necessarily yield
+`MAXVL` (unless the constraint that `vl = MAXVL` for `AVL >= MAXVL` is
+added).
 
 === `vregmask[31:0]` CSR
 
@@ -413,19 +415,33 @@ The Scale[CITE], Maven[CITE] and Hwacha[CITE] processors also
 support configuration-dependent MAXVL.
 --
 
+[#vsetvl]
 === `vl` and `vsetvl` instruction
 
 The `vsetvl rd, rs1` instruction sets `vl` based on the current vector
-configuration and the value in `rs1` treated as an unsigned integer, and
-also writes this value to `rd`.
+configuration and the requested _application vector length_ (AVL) in
+`rs1`, treated as an unsigned integer.
+The new active vector length is also written to `rd`.
 
-The `vl` setting must be:
+The resulting `vl` setting must satisfy the following constraints:
 
-. greater than 0, if rs1 is greater than 0
-. monotonically increasing with the value in rs1, but need not be
-strictly increasing
-. bounded above by min(rs1,MAXVL)
-. deterministic for any given configuration
+. `vl > 0` if `AVL > 0`
+. `vl \<= MAXVL`
+. `vl = AVL` if `AVL \<= MAXVL`
+. `vl` monotonically increases for `MAXVL > AVL` (but need not strictly increase)
+. Deterministic for any given configuration and AVL
+
+[NOTE]
+--
+The `vl` setting rules are designed to be sufficiently strict to
+preserve `vl` behavior across register spills and context swaps for
+`AVL \<= MAXVL`, yet flexible enough to enable implementations to improve
+vector lane utilization for `AVL > MAXVL`.
+
+For example, this permits an implementation to set `vl = ceil(AVL / 2)`
+for `MAXVL < AVL < 2*MAXVL` in order to evenly distribute work over the
+last two iterations of a stripmine loop.
+--
 
 If the vector unit is disabled, vsetvl or any read or write of `vl` will
 raise an illegal instruction exception.
