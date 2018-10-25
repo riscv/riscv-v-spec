@@ -1037,7 +1037,7 @@ operate on `vemaxw` source and destination widths.
     vremu           vd, vs1, vs2, vm
 ----
 
-== Integer Reduction operations (not in base spec)
+== Integer Reduction Operations
 These instructions take a vector shape as input and produce a scalar
 shape.
 
@@ -1203,11 +1203,15 @@ are often used to emulate branches.
         vfclass.d       vd, vs1, vm
 ----
 
-==== Reduction operations (not in base spec)
+==== Reduction Operations
 These instructions take a vector shape as input and produce a scalar
 shape.
-Cannot mask the vector input, but can preprocess to get
-correct result from a mask (e.g., zero masked elements before sum).
+Reduction ordering is determined by the `TBD` field of the `TBD` CSR
+register. Serial ordering shall be in compliance with IEEE-754 Floating
+Point standard.
+Reduction operation cannot mask the vector input, but it is possible to
+preprocess the input to get acorrect result from a mask (e.g., zero masked
+elements before sum).
 [source,asm]
 ----
     vredsum vd.s, vs1
