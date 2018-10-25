@@ -424,6 +424,11 @@ configuration and the requested _application vector length_ (AVL) in
 `rs1`, treated as an unsigned integer.
 The new active vector length is also written to `rd`.
 
+[NOTE]
+If it is possible that the value in `rs1` may be a signed integer, it is
+recommended to add a branch instruction before the `vsetvl` instruction 
+to check for possible negative values.
+
 The resulting `vl` setting must satisfy the following constraints:
 
 . `vl > 0` if `AVL > 0`
