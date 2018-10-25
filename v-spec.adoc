@@ -80,12 +80,12 @@ reserved by default for future use.
 
 === `vcfg` CSR
 
-The `vcfg` CSR holds `vregcfg`, `vemaxw`, and `vtypeen`.
+The `vcfg` CSR holds `vregcfg`, `vsew`, and `vtypeen`.
 
 Any change to the vector configuration that might change MAXVL cause the
 entire vector unit registers to be zeroed.  Any write to the global
-`vemaxw` causes the entire vector unit state to be zeroed, even if
-the value in `vemaxw` is unchanged.
+`vsew` causes the entire vector unit state to be zeroed, even if
+the value in `vsew` is unchanged.
 
 [NOTE]
 --
@@ -102,15 +102,16 @@ register renaming can just initialize the rename table to point
 entries at a physical zero register.
 --
 
-==== `vemaxw[5:3]`
+==== `vsew[5:3]`
 
-`vemaxw` is a 3-bit `WARL` field that can be expanded to match the
-`vew[5:0]` expanded width encoding in <<vewn>>.
+`vsew` is a 3-bit `WARL` field that can be expanded to match the
+`vew[5:0]` expanded width encoding in <<vewn>>. `vsew` stands for
+"Vector Single Element Width".
 
-.`vemaxw[5:3]` Base Encoding
-[#vemaxw,options="header"]
+.`vsew[5:3]` Base Encoding
+[#vsew,options="header"]
 |===
-|`vemaxw[5:3]` | Width | Required in base
+|`vsew[5:3]` | Width | Required in base
 |001 | 8 | All
 |010 | 16 | All
 |011 | 32 | All
@@ -120,7 +121,7 @@ entries at a physical zero register.
 [NOTE]
 This aligns with expanded `vew<n>` encoding and leaves `WARL` space to
 support other max element widths.
-Only the encodings in <<vemaxw>> are valid in the base.
+Only the encodings in <<vsew>> are valid in the base.
 
 [NOTE]
 It was also common in earlier vector machines to support multiple
@@ -160,15 +161,15 @@ vlenmul = 32 / vregmax
 A _configuration_ refers to a set of single-word (`s`), double-word
 (`d`), and quad-word (`q`) vector registers conceptually mapped to
 `vregmax` units of storage.
-`s` registers have elements of `vemaxw` bits.
+`s` registers have elements of `vsew` bits.
 `d` and `q` vector registers are created by combining two or
 four logically adjacent `s` registers, respectively.
 
 `vregd` is a 4-bit `WARL` subfield that sets the number of `d` registers
-whose elements are `2 * vemaxw` bits wide.
+whose elements are `2 * vsew` bits wide.
 
 `vregq` is a 3-bit `WARL` subfield that sets the number of `q` registers
-whose elements are `4 * vemaxw` bits wide.
+whose elements are `4 * vsew` bits wide.
 
 These combined registers are aligned such that their number is divisible by
 two for `d` and by four for `q` registers.
@@ -188,7 +189,7 @@ not already assigned to `q` registers, starting from `v<D>` where
 caused by the alignment constraint.)
 
 It is always possible to construct a homogenous register file of a wider
-element type by setting a larger `vemaxw` as the base width.
+element type by setting a larger `vsew` as the base width.
 `v0` always holds the smallest type for use in masking.
 
 These conditions determine the complete set of theoretically possible
@@ -213,7 +214,7 @@ width:  s  s  d  -  d  -  d  -  q  -  -  -  q  -  -  -
 --
 
 [IMPORTANT]
-Implementations may exploit configurations with reduced `vemaxw` and
+Implementations may exploit configurations with reduced `vsew` and
 `vregmax` parameters to increase packing efficiency and extend the `MAXVL`
 dynamically, but such optimizations are not strictly needed to comply
 with the specification.
@@ -937,7 +938,7 @@ offsets.
 
 === Vector stores
 Vector stores move data values as bits taken from the LSBs of the
-source element.  Vector stores for a data type wider than `vemaxw` cause
+source element.  Vector stores for a data type wider than `vsew` cause
 an illegal instruction exception.
 
 ==== unit-stride store instructions
@@ -998,7 +999,7 @@ would overflow the result precision.  The rounding mode is encoded in
 The instructions encode the number of bits in destination format
 (8, 16 or 32 bits), and whether the destination format is signed or
 unsigned.
-If the destination element width `vemaxw` is greater than the
+If the destination element width `vsew` is greater than the
 destination format, the result is sign- or zero-extended to fill the
 destination element if the destination format is signed or unsigned
 respectively.
@@ -1023,7 +1024,7 @@ The immediate forms were dropped to save encoding space.
 === Vector integer multiply and divides
 ==== Full-width multiply/divides
 These are all equivalent to scalar integer multiply/divides, and
-operate on `vemaxw` source and destination widths.
+operate on `vsew` source and destination widths.
 
 [source,asm]
 ----
@@ -1291,7 +1292,7 @@ Don't need unsigned source, as this doesn't affect conversion.
     vfcvt.l.d vd, vs1, vm
     vfcvt.lu.d vd, vs1, vm
 ----
-These all convert to `vemaxw` canonical integers.
+These all convert to `vsew` canonical integers.
 
 Convert float to float
 [source,asm]
