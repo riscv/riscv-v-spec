@@ -81,15 +81,21 @@ Base,"VFMAX.[H,S,D]",select,2,0,return max element,F,F,ILLEGAL,ILLEGAL,First Ele
 Vtypes,VMIN,select,2,0,return min element,"S/U,F","S/U,F",ILLEGAL,ILLEGAL,Reduction,Splat
 Base,VMIN.X,select,2,0,return min element,S/U,S/U,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFMIN.[H,S,D]",select,2,0,return min element,F,F,ILLEGAL,ILLEGAL,First Element,Splat
-VTypes,REDSUM,reduction,1,0,sum reduction,"S/U,F","S/U,F",ILLEGAL,"S/U,F",Reduction,Splat
-VTypes,REDMIN,reduction,1,0,min reduction,"S/U,F","S/U,F",ILLEGAL,"S/U,F",Reduction,Splat
-VTypes,REDMAX,reduction,1,0,max reduction,"S/U,F","S/U,F",ILLEGAL,"S/U,F",Reduction,Splat
-Base,REDSUM.X[U],reduction,1,0,sum reduction,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Splat
-Base,REDMIN.X[U],reduction,1,0,min reduction,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Splat
-Base,REDMAX.X[U],reduction,1,0,max reduction,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Splat
-Base,"FREDSUM.[H,S,D]",reduction,1,0,sum reduction,F,F,ILLEGAL,ILLEGAL,Reduction,Splat
-Base,"FREDMIN.[H,S,D]",reduction,1,0,min reduction,F,F,ILLEGAL,ILLEGAL,Reduction,Splat
-Base,"FREDMAX.[H,S,D]",reduction,1,0,max reduction,F,F,ILLEGAL,ILLEGAL,Reduction,Splat
+VTypes,VREDSUM,reduction,1,0,sum reduction,"S/U,F","S/U,F",ILLEGAL,"S/U,F",Reduction,Splat
+VTypes,VREDMIN,reduction,1,0,min reduction,"S/U,F","S/U,F",ILLEGAL,"S/U,F",Reduction,Splat
+VTypes,VREDMAX,reduction,1,0,max reduction,"S/U,F","S/U,F",ILLEGAL,"S/U,F",Reduction,Splat
+VTypes,VREDAND,reduction,1,0,and reduction,"S/U,F","S/U,F",ILLEGAL,"S/U,F",Reduction,Splat
+VTypes,VREDOR,reduction,1,0,or reduction,"S/U,F","S/U,F",ILLEGAL,"S/U,F",Reduction,Splat
+VTypes,VREDXOR,reduction,1,0,xor reduction,"S/U,F","S/U,F",ILLEGAL,"S/U,F",Reduction,Splat
+Base,VREDSUM.X,reduction,1,0,sum reduction,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Splat
+Base,VREDMIN.X[U],reduction,1,0,min reduction,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Splat
+Base,VREDMAX.X[U],reduction,1,0,max reduction,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Splat
+Base,VREDAND.X,reduction,1,0,and reduction,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Splat
+Base,VREDOR.X,reduction,1,0,or reduction,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Splat
+Base,VREDXOR.X,reduction,1,0,xor reduction,S/U,S/U,ILLEGAL,ILLEGAL,Reduction,Splat
+Base,"VFREDSUM.[H,S,D]",reduction,1,0,sum reduction,F,F,ILLEGAL,ILLEGAL,Reduction,Splat
+Base,"VFREDMIN.[H,S,D]",reduction,1,0,min reduction,F,F,ILLEGAL,ILLEGAL,Reduction,Splat
+Base,"VFREDMAX.[H,S,D]",reduction,1,0,max reduction,F,F,ILLEGAL,ILLEGAL,Reduction,Splat
 Base,VSL,shift,2,0,Shift Left,I,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VSLI,shift,1,0,shift left by immediate,I,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VSR,shift,2,0,Shift Right (arithmetic),I,B,ILLEGAL,ILLEGAL,First Element,Splat
