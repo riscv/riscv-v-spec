@@ -833,6 +833,40 @@ These replace vs2 with a short sign-extended immediate (size TBD).
     vxori   vd, vs1, imm, v0.t
 ----
 
+=== Vector integer multiply and divides
+==== Full-width multiply/divides
+These are all equivalent to scalar integer multiply/divides, and
+operate on `vsew` source and destination widths.
+
+[source,asm]
+----
+    vmul            vd, vs1, vs2, vm
+    vmulh           vd, vs1, vs2, vm
+    vmulhsu         vd, vs1, vs2, vm
+    vmulhu          vd, vs1, vs2, vm
+    vdiv            vd, vs1, vs2, vm
+    vdivu           vd, vs1, vs2, vm
+    vrem            vd, vs1, vs2, vm
+    vremu           vd, vs1, vs2, vm
+----
+
+=== Integer Reduction Operations
+These instructions take a vector shape as input and produce a scalar
+shape.
+
+[source,asm]
+----
+    vredsum         vd.s, vs1
+    vredmax         vd.s, vs1
+    vredmaxu        vd.s, vs1
+    vredmin         vd.s, vs1
+    vredminu        vd.s, vs1
+    vredand         vd.s, vs1
+    vredor          vd.s, vs1
+    vredxor         vd.s, vs1
+----
+
+
 == Vector Load/Store Instructions
 
 Vector unit-stride, constant-stride, and indexed (scatter/gather) load/store instructions are supported.
@@ -1027,39 +1061,6 @@ by which it is shifted right to round off the lower order bits.
 
 [NOTE]
 The immediate forms were dropped to save encoding space.
-
-=== Vector integer multiply and divides
-==== Full-width multiply/divides
-These are all equivalent to scalar integer multiply/divides, and
-operate on `vsew` source and destination widths.
-
-[source,asm]
-----
-    vmul            vd, vs1, vs2, vm
-    vmulh           vd, vs1, vs2, vm
-    vmulhsu         vd, vs1, vs2, vm
-    vmulhu          vd, vs1, vs2, vm
-    vdiv            vd, vs1, vs2, vm
-    vdivu           vd, vs1, vs2, vm
-    vrem            vd, vs1, vs2, vm
-    vremu           vd, vs1, vs2, vm
-----
-
-== Integer Reduction Operations
-These instructions take a vector shape as input and produce a scalar
-shape.
-
-[source,asm]
-----
-    vredsum         vd.s, vs1
-    vredmax         vd.s, vs1
-    vredmaxu        vd.s, vs1
-    vredmin         vd.s, vs1
-    vredminu        vd.s, vs1
-    vredand         vd.s, vs1
-    vredor          vd.s, vs1
-    vredxor         vd.s, vs1
-----
 
 == Vector Floating-Point Compute
 The vector floating-point extension includes vector versions of all
