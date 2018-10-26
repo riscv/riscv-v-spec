@@ -10,7 +10,6 @@ Base,VSUB.X,arith,2,0,subtract,I,I,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFSUB.[H,S,D]",arith,2,0,subtract,F,F,ILLEGAL,ILLEGAL,First Element,Splat
 VTypes,VNEG,arith,1,0,negate,"S/U,F","S/U,F",S/U,ILLEGAL,First Element,Splat
 Base,VNEG.X,arith,1,0,negate,S/U,S/U,ILLEGAL,ILLEGAL,First Element,Splat
-Base,"VFNEG.[H,S,D]",arith,1,0,negate,F,F,ILLEGAL,ILLEGAL,First Element,Splat
 Vtypes,VSEQ,compare,2,0,"1 if ==, else 0","S/U,F",ן,I,ILLEGAL,First Element,Splat
 Base,VSEQ.X,compare,2,0,"1 if ==, else 0",S/U,I,I,ILLEGAL,First Element,Splat
 Base,VFEQ.[H.S.D],compare,2,0,"1 if ==, else 0",F,I,I,ILLEGAL,First Element,Splat

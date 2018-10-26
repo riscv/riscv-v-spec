@@ -1115,13 +1115,6 @@ The following produce and consume operands of the same floating-point precision:
 
 [source,asm]
 ----
-    vfneg.h         vd, vs1, vm
-    vfneg.s         vd, vs1, vm
-    vfneg.d         vd, vs1, vm
-----
-
-[source,asm]
-----
     vfmul.h         vd, vs1, vs2, vm
     vfmul.s         vd, vs1, vs2, vm
     vfmul.d         vd, vs1, vs2, vm
