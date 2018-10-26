@@ -769,6 +769,7 @@ shapes and can be masked.
 ----
     vadd    vd, vs1, vs2, v0.t
     vsub    vd, vs1, vs2, v0.t
+    vneg    vd, vs1, v0.t
 ----
 
 
@@ -1110,6 +1111,13 @@ The following produce and consume operands of the same floating-point precision:
     vfsub.h         vd, vs1, vs2, vm
     vfsub.s         vd, vs1, vs2, vm
     vfsub.d         vd, vs1, vs2, vm
+----
+
+[source,asm]
+----
+    vfneg.h         vd, vs1, vm
+    vfneg.s         vd, vs1, vm
+    vfneg.d         vd, vs1, vm
 ----
 
 [source,asm]
