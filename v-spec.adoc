@@ -618,7 +618,7 @@ scalar shape.
 
 The active vector length in `vl` determines the number of elements
 processed by each vector instruction.  Instructions producing vector
-shape results, write zero to destination vector elements past the end
+shape results, do not modify vector elements in the destination past the end
 of vl.  Instructions producing scalar shapes, write the scalar to all
 MAXVL elements of the destination vector register regardless of `vl`
 setting.
@@ -627,7 +627,7 @@ Masking is supported on almost all vector instructions producing
 vectors, with the mask supplied by vector register `v0`.  The `LSB` of
 each element in `v0` is used as the mask, in either true or complement
 form.  Element operations that are masked off can never generate exceptions.
-Instructions writing vector shapes, write zero to the destination
+Instructions writing vector shapes, do no modify the destination
 elements that are masked off. Instructions producing scalar shapes are
 not maskable.
 
@@ -877,8 +877,7 @@ Load instructions encode the type of the operand, while store instructions encod
 Vector loads to a scalar shape only load one element from memory at
 the same memory address that would be used for vector shape element 0.
 Vector masked loads of vector shapes must not generate architecturally
-visible side-effects (beyond writing zero to the destination element)
-for masked-off elements.
+visible side-effects for masked-off elements.
 
 Vector stores of a scalar shape store only one element to memory at
 the same memory address that would be used for vector shape element 0.
@@ -1444,10 +1443,6 @@ for (i = 0; i < vl; ++i) {
     vd{i}=s;  // Results wrap around (truncate high bits) if too large for destination elements.
     s += vm{i}[0];  // Count set bits in mask
 }
-
-for ( ; i < MAXVL; ++i) {
-    vd{i}=0;
-}
 ----
 
 
@@ -1464,10 +1459,6 @@ s = 0;
 for (i=0; i < vl; ++i) {
     vd{i}=s;  // Results wrap around (truncate high bits) if too large for destination elements.
     s += vm{i}[0];  // Count set bits in mask
-}
-
-for ( ; i<MAXVL; ++i) {
-    vd{i}=0;
 }
 ----
 
@@ -1502,10 +1493,6 @@ for (i = 0; i < vl; ++i) {
         vd{i} = 0;
     }
 }
-
-for ( ; i < MAXVL; ++i) {
-    vd{i} = 0;
-}
 ----
 
 [source,c]
@@ -1522,10 +1509,6 @@ for (i = 0; i < vl; ++i) {
     } else {
         vd{i} = 0;
     }
-}
-
-for ( ; i < MAXVL; ++i) {
-    vd{i} = 0;
 }
 ----
 
@@ -1545,10 +1528,6 @@ for (i = 0; i < vl; ++i) {
     } else {
         vd{i}=0;
     }
-}
-
-for ( ; i < MAXVL; ++i) {
-    vd{i} = 0;
 }
 ----
 
