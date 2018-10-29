@@ -627,7 +627,7 @@ Masking is supported on almost all vector instructions producing
 vectors, with the mask supplied by vector register `v0`.  The `LSB` of
 each element in `v0` is used as the mask, in either true or complement
 form.  Element operations that are masked off can never generate exceptions.
-Instructions writing vector shapes, do no modify the destination
+Instructions writing vector shapes, do not modify the destination
 elements that are masked off. Instructions producing scalar shapes are
 not maskable.
 
@@ -709,7 +709,7 @@ and <<velemtypes-fp>>.
 |FDQ    |F16, F32, F64, F128
 |===
 
-Supported data element formats in the reference profiles depend upon the,
+Supported data element formats in the reference profiles depend upon the
 base integer ISA and supported floating-point extensions.  `Ix` indicates 
 a signed integer of `x` bits, `Ux` indicates an unsigned integer of `x` bits,
 and `Fx` indicates an IEEE floating-point number of `x` bits.
@@ -1218,7 +1218,7 @@ Reduction ordering is determined by the `TBD` field of the `TBD` CSR
 register. Serial ordering shall be in compliance with IEEE-754 Floating
 Point standard.
 Reduction operation cannot mask the vector input, but it is possible to
-preprocess the input to get acorrect result from a mask (e.g., zero masked
+preprocess the input to get a correct result from a mask (e.g., zero masked
 elements before sum).
 [source,asm]
 ----
