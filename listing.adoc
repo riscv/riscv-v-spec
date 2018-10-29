@@ -1,3 +1,4 @@
+= WARNING THIS DOCUMENT IS OUT OF DATE WITH THE REST OF THE REPO! =
 [source, c]
 ----
    sext(value,size) { /* sign extend from size to vemaxw bits */ }
