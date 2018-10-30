@@ -734,10 +734,13 @@ extend::
   Otherwise, sign-extend the result when writing to the destination
   register.
 extract::
-  Use the lower `N` bits of the value in the source register, where `N`
-  is the precision of the operation.
-  For example, `vfadd.s` with a 64-bit operand uses the lower 32 bits
-  and ignores the upper 32 bits.
+  For floating-point operations, if the upper bits of the source
+  register form a proper NaN box, use the lower `N` bits where `N` is
+  the precision of the operation.
+  Otherwise, the operand should be treated as the canonical NaN.
+  This behavior mirrors the scalar F and D extensions.
+  For all other operations, always use the lower `N` bits as the
+  operand.
 
 [#reg-op-width]
 .Register/Operation Width Interactions
