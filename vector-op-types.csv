@@ -98,8 +98,10 @@ Base,"VFREDMIN.[H,S,D]",reduction,1,0,min reduction,F,F,ILLEGAL,ILLEGAL,Reductio
 Base,"VFREDMAX.[H,S,D]",reduction,1,0,max reduction,F,F,ILLEGAL,ILLEGAL,Reduction,Splat
 Base,VSL,shift,2,0,Shift Left,I,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VSLI,shift,1,0,shift left by immediate,I,B,ILLEGAL,ILLEGAL,First Element,Splat
-Base,VSR,shift,2,0,Shift Right (arithmetic),I,B,ILLEGAL,ILLEGAL,First Element,Splat
-Base,VSRI,shift,1,0,shift right by immediate,I,B,ILLEGAL,ILLEGAL,First Element,Splat
+Base,VSRA,shift,2,0,Shift Right (arithmetic),I,B,ILLEGAL,ILLEGAL,First Element,Splat
+Base,VSRAI,shift,1,0,arithmetic shift right by immediate,I,B,ILLEGAL,ILLEGAL,First Element,Splat
+Base,VSRL,shift,2,0,Shift Right (logical),I,B,ILLEGAL,ILLEGAL,First Element,Splat
+Base,VSRLI,shift,1,0,logical shift right by immediate,I,B,ILLEGAL,ILLEGAL,First Element,Splat
 Vtypes,VS,store,1,1,store vector (unit stride),I,"B,F",ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VS.[B,H,W,D][U]",store,1,1,store vector (unit stride),I,B,ILLEGAL,ILLEGAL,Write First Element,Splat
 Vtypes,VSS,store,1,2,store vector (stride),I,"B,F",ILLEGAL,ILLEGAL,First Element,Write a single value
