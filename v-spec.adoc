@@ -718,6 +718,53 @@ and `Fx` indicates an IEEE floating-point number of `x` bits.
 Future vector extensions might expand the set of supported
 datatypes, including custom application-specific datatypes.
 
+Table <<reg-op-width>> describes the treatment of source and destination
+registers that differ in width from the precision specified by
+non-polymorphic operations in the base.
+For instructions with more than one operand, each source register is
+handled independently.
+The table uses the following terminology:
+
+promote::
+  Raise an illegal instruction trap if the operation is a floating-point
+  operation.
+  Otherwise, sign-extend the value in the source register.
+extend::
+  NaN-box the result if the operation is a floating-point operation.
+  Otherwise, sign-extend the result when writing to the destination
+  register.
+extract::
+  Use the lower `N` bits of the value in the source register, where `N`
+  is the precision of the operation.
+  For example, `vfadd.s` with a 64-bit operand uses the lower 32 bits
+  and ignores the upper 32 bits.
+
+[#reg-op-width]
+.Register/Operation Width Interactions
+|===
+| Width Relation |dst < op|dst = op|dst > op
+
+h|src < op
+|trap
+|src: promote +
+dst: no action
+|src: promote +
+dst: extend
+
+h|src = op
+|trap
+|src: no action +
+dst: no action
+|src: no action +
+dst: extend
+
+h|src > op
+|trap
+|src: extract +
+dst: no action
+|src: extract +
+dst: extend
+|===
 
 == Integer Compute Instructions
 
