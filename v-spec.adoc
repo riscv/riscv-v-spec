@@ -1222,17 +1222,23 @@ preprocess the input to get a correct result from a mask (e.g., zero masked
 elements before sum).
 [source,asm]
 ----
-    vfredsum vd.s, vs1
+    vfredsum.h vd.s, vs1
+    vfredsum.s vd.s, vs1
+    vfredsum.d vd.s, vs1
 ----
 
 [source,asm]
 ----
-    vfredmax vd.s, vs1
+    vfredmax.h vd.s, vs1
+    vfredmax.s vd.s, vs1
+    vfredmax.d vd.s, vs1
 ----
 
 [source,asm]
 ----
-    vfredmin vd.s, vs1
+    vfredmin.h vd.s, vs1
+    vfredmin.s vd.s, vs1
+    vfredmin.d vd.s, vs1
 ----
 
 ==== Vector floating-point fused multiply-add
