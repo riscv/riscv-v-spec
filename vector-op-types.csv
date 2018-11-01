@@ -30,9 +30,11 @@ Vtypes,VSGNJN,copy/sign,2,0,FP inverted sign injection,F,F,ILLEGAL,ILLEGAL,First
 Base,"VFSGNJN.[H,S,D]",copy/sign,2,0,FP inverted sign injection,F,F,ILLEGAL,ILLEGAL,First Element,Splat
 Vtypes,VSGNJX,copy/sign,2,0,FP xor sign,F,F,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFSGNJX.[H,S,D]",copy/sign,2,0,FP xor sign,F,F,ILLEGAL,ILLEGAL,First Element,Splat
-Vtypes,VDIV,divsqrt,2,0,divide,F,F,ILLEGAL,ILLEGAL,First Element,Splat
+Vtypes,VDIV,divsqrt,2,0,divide,"S/U,F","S/U,F",ILLEGAL,ILLEGAL,First Element,Splat
+Base,VDIV.X[U],divsqrt,2,0,divide,S/U,S/U,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFDIV[H,S,D]",divsqrt,2,0,divide,F,F,ILLEGAL,ILLEGAL,First Element,Splat
-Vtypes,VREM,divsqrt,2,0,partial remainder,F,F,ILLEGAL,ILLEGAL,First Element,Splat
+Vtypes,VREM,divsqrt,2,0,partial remainder,"S/U,F","S/U,F",ILLEGAL,ILLEGAL,First Element,Splat
+Base,VREM.X[U],divsqrt,2,0,partial remainder,S/U,S/U,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFREM.[H,S,D]",divsqrt,2,0,partial remainder,F,F,ILLEGAL,ILLEGAL,First Element,Splat
 Vtypes,VSQRT,divsqrt,1,0,square root,F,F,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFSQRT.[H,S,D]",divsqrt,1,0,square root,F,F,ILLEGAL,ILLEGAL,First Element,Splat
@@ -61,10 +63,10 @@ Base,"VFMADD.[H,S,D]",multiply-add,3,0,Multiply add,F,F,F,ILLEGAL,First Element,
 Vtypes,VMSUB,multiply-add,3,0,Multiply subtract,"S/U,F","S/U,F","I,F",ILLEGAL,Reduction,Splat
 Base,"VFMSUB.[H,S,D]",multiply-add,3,0,Multiply subtract,F,F,F,ILLEGAL,First Element,Splat
 Vtypes,VMUL,multiply-add,2,0,Multiply,"S/U,F","S/U,F","S/U,F",ILLEGAL,Reduction,Splat
-Base,VMUL.X,multiply-add,2,0,Multiply,S/U,S/U,ILLEGAL,ILLEGAL,First Element,Splat
+Base,VMUL.X[U],multiply-add,2,0,Multiply,S/U,S/U,ILLEGAL,ILLEGAL,First Element,Splat
 Base,"VFMUL.[H,S,D]",multiply-add,2,0,Multiply,F,F,ILLEGAL,ILLEGAL,First Element,Splat
 Vtypes,VMULH,multiply-add,2,0,Multiply - return high half,S/U,S/U,ILLEGAL,S/U,Reduction,Splat
-Base,VMULH.X,multiply-add,2,0,Multiply - return high half,S/U,S/U,ILLEGAL,S/U,First Element,Splat
+Base,VMULH.X[U],multiply-add,2,0,Multiply - return high half,S/U,S/U,ILLEGAL,S/U,First Element,Splat
 Vtypes,VNMADD,multiply-add,3,0,negated multiply add,"S/U,F","S/U,F","S/U,F",ILLEGAL,Reduction,Splat
 Vtypes,VNMSUB,multiply-add,3,0,negated multiply sub,"S/U,F","S/U,F","S/U,F",ILLEGAL,ILLEGAL,Splat
 Base,VEXTRACT,permute,1,1,extract element -> GPR,B,B,ILLEGAL,ILLEGAL,GPR,N/A
