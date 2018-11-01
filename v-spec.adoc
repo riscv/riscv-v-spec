@@ -455,22 +455,14 @@ This allows software to avoid needing to explicitly calculate a running
 maximum of vector lengths.
 --
 
-If the vector unit is disabled, vsetvl or any read or write of `vl` will
-raise an illegal instruction exception.
+If the vector unit is disabled, `vsetvl` or any read of `vl` raises an
+illegal instruction exception.
 
 The vsetvl instruction is not encoded as a regular `CSRRW` instruction
 as the value returned depends on the input value.
 
-Regular CSR instructions can be used to read and write `vl`.
-
-Changing the value of the `vl` register (either using `vsetvl` or using `CSRRW`)
-does not mutate the register file state. i.e. - values in the register file are preserved.
-
-[NOTE]
-It is sufficient to make `vl` a read-only register, since the `vsetvl` instruction
-can be used to re-populate the register during context swaps.
-
-The value written to `vl` on a CSR write is capped at `MAXVL` (`vl` is `WARL`).
+Modifying the value of `vl` through `vsetvl` does not mutate the
+register file state. i.e. - values in the register file are preserved.
 
 == VTypes
 
