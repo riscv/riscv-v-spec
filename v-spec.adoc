@@ -238,7 +238,7 @@ as in the base vector extension.
 
 === `vl[XLEN-1:0]` CSR
 
-`vl` is a `WARL` CSR that holds the current active vector length.
+`vl` is a read-only CSR that holds the current active vector length.
 
 === `vlmax[XLEN-1:0]` CSR
 
@@ -434,7 +434,8 @@ The resulting `vl` setting must satisfy the following constraints:
 . `vl > 0` if `AVL > 0`
 . `vl \<= MAXVL`
 . `vl = AVL` if `AVL \<= MAXVL`
-. `vl` monotonically increases for `MAXVL > AVL` (but need not strictly increase)
+. `vl >= AVL / 2` if `AVL < 2 * MAXVL`
+. `vl = MAXVL` if `AVL >= 2 * MAXVL`
 . Deterministic for any given configuration and AVL
 
 [NOTE]
@@ -447,6 +448,11 @@ vector lane utilization for `AVL > MAXVL`.
 For example, this permits an implementation to set `vl = ceil(AVL / 2)`
 for `MAXVL < AVL < 2*MAXVL` in order to evenly distribute work over the
 last two iterations of a stripmine loop.
+Requirement 4 ensures that the first stripmine iteration of reduction
+loops uses the largest vector length of all iterations, even in the case
+of `AVL < 2*MAXVL`.
+This allows software to avoid needing to explicitly calculate a running
+maximum of vector lengths.
 --
 
 If the vector unit is disabled, vsetvl or any read or write of `vl` will
