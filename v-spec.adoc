@@ -1413,14 +1413,17 @@ the source vector register.
 
 == Vector Register Element Movement Instructions
 
-=== Insert/extract elements between x and vector registers
+=== Insert/extract elements between x/f and vector registers
 [source,asm]
 ----
     vinsert vd, rs1, rs2, vm   # vd{rs2} = rs1
     vextract rd, vs1, rs2      # rd = vs1{rs2}
+
+    vfinsert vd, rs1, rs2, vm  # vd{rs2} = rs1
+    vfextract rd, vs1, rs2     # rd = vs1{rs2}
 ----
 
-Move one vector element as bits to/from GPRs (called insert/extract in
+Move one vector element as bits to/from GPRs or FPRs (called insert/extract in
 current space).  If destination is narrower than the source, only the
 least significant bits are copied and the upper bits of source are
 ignored. If the destination is wider than the source, the value is
