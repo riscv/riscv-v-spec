@@ -73,7 +73,8 @@ Base,VINSERT,permute,1,2,insert element(s) from GPR,B,B,ILLEGAL,ILLEGAL,First El
 Base,VFINSERT,permute,1,2,insert element(s) from FPR,B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VMERGE,permute,2,0,merge registers,B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VSELECT,permute,2,0,select from source by indicies,B,B,ILLEGAL,ILLEGAL,First Element,Splat
-Base,VSLIDE,permute,1,1,shift elements,B,B,ILLEGAL,ILLEGAL,First Element,Splat
+Base,VSLIDEDOWN,permute,1,1,shift elements down by index,B,B,ILLEGAL,ILLEGAL,First Element,Splat
+Base,VSLIDEUP,permute,1,1,shift elements up by index,B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VRGATHER,permute,2,0,gather elements from vector register,B,B,ILLEGAL,ILLEGAL,First Element,Splat
 Base,VCLIP,round,1,1,clip to narrow,S/U,S/U,ILLEGAL,S/U,First Element,Splat
 Base,VCLIPI,round,1,0,"Clip, shift by imm",S/U,S/U,ILLEGAL,S/U,First Element,Splat

@@ -1460,14 +1460,18 @@ vector.  If `vs2{i}` is out of range 0..MAXVL-1, then 0 is returned.
 === Vector register slide
 [source,asm]
 ----
-    vslide vd, vs1, rs2, vm  # vd{i} = vs1{rs2+i}
+    vslidedown vd, vs1, rs2, vm  # vd{i} = vs1{rs2+i}
+    vslideup   vd, vs1, rs2, vm  # vd{i} = vs1{rs2-i}
 ----
 
-Writes vl elements to destination vector register taken from start
+`vslidedown` writes vl elements to destination vector register taken from start
 index `rs2` in source vector.  If `rs2 + i >= MAXVL`, returns 0s.
+`vslideup` writes vl elements to destination vector register taken from start
+index `rs2` in source vector.  If `rs2 - i < 0`, returns 0s.
 
-All masking operations are available on vslide. Will splat just
-`vs1{rs2}` to all of `vd` if destination is scalar shape.
+All masking operations are available on `vslideup` and `vslidedown`. If
+destination is scalar shape the slide instructions will splat `vs1{rs2}` to all
+of `vd`.
 
 === Vector mask to xreg instructions
 
