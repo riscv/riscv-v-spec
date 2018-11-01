@@ -727,6 +727,11 @@ promote::
   Raise an illegal instruction trap if the operation is a floating-point
   operation.
   Otherwise, sign-extend the value in the source register.
+truncate::
+  Raise an illegal instruction trap if the operation is a floating-point
+  operation.
+  Otherwise, write the lower `N` bits of the result to the destination
+  register, where `N` is the precision of the operation.
 extend::
   NaN-box the result if the operation is a floating-point operation.
   Otherwise, sign-extend the result when writing to the destination
@@ -740,27 +745,33 @@ extract::
   For all other operations, always use the lower `N` bits as the
   operand.
 
+The "operation width" (*op*) for non-floating-point instructions is
+defined to be the maximum of the source register widths.
+
 [#reg-op-width]
 .Register/Operation Width Interactions
 |===
 | Width Relation |dst < op|dst = op|dst > op
 
 h|src < op
-|trap
+|src: promote +
+dst: truncate
 |src: promote +
 dst: no action
 |src: promote +
 dst: extend
 
 h|src = op
-|trap
+|src: no action +
+dst: truncate
 |src: no action +
 dst: no action
 |src: no action +
 dst: extend
 
 h|src > op
-|trap
+|src: extract +
+dst: truncate
 |src: extract +
 dst: no action
 |src: extract +
