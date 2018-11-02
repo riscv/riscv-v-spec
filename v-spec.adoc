@@ -404,6 +404,9 @@ The available MAXVL depends on the configuration setting and on the
 implementation's microarchitecture, but MAXVL must always have the same value for
 the same configuration parameters on a given hart.
 
+MAXVL should always be non-zero if the vector unit is enabled
+or zero if it is disabled.
+
 [NOTE]
 --
 Several earlier vector machines had the ability to configure
@@ -431,12 +434,16 @@ to check for possible negative values.
 
 The resulting `vl` setting must satisfy the following constraints:
 
-. `vl > 0` if `AVL > 0`
-. `vl \<= MAXVL`
 . `vl = AVL` if `AVL \<= MAXVL`
-. `vl >= AVL / 2` if `AVL < 2 * MAXVL`
-. `vl = MAXVL` if `AVL >= 2 * MAXVL`
+. `vl >= ceil(AVL / 2)` if `AVL < (2 * MAXVL)`
+. `vl = MAXVL` if `AVL >= (2 * MAXVL)`
 . Deterministic for any given configuration and AVL
+. These specific properties follow from the prior rules:
+.. `vl = 0` if  `AVL = 0`
+.. `vl > 0` if `AVL > 0`
+.. `vl \<= MAXVL`
+.. `vl \<= AVL`
+
 
 [NOTE]
 --
@@ -448,12 +455,16 @@ vector lane utilization for `AVL > MAXVL`.
 For example, this permits an implementation to set `vl = ceil(AVL / 2)`
 for `MAXVL < AVL < 2*MAXVL` in order to evenly distribute work over the
 last two iterations of a stripmine loop.
-Requirement 4 ensures that the first stripmine iteration of reduction
+Requirement 2 ensures that the first stripmine iteration of reduction
 loops uses the largest vector length of all iterations, even in the case
 of `AVL < 2*MAXVL`.
 This allows software to avoid needing to explicitly calculate a running
 maximum of vector lengths.
 --
+
+Setting `vl` to 0 causes instructions producing vector shape results to
+behave as no-ops, which follows naturally from the broader requirement
+that elements past `vl` remain undisturbed.
 
 If the vector unit is disabled, `vsetvl` or any read of `vl` raises an
 illegal instruction exception.
