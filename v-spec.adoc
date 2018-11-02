@@ -404,7 +404,7 @@ The available MAXVL depends on the configuration setting and on the
 implementation's microarchitecture, but MAXVL must always have the same value for
 the same configuration parameters on a given hart.
 
-MAXVL should always be non-zero if the vector unit is enabled
+MAXVL should always be greater than zero if the vector unit is enabled
 or zero if it is disabled.
 
 [NOTE]
