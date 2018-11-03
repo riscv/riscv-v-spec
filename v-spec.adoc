@@ -1048,7 +1048,7 @@ offsets.
 
 === Vector stores
 Vector stores move data values as bits taken from the LSBs of the
-source element.  Vector stores for a data type wider than `vsew` cause
+source element.  Vector stores for a data type wider than the configured vector register element width cause
 an illegal instruction exception.
 
 ==== unit-stride store instructions
