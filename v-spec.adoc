@@ -849,7 +849,7 @@ current configured element width of `vs1`.
 
 [source,asm]
 ----
-    vsll    vd, vs1, vs2, v0.t
+    vsl    vd, vs1, vs2, v0.t
     vsra    vd, vs1, vs2, v0.t
     vsrl    vd, vs1, vs2, v0.t
 ----
@@ -894,7 +894,7 @@ These replace vs2 with a short sign-extended immediate (size TBD).
 ----
     vaddi   vd, vs1, imm, v0.t
 
-    vslli   vd, vs1, imm, v0.t
+    vsli   vd, vs1, imm, v0.t
     vsrli   vd, vs1, imm, v0.t
     vsrai   vd, vs1, imm, v0.t
 
@@ -1405,25 +1405,25 @@ Floating-point vector load instructions encode type
 ==== unit-stride instructions
 [source,asm]
 ----
-    vflh    vd, rs1, vm
-    vflw    vd, rs1, vm
-    vfld    vd, rs1, vm
+    vlfh    vd, rs1, vm
+    vlfs    vd, rs1, vm
+    vlfd    vd, rs1, vm
 ----
 
 ==== constant-stride instructions
 [source,asm]
 ----
-    vflsh   vd, offset(rs1), rs2, vm
-    vflsw   vd, offset(rs1), rs2, vm
-    vflsd   vd, offset(rs1), rs2, vm
+    vlsfh   vd, offset(rs1), rs2, vm
+    vlsfs   vd, offset(rs1), rs2, vm
+    vlsfd   vd, offset(rs1), rs2, vm
 ----
 
 ==== indexed (scatter-gather) instructions
 [source,asm]
 ----
-    vflxh   vd, offset(rs1), vs2, vm
-    vflxw   vd, offset(rs1), vs2, vm
-    vflxd   vd, offset(rs1), vs2, vm
+    vlxfh   vd, offset(rs1), vs2, vm
+    vlxfs   vd, offset(rs1), vs2, vm
+    vlxfd   vd, offset(rs1), vs2, vm
 ----
 
 === Vector floating-point stores
