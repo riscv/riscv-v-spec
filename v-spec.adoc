@@ -693,7 +693,7 @@ If no masking operand is specified, unmasked vector execution (`m=01`) is assume
 
 === Operations and Types
 
-There is a table of operations, and the affect of the operand and destination types on the result of the operations in appendix <<vector-op-table>>
+There is a table of operations, and the affect of the operand and destination types on the result of the operations in appendix <<vector-op-base-table>>.
 
 The types supported by the base V extension depend upon extension profiles
 that are defined on the platform level. One such example is the reference
@@ -1759,7 +1759,14 @@ The table makes several assumptions:
 
 	B - Bits
 
-[#vector-op-table,format="csv", separator=",", options="header"]
+.Base Operations Table
+[#vector-op-base-table,format="csv", separator=",", options="header"]
 |===
-include::vector-op-types.csv[]
+include::vector-op-base.csv[]
+|===
+
+.VTypes Operations Table
+[#vector-op-vtypes-table,format="csv", separator=",", options="header"]
+|===
+include::vector-op-vtypes.csv[]
 |===

@@ -1,4 +1,4 @@
-Mnemonic,Category,V operands,G operands,Description,Src Type,Dst Type (dst_width = src_width),Dst Type (dst_width = 2*src_width),Dst Type (dst_width = src_width / 2),"Dst Vector/Scalar Behavior: vector src,  scalar dst (instruction mask bits = 00, or scalar shape when vtypes is enabled)","Dst Scalar/Vector Behavior: vector dst,  scalar src (src was written previously as a scalar using 00 mask bits)"
+Mnemonic,Category,V operands,G operands,Description,Src Type,Dst Type (dst_width = src_width),Dst Type (dst_width = 2*src_width),Dst Type (dst_width = src_width / 2),"Dst Vector/Scalar Behavior: vector src,  scalar dst (instruction mask bits = 00, or scalar shape when vtypes is enabled)","Dst Scalar/Vector Behavior: vector dst,  scalar src"
 VADD,arith,2,0,add,"S/U,F","S/U,F",S/U,ILLEGAL,Reduction,Splat
 VADDI,arith,1,0,add immediate,S/U,S/U,S/U,ILLEGAL,Reduction,Splat
 VSUB,arith,2,0,subtract,"S/U,F","S/U,F",S/U,ILLEGAL,First Element,Splat
