@@ -608,6 +608,16 @@ prevent the use of CSRRW instructions to swap the configuration
 context; an entire old configuration must be read out before a new
 configuration is written in.
 
+=== Modularity of VTypes
+
+It is possible to implement only a subset of the `vtype<n>` CSR fields, leaving
+the unimplemented bits hardwired to defaults values determined by the base.
+The `vshape<n>` fields could be added as a single bit to determine scalar or vector
+shape. In addition, the `vew<n>` fields could initially be added as a 3-bit field
+matching the base `vsew` bits. The `verep<n>` fields require `vew<n>` but can
+initially be added as a 2-bit field for signed integers, unsigned integers, and
+signed floating point.
+
 === Interaction with Base Configuration
 
 When VTypes is implemented the base configuration instructions still
