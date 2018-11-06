@@ -102,16 +102,16 @@ register renaming can just initialize the rename table to point
 entries at a physical zero register.
 --
 
-==== `vsew[5:3]`
+==== `vsew`
 
-`vsew` is a 3-bit `WARL` field that can be expanded to match the
-`vew[5:0]` expanded width encoding in <<vewn>>. `vsew` stands for
+`vsew` is a 3-bit `WARL` field that matches the encoding of
+`vew<n>[5:3]` as described in <<vewn>>. `vsew` stands for
 "Vector Single Element Width".
 
-.`vsew[5:3]` Base Encoding
+.`vsew` Base Encoding
 [#vsew,options="header"]
 |===
-|`vsew[5:3]` | Width | Required in base
+|`vsew` | Width | Required in base
 |001 | 8 | All
 |010 | 16 | All
 |011 | 32 | All
