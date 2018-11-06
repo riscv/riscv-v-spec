@@ -519,6 +519,7 @@ The combination of an element numeric representation and an element
 bitwidth is called an element _format_.
 Each vector register can also be disabled to free physical vector
 storage for other architectural vector registers.
+`vtype<n>` CSRs are writable only when `vtypeen == 1`.
 
 ==== `vshape<n>`
 
@@ -606,6 +607,17 @@ number of possible architectural vector registers.  This choice does
 prevent the use of CSRRW instructions to swap the configuration
 context; an entire old configuration must be read out before a new
 configuration is written in.
+
+=== Interaction with Base Configuration
+
+When VTypes is implemented the base configuration instructions still
+configure the machine.
+`vconfig` and writes to `vcfg` behave the same as in the base and additionally
+set the `vtype<n>` CSRs to match the current configuration:
+
+- `vew<n>` is set so the currently configured element width.
+- `verep<n>` is set to unsigned integer.
+- `vshape<n>` is set to vector.
 
 == Vector instruction overview
 
