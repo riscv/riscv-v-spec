@@ -942,6 +942,18 @@ operate on `vsew` source and destination widths.
     vremu           vd, vs1, vs2, vm
 ----
 
+==== Integer Multiply Add
+The integer fused multiply-add is a destructive operation in order to save
+encoding space. The two source operands `vs1`, `vs2` are multiplied 
+element-wise, and the result is accumulated into `vd`.
+
+[source,asm]
+----
+    vmadd           vd, vs1, vs2, vm
+    vmaddu          vd, vs1, vs2, vm
+----
+
+
 === Integer Reduction Operations
 These instructions take a vector shape as input and produce a scalar
 shape.

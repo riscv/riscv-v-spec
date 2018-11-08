@@ -38,6 +38,7 @@ VXOR,logical,2,0,bitwise XOR,B,B,ILLEGAL,ILLEGAL,Reduction
 VXORI,logical,1,0,bitwise XOR with immediate,B,B,ILLEGAL,ILLEGAL,Reduction
 VMFIRST,mask,1,0,index of first TRUE lab -> GPR,B,B,ILLEGAL,ILLEGAL,GPR
 VMPOP,mask,1,0,Count lsb of elements -> GPR,B,B,ILLEGAL,ILLEGAL,GPR
+"VMADD.X[U]",multiply-add,2,0,Destructive multiply add,S/U,S/U,S/U,ILLEGAL,First Element
 "VFMADD.[H,S,D]",multiply-add,3,0,Multiply add,F,F,F,ILLEGAL,First Element
 "VFMSUB.[H,S,D]",multiply-add,3,0,Multiply subtract,F,F,F,ILLEGAL,First Element
 VMUL.X[U],multiply-add,2,0,Multiply,S/U,S/U,ILLEGAL,ILLEGAL,First Element
