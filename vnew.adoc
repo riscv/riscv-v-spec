@@ -7,6 +7,10 @@ Proposal for "low-config" redesign
 :numbered:
 :stem: latexmath
 
+== Note
+
+These are working notes only.
+
 == Implementation-defined constant parameters
 
 These parameters are fixed for a given machine.  The ISA supports
@@ -1071,5 +1075,170 @@ vlmul
 10      [v0,v8,v16,v24],[v1,v9,v17,v24],...,[v7,v15,v23,v31]
 11      [v0,v4,v8,v12,v16,v20,v24],[v1,v5,v9,v13,v17,v21,v24],...,[v3,...,v31]
 ----
+
+== Notes on instruction encoding using polymorphic scalar floating-point instructions
+
+[source]
+----
+m[1:0]
+
+  00    vector, where v0[0] = 0
+  01    vector, where v0[0] = 1
+  10    scalar
+  11    always true
+----
+
+[source]
+----
+Encoding of operand pattern rm field for regular vector arithmetic instructions
+
+rm2 rm1 rm0
+
+0     0   0      Vector-vector   SEW =   SEW op SEW
+0     0   1      Vector-vector                     
+0     1   0      Vector-vector 2*SEW =   SEW op SEW
+0     1   1      Vector-vector 2*SEW = 2*SEW op SEW
+
+1     0   0      Vector-scalar   SEW =   SEW op s_SEW
+1     0   1      Vector-imm      SEW =   SEW op imm
+1     1   0      Vector-scalar 2*SEW =   SEW op s_SEW
+1     1   1      Vector-scalar 2*SEW = 2*SEW op s_SEW
+----
+
+scalar vtype = m[1:0]=10
+
+rm[2:0] has regular scalar instruction meaning when m[1:0]=scalar
+
+
+=== Fused Multiply-Adds
+
+----
+FMADD
+FMSUB
+FNMSUB
+FNMADD
+----
+
+[source]
+----
+rm2 rm1 rm0
+
+0     0   0      Vector-vector   SEW =   SEW + SEW * SEW
+0     0   1      Vector-vector 4*SEW = 4*SEW + SEW * SEW (int only)
+0     1   0      Vector-vector 
+0     1   1      Vector-vector 2*SEW = 2*SEW + SEW * SEW
+
+1     0   0      Vector-scalar   SEW =   SEW + SEW * s_SEW
+1     0   1      vector-scalar   SEW = s_SEW + SEW * SEW
+1     1   0      Vector-scalar 2*SEW = 2*SEW + SEW * s_SEW
+1     1   1      Vector-scalar 2*SEW = 2*s_SEW + SEW * SEW
+----
+
+[source]
+----
+FADD
+FSUB
+FMUL
+FDIV
+FSQRT
+
+
+# SEW only
+FSGNJ
+FSGNJN
+FSGNJX
+
+# SEW only
+FMIN
+FMAX
+
+# SEW only
+FEQ
+FLT
+FLE
+
+v = s ,  ! (v = s) = (v != s)
+v < s ,  ! (v < s) = (v >= s)
+v <= s , ! (v <=s) = (v > s)
+
+# SEW only, 16b+
+FCLASS
+
+FMV*
+FCVT*
+----
+
+=== New Vector Arithmetic Instructions
+
+[source]
+----
+ VAND
+ VOR
+ VXOR
+ VANDNOT?
+
+ VSLL
+ VSRL
+ VSRA
+
+ VLTU  ?
+ VLEU  ?
+
+ VREM
+
+ VMULSU ?
+ VMULU  ?
+----
+
+==== Narrowing instructions
+
+[source]
+----
+ VCLIP  vector clip after shift right
+ VNSR   vector narrow shift right
+ VNSRA  vector narrow shift right arithmetic
+
+ vd[i] = clip((vs1[i] + rnd) >> vs2[i])
+
+ For VNSR/VNSRA, clip, rnd = nop
+
+ # vs1 = 2*SEW, 4*SEW
+
+ rm2 rm1 rm0
+
+ 0     0   0      Vector-vector  SEW =  2*SEW op SEW
+ 0     0   1      Vector-vector                     
+ 0     1   0      Vector-vector  SEW =  4*SEW op SEW
+ 0     1   1      Vector-vector  
+
+ 1     0   0      Vector-scalar  SEW =  2*SEW op SEW
+ 1     0   1      Vector-imm     SEW =  2*SEW op imm
+ 1     1   0      Vector-scalar  SEW =  4*SEW op SEW
+ 1     1   1      Vector-imm     SEW =  4*SEW op imm
+
+----
+
+=== New Vector Permutation
+
+[source]
+----
+ vrgather
+
+ vslideup
+
+ vslidedown
+----
+
+== Notes on instruction encoding using separate major opcode
+
+Separate out vector arithmetic operations into new major opcode.
+Similar encoding as above, but avoids assembler/disassembler
+confusion.
+
+Main con (apart from additional major opcode) is losing
+non-destructive fused multiply-add space.
+
+
+
 
 
