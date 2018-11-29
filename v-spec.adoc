@@ -479,6 +479,25 @@ m[1:0]
   11    vector, always true
 ----
 
+=== Assembler syntax
+
+Scalar operations are written in assembler with a `.s` after the
+destination vector register specifier.
+Vector masking is written as another vector operand, with `.t` or `.f` indicating if operation occurs
+when `v0[0]` is `1` or `0` respectively.
+If no masking operand is specified, unmasked vector execution (`m=11`) is assumed.
+
+`vop v1, v2, v3, vm` implies following combinations:
+
+[source,asm]
+----
+    vop    v1,   v2, v3, v0.f  # enabled where v0[0]=0,     m=00
+    vop    v1,   v2, v3, v0.t  # enabled where v0[0]=1,     m=01
+    vop    v1.s, v2, v3        # scalar opertaion,          m=10
+    vop    v1,   v2, v3        # unmasked vector operation, m=11
+----
+
+
 == Vector Loads and Stores
 
 Vector loads and stores are encoding within the scalar floating-point
