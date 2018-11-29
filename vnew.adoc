@@ -1,5 +1,5 @@
 = Vector extension
-Proposal for "low-config" redesign 
+Version 0.6-draft
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -9,22 +9,28 @@ Proposal for "low-config" redesign
 
 == Note
 
-These are working notes only.
+This is a draft of a stable proposal for the vector specification to
+be discussed at the RISC-V Summit.  This version is intended to be
+stable enough to begin developing detailed encoding, toolchains,
+functional simulators, and initial implementations.
 
 == Implementation-defined constant parameters
 
 These parameters are fixed for a given machine.  The ISA supports
-writing code that is portable across machines with different values
-for these parameters, under certain constraints.
+writing code, under certain constraints, that will be portable across
+machines with different values for these parameters.
 
-The maximum size of a single vector element in bits, stem:[ELEN \geq
-max(XLEN,FLEN) ]. Must be a power of 2.
+NOTE: Code can be written that will expose implementation parameters.
+
+The maximum size of a single vector element in bits, stem:[ELEN].
+Must be a power of 2.
 
 The number of bits in a vector register, stem:[VLEN \geq ELEN].  Must
 be a power of 2.
 
 NOTE: Platform profiles may set further constraints on these
-parameters, for example, requiring a minimm stem:[VLEN] or stem:[ELEN] value.
+parameters, for example, requiring that stem:[ELEN \geq
+max(XLEN,FLEN)] or requiring a minimum stem:[VLEN] value.
 
 NOTE: Vector contexts cannot be migrated across vector units with
 different VLEN and ELEN settings.
@@ -48,12 +54,12 @@ bytes        7 6 5 4 3 2 1 0
                     |  f0   |
 ----
 
-NOTE: Because bits within an element are numbered in a little-endian
-format with increasing bit index corresponding to increasing
-magnitude, and because RISC-V is little-endian, vector register
-layouts are drawn with bytes ordered from right to left with
-increasing byte address.
- 
+NOTE: To increase readability, vector register layouts are drawn with
+bytes ordered from right to left with increasing byte address.  Bits
+within an element are numbered in a little-endian format with
+increasing bit index from right to left corresponding to increasing
+magnitude.
+
 NOTE: Zfinx ("F in X") is a new ISA option under consideration where
 floating-point instructions take their arguments from the integer
 register file.  The vector extension is incompatible with this option.
@@ -69,12 +75,12 @@ Three new XLEN-width unprivileged CSRs are added: `vtype`, `vl`,
 == Vector type register, `vtype`
 
 The XLEN-wide _vector_ _type_ CSR, `vtype` provides the default type
-of variables contained in the vector register file, and used to
+of variables contained in the vector register file, and is used to
 provide a polymorphic interpretation for vector instructions. The
 vector type also determines the number of elements that are held in
 each vector register.
 
-The `type` register has two fields, `vrep`, and `vsew`.
+The `type` register has two fields, `vrep`, and `vsew[2:0]`.
 
 [source]
 ----
@@ -85,23 +91,20 @@ XLEN-1:5    Reserved (write 0)
       0     vrep
 ----
 
-Not all combinations of values in the three fields will be supported
-on an implementation.
-
 NOTE: Further standard and custom extensions to the vector base will
 extend these three fields to support a greater variety of data types.
 
 === Vector representation `vrep` encoding
 
 The `vrep` field specifies how the bit patterns stored in each element
-are to be interpeted.  Integer instructions can also explicitly treat
-their operands as signed or unsigned.
+are to be interpeted by default.  Instructions may explicitly override
+the default representation.
 
 [source]
 ----
  'vrep' representation field encoding
 
- 0  Signed two's-complement integer  
+ 0  Signed two's-complement integer
  1  IEEE-754/2008 floating-point
 ----
 
@@ -137,16 +140,18 @@ stem:[VLMAX] values for the following stem:[SEW] values:
 
 The vector extension does not modify the behavior of standard scalar
 floating-point instructions.  Standard scalar floating-point
-instructions will operate on the lower FLEN bits of each vector
-register, and will perform NaN-boxing on floating-point results that
+instructions operate on the lower FLEN bits of each vector
+register, and perform NaN-boxing on floating-point results that
 are narrower than FLEN.
 
-NOTE: Scalar floating-point loads and stores move bit patterns between
-memory and registers can be used to load and store element 0 of a
-vector registers with a wider immediate offset than the vector load
-and store instructions.  Implementations using floating-point recoding
-techniques might experience a performance penalty when using
-floating-point loads and stores to move integer values.
+NOTE: The standard scalar floating-point loads and stores move
+uninterpreted bit patterns between memory and registers and can be
+used to load and store the lower bits of a vector register, using a
+wider immediate offset than the vector extension scalar load and store
+instructions.  Implementations using floating-point recoding
+techniques might experience a performance penalty when using scalar
+floating-point loads and stores to move values used as
+non-floating-point values.
 
 == Vector Length register `vl`
 
@@ -171,7 +176,9 @@ that can be completed by a single vector instruction with the current
 
 ----
  vsetvli rd, rs1, vtypei # rd = new vl, rs1 = AVL, vtypei = new vtype setting
+                         # if rs1 = x0, then use maximum vector length
  vsetvl  rd, rs1, rs2    # rd = new vl, rs1 = AVL, rs2 = new vtype value
+                         # if rs1 = x0, then use maximum vector length
 ----
 
 The `vsetvli` instruction sets the `vtype`, `vl`, and `vlmax` CSRs
@@ -180,17 +187,41 @@ based on its arguments, and writes the new value of `vl` into `rd`.
 The new `vtype` setting is encoded in the immediate field `vtypei` for
 `vsetvli` and in the `rs2` register for `vsetvl`.
 
+[source]
+----
+ Suggested assembler names used for vtypei setting
+
+ vint8    #   8b signed integers
+ vint16   #  16b signed integers
+ vint32   #  32b signed integers
+ vint64   #  64b signed integers
+ vint128  # 128b signed integers
+
+ vfp16    #  16b IEEE FP
+ vfp32    #  32b IEEE FP
+ vfp64    #  64b IEEE FP
+ vfp128   # 128b IEEE FP
+----
+
 NOTE: The immediate argument `vtypei` can be a compressed form of the
-full vtype setting, capturing the most common use cases.
+full vtype setting, capturing the most common use cases.  For the base
+proposed here, it is assumed that at least four bits of immediate are
+available to write all standard values of `vtype` (`vsew[2:0]` and
+`vrep`).
 
 The `vtype` setting must be supported by the implementation, and the
- `vsetvl{i}` instruction will raise an illegal instruction exception
+ `vsetvl{i}` instructions will raise an illegal instruction exception
  if the setting is not supported.
 
-NOTE: Would simplify pipelines if `vtype` value errors were flagged at
-use not write, but somehow need to catch errant code without requiring
-full XLEN bits in `vtype` when only a few bits are actually needed.
-Can specify WARL but that would hide errors.
+NOTE: Specifing that `vtype` is WARL is problematic as that would hide
+errors.  The current spec is problematic in that it requires a trap
+based on a data value in a CSR write. It would simplify pipelines if
+`vtype` value errors were flagged at use not write, but somehow need
+to catch errant code without requiring full XLEN bits in `vtype` when
+only a few bits are actually used. One alternative is to allow
+substitution of a fixed illegal value in `vtype`, e.g., all 1s, if an
+attempt is made to write an unsupported value.  This would then cause
+a trap on use.
 
 The requested application vector length (AVL) is passed in `rs1` as an
 unsigned integer.
@@ -227,14 +258,14 @@ Requirement 2 ensures that the first stripmine iteration of reduction
 loops uses the largest vector length of all iterations, even in the case
 of `AVL < 2*VLMAX`.
 This allows software to avoid needing to explicitly calculate a running
-maximum of vector lengths.
+maximum of vector lengths observed during a stripmined loop.
 --
 
 === `vsetvl` instruction
 
 The `vsetvl` variant operates similary to `vsetvli` except that it
 takes a `vtype` value from `rs2` and can be used for context restore,
-and when `vtypei` can not hold desired setting.
+and when the `vtypei` field is too small to hold the desired setting.
 
 NOTE: Several active complex types can be held in different `x`
 registers and swapped in as needed using `vsetvl`.
@@ -243,8 +274,7 @@ registers and swapped in as needed using `vsetvl`.
 
 To represent a variety of different width datatypes in the same
 fixed-width vector registers, the mapping used between vector elements
-and bytes in a vector register depends on the implementation's fixed
-ELEN and the runtime SEW setting.
+and bytes in a vector register depends on the runtime SEW setting.
 
 NOTE: Previous RISC-V vector proposals hid this mapping from software,
 whereas this proposal has a specific mapping for all configurations,
@@ -256,20 +286,14 @@ save the configuration in `vl`, `vlmax`, and `vtype`, then reset
 all vector register bits without needing to parse the configuration.
 The reverse process will restore the state.
 
-NOTE: This packing is designed to minimize datapath wiring complexity
-when dealing with different bitwidth datatypes.
-
-NOTE: Although implementations with different ELEN have different byte
-packings, vector machine code can be written to produce the same
-result on different implementations.
-
 The following diagrams illustrate how different width elements are
-packed into the bytes of a vector register depending on ELEN and the
-current SEW setting.  The element index is shown placed at the
-least-significant byte of the stored element.
+packed into the bytes of a vector register depending on current SEW
+setting.
 
 [source]
 ----
+  The element index is shown placed at the least-significant byte of the stored element.
+
  ELEN=32b
 
  Byte         3 2 1 0
@@ -322,11 +346,11 @@ below:
 
 ----
  Example 1: ELEN=32
- ELEN unit      3       2       1       0    
- Byte        3 2 1 0 3 2 1 0 3 2 1 0 3 2 1 0 
+ ELEN unit      3       2       1       0
+ Byte        3 2 1 0 3 2 1 0 3 2 1 0 3 2 1 0
  SEW=16b       7   6   5   4   3   2   1   0   <=16-bit elements
  v2*n              6       4       2       0   32-bit elements
- v2*n+1            7       5       3       1 
+ v2*n+1            7       5       3       1
 ----
 
 The even-numbered vector register holds the even-numbered elements of
@@ -340,14 +364,14 @@ For quad-width operands that are stem:[4\times SEW] a group of four
 aligned vector registers are used to hold the results:
 
 ----
- ELEN unit        3       2       1       0    
- Byte          3 2 1 0 3 2 1 0 3 2 1 0 3 2 1 0 
+ ELEN unit        3       2       1       0
+ Byte          3 2 1 0 3 2 1 0 3 2 1 0 3 2 1 0
 
  SEW=8b        F E D C B A 9 8 7 6 5 4 3 2 1 0   8b elements
  v4*n                C       8       4       0   32b elements
- v4*n+1              D       9       5       1 
- v4*n+2              E       A       6       2 
- v4*n+3              F       B       7       3 
+ v4*n+1              D       9       5       1
+ v4*n+2              E       A       6       2
+ v4*n+3              F       B       7       3
 ----
 
 NOTE: A similar pattern is followed for octa-width operands
@@ -368,16 +392,16 @@ Example: Load 16-bit values, widen multiply to 32b, shift 32b result
 right by 3, store 32b values.
 
 loop:
-    setvli t0, a0, VT_VINT16 # vtype = 16-bit integer vectors
+    setvli t0, a0, vint16 # vtype = 16-bit integer vectors
     vlh v2, (a1)              # Get 16b vector
       slli t0, t0, 1
       add a1, a1, t0          # Bump pointer
     vmulw.vs v0, v2, v3       # 32b in <v0,v1> pair
-    setvl2ci a0, VT_VINT32    # Ceil half length in 32b (can fuse with following)
+    setvl2ci a0, vint32    # Ceil half length in 32b (can fuse with following)
     vsrl.vi v0, v0, 3        # Elements 0, 2, 4,...
-    vsetvl2fi a0, VT_VINT32   # Floor half length in 32b (can fuse with following)
+    vsetvl2fi a0, vint32   # Floor half length in 32b (can fuse with following)
     vsrl.vi v1, v1, 3        # Elements 1, 3, 5,...
-    vsetvli t0, a0, VT_VINT16 # Back to 16b
+    vsetvli t0, a0, vint16 # Back to 16b
     vsw v0, (a2)              # Store vector of 32b <v0,v1> pair
       sub a0, a0, t0          # Decrement count
       slli t0, t0, 2
@@ -387,14 +411,14 @@ loop:
 Alternative loop only using wider elements:
 
 loop:
-    setvli t0, a0, VT_INT32 # Use only 32-bit elements
-    vlh v0, (a1)            # Sign-extend 16b load values to 32b elements 
+    setvli t0, a0, vint32 # Use only 32-bit elements
+    vlh v0, (a1)            # Sign-extend 16b load values to 32b elements
       sll t1, t0, 1
       add a1, a1, t1        # Bump pointer
     vmul.vs  v0, v0, v3     # 32b multiply result
     vsrl.vi  v0, v0, 3      # Shift elements
     vsw v0, (a2)            # Store vector of 32b results
-      sll t1, t0, 2         
+      sll t1, t0, 2
       add a2, a2, t1        # Bump pointer
       sub a0, a0, t0
       bnez a0, loop         # Any more?
@@ -435,14 +459,15 @@ located in element 0 of a vector register.
 == Vector masking
 
 Masking is supported on almost all vector instructions producing
-vectors, with the mask supplied by vector register `v0`.  The `LSB` of
-each stem:[SEW]-wide element in `v0` is used as the mask, in either
-true or complement form.  Element operations that are masked off do
-not modify the destination vector register element and never generate
-exceptions.  Instructions producing scalars are not maskable.
+vectors, with the mask supplied by vector register `v0`.  The
+least-significant bit (LSB) of each stem:[SEW]-wide element in `v0` is
+used as the mask, in either true or complement form.  Element
+operations that are masked off do not modify the destination vector
+register element and never generate exceptions.  Instructions
+producing scalars are not maskable.
 
-The type of masking is encoded in a two-bit `m[1:0]` field
-(`inst[26:25]`) for all vector instructions.
+Masking is encoded in a two-bit `m[1:0]` field (`inst[26:25]`) for all
+vector instructions.
 
 [source]
 ----
@@ -450,16 +475,14 @@ m[1:0]
 
   00    vector, where v0[0] = 0
   01    vector, where v0[0] = 1
-  10    scalar
-  11    always true
+  10    scalar operation
+  11    vector, always true
 ----
-
 
 == Vector Loads and Stores
 
-The vector extension uses the floating-point load and store encoding
-space.  The exisitng scalar floating-point loads and stores are used
-for scalar loads and stores, and also for vector loads and stores.
+Vector loads and stores are encoding within the scalar floating-point
+load and store major opcodes (LOAD-FP/STORE-FP).
 
 === Operation of Floating-Point Load/Store Instructions in Vector Extension
 
@@ -477,42 +500,39 @@ The standard floating-point stores (FSH, FSW, FSD, FDQ) read the
 appropriate number of bits from the least-significant bits of the
 vector register and write these to memory.
 
-The standard floating-point load and store instructions do not
-interpret the bits that they move and so are unaffected by changes to
-the `vrep` field in `vtype`.
-
 === Vector Load/Store Instruction Encoding
 
-These are encoded within the floating-point load and store encoding space.
-
 The vector loads and stores are encoded using the width values that
-are not claimed by the standard floating-point loads and stores.  The
-vector load store encodings use additional bits taken from the imm12
-field of scalar loads and stores.
+are not claimed by the standard scalar floating-point loads and
+stores.
 
 [source]
 ----
-Width xv  Mem     Reg               uoffset5 to bytes scale
-          Bits    Bits              (set by width[1:0])
- 000  0  vl*8     vl*8      VxB     1
- 000  1  vl*SEW   vl*SEW    VxE     1
- 001  x    16     FLEN      FLH     N/A
- 010  x    32     FLEN      FLW     N/A
- 011  x    64     FLEN      FLD     N/A
- 100  x   128     FLEN      FLQ     N/A
- 101  0  vl*16    vl*16     VxH     2
- 101  1  vl*2*SEW vl*2*SEW  VxE2    2
- 110  0  vl*32    vl*32     VxW     4
- 110  1  vl*4*SEW vl*4*SEW  VxE4    4
- 111  0  vl*64    vl*64     VxD     8
- 111  1  vl*8*SEW vl*8*SEW  VxE8    8
+                     Width xv  Mem     Reg       opcode uoffset5 scale
+                     [2:0]     Bits    Bits             (set by width[1:0])
 
-The one-bit xv field encodes fixed or variable element width, and is located in the low 12 bits of the immediate
+Standard scalar FP    001  x    16     FLEN      FLH/FSH N/A
+Standard scalar FP    010  x    32     FLEN      FLW/FSW N/A
+Standard scalar FP    011  x    64     FLEN      FLD/FSD N/A
+Standard scalar FP    100  x   128     FLEN      FLQ/FSQ N/A
+Vector byte           000  0  vl*8     vl*SEW    VxB     1
+Vector halfword       101  0  vl*16    vl*SEW    VxH     2
+Vector word           110  0  vl*32    vl*SEW    VxW     4
+Vector doubleword     111  0  vl*64    vl*SEW    VxD     8
+Vector single-width   000  1  vl*SEW   vl*SEW    VxE     1
+Vector double-width   101  1  vl*2*SEW vl*2*SEW  VxE2    2
+Vector quad-width     110  1  vl*4*SEW vl*4*SEW  VxE4    4
+Vector octa-width     111  1  vl*8*SEW vl*8*SEW  VxE8    8
+
+The one-bit xv field encodes fixed or variable element width, and is located in imm12 field
+Mem bits is the size of element moved in memory
+Reg bits is the size of element accessed in register
+uoffset5 scale is the amount by which the five-bit unsigned immediate is multiplied to obtain a byte offset
 ----
 
-A portion of the 12-bit immediate field is repurposed to provide
-further vector instruction encoding, with bits[26:25] holding the mask
-information.
+The vector load and store encodings repurpose a portion of the
+standard load/store 12-bit immediate field to provide further vector
+instruction encoding, with bits[26:25] holding the mask information.
 
 Bits [31:27] hold a 5-bit unsigned offset that is added to the base
 register during vector addressing.  The offset is scaled according to
@@ -524,9 +544,11 @@ dependency between address generation and dynamic `vtype` value.
 
 [source]
 ----
-  31 30 29 28 27 26 25 24 23 22 21 20  Loads
-  31 30 29 28 27 26 25 11 10  9  8  7  Stores
-       uoffset5  m1 m0       funct5       
+ Use of 12b immediate field in vector load/store instruction encoding
+
+  31 30 29 28 27 26 25 24 23 22 21 20  Load   immediate bits
+  31 30 29 28 27 26 25 11 10  9  8  7  Store  immediate bits
+       uoffset5  m1 m0       funct5    Field
 
 
 funct5 encodes:
@@ -543,21 +565,33 @@ order [3]
        1 signed load
 
 mop [2:0]
-   0 0 0 unit-stride             
-   0 0 1 unit-stride speculative loads
-   0 1 0 constant-stride         
+   0 0 0 unit-stride
+   0 0 1 unit-stride speculative loads (fault first)
+   0 1 0 constant-stride
    0 1 1 indexed
    1 0 0 reserved
    1 0 1 reserved
    1 1 0 reserved
-   1 1 1 AMO?
+   1 1 1 reserved (AMO?)
 ----
+
+Vector unit-stride, constant-stride, and indexed (scatter/gather)
+load/store instructions are supported.
+
+NOTE: Vector AMO instructions are TBD.
+
+Vector load/store base registers and strides are taken from the GPR
+`x` registers.
 
 Vector load/store instructions move bit patterns between vector
 register elements and memory.
 
-Vector load/store base registers and strides are taken from the GPR
-`x` registers.
+An illegal instruction exception is raised if the register element is
+narrower than the memory operand.
+
+NOTE: Debate whether it is useful to allow, e.g., 64-bit loads to
+32-bit registers to retain only LSBs, to accelerate stride-2 loads.
+Comes at cost of addtional control/verification complexity.
 
 When `vrep` is set to integer, vector load instructions can optionally
 sign- or zero-extend narrower memory values into wider vector register
@@ -567,18 +601,48 @@ When `vrep` is set to floating-point, then loads will NaN-box narrower
 memory values into a wider register element, regardless of signed or
 unsigned opcode.
 
-Vector unit-stride, constant-stride, and indexed (scatter/gather)
-load/store instructions are supported.
-
 When the m[1:0] field is set to scalar, the vector load/store
 instructions move a single value between element 0 of the vector
 register and memory.
 
-NOTE: Option to have zero-extend of vector load of a scalar value to
-not NaN-box out to FLEN bits, and instead leave bits past size of
-operand unaffected?
+The unit-stride fault-first load instructions are used to vectorize
+loops with data-dependent exit conditions (while loops).  These
+instructions execute as a regular load except that they will only take
+a trap on element 0.  If an element > 0 raises an exception, the
+result of that element and all following elements up to the active
+vector length are written with 0 results, and the vector length `vl`
+is reduced to the number of elements processed without a trap.
 
-NOTE: Vector AMO instructions are TBD.
+
+[source]
+----
+strlen example using unit-stride fault-first instruction
+
+# size_t strlen(const char *str)
+# a0 holds *str
+
+    mv a3, a0             # Save start
+strlen:
+    setvli a1, x0, vint8  # Vector of bytes
+    vldbff.v v1, (a3)     # Get bytes
+    csrr a1, vl           # Get bytes read
+    add a3, a3, a1        # Bump pointer
+    vseq.vi v0, v1, 0     # Set v0[i] where v1[i] = 0
+    vmfirst a2, v0        # Find first set bit
+    bltz a2, strlen       # Not found?
+
+    add a0, a0, a1        # Sum start + bump
+    add a3, a3, a2        # Add index
+    sub a0, a3, a0        # Subtract start address+bump
+
+    ret
+----
+
+NOTE: Strided and scatter-gather fault-first instructions are not
+provided as they represent a large security hole, allowing software to
+check multiple random pages for accessibility without experiencing a
+trap. The unit-stride versions only allow probing a region immediately
+contiguous to a known region.
 
 === Vector load instructions assembler code
 
@@ -589,24 +653,28 @@ NOTE: Vector AMO instructions are TBD.
     # vd destination, rs1 base address, rs2=x0, vm is mask encoding
 
     # fixed-size element
-    vlb    vd, offset(rs1), vm # 8b
-    vlh    vd, offset(rs1), vm # 16b
-    vlw    vd, offset(rs1), vm # 32b
-    vld    vd, offset(rs1), vm # 64b
-    vle    vd, offset(rs1), vm # SEW
-    vle2   vd, offset(rs1), vm # 2*SEW
-    vle4   vd, offset(rs1), vm # 4*SEW
-    vle8   vd, offset(rs1), vm # 8*SEW
+    vlb.v    vd, offset(rs1), vm # 8b
+    vlh.v    vd, offset(rs1), vm # 16b
+    vlw.v    vd, offset(rs1), vm # 32b
+    vld.v    vd, offset(rs1), vm # 64b
+    vle.v    vd, offset(rs1), vm # SEW
+    vle2.v   vd, offset(rs1), vm # 2*SEW
+    vle4.v   vd, offset(rs1), vm # 4*SEW
+    vle8.v   vd, offset(rs1), vm # 8*SEW
 
     # first fault versions
-    vlbff    vd, offset(rs1), vm # 8b 
-    vlhff    vd, offset(rs1), vm # 16b
-    vlwff    vd, offset(rs1), vm # 32b
-    vldff    vd, offset(rs1), vm # 64b
-    vleff    vd, offset(rs1), vm # SEW
-    vle2ff   vd, offset(rs1), vm # 2*SEW
-    vle4ff   vd, offset(rs1), vm # 4*SEW
-    vle8ff   vd, offset(rs1), vm # 8*SEW
+    vlbff.v    vd, offset(rs1), vm # 8b
+    vlhff.v    vd, offset(rs1), vm # 16b
+    vlwff.v    vd, offset(rs1), vm # 32b
+    vldff.v    vd, offset(rs1), vm # 64b
+    vleff.v    vd, offset(rs1), vm # SEW
+    vle2ff.v   vd, offset(rs1), vm # 2*SEW
+    vle4ff.v   vd, offset(rs1), vm # 4*SEW
+    vle8ff.v   vd, offset(rs1), vm # 8*SEW
+
+    # Scalar versions
+    vlb.s vd, offset(rs1)      # 8b scalar load into element 0
+          ...
 ----
 
 NOTE: Could encode unit-stride as constant-stride with rs2=x0, but
@@ -616,14 +684,16 @@ this would add to decode complexity.
 [source,asm]
 ----
     # vd destination, rs1 base address, rs2 byte stride
-    vlsb    vd, offset(rs1), rs2, vm # 8b 
-    vlsh    vd, offset(rs1), rs2, vm # 16b
-    vlsw    vd, offset(rs1), rs2, vm # 32b
-    vlsd    vd, offset(rs1), rs2, vm # 64b
-    vlse    vd, offset(rs1), rs2, vm  # SEW  
-    vlse2   vd, offset(rs1), rs2, vm  # 2*SEW
-    vlse4   vd, offset(rs1), rs2, vm  # 4*SEW
-    vlse8   vd, offset(rs1), rs2, vm  # 8*SEW
+    vlsb.v    vd, offset(rs1), rs2, vm # 8b
+    vlsh.v    vd, offset(rs1), rs2, vm # 16b
+    vlsw.v    vd, offset(rs1), rs2, vm # 32b
+    vlsd.v    vd, offset(rs1), rs2, vm # 64b
+    vlse.v    vd, offset(rs1), rs2, vm  # SEW
+    vlse2.v   vd, offset(rs1), rs2, vm  # 2*SEW
+    vlse4.v   vd, offset(rs1), rs2, vm  # 4*SEW
+    vlse8.v   vd, offset(rs1), rs2, vm  # 8*SEW
+
+    vlse8.s   vd, offset(rs1), rs2, vm  # 8*SEW scalar load
 ----
 
 The stride is interpreted as an integer representing a byte offset.
@@ -632,14 +702,14 @@ The stride is interpreted as an integer representing a byte offset.
 [source,asm]
 ----
     # vd destination, rs1 base address, vs2 indices
-    vlxb    vd, offset(rs1), vs2, vm  # 8b 
-    vlxh    vd, offset(rs1), vs2, vm  # 16b
-    vlxw    vd, offset(rs1), vs2, vm  # 32b
-    vlxd    vd, offset(rs1), vs2, vm  # 64b
-    vlxe    vd, offset(rs1), vs2, vm  # SEW  
-    vlxe2   vd, offset(rs1), vs2, vm  # 2*SEW
-    vlxe4   vd, offset(rs1), vs2, vm  # 4*SEW
-    vlxe8   vd, offset(rs1), vs2, vm  # 8*SEW
+    vlxb.v    vd, offset(rs1), vs2, vm  # 8b
+    vlxh.v    vd, offset(rs1), vs2, vm  # 16b
+    vlxw.v    vd, offset(rs1), vs2, vm  # 32b
+    vlxd.v    vd, offset(rs1), vs2, vm  # 64b
+    vlxe.v    vd, offset(rs1), vs2, vm  # SEW
+    vlxe2.v   vd, offset(rs1), vs2, vm  # 2*SEW
+    vlxe4.v   vd, offset(rs1), vs2, vm  # 4*SEW
+    vlxe8.v   vd, offset(rs1), vs2, vm  # 8*SEW
 ----
 
 Scatter/gather indices are treated as signed integers representing
@@ -662,57 +732,64 @@ above.
 ==== unit-stride store instructions
 [source,asm]
 ----
-    vsb     vs3, offset(rs1), vm  # 8b 
-    vsh     vs3, offset(rs1), vm  # 16b
-    vsw     vs3, offset(rs1), vm  # 32b
-    vsd     vs3, offset(rs1), vm  # 64b
-    vse     vs3, offset(rs1), vm  # SEW  
-    vse2    vs3, offset(rs1), vm  # 2*SEW
-    vse4    vs3, offset(rs1), vm  # 4*SEW
-    vse8    vs3, offset(rs1), vm  # 8*SEW
+    vsb.v     vs3, offset(rs1), vm  # 8b
+    vsh.v     vs3, offset(rs1), vm  # 16b
+    vsw.v     vs3, offset(rs1), vm  # 32b
+    vsd.v     vs3, offset(rs1), vm  # 64b
+    vse.v     vs3, offset(rs1), vm  # SEW
+    vse2.v    vs3, offset(rs1), vm  # 2*SEW
+    vse4.v    vs3, offset(rs1), vm  # 4*SEW
+    vse8.v    vs3, offset(rs1), vm  # 8*SEW
+
+    vsb.s   vs3, offset(rs1)      # Scalar 8b store from element 0
+    ...
 ----
 
 ==== constant-stride store instructions
 [source,asm]
 ----
-    vssb    vs3, offset(rs1), rs2, vm  # 8b 
-    vssh    vs3, offset(rs1), rs2, vm  # 16b
-    vssw    vs3, offset(rs1), rs2, vm  # 32b
-    vssd    vs3, offset(rs1), rs2, vm  # 64b
-    vsse    vs3, offset(rs1), rs2, vm  # SEW  
-    vsse2   vs3, offset(rs1), rs2, vm  # 2*SEW
-    vsse4   vs3, offset(rs1), rs2, vm  # 4*SEW
-    vsse8   vs3, offset(rs1), rs2, vm  # 8*SEW
+    vssb.v    vs3, offset(rs1), rs2, vm  # 8b
+    vssh.v    vs3, offset(rs1), rs2, vm  # 16b
+    vssw.v    vs3, offset(rs1), rs2, vm  # 32b
+    vssd.v    vs3, offset(rs1), rs2, vm  # 64b
+    vsse.v    vs3, offset(rs1), rs2, vm  # SEW
+    vsse2.v   vs3, offset(rs1), rs2, vm  # 2*SEW
+    vsse4.v   vs3, offset(rs1), rs2, vm  # 4*SEW
+    vsse8.v   vs3, offset(rs1), rs2, vm  # 8*SEW
 ----
 
 ==== indexed store (scatter) instructions (ordered by element)
 [source,asm]
 ----
-    vsxb    vs3, offset(rs1), vs2, vm  # 8b   
-    vsxh    vs3, offset(rs1), vs2, vm  # 16b  
-    vsxw    vs3, offset(rs1), vs2, vm  # 32b  
-    vsxd    vs3, offset(rs1), vs2, vm  # 64b  
-    vsxe    vs3, offset(rs1), vs2, vm  # SEW  
-    vsxe2   vs3, offset(rs1), vs2, vm  # 2*SEW
-    vsxe4   vs3, offset(rs1), vs2, vm  # 4*SEW
-    vsxe8   vs3, offset(rs1), vs2, vm  # 8*SEW
+    vsxb.v    vs3, offset(rs1), vs2, vm  # 8b
+    vsxh.v    vs3, offset(rs1), vs2, vm  # 16b
+    vsxw.v    vs3, offset(rs1), vs2, vm  # 32b
+    vsxd.v    vs3, offset(rs1), vs2, vm  # 64b
+    vsxe.v    vs3, offset(rs1), vs2, vm  # SEW
+    vsxe2.v   vs3, offset(rs1), vs2, vm  # 2*SEW
+    vsxe4.v   vs3, offset(rs1), vs2, vm  # 4*SEW
+    vsxe8.v   vs3, offset(rs1), vs2, vm  # 8*SEW
 ----
 
 ==== unordered-indexed (scatter-gather) instructions
 [source,asm]
 ----
-    vsuxb   vs3, offset(rs1), vs2, vm  # 8b   
-    vsuxh   vs3, offset(rs1), vs2, vm  # 16b  
-    vsuxw   vs3, offset(rs1), vs2, vm  # 32b  
-    vsuxd   vs3, offset(rs1), vs2, vm  # 64b  
-    vsuxe   vs3, offset(rs1), vs2, vm  # SEW  
-    vsuxe2  vs3, offset(rs1), vs2, vm  # 2*SEW
-    vsuxe4  vs3, offset(rs1), vs2, vm  # 4*SEW
-    vsuxe8  vs3, offset(rs1), vs2, vm  # 8*SEW
+    vsuxb.v   vs3, offset(rs1), vs2, vm  # 8b
+    vsuxh.v   vs3, offset(rs1), vs2, vm  # 16b
+    vsuxw.v   vs3, offset(rs1), vs2, vm  # 32b
+    vsuxd.v   vs3, offset(rs1), vs2, vm  # 64b
+    vsuxe.v   vs3, offset(rs1), vs2, vm  # SEW
+    vsuxe2.v  vs3, offset(rs1), vs2, vm  # 2*SEW
+    vsuxe4.v  vs3, offset(rs1), vs2, vm  # 4*SEW
+    vsuxe8.v  vs3, offset(rs1), vs2, vm  # 8*SEW
 ----
 
 NOTE: Dropped reverse-ordered scatter for now, can use rgather to
 reverse index order.
+
+NOTE: There is redundancy between all the scalar variants of
+unit-stride, constant-stride, and scatter-gather vector load/store
+instructions.
 
 === Vector memory model
 
@@ -726,8 +803,9 @@ stores write elements to memory in element order.
 == Vector Arithmetic Instructions
 
 The vector arithmetic instructions use a new major opcode (OP-V =
-1010111~2~), but generally follow the encoding pattern of the scalar
-floating-point instructions under the OP-FP opcode.
+1010111~2~) which neighbors OP-FP, but generally follow the encoding
+pattern of the scalar floating-point instructions under the OP-FP
+opcode.
 
 === Vector-Vector and Vector-Scalar Arithmetic Instructions
 
@@ -739,9 +817,10 @@ the second source vector register.  A few non-commutative operations
 
 === Vector-Immediate Arithmetic Instructions
 
-A few vector arithmetic instructions have vector-immediate forms
-(`.vi`) where the second scalar argument is a 5-bit signed integer
-encoded in `rs2` space.
+Many vector arithmetic instructions have vector-immediate forms
+(`.vi`) where the second scalar argument is a 5-bit immediate encoded
+in `rs2` space.  The immediate is sign-extended to the standard
+element width, and interpreted according to the `vtype` setting.
 
 ----
 vadd.vi vd, vrs1, 3
@@ -783,7 +862,7 @@ instructions.
 rm2 rm1 rm0
 
 0     0   0      Vector-vector   SEW =   SEW op SEW
-0     0   1      Vector-vector                     
+0     0   1      Vector-vector
 0     1   0      Vector-vector 2*SEW =   SEW op SEW
 0     1   1      Vector-vector 2*SEW = 2*SEW op SEW
 
@@ -822,7 +901,7 @@ vopw.wv  vd, vs1, vs2, vm    # 2*SEW= 2*SEW op SEW
 vopw.ws  vd, vs1, rs2, vm    # 2*SEW= 2*SEW op SEW
 ----
 
-=== Legal Vector Arithmetic Instructions 
+=== Legal Vector Arithmetic Instructions
 
 The following vector arithmetic instructions are provided
 
@@ -832,13 +911,13 @@ The following vector arithmetic instructions are provided
 VADD      x   x   x   x    x    x    x
 VSUB      x   x   x   x    x    x    x
 
-VAND      x   x   x   
+VAND      x   x   x
 VOR       x   x   x
-VXOR      x   x   x   
+VXOR      x   x   x
 
-VSLL      x   x   x   
-VSRL      x   x   x   
-VSRA      x   x   x   
+VSLL      x   x   x
+VSRL      x   x   x
+VSRA      x   x   x
 
 VSEQ      x   x   x
 VSNE      x   x   x
@@ -924,10 +1003,10 @@ The vector merge instruction combines two vectors based on the mask
 field.
 
 [source]
----- 
-vmerge.vv vd, vs1, vs2, vm  # vd[i] = vm[i] ? vs2[i] : vs1[i] 
-vmerge.vs vd, vs1, vs2, vm  # vd[i] = vm[i] ? vs2[0] : vs1[i] 
-vmerge.vi vd, vs1, vs2, vm  # vd[i] = vm[i] ? imm    : vs1[i] 
+----
+vmerge.vv vd, vs1, vs2, vm  # vd[i] = vm[i] ? vs2[i] : vs1[i]
+vmerge.vs vd, vs1, vs2, vm  # vd[i] = vm[i] ? vs2[0] : vs1[i]
+vmerge.vi vd, vs1, vs2, vm  # vd[i] = vm[i] ? imm    : vs1[i]
 ----
 
 The second operand is written where the mask is true.
@@ -1003,9 +1082,9 @@ The narrowing instructions used a different operand encoding in
  rm2 rm1 rm0
 
  0     0   0      Vector-vector  SEW =  2*SEW op SEW
- 0     0   1      Vector-vector                     
+ 0     0   1      Vector-vector
  0     1   0      Vector-vector  SEW =  4*SEW op SEW
- 0     1   1      Vector-vector  
+ 0     1   1      Vector-vector
 
  1     0   0      Vector-scalar  SEW =  2*SEW op SEW
  1     0   1      Vector-imm     SEW =  2*SEW op imm
@@ -1019,33 +1098,33 @@ vclipn.vv vd, vs1, vs2, vm  # SEW = 2*SEW >> SEW
 vclipn.vs vd, vs1, rs2, vm  # SEW = 2*SEW >> SEW
 vclipn.vi vd, vs1, imm, vm  # SEW = 2*SEW >> imm
 
-vclipn.wv vd, vs1, vs2, vm  # SEW = 4*SEW >> SEW  
-vclipn.ws vd, vs1, rs2, vm  # SEW = 4*SEW >> SEW  
-vclipn.wi vd, vs1, imm, vm  # SEW = 4*SEW >> imm  
+vclipn.wv vd, vs1, vs2, vm  # SEW = 4*SEW >> SEW
+vclipn.ws vd, vs1, rs2, vm  # SEW = 4*SEW >> SEW
+vclipn.wi vd, vs1, imm, vm  # SEW = 4*SEW >> imm
 
 vclipun.vv vd, vs1, vs2, vm  # SEW = 2*SEW >> SEW
 vclipun.vs vd, vs1, rs2, vm  # SEW = 2*SEW >> SEW
 vclipun.vi vd, vs1, imm, vm  # SEW = 2*SEW >> imm
 
-vclipun.wv vd, vs1, vs2, vm  # SEW = 4*SEW >> SEW  
-vclipun.ws vd, vs1, rs2, vm  # SEW = 4*SEW >> SEW  
-vclipun.wi vd, vs1, imm, vm  # SEW = 4*SEW >> imm  
+vclipun.wv vd, vs1, vs2, vm  # SEW = 4*SEW >> SEW
+vclipun.ws vd, vs1, rs2, vm  # SEW = 4*SEW >> SEW
+vclipun.wi vd, vs1, imm, vm  # SEW = 4*SEW >> imm
 
 vsrln.vv vd, vs1, vs2, vm  # SEW = 2*SEW >> SEW
 vsrln.vs vd, vs1, rs2, vm  # SEW = 2*SEW >> SEW
 vsrln.vi vd, vs1, imm, vm  # SEW = 2*SEW >> imm
 
-vsrln.wv vd, vs1, vs2, vm  # SEW = 4*SEW >> SEW  
-vsrln.ws vd, vs1, rs2, vm  # SEW = 4*SEW >> SEW  
-vsrln.wi vd, vs1, imm, vm  # SEW = 4*SEW >> imm  
+vsrln.wv vd, vs1, vs2, vm  # SEW = 4*SEW >> SEW
+vsrln.ws vd, vs1, rs2, vm  # SEW = 4*SEW >> SEW
+vsrln.wi vd, vs1, imm, vm  # SEW = 4*SEW >> imm
 
 vsran.vv vd, vs1, vs2, vm  # SEW = 2*SEW >> SEW
 vsran.vs vd, vs1, rs2, vm  # SEW = 2*SEW >> SEW
 vsran.vi vd, vs1, imm, vm  # SEW = 2*SEW >> imm
 
-vsran.wv vd, vs1, vs2, vm  # SEW = 4*SEW >> SEW  
-vsran.ws vd, vs1, rs2, vm  # SEW = 4*SEW >> SEW  
-vsran.wi vd, vs1, imm, vm  # SEW = 4*SEW >> imm  
+vsran.wv vd, vs1, vs2, vm  # SEW = 4*SEW >> SEW
+vsran.ws vd, vs1, rs2, vm  # SEW = 4*SEW >> SEW
+vsran.wi vd, vs1, imm, vm  # SEW = 4*SEW >> imm
 ----
 
 
@@ -1111,7 +1190,7 @@ scalar and vector.  Masked elements are ignored in the reduction.
     vredmaxu.v  vd, vs1, vs2, vm
     vredmin.v   vd, vs1, vs2, vm
     vredminu.v  vd, vs1, vs2, vm
-    vredand.v   vd, vs1, vs2, vm 
+    vredand.v   vd, vs1, vs2, vm
     vredor.v    vd, vs1, vs2, vm
     vredxor.v   vd, vs1, vs2, vm
 ----
@@ -1161,14 +1240,32 @@ A range of permutation instructions are provided.
 
 === Vector Iota instruction
 
-The VIOTA instruction writes to each element the index of the element.
-If the index would overflow the destination, the least-significant
-bits are retained.
+The VIOTA instruction reads `v0` and writes to each element of the
+destination the sum of all the least-significant bits of elements in
+the mask selected by m[1:0] with index less than the element, e.g., a
+parallel prefix sum of the mask values.
+
+If the value would overflow the destination, the least-significant
+bits are retained.  This instruction is not masked, so writes all `vl`
+elements of destination vector.
 
 [source]
 ----
- viota.v vd, vm   # Writes index to each element, vd[i] = i
+ viota.v vd        # Unmasked, writes index to each element, vd[i] = i
+ viota.v vd, v0.t  # Writes to each element, sum of preceding true elements.
+
+ # Example
+
+     7 6 5 4 3 2 1 0   Element number
+     1 0 0 1 0 0 0 1   v0 contents
+
+     7 6 5 4 3 2 1 0   viota.v vd
+     2 2 2 1 1 1 1 0   viota.v vd, v0.t
+     5 4 3 3 2 1 0 0   viota.v vd, v0.f
 ----
+
+NOTE: The `viota` instruction can be combined with scatter/gather
+instructions to perform vector compress/expand instructions.
 
 === Insert/Extract
 
@@ -1250,15 +1347,15 @@ then zero is returned for the element value.
     # a0 = n, a1 = x, a2 = y, a3 = z
     # Non-vector instructions are indented
 vvaddint32:
-    vsetvli t0, a0, VT_VINT32 # Set vector length based on 32-bit vectors
-    vlw v0, (a1)           # Get first vector
+    vsetvli t0, a0, vint32 # Set vector length based on 32-bit vectors
+    vlw.v v0, (a1)           # Get first vector
       sub a0, a0, t0         # Decrement number done
       slli t0, t0, 2         # Multiply number done by 4 bytes
       add a1, a1, t0         # Bump pointer
-    vlw v1, (a2)           # Get second vector
+    vlw.v v1, (a2)           # Get second vector
       add a2, a2, t0         # Bump pointer
-    vadd v2, v0, v1        # Sum vectors
-    vsw v2, (a3)           # Store result
+    vadd.v v2, v0, v1        # Sum vectors
+    vsw.v v2, (a3)           # Store result
       add a3, a3, t0         # Bump pointer
       bnez a0, vvaddint32    # Loop back
       ret                    # Finished
@@ -1274,11 +1371,11 @@ vvaddint32:
   memcpy:
       mv a3, a0 # Copy destination
   loop:
-    vsetvli t0, a2, VT_VINT8  # Vectors of 8b
-    vlb v0, (a1)              # Load bytes
+    vsetvli t0, a2, vint8  # Vectors of 8b
+    vlb.v v0, (a1)              # Load bytes
       add a1, a1, t0            # Bump pointer
       sub a2, a2, t0            # Decrement count
-    vsb v0, (a3)              # Store bytes
+    vsb.v v0, (a3)              # Store bytes
       add a3, a3, t0            # Bump pointer
       bnez a2, loop             # Any more?
       ret                       # Return
@@ -1292,50 +1389,86 @@ vvaddint32:
 
 Fixed 16b SEW:
 loop:
-    vsetvli t0, a0, VT_VINT16  # Use 16b elements.
-    vlb v0, (a1)               # Get x[i], sign-extended to 16b
+    vsetvli t0, a0, vint16  # Use 16b elements.
+    vlb.v v0, (a1)               # Get x[i], sign-extended to 16b
       sub a0, a0, t0           # Decrement element count
       add a1, a1, t0           # x[i] Bump pointer
     vslti v0, v0, 5            # Set mask in v0
       slli t0, t0, 1             # Multiply by 2 bytes
-    vlh v1, (a2), v0.t         # z[i] = a[i] case
+    vlh.v v1, (a2), v0.t         # z[i] = a[i] case
       add a2, a2, t0           # a[i] bump pointer
-    vlh v1, (a3), v0.f         # z[i] = b[i] case
+    vlh.v v1, (a3), v0.f         # z[i] = b[i] case
       add a3, a3, t0           # b[i] bump pointer
-    vsh v1, (a4)               # Store z
+    vsh.v v1, (a4)               # Store z
       add a4, a4, t0           # b[i] bump pointer
       bnez a0, loop
 ----
-
-
-
 
 
 == Increasing VLMAX through register grouping and `vlmul` field.
 
 An additional field can be added to `vsetvl` configuration to increase
 vector length when fewer architectural vector registers are needed by
-grouping vector registers together.  The upper paired registers are
-considered to add more ELEN units to the lowest-numbered vector
-register.  Attempts to access the upper registers when they are
-grouped raises an illegal-instruction execption.
+grouping vector registers together. 
 
 [source]
 ----
- vlmul  #vregs  vnames   VLMAX
- 00         32   v0-v31  VLEN/SEW
- 01         16   v0-v15  2*VLEN/SEW
- 10          8   v0-v7   4*VLEN/SEW
- 11          4   v0-v3   8*VLEN/SEW
+ vlmul  #vregs   VLMAX
+ 00         32   VLEN/SEW
+ 01         16   2*VLEN/SEW
+ 10          8   4*VLEN/SEW
+ 11          4   8*VLEN/SEW
 ----
 
-Register grouping structure:
+----
+ ELEN unit        3       2       1       0
+ Byte          3 2 1 0 3 2 1 0 3 2 1 0 3 2 1 0
 
+ vlmul=4,  SEW=32b
+ v4*n                C       8       4       0   32b elements
+ v4*n+1              D       9       5       1
+ v4*n+2              E       A       6       2
+ v4*n+3              F       B       7       3
+----
+
+NOTE: This reuses the same element mapping pattern used in widening
+operations.  Can probably replace vsetvl2fi etc.
+
+=== Expanded SEW encoding
+
+As a later extension, the vsew field is extended with three upper bits.
 [source]
 ----
-vlmul
-01      [v0,v16],[v1,v17],...,[v15,v31]
-10      [v0,v8,v16,v24],[v1,v9,v17,v24],...,[v7,v15,v23,v31]
-11      [v0,v4,v8,v12,v16,v20,v24],[v1,v5,v9,v13,v17,v21,v24],...,[v3,...,v31]
-----
+  vsew[2:0] (standard element width) encoding
 
+  vsew[2:0]   SEW
+  ---        ----
+  000           8
+  001          16
+  010          32
+  011          64
+  100         128
+  101         256
+  110         512
+  111        1024
+
+  vxsew[5:0] (expanded element width) encoding
+
+  vxsew[5:0]  SEW
+  ---        ----
+  000000       8
+  001000       1
+    ...          1..8, steps of 1
+  111000       7
+  000001      16
+  001001       9
+    ...          9..16, steps of 1
+  111001      15
+  000010      32
+  001010      18
+    ...          18-32, steps of 2
+  111010      30
+
+  ...TBD
+
+----
