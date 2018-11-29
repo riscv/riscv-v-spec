@@ -1434,7 +1434,7 @@ grouping vector registers together.
 NOTE: This reuses the same element mapping pattern used in widening
 operations.  Can probably replace vsetvl2fi etc.
 
-=== Expanded SEW encoding
+== Expanded SEW encoding
 
 As a later extension, the vsew field is extended with three upper bits.
 [source]
