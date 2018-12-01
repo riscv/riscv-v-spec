@@ -936,6 +936,8 @@ VXOR      x   x   x
 VSLL      x   x   x
 VSRL      x   x   x
 VSRA      x   x   x
+VCLIP     x   x   x
+VCLIPU    x   x   x
 
 VSEQ      x   x   x
 VSNE      x   x   x
@@ -1067,7 +1069,8 @@ single-width vectors.
  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
 ----
 
-For VSRN/VSRAN, clip=nop, rnd = nop.
+For VSRN/VSRAN, clip=nop, rnd = nop.  These operations can be used to
+extract a field from a wider structure held in a wider element.
 
 For VCLIPN, the value is treated as a signed integer and saturates if
 result would overflow the destination.
@@ -1078,6 +1081,9 @@ result would overflow the destination.
 For VCLIPN/VCLIPUN, the rounding mode is specified in the `fcsr` in a
 new `vxrm[1:0]` field.  Rounding occurs around the LSB of the
 destination.
+
+There are also regular non-narrowing VCLIP instructions defined with
+same function.
 
 [source]
 ----
