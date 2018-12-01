@@ -153,6 +153,13 @@ techniques might experience a performance penalty when using scalar
 floating-point loads and stores to move values used as
 non-floating-point values.
 
+==== Vector floating-point exception flags
+
+Vector floating-point operations merge the exception flags produced by
+any floating-point element operation into the standard FP exception
+flags in the `fcsr` register.  Masked elements do not create FP
+exception flags.
+
 == Vector Length register `vl`
 
 The stem:[XLEN]-bit-wide read-only `vl` CSR can only be updated by the
@@ -639,15 +646,16 @@ strlen example using unit-stride fault-first instruction
 # size_t strlen(const char *str)
 # a0 holds *str
 
-    mv a3, a0             # Save start
 strlen:
+    mv a3, a0             # Save start
+loop:
     setvli a1, x0, vint8  # Vector of bytes
     vldbff.v v1, (a3)     # Get bytes
     csrr a1, vl           # Get bytes read
     add a3, a3, a1        # Bump pointer
     vseq.vi v0, v1, 0     # Set v0[i] where v1[i] = 0
     vmfirst a2, v0        # Find first set bit
-    bltz a2, strlen       # Not found?
+    bltz a2, loop         # Not found?
 
     add a0, a0, a1        # Sum start + bump
     add a3, a3, a2        # Add index
@@ -967,9 +975,37 @@ VMAX      x   x   x
 
 VFCLASS   x   x   x
 
-FMV*
-FCVT*
+VCVT
 ----
+
+==== Explicit FP instructions?
+
+NOTE: There's a discussion around whether to add explicit
+floating-point versions of standard arithmetic instructions.  In
+addition to above, which includes some that are already explicitly
+floating-point, would require the following are added to base.
+
+[source]
+----
+         .vv .vs .vi w.vv w.vs w.wv w.ws
+VFADD      x   x      x    x    x    x
+VFSUB      x   x      x    x    x    x
+
+VFSEQ      x   x   
+VFSNE      x   x   
+VFSLT      x   x   
+VFSLE      x   x   
+(possibly unordered variants also)
+
+VFMUL      x   x       x    x    x    x
+
+VFDIV      x   x   
+----
+
+NOTE: It is not possible to provide both forms of fused multiply-add
+instructions.  On option is to dedicate the existing opcodes to
+floating-point and add a second set of destructive fused
+mul-accumulate for integer.
 
 === Vector Comparison Instructions
 
@@ -1019,8 +1055,8 @@ v <= s , ! (v <=s) = (v > s)
 
 === Vector Merge Instruction
 
-The vector merge instruction combines two vectors based on the mask
-field.
+The vector merge instruction combines two source operands based on the
+mask field.
 
 [source]
 ----
@@ -1359,7 +1395,87 @@ vrgather.vv vd, vs1, vs2, vm # vd[i] = vs1[vs2[i]]
 If the element indices are out of range ( stem:[ vs2[i\] \geq VLMAX] )
 then zero is returned for the element value.
 
-== Examples
+== Exception Handling
+
+Different platforms require different treatment of exceptions.
+
+=== `*progress` CSR
+
+In all platforms, a new "progress" CSR is defined and is made visible
+in any privilege mode that can observe a partially completed vector
+instruction.
+
+On a trap during a vector instruction, the existing `*epc` CSR is
+written with a pointer to the errant vector instruction, while the
+`*progress` CSR contains the element index that caused the trap to be
+taken.
+
+All vector instructions are defined to begin execution with the
+element number given in the `*progress` CSR, leaving earlier elements
+in the vector undisturbed, and to reset the `*progress` CSR to zero
+for the start of the subsequent vector instruction.
+
+If the value in the `*progress` register is >= `vl` then no elemental
+operations are performed, and the `*progress` register is reset to
+zero.
+
+=== Precise vector traps
+
+Precise vector traps, require that:
+
+ - all instructions older than the trapping vector instruction have committed their results
+ - no instructions newer than the trapping vector instruction have altered architectural state
+ - any operations within the trapping vector instruction affecting result elements preceding the index in the `*progress` CSR have committed their results
+ - no operations within the trapping vector instruction affecting elements at or following the `*progress` CSR have committed their results
+
+NOTE: We assume most supervisor-mode environments will require precise
+vector traps.
+
+NOTE: We chose to add a progress CSR to allow resumption of a
+partially executed vector instruction.  This matches the scheme in the
+IBM 3090 vector facility.  Without the progress CSR, to ensure forward
+progress implementations would have to guarantee an entire vector
+instruction can always complete atomically without generating a trap.
+This is particularly difficult to ensure in the presence of
+constant-stride or scatter/gather operations.
+ 
+=== Imprecise vector traps
+
+Imprecise vector traps are traps that are not precise.  In particular,
+instructions newer than `*epc` may have committed results, and
+instructions older than `*epc` may have not completed execution.
+Imprecise traps are primarily intended to be used in situations where
+reporting an error and terminating execution is the appropriate
+response.
+
+NOTE: A platform might specify that interrupts are precise while other
+traps are imprecise.  We assume many embedded platforms will only
+generate imprecise traps for vector instructions on fatal errors, so
+do not require resumable traps.
+
+=== Selectable precise/imprecise traps
+
+Some platforms may choose to provide a mode bit in a CSR to select
+between precise and imprecise vector traps.  Precise mode would run
+more slowly, but support debugging of errors, while imprecise mode
+would run at high-performance but possibly obscure error conditions.
+
+NOTE: It is acknowledged that some errors will only manifest in
+imprecise mode.
+
+=== Swappable traps
+
+Another trap mode can support swappable state in the vector unit,
+where on a trap, special instructions can save and restore the vector
+unit microarchitectural state, to allow execution to continue
+correctly around imprecise traps.
+
+This is not defined in base vector ISA.
+
+== Vector Assembly Code Examples
+
+The following are provided as non-normative text to help explain the vector ISA.
+
 === Vector-vector add example
 
 [source]
@@ -1428,8 +1544,9 @@ loop:
       bnez a0, loop
 ----
 
-
 == Increasing VLMAX through register grouping and `vlmul` field.
+
+NOTE: This is a proposal.  Needs more work.
 
 An additional field can be added to `vsetvl` configuration to increase
 vector length when fewer architectural vector registers are needed by
@@ -1460,7 +1577,8 @@ operations.  Can probably replace vsetvl2fi etc.
 
 == Expanded SEW encoding
 
-As a later extension, the vsew field is extended with three upper bits.
+As an extension, the vsew field is extended with three upper bits.
+
 [source]
 ----
   vsew[2:0] (standard element width) encoding
@@ -1496,3 +1614,21 @@ As a later extension, the vsew field is extended with three upper bits.
   ...TBD
 
 ----
+
+== Three-operand addition instructions
+
+These instructions are not considered part of the base.
+
+To support multi-word arithmetic, three input add instructions are
+defined:
+
+[source]
+----
+ vadd3      vd, vs1, vs2, vs3, vm   # 3-input sum
+ vadd3cout  vd, vs1, vs2, vs3, vm   # 3-input carry-out
+----
+
+The `vadd3` instruction sums three integer values together.
+
+The `vadd3cout` instruction produces the carry-out from summing the
+three integer values together.
