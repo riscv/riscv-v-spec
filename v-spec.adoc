@@ -1,5 +1,5 @@
 = Vector extension
-Version 0.6-draft
+Version 0.6-draft-20181201
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -608,11 +608,10 @@ register and memory.
 The unit-stride fault-first load instructions are used to vectorize
 loops with data-dependent exit conditions (while loops).  These
 instructions execute as a regular load except that they will only take
-a trap on element 0.  If an element > 0 raises an exception, the
-result of that element and all following elements up to the active
-vector length are written with 0 results, and the vector length `vl`
-is reduced to the number of elements processed without a trap.
-
+a trap on element 0.  If an element > 0 raises an exception, that
+element and all following elements in the destination vector
+register are not modified, and the vector length `vl` is reduced to the
+number of elements processed without a trap.
 
 [source]
 ----
