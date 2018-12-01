@@ -86,7 +86,7 @@ The `type` register has two fields, `vrep`, and `vsew[2:0]`.
 ----
 vtype layout
 
-XLEN-1:5    Reserved (write 0)
+XLEN-1:4    Reserved (write 0)
      3:1    vsew[2:0]
       0     vrep
 ----
@@ -478,6 +478,25 @@ m[1:0]
   10    scalar operation
   11    vector, always true
 ----
+
+=== Assembler syntax
+
+Scalar operations are written in assembler with a `.s` after the
+destination vector register specifier.
+Vector masking is written as another vector operand, with `.t` or `.f` indicating if operation occurs
+when `v0[0]` is `1` or `0` respectively.
+If no masking operand is specified, unmasked vector execution (`m=11`) is assumed.
+
+`vop v1, v2, v3, vm` implies following combinations:
+
+[source,asm]
+----
+    vop    v1,   v2, v3, v0.f  # enabled where v0[0]=0,     m=00
+    vop    v1,   v2, v3, v0.t  # enabled where v0[0]=1,     m=01
+    vop    v1.s, v2, v3        # scalar opertaion,          m=10
+    vop    v1,   v2, v3        # unmasked vector operation, m=11
+----
+
 
 == Vector Loads and Stores
 
@@ -1005,7 +1024,7 @@ field.
 ----
 vmerge.vv vd, vs1, vs2, vm  # vd[i] = vm[i] ? vs2[i] : vs1[i]
 vmerge.vs vd, vs1, vs2, vm  # vd[i] = vm[i] ? vs2[0] : vs1[i]
-vmerge.vi vd, vs1, vs2, vm  # vd[i] = vm[i] ? imm    : vs1[i]
+vmerge.vi vd, vs1, imm, vm  # vd[i] = vm[i] ? imm    : vs1[i]
 ----
 
 The second operand is written where the mask is true.
@@ -1048,7 +1067,7 @@ single-width vectors.
  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
 ----
 
-For VNSR/VNSRA, clip=nop, rnd = nop.
+For VSRN/VSRAN, clip=nop, rnd = nop.
 
 For VCLIPN, the value is treated as a signed integer and saturates if
 result would overflow the destination.
