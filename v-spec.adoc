@@ -393,7 +393,7 @@ right by 3, store 32b values.
 
 loop:
     setvli t0, a0, vint16 # vtype = 16-bit integer vectors
-    vlh v2, (a1)              # Get 16b vector
+    vlh.v v2, (a1)              # Get 16b vector
       slli t0, t0, 1
       add a1, a1, t0          # Bump pointer
     vmulw.vs v0, v2, v3       # 32b in <v0,v1> pair
@@ -402,7 +402,7 @@ loop:
     vsetvl2fi a0, vint32   # Floor half length in 32b (can fuse with following)
     vsrl.vi v1, v1, 3        # Elements 1, 3, 5,...
     vsetvli t0, a0, vint16 # Back to 16b
-    vsw v0, (a2)              # Store vector of 32b <v0,v1> pair
+    vsw.v v0, (a2)              # Store vector of 32b <v0,v1> pair
       sub a0, a0, t0          # Decrement count
       slli t0, t0, 2
       add a2, a2, t0          # Bump pointer
@@ -412,12 +412,12 @@ Alternative loop only using wider elements:
 
 loop:
     setvli t0, a0, vint32 # Use only 32-bit elements
-    vlh v0, (a1)            # Sign-extend 16b load values to 32b elements
+    vlh.v v0, (a1)            # Sign-extend 16b load values to 32b elements
       sll t1, t0, 1
       add a1, a1, t1        # Bump pointer
     vmul.vs  v0, v0, v3     # 32b multiply result
     vsrl.vi  v0, v0, 3      # Shift elements
-    vsw v0, (a2)            # Store vector of 32b results
+    vsw.v v0, (a2)            # Store vector of 32b results
       sll t1, t0, 2
       add a2, a2, t1        # Bump pointer
       sub a0, a0, t0
