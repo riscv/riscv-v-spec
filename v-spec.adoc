@@ -1431,37 +1431,33 @@ The following is an example of vectorizing a data-dependent exit loop.
 ----
   # char* strcpy(char *dst, const char* src)
 strcpy:
-      mv a2, a0               # Copy dst
-loop:
     setvli x0, x0, vint8    # Max length vectors of bytes
     vlbff.v v1, (a1)        # Get src bytes
       csrr t1, vl           # Get number of bytes fetched
     vseq.vi v0, v1, 0       # Flag zero bytes
     vmfirst a3, v0          # Zero found?
-      add a1, a1, t1        # Bump pointer
+      add a1, a1, t1        # Bump src pointer
     vmsif.v v0, v0          # Set mask up to and including zero byte.
-    vsb.v v1, (a2), v0.t    # Write out bytes
-      add a2, a2, t1        # Bump pointer
-      bltz a3, loop           
+    vsb.v v1, (a0), v0.t    # Write out bytes
+      add a0, a0, t1        # Bump dst pointer
+      bltz a3, strcpy
     
       ret
 
   # char* strncpy(char *dst, const char* src, size_t n)
-strcpy:
-      mv a3, a0               # Copy dst
-loop:
+strncpy:
     setvli x0, a2, vint8    # Vectors of bytes.
     vlbff.v v1, (a1)        # Get src bytes
     vseq.vi v0, v1, 0       # Flag zero bytes
     vmfirst a4, v0          # Zero found?
     vmsif.v v0, v0          # Set mask up to and including zero byte.
-    vsb.v v1, (a3), v0.t    # Write out bytes
+    vsb.v v1, (a0), v0.t    # Write out bytes
       bgez a4, exit         # Done
       csrr t1, vl           # Get number of bytes fetched
-      add a1, a1, t1        # Bump pointer
+      add a1, a1, t1        # Bump src pointer
       sub a2, a2, t1        # Decrement count.
-      add a3, a3, t1        # Bump pointer
-      bnez a2, loop         # Anymore?
+      add a0, a0, t1        # Bump dst pointer
+      bnez a2, strncpy      # Anymore?
 
 exit:
       ret
