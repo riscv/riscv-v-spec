@@ -80,15 +80,18 @@ provide a polymorphic interpretation for vector instructions. The
 vector type also determines the number of elements that are held in
 each vector register.
 
-The `type` register has two fields, `vrep`, and `vsew[2:0]`.
+The `type` register has three fields, `vrep`, `vsew[2:0]`, and
+`vlmul`.
 
 [source]
 ----
 vtype layout
 
-XLEN-1:4    Reserved (write 0)
-     3:1    vsew[2:0]
-      0     vrep
+XLEN-1:9    Reserved (write 0)
+       8    vrep
+     7:6    vlmul[1:0]
+     5:3    reserved for vxsew[5:3]
+     2:0    vsew[2:0]
 ----
 
 NOTE: Further standard and custom extensions to the vector base will
@@ -1538,6 +1541,115 @@ vrgather.vv vd, vs1, vs2, vm # vd[i] = vs1[vs2[i]]
 If the element indices are out of range ( stem:[ vs2[i\] \geq VLMAX] )
 then zero is returned for the element value.
 
+== Increasing VLMAX through register grouping and `vlmul` field.
+
+An additional field can be added to `vsetvl` and `vtype` configuration
+to increase vector length when fewer architectural vector registers
+are needed by grouping vector registers together.
+
+[source]
+----
+vtype layout
+
+XLEN-1:9    Reserved (write 0)
+       8    vrep
+     7:6    vlmul[1:0]
+     5:3    reserved for vxsew[5:3]
+     2:0    vsew[2:0]
+----
+
+[source]
+----
+ vlmul #vregs vregs  VLMAX        Grouped registers
+ 00        32 v0-31  VLEN/SEW     none
+ 01        16 v0-15  2*VLEN/SEW   vn, vn+16
+ 10         8  v0-7  4*VLEN/SEW   vn, vn+8, vn+16, vn+24
+ 11         4  v0-3  8*VLEN/SEW   vn, vn+4, vn+8, vn+16, vn+20, vn+24, vn+28
+----
+
+When `vlmul=01`, then operations on vector register ``v``__n__ also
+use vector register``v``__n__+16, giving effectively twice
+the vector length.  Instructions specifying vector registers `v16` and
+above raise an illegal instruction exception.
+
+Similarly, when `vlmul=10`, operations use every eighth vector
+register, and instructions specifying vector register `v8` and above
+raise an illegal instruction exception.  When `vlmul=11`, operations
+use every fourth vector register, and instructions specifying vector
+register `v4` and above raise an illegal instruction exception.
+
+[source]
+----
+   Layout of element when vlmul=01, SEW=32b
+
+        ELEN unit        3       2       1       0
+        Byte          3 2 1 0 3 2 1 0 3 2 1 0 3 2 1 0
+   v0                       3       2       1       0
+   v16                      7       6       5       4
+
+   Layout of element when vlmul=10, SEW=32b
+
+        ELEN unit        3       2       1       0
+        Byte          3 2 1 0 3 2 1 0 3 2 1 0 3 2 1 0
+   v0                       3       2       1       0
+   v8                       7       6       5       4
+   v16                      B       A       9       8
+   v24                      F       E       D       C
+----
+
+When `vlmul` is non-zero, the effect of vector instructions is as if
+they were repeated for each vector register in the group.
+
+Operations on double-width or wider operands behave as before, using
+the neighboring even-odd vector register, or set of aligned four or
+eight registers.
+
+When `vlmul=11`, operations with 8*SEW raise an illegal instruction
+exception.
+
+[source]
+----
+   Layout of double-width element when vlmul=10, SEW=32b
+
+        ELEN unit        3       2       1       0
+        Byte          3 2 1 0 3 2 1 0 3 2 1 0 3 2 1 0
+   v0                               2               0
+   v1                               3               1
+   v8                               6               4
+   v9                               7               5
+   v16                              A               8
+   v17                              B               9
+   v24                              E               C
+   v25                              F               D
+----
+
+NOTE: Unlike in earlier proposals, it is now required that all
+implementations update all the underlying vector registers when
+configured in this way, as all state is exposed.
+
+[source]
+----
+    # Example using vlmul
+    # Same as before, except now VLEN is 8 times greater.
+strlen:
+    mv a3, a0             # Save start
+loop:
+    setvli a1, x0, vint8, vreg4  # Vector of bytes, only use 4 vregs
+    vldbff.v v1, (a3)     # Get bytes
+    csrr a1, vl           # Get bytes read
+    add a3, a3, a1        # Bump pointer
+    vseq.vi v0, v1, 0     # Set v0[i] where v1[i] = 0
+    vmfirst a2, v0        # Find first set bit
+    bltz a2, loop         # Not found?
+
+    add a0, a0, a1        # Sum start + bump
+    add a3, a3, a2        # Add index
+    sub a0, a3, a0        # Subtract start address+bump
+
+    ret
+    
+----
+
 == Exception Handling
 
 Different platforms require different treatment of exceptions.
@@ -1686,37 +1798,6 @@ loop:
       add a4, a4, t0           # b[i] bump pointer
       bnez a0, loop
 ----
-
-== Increasing VLMAX through register grouping and `vlmul` field.
-
-NOTE: This is a proposal.  Needs more work.
-
-An additional field can be added to `vsetvl` configuration to increase
-vector length when fewer architectural vector registers are needed by
-grouping vector registers together. 
-
-[source]
-----
- vlmul  #vregs   VLMAX
- 00         32   VLEN/SEW
- 01         16   2*VLEN/SEW
- 10          8   4*VLEN/SEW
- 11          4   8*VLEN/SEW
-----
-
-----
- ELEN unit        3       2       1       0
- Byte          3 2 1 0 3 2 1 0 3 2 1 0 3 2 1 0
-
- vlmul=4,  SEW=32b
- v4*n                C       8       4       0   32b elements
- v4*n+1              D       9       5       1
- v4*n+2              E       A       6       2
- v4*n+3              F       B       7       3
-----
-
-NOTE: This reuses the same element mapping pattern used in widening
-operations.  Can probably replace vsetvl2fi etc.
 
 == Expanded SEW encoding
 
