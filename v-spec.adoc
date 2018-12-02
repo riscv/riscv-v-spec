@@ -504,6 +504,12 @@ If no masking operand is specified, unmasked vector execution (`m=11`) is assume
     vop    v1,   v2, v3        # unmasked vector operation, m=11
 ----
 
+== Active Element Definition
+
+The _active_ elements in a vector instruction are the destination
+register elements for stem:[ x, 0 \leq x \lt vl] and where the element
+position is active under the current mask.  By default, these are the
+only elements updated in the destination vector register.
 
 == Vector Loads and Stores
 
@@ -1282,7 +1288,7 @@ The `vmpopc` instruction counts the number of elements of the first
 excluding elements where the mask is false, and writes the result to a
 GPR.
 
-=== `vmfirst` find first set mask bit
+=== `vmfirst` find-first-set mask bit
 
 [source]
 ----
@@ -1293,10 +1299,6 @@ The `vmfirst` instruction finds the lowest-numbered element of the
 source vector that has its LSB set excluding elements where the mask
 is false, and writes that element's index to a GPR.  If no element has
 an LSB set, it writes -1 to the GPR.
-
-== Vector Permutation Instructions
-
-A range of permutation instructions are provided.
 
 === Vector Iota instruction
 
@@ -1326,6 +1328,147 @@ elements of destination vector.
 
 NOTE: The `viota` instruction can be combined with scatter/gather
 instructions to perform vector compress/expand instructions.
+
+NOTE: Could take any argument register not just implicit mask v0.
+
+=== `vmsbf.v` set-before-first mask bit
+
+[source]
+----
+    vmsbf.v vd, vs1, vm
+
+ # Example
+
+     7 6 5 4 3 2 1 0   Element number
+
+     1 0 0 1 0 1 0 0   v3 contents
+                       vmsbf.v v2, v3
+     0 0 0 0 0 0 1 1   v2 contents
+
+     1 0 0 1 0 1 0 1   v3 contents
+                       vmsbf.v v2, v3
+     0 0 0 0 0 0 0 0   v2
+
+     0 0 0 0 0 0 0 0   v3 contents
+                       vmsbf.v v2, v3
+     1 1 1 1 1 1 1 1   v2
+
+     1 1 0 0 0 0 1 1   v0 vcontents
+     1 0 0 1 0 1 0 0   v3 contents
+                       vmsbf.v v2, v3, v0.t
+     0 1 x x x x 1 1   v2 contents
+----
+
+The `vmsbf.v` instruction writes a 1 to all active elements before the
+first source element that has a set LSB, then writes a zero to that
+element and all following active elements.  If there is no set bit in
+the source vector, the all active elements in the destination are
+written with a 1.
+
+=== `vmsif.v` set-including-first mask bit
+
+[source]
+----
+    vmsif.v vd, vs1, vm
+
+ # Example
+
+     7 6 5 4 3 2 1 0   Element number
+
+     1 0 0 1 0 1 0 0   v3 contents
+                       vmsif.v v2, v3
+     0 0 0 0 0 1 1 1   v2 contents
+
+     1 0 0 1 0 1 0 1   v3 contents
+                       vmsif.v v2, v3
+     0 0 0 0 0 0 0 1   v2
+
+     1 1 0 0 0 0 1 1   v0 vcontents
+     1 0 0 1 0 1 0 0   v3 contents
+                       vmsif.v v2, v3, v0.t
+     1 1 x x x x 1 1   v2 contents
+----
+
+The vector mask set-including-first instruction is similar to
+set-before-first, except it also includes the element with a set bit.
+
+=== `vmsof.v` set-only-first mask bit
+
+[source]
+----
+    vmsof.v vd, vs1, vm
+
+ # Example
+
+     7 6 5 4 3 2 1 0   Element number
+
+     1 0 0 1 0 1 0 0   v3 contents
+                       vmsof.v v2, v3
+     0 0 0 0 0 1 0 0   v2 contents
+
+     1 0 0 1 0 1 0 1   v3 contents
+                       vmsof.v v2, v3
+     0 0 0 0 0 0 0 1   v2
+
+     1 1 0 0 0 0 1 1   v0 vcontents
+     1 1 0 1 0 1 0 0   v3 contents
+                       vmsof.v v2, v3, v0.t
+     0 1 x x x x 0 0   v2 contents
+----
+
+The vector mask set-including-first instruction is similar to
+set-before-first, except it only sets the first element with a bit
+set, if any.
+
+=== Example using vector mask instructions
+
+The following is an example of vectorizing a data-dependent exit loop.
+
+[source]
+----
+  # char* strcpy(char *dst, const char* src)
+strcpy:
+      mv a2, a0               # Copy dst
+loop:
+    setvli x0, x0, vint8    # Max length vectors of bytes
+    vlbff.v v1, (a1)        # Get src bytes
+      csrr t1, vl           # Get number of bytes fetched
+    vseq.vi v0, v1, 0       # Flag zero bytes
+    vmfirst a3, v0          # Zero found?
+      add a1, a1, t1        # Bump pointer
+    vmsif.v v0, v0          # Set mask up to and including zero byte.
+    vsb.v v1, (a2), v0.t    # Write out bytes
+      add a2, a2, t1        # Bump pointer
+      bltz a3, loop           
+    
+      ret
+
+  # char* strncpy(char *dst, const char* src, size_t n)
+strcpy:
+      mv a3, a0               # Copy dst
+loop:
+    setvli x0, a2, vint8    # Vectors of bytes.
+    vlbff.v v1, (a1)        # Get src bytes
+    vseq.vi v0, v1, 0       # Flag zero bytes
+    vmfirst a4, v0          # Zero found?
+    vmsif.v v0, v0          # Set mask up to and including zero byte.
+    vsb.v v1, (a3), v0.t    # Write out bytes
+      bgez a4, exit         # Done
+      csrr t1, vl           # Get number of bytes fetched
+      add a1, a1, t1        # Bump pointer
+      sub a2, a2, t1        # Decrement count.
+      add a3, a3, t1        # Bump pointer
+      bnez a2, loop         # Anymore?
+
+exit:
+      ret
+
+----
+
+
+== Vector Permutation Instructions
+
+A range of permutation instructions are provided.
 
 === Insert/Extract
 
