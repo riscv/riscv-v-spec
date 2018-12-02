@@ -1442,12 +1442,12 @@ loop:
     vmsif.v v0, v0          # Set mask up to and including zero byte.
     vsb.v v1, (a2), v0.t    # Write out bytes
       add a2, a2, t1        # Bump pointer
-      bltz a3, loop           
+      bltz a3, loop
     
       ret
 
   # char* strncpy(char *dst, const char* src, size_t n)
-strcpy:
+strncpy:
       mv a3, a0               # Copy dst
 loop:
     setvli x0, a2, vint8    # Vectors of bytes.
