@@ -503,7 +503,7 @@ If no masking operand is specified, unmasked vector execution (`m=11`) is assume
 ----
     vop    v1,   v2, v3, v0.f  # enabled where v0[0]=0,     m=00
     vop    v1,   v2, v3, v0.t  # enabled where v0[0]=1,     m=01
-    vop    v1.s, v2, v3        # scalar opertaion,          m=10
+    vop.s  v1,   v2, v3        # scalar opertaion,          m=10
     vop    v1,   v2, v3        # unmasked vector operation, m=11
 ----
 
@@ -897,7 +897,7 @@ instructions.
 rm2 rm1 rm0
 
 0     0   0      Vector-vector   SEW =   SEW op SEW
-0     0   1      Vector-vector
+0     0   1      Reserved
 0     1   0      Vector-vector 2*SEW =   SEW op SEW
 0     1   1      Vector-vector 2*SEW = 2*SEW op SEW
 
@@ -1151,9 +1151,9 @@ The narrowing instructions used a different operand encoding in
  rm2 rm1 rm0
 
  0     0   0      Vector-vector  SEW =  2*SEW op SEW
- 0     0   1      Vector-vector
+ 0     0   1      Reserved
  0     1   0      Vector-vector  SEW =  4*SEW op SEW
- 0     1   1      Vector-vector
+ 0     1   1      Reserved
 
  1     0   0      Vector-scalar  SEW =  2*SEW op SEW
  1     0   1      Vector-imm     SEW =  2*SEW op imm
