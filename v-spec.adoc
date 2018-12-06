@@ -1517,7 +1517,7 @@ ignored.
 [source]
 ----
  vslidedown.vs vd, vs1, rs2, vm # vd[i] = vs1[i+rs2]
- vslidedown.vs vd, vs1, rs2, vm # vd[i] = vs1[i+imm]
+ vslidedown.vi vd, vs1, imm, vm # vd[i] = vs1[i+imm]
 ----
 
 For `vslidedown`, the value in `vl` specifies the number of
