@@ -1106,7 +1106,7 @@ single-width vectors.
 
 [source]
 ----
- VSRN   vector shift right narrowing
+ VSRLN  vector shift right logical narrowing
  VSRAN  vector shift right arithmetic narrowing
  VCLIPN   vector clip after shift right narrowing
  VCLIPUN  vector clip unsigned after shift right narrowing
@@ -1114,7 +1114,7 @@ single-width vectors.
  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
 ----
 
-For VSRN/VSRAN, clip=nop, rnd = nop.  These operations can be used to
+For VSRLN/VSRAN, clip=nop, rnd = nop.  These operations can be used to
 extract a field from a wider structure held in a wider element.
 
 For VCLIPN, the value is treated as a signed integer and saturates if
