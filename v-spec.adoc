@@ -581,33 +581,26 @@ dependency between address generation and dynamic `vtype` value.
 ----
  Use of 12b immediate field in vector load/store instruction encoding
 
-  31 30 29 28 27 26 25 24 23 22 21 20  Load   immediate bits
-  31 30 29 28 27 26 25 11 10  9  8  7  Store  immediate bits
-       uoffset5  m1 m0       funct5    Field
+  31 30 29 28 27 26 25 24 23 22 21 20  Load/Store   immediate bits
+       funct5    m1 m0   off/str/idx   Field
 
 
 funct5 encodes:
 name bits encoding
- xv   [4]
-       0 fixed element size
-       1 variable element size
+uoffset  [4:3]
 
-order [3]
+order [2]
        0 sequential stores
        1 unordered stores
 
        0 unsigned load
        1 signed load
 
-mop [2:0]
+mop [1:0]
    0 0 0 unit-stride
    0 0 1 unit-stride speculative loads (fault first)
    0 1 0 constant-stride
    0 1 1 indexed
-   1 0 0 reserved
-   1 0 1 reserved
-   1 1 0 reserved
-   1 1 1 reserved (AMO?)
 ----
 
 Vector unit-stride, constant-stride, and indexed (scatter/gather)
@@ -1856,3 +1849,5 @@ The `vadd3` instruction sums three integer values together.
 
 The `vadd3cout` instruction produces the carry-out from summing the
 three integer values together.
+
+include::inst-table.adoc[]
