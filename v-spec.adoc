@@ -492,7 +492,9 @@ m[1:0]
 === Assembler syntax
 
 Scalar operations are written in assembler with a `.s` after the
-destination vector register specifier.
+instruction mnemonic and operand suffix, for instructions that follow
+the <<Vector Arithmetic Operand encoding>>, or similar operand encoding.
+For vector loads and stores the `.v` suffix  is replaced with the `.s` suffix.
 Vector masking is written as another vector operand, with `.t` or `.f` indicating if operation occurs
 when `v0[0]` is `1` or `0` respectively.
 If no masking operand is specified, unmasked vector execution (`m=11`) is assumed.
