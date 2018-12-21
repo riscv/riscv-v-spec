@@ -583,7 +583,8 @@ dependency between address generation and dynamic `vtype` value.
 ----
  Use of 12b immediate field in vector load/store instruction encoding
 
-  31 30 29 28 27 26 25 24 23 22 21 20  Load/Store   immediate bits
+  31 30 29 28 27 26 25 24 23 22 21 20  Load   immediate bits
+  31 30 29 28 27 26 25 11 10  9  8  7  Store   immediate bits
        funct5    m1 m0   off/str/idx   Field
 
 
