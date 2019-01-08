@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 0.7-draft-20190106
+Version 0.7-draft-20190107
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -59,8 +59,8 @@ parameters.
 
 == Vector Extension Programmer's Model
 
-The vector extension adds 32 vector registers, and five unprivileged
-CSRs (`vtype`, `vxsat`, `vxrm`, `vl`, `vlmax`) to a base scalar RISC-V
+The vector extension adds 32 vector registers, and four unprivileged
+CSRs (`vtype`, `vxsat`, `vxrm`, `vl`) to a base scalar RISC-V
 ISA.  If the base scalar ISA does not include floating-point, then a
 `fcsr` register is also added to hold mirrors of the `vxsat` and
 `vxrm` CSRs as explained below.
@@ -74,7 +74,6 @@ Address  Privilege Name   Description
 0x009    URW       vxsat  Fixed-Point Saturate Flag
 0x00A    URW       vxrm   Fixed-Point Rounding Mode
 0xC20    URO       vl     Vector length
-0xC21    URO       vlmax  Maximum vector length
 ----
 
 === Vector Registers
@@ -110,7 +109,7 @@ XLEN-1:9    Reserved (write 0)
 ----
 
 NOTE: The smallest base implementation has only four bits in `vtype`,
-two bits `vsew[1:0]` and two bits for `vlmul[1:0]`.
+two bits for `vsew[1:0]` and two bits for `vlmul[1:0]`.
 
 NOTE: Further standard and custom extensions to the vector base will
 extend these fields to support a greater variety of data types.
@@ -156,12 +155,12 @@ only SEW up to max(XLEN,FLEN) are required to be supported.
 
 ==== Vector register grouping and `vlmul` field
 
-To provide greater efficiency on longer vectors, multiple vector
-registers can be grouped together to form a _vector_ _register_
-_group_, so that a single vector instruction can operate on multiple
-vector registers.  Vector register grouping also allows double-width
+Multiple vector registers can be grouped together to form a _vector_
+_register_ _group_, so that a single vector instruction can operate on
+multiple vector registers.  Vector register groups allow double-width
 or larger elements to be operated on with the same vector length as
-standard-width elements.
+standard-width elements.  Vector register groups also provide greater
+execution efficiency for longer vectors.
 
 The number of vector registers in a group, _LMUL_, is an integer power
 of two set by the `vlmul` field in `vtype`.  The maximum vector length
@@ -195,32 +194,21 @@ exception.
 NOTE: Scalar operands, described below, can come from any vector
 register regardless of the `vlmul` setting.
 
-=== Vector Length register `vl`
+=== Vector Length Register `vl`
 
 The _XLEN_-bit-wide read-only `vl` CSR can only be updated by the
 `vsetvli` and `vsetvl` instructions.
 
 The `vl` register holds an unsigned integer specifying the number of
 elements to be updated by a vector instruction.  Elements in the
-destination vector with indices >= `vl` are not updated during
-execution of a vector instruction.  As a degenerate case, when `vl`=0,
+destination vector with indices >= `vl` are zeroed during
+execution of a vector instruction.  As a special case, when `vl`=0,
 no elements are updated in the destination vector.
 
 NOTE: The number of bits implemented in `vl` depends on the
 implementation's maximum vector length of the smallest supported
 type. The smallest vector implementation, RV32IV, would need at least
 three bits in `vl` to hold the values 0, 1, 2, 3, 4.
-
-=== Maximum Vector Length Register `vlmax`
-
-The `vlmax` CSR is an XLEN-wide read-only register whose value is
-derived from the other state in the system.  The `vlmax` register
-holds an unsigned integer representing the largest number of elements
-that can be completed by a single vector instruction with the current
-`vtype` setting.  The value in `vlmax` = LMUL * VLEN / SEW.
-
-NOTE: Not clear `vlmax` is required.  Can always use `vsetvl` with
-AVL=x0 to get VLMAX, though this does overwrite `vl`.
 
 === Vector Fixed-Point Rounding Mode Register `vxrm`
 
@@ -289,7 +277,7 @@ software, whereas this proposal has a specific mapping for all
 configurations, which reduces implementation flexibilty but removes
 need for zeroing on config changes.  Making the mapping explicit also
 has the advantage of simplifying oblivious context save-restore code,
-as the code can save the configuration in `vl`, `vlmax`, and `vtype`,
+as the code can save the configuration in `vl` and `vtype`,
 then reset `vtype` to a convenient value (e.g., four vector groups of
 LMUL=8, SEW=ELEN) before saving all vector register bits without
 needing to parse the configuration.  The reverse process will restore
@@ -556,9 +544,9 @@ required application vector length (AVL).
 [[sec-mask-register-layout]]
 === Mask register layout
 
-A vector mask occupies only one vector register regardless of SEW and LMUL.
-The mask bits that are used for each vector operation depends on the
-current SEW and LMUL setting.
+A vector mask occupies only one vector register regardless of SEW and
+LMUL.  The mask bits that are used for each vector operation depends
+on the current SEW and LMUL setting.
 
 The maximum number of elements in a vector operand is:
 
@@ -583,12 +571,12 @@ The size of MLEN varies from ELEN (SEW=ELEN, LMUL=1) down to 1
 the entire mask register.
 
 The mask bits for element _i_ are located in bits
-[MLEN*_i_+(MLEN-1),MLEN*_i_] of the mask register.  When a
-mask element is written by a compare instruction, the low bit in the
-mask element holds the mask result and the upper bits of the mask element
+[MLEN*_i_+(MLEN-1),MLEN*_i_] of the mask register.  When a mask
+element is written by a compare instruction, the low bit in the mask
+element holds the mask result and the upper bits of the mask element
 are zeroed.  When a value is read as a mask, only the
-least-significant bit of the mask element is used to control masking and
-the upper bits are ignored.
+least-significant bit of the mask element is used to control masking
+and the upper bits are ignored.
 
 The pattern is such that for constant SEW/LMUL values, the effective
 predicate bits are located in the same bit of the mask vector
@@ -727,8 +715,8 @@ values in `vl` and `vtype` to match application needs.
                          # if rs1 = x0, then use maximum vector length
 ----
 
-The `vsetvli` instruction sets the `vtype`, `vl`, and `vlmax` CSRs
-based on its arguments, and writes the new value of `vl` into `rd`.
+The `vsetvli` instruction sets the `vtype` and `vl` CSRs based on its
+arguments, and writes the new value of `vl` into `rd`.
 
 The new `vtype` setting is encoded in the immediate field `vtypei` for
 `vsetvli` and in the `rs2` register for `vsetvl`.
@@ -782,8 +770,8 @@ a trap on use.
 The requested application vector length (AVL) is passed in `rs1` as an
 unsigned integer.
 
-The `vlmax` register is set to VLMAX based on the new SEW and LMUL in
-the `vtype` setting.
+Can use `vsetvl` with AVL=x0 to read current VLMAX, though this does
+overwrite `vl`.
 
 === Constraints on setting `vl`
 
@@ -909,15 +897,15 @@ the `vlmul?max` versions were used, the two different element widths
 could have the same LMUL=1 for short vector lengths, and the elements
 within the vector registers would not line up correctly.
 
-NOTE: It should be possible to specify a different form of vlmax that
-specifies the range of element widths to be used in overall loop to
-set LMUL correctly. TBD.
+NOTE: It should be possible to specify a different form of vlmulmax
+that specifies the range of element widths to be used in overall loop
+to set LMUL correctly. TBD.
 
 == Vector instruction formats
 
 Vector instructions can have scalar or vector source operands and
-produce scalar or vector results, and almost all vector instructions
-can be performed conditionally under a mask.
+produce scalar or vector results, and most vector instructions can be
+performed conditionally under a mask.
 
 Vector loads and stores move bit patterns between vector register
 elements and memory.  Vector arithmetic instructions operate on values
@@ -952,9 +940,9 @@ exception is raised.
 
 === Vector masking
 
-Masking is supported on almost all vector instructions producing
-vectors.  Element operations that are masked off do not modify the
-destination vector register element and never generate exceptions.
+Masking is supported on many vector instructions.  Element operations
+that are masked off do not modify the destination vector register
+element and never generate exceptions.
 
 In the base vector extension, the mask value is always supplied by
 vector register `v0`.  Only the least-significant bit of each element
@@ -991,32 +979,79 @@ instructions that set vl=1 for this case.
 Vector masking is represented in assembler code as another vector
 operand, with `.t` or `.f` indicating if operation occurs when `v0[0]`
 is `1` or `0` respectively.  If no masking operand is specified,
-unmasked vector execution (`m=11`) is assumed.
+unmasked vector execution (`m=1?`) is assumed.
 
 [source,asm]
 ----
     vop.v*    v1, v2, v3, v0.f  # enabled where v0[i].LSB=0, m=00
     vop.v*    v1, v2, v3, v0.t  # enabled where v0[i].LSB=1, m=01
-    vop.v*    v1, v2, v3        # unmasked vector operation, m=11
+    vop.v*    v1, v2, v3        # unmasked vector operation, m=1?
 ----
 
-=== Active Element Definition
+NOTE: Even though the base only supports one vector mask register
+`v0`, the assembly syntax writes it out in full to be compatible with
+future extensions that might add a mask register specifier.
 
-The _active_ elements in a vector instruction are the destination
-register elements for _x_, where 0 =< _x_ < `vl`, and where the element
-position is active under the current mask.  By default, these are the
-only elements updated in the destination vector register.
+=== Active and Tail Element Definitions
 
-NOTE: Earlier versions of the spec wrote 0 to the inactive elements of
-a vector register to simplify implementations with vector register
-renaming or that use ECC in vector register storage.  Leaving inactive
-elements in the destination unmodified reduces instruction count in more
-situations than zeroing elements, and simplifies implementations
-without register renaming.
+The _active_ elements during a vector instruction's execution are the
+elements within the current vector length setting and where the
+current mask is enabled at that element position.  The _inactive_
+elements are the elements within the current vector length setting but
+where the current mask is disabled at that element position.  The
+_tail_ elements during a vector instruction's execution are the
+elements past the current vector length setting.
 
 [source]
 ----
+    for element index x
+    mask(x)     = unmasked || v0[x].LSB
+    active(x)   = (0 <= x < vl) && mask(x)
+    inactive(x) = (0 <= x < vl) && !mask(x)
+    tail(x)     = (vl <= x < VLMAX)
+----
 
+All vector instructions place zeros in the tail elements of the
+destination vector register group.
+
+All vector load instructions and vector AMOs are maskable, and write
+zeros to the non-active elements in the destination vector register
+group, and also write zeros to the tail elements.
+
+All maskable vector arithmetic instructions do not update the inactive
+elements in the vector register, but zero the tail elements.
+
+Some vector arithmetic instructions are not maskable, so have no
+inactive elements, but still zero the tail elements.
+
+NOTE: The inactive and tail update rules were designed to provide an
+efficient compromise between requirements of implementations with and
+without vector register ECC and/or renaming.  Implementations with
+temporally long vector registers will be motivated to add
+microarchitectural state to avoid actually writing zeros to all tail
+elements, but this is a relatively simple microarchitectural
+optimization.  Not updating inactive elements on a masked operation
+reduces code path length for many code blocks.  Implementations with
+vector register ECC or renaming will have to perform read-update-write
+on the destination register value to preserve inactive elements on
+arithmetic instructions, so would appear to need an extra vector
+register read port.  However, the arithmetic instructions are designed
+such that the largest read-port requirement is for fused multiply-add
+instructions that are destructive and overwrite one source, and hence
+do not need an extra read port to preserve inactive elements.  Given
+that linear algebra is one of the more important applications for
+vector units, and that fused multiply-add is the dominant operation in
+linear algebra routines, microarchitectures will be optimized for
+fused multiply-add operations and so should be able to preserve
+inactive elements on other arithmetic operations without large
+additional cost.  Vector load instructions are defined to zero
+inactive elements to avoid the read-modify-write of the destination.
+The presence of some non-maskable arithmetic instructions as well as
+inactive-zeroing loads requires software to use additional vector
+merge instructions to combine live values.
+
+[source]
+----
 # Code using one width for predicate and different width for masked
 # compute.
 #   int8_t a[]; int32_t b[], c[];
@@ -1024,14 +1059,14 @@ without register renaming.
 #
   loop:
     vsetvli a4, a0, vint8,vlmul1  # Byte vector for predicate calc
-    vlb.v v0, (a1)                # Load a[i]
+    vlb.v v1, (a1)                # Load a[i]
       add a1, a1, a4              # Bump pointer.
       sub a0, a0, a4              # Decrement count
-    vslti.v v0, v0, 5             # a[i] < 5?
+    vslti.v v0, v1, 5             # a[i] < 5?
 
     vsetvtypei vint32,vlmul4      # Vector of 32 bit values.
-    vmerge.vi v4, v4, 1           # Initialize v4.
-    vlw.v v4, (a3), v0.f          # Overwrite with c[i] under mask.
+    vlw.v v4, (a3), v0.f          # Load requested elements of C.
+    vmerge.vi v4, v4, 1, v0.t     # Produce result.
       sll t1, a4, 2
       add a3, a3, t1              # Bump pointer.
     vsw.v v4, (a2)                # Store b[i].
@@ -1040,6 +1075,12 @@ without register renaming.
 ----
 
 == Vector Loads and Stores
+
+Vector loads and stores move values between vector registers and
+memory.  Vector loads and stores are masked and do not raise
+exceptions on inactive elements.  Masked vector loads write zeros to
+inactive elements in the destination vector register group.  Masked
+vector stores do not update inactive memory elements.
 
 === Vector Load/Store Instruction Encoding
 
@@ -1164,10 +1205,12 @@ smopu[4:0]
    xxxxx  reserved, xxxxx!=0
 ----
 
-NOTE: Some possible further unit-stride vector addressing modes could
+NOTE: A further possible unit-stride vector addressing mode would
 transfer array-of-structures formats in memory into multiple
-destination vector registers.  For example, using three bits of
-`*mopu` to indicate the number of SEW fields in a structure from 1-8.
+destination vector registers.  This would use the low three bits of
+`*mopu` to indicate the number of memory fields in a structure from
+1-8.  Different fields in the structure would be held in different
+vector registers.
 
 === Vector Load/Store Width Encoding
 
@@ -1361,7 +1404,6 @@ contiguous to a known region, and so do not appreciably impact
 security.  It is possible that security mitigiations can be
 implemented to allow first-fault variants of non-contiguous accesses
 in future vector extensions.
-
 
 == Vector AMO operations
 
@@ -2004,7 +2046,6 @@ vmadd.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
 vmadd.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] + (vd[i] * x[rs1])
 ----
 
-
 ==== Vector Integer Divide Instructions
 
 The divide and remainder instructions are equivalent to the RISC-V
@@ -2039,7 +2080,38 @@ microarchitectures versus others.
 NOTE: There is no instruction to perform a "scalar divide by vector"
 operation.
 
-== Vector Single-Width Floating-Point Instructions
+=== Vector Merge Instruction
+
+The vector merge instruction combines two source operands based on the
+mask field.  Where the mask value is zero, the first operand is copied
+to the destination element, otherwise the second operand is copied to
+the destination element.  The first operand is always a vector
+register group.  The second operand is a vector or scalar value.
+
+The set of active elements is all elements up to the current vector
+length in `vl` regardless of mask value.
+
+[source]
+----
+vmerge.vv vd, vs2, vs1, vm  # vd[i] = vm[i] ? vs1[i] : vs2[i]
+vmerge.vs vd, vs2, rs1, vm  # vd[i] = vm[i] ? x[rs1] : vs2[i]
+vmerge.vi vd, vs2, imm, vm  # vd[i] = vm[i] ? imm    : vs2[i]
+----
+
+NOTE: An unmasked `vmerge.vv` instruction can be used to copy one
+vector register group to another.  This is given a vector
+psuedo-instruction `vmv.vv vd, vs` (which expands to `vmerge.vv vd,
+vs, vs`).  Microarchitectures can recognize this instruction to
+avoid unnecessary vector register file accesses.
+
+NOTE: An unmasked `vmerge.vs` or `vmerge.vs` instruction can be used
+to __splat__ a scalar value into all elements of a vector.
+
+NOTE: An unmasked `vmerge.vi` instruction can be used to initialize a
+vector register group with an immediate value.  This is given a vector
+pseudo-instruction `vmv.vi vd, imm`.
+
+== Vector Floating-Point Instructions
 
 The standard vector floating-point instructions treat 16-bit, 32-bit,
 64-bit, and 128-bit elements as IEEE-754/2008-compatible values.  If
@@ -2153,12 +2225,12 @@ vfnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) - vd[i]
 vfnmacc.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
 
 # FP multiply-subtract-accumulator, overwrites addend
-vfmscc.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
-vfmscc.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
+vfmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
+vfmsac.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
 
 # FP negate-(multiply-subtract-accumulator), overwrites addend
-vfnmscc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
-vfnmscc.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
+vfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
+vfnmsac.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
 ----
 
 NOTE: It would be possible to use the two unused rounding modes in the
@@ -2183,12 +2255,12 @@ vwfnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) - vd[i]
 vwfnmacc.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
 
 # FP widening multiply-subtract-accumulator, overwrites addend
-vwfmscc.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
-vwfmscc.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
+vwfmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
+vwfmsac.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
 
 # FP widening negate-(multiply-subtract-accumulator), overwrites addend
-vwfnmscc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
-vwfnmscc.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
+vwfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
+vwfnmsac.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
 ----
 
 === Vector Floating-Point Square-Root Instruction
@@ -2347,76 +2419,143 @@ vnfcvt.f.f.v vd, vs2, vm   # Convert double-width float to single-width float.
 
 NOTE: A full set of floating-point widening conversions are not
 supported as single instructions. Conversions can be implemented in
-several halving steps, with equivalently rounded results.
+several halving steps, with equivalently rounded results and with the
+same exception flags raised (possibly raised redundantly in multiple
+steps).
 
 NOTE: An integer value can be halved in width using the narrowing
 integer shift instructions with a shift amount of 0.
 
 == Vector Reduction Operations
 
-These instructions take a vector and scalar (vs2[0]) as input, and
-produces a scalar result (vd[0]) that is a reduction over the source
-scalar and vector.  Masked elements are ignored in the reduction.
+Vector reduction operations takes a vector of elements and a scalar
+held in the zeroth element of a vector, and performs a reduction using
+some binary operator, to produce a scalar result in element 0 of a
+vector register.  Masked inactive elements are excluded from the
+reduction.
 
-[source,asm]
-----
-    vredsum.v   vd, vs1, vs2, vm #   SEW = SEW   + sum(SEW)
-    vredsumw.v  vd, vs1, vs2, vm # 2*SEW = 2*SEW + sum(SEW)
-    vredmax.v   vd, vs1, vs2, vm
-    vredmaxu.v  vd, vs1, vs2, vm
-    vredmin.v   vd, vs1, vs2, vm
-    vredminu.v  vd, vs1, vs2, vm
-    vredand.v   vd, vs1, vs2, vm
-    vredor.v    vd, vs1, vs2, vm
-    vredxor.v   vd, vs1, vs2, vm
-----
-
-By default, when the operation is non-associative (e.g.,
-floating-point addition) the reductions are specified to occur as if
-done in sequential element order, but a user `fcsr` mode bit can
-specify that unordered reductions are allowed.  In this case, the
-reduction result must match some ordering of the individual sequential
-operations.
-
-A widening form of the sum reduction is provided that writes a
-double-width reduction result.
-
-== Vector Mask Operations
-
-Several operations are provided to help operate on mask bits held in
-the LSB of elements of a vector register.
-
-=== Vector Merge Instruction
-
-The vector merge instruction combines two source operands based on the
-mask field.  Where the mask value is zero, the first operand is copied
-to the destination element, otherwise the second operand is copied to
-the destination element.  The first operand is always a vector
-register group.  The second operand is a vector or scalar value.
-
-The set of active elements is all elements up to the current vector
-length in `vl` regardless of mask value.
+=== Vector Single-Width Integer Reduction Instructions
 
 [source]
 ----
-vmerge.vv vd, vs2, vs1, vm  # vd[i] = vm[i] ? vs1[i] : vs2[i]
-vmerge.vs vd, vs2, vs1, vm  # vd[i] = vm[i] ? vs1[0] : vs2[i]
-vmerge.vs vd, vs2, rs1, vm  # vd[i] = vm[i] ? x[rs1] : vs2[i]
-vmerge.vi vd, vs2, imm, vm  # vd[i] = vm[i] ? imm    : vs2[i]
+    vredsum.vv  vd, vs2, vs1, vm   # vd[0] = sum_i( vs2[i] ) + vs1[0]
+    vredmax.vv  vd, vs2, vs1, vm   # vd[0] = max_i( vs2[i] ) + vs1[0]
+    vredmaxu.vv vd, vs2, vs1, vm   # vd[0] = maxu_i( vs2[i] ) + vs1[0]
+    vredmin.vv  vd, vs2, vs1, vm   # vd[0] = min_i( vs2[i] ) + vs1[0]
+    vredminu.vv vd, vs2, vs1, vm   # vd[0] = minu_i( vs2[i] ) + vs1[0]
+    vredand.vv  vd, vs2, vs1, vm   # vd[0] = and_i( vs2[i] ) + vs1[0]
+    vredor.vv   vd, vs2, vs1, vm   # vd[0] = or_i( vs2[i] ) + vs1[0]
+    vredxor.vv  vd, vs2, vs1, vm   # vd[0] = xor_i( vs2[i] ) + vs1[0]
 ----
 
-NOTE: An unmasked `vmerge.vv` instruction can be used to copy one
-vector register group to another.  This is given a vector
-psuedo-instruction `vmv.vv vd, vs` (which expands to `vmerge.vv vd,
-vs, vs`).  Microarchitectures can recognize this instruction to
-avoid unnecessary vector register file accesses.
+=== Vector Widening Integer Reduction Instructions
 
-NOTE: An unmasked `vmerge.vi` instruction can be used to initialize a
-vector register group with an immediate value.  This is given a vector
-pseudo-instruction `vmv.vi vd, imm`.
+The `vwredsum.vv` instruction uses double-width vector elements for
+the input and output scalar values.
 
-NOTE: The `vmerge.vs` or `vmerge.vs` instruction can be used to
-__splat__ a scalar value into all elements of a vector.  This is
+[source]
+----
+    vwredsum.vv  vd, vs2, vs1, vm   # 2*SEW = sum(SEW) + 2*SEW
+----
+
+=== Vector Single-Width Floating-Point Reduction Instructions
+
+[source]
+----
+    vfredsum.v  vd, vs2, vs1, vm  # Ordered reduce
+    vfredusum.v  vd, vs2, vs1, vm # Unordered reduce
+    vfredmax.v  vd, vs2, vs1, vm  
+    vfredmin.v  vd, vs2, vs1, vm
+----
+
+The `vfredsum` instruction performs the sum reduction in element
+order, while the `vfredusum` is allowed to perform the reduction in
+any order, but the result must correspond to some ordering of
+individual sequential reduction operations.
+
+NOTE: Can fmax and fmin be defined to not need an unordered variant?
+
+=== Vector Widening Floating-Point Reduction Instructions
+
+Widening forms of the sum reduction are provided that write a
+double-width reduction result.
+
+[source]
+----
+    vwfredsum.v  vd, vs2, vs1, vm  # Ordered reduce
+    vwfredusum.v  vd, vs2, vs1, vm # Unordered reduce
+----
+
+== Vector Mask Instructions
+
+Several instructions are provided to help operate on mask values held in
+a vector register. 
+
+=== Vector Mask-Register Logical Instructions
+
+Vector mask-register logical operations treat mask registers as a
+vector of VLEN bits and perform bitwise operations on all bits.  These
+instructions all operate on single vector registers as if LMUL=1,
+regardless of the setting of the `vlmul` field in `vtype`.  They do
+not change the value of `vlmul`.
+
+Vector mask-register logical operations are always unmasked, but
+destination tail mask elements, i.e. those past the current length
+setting in `vl`, are zeroed.
+
+[source]
+----
+    vmand.vv vd, vs2, vs1     # vd =   vs2 &  vs1
+    vmnand.vv vd, vs2, vs1    # vd = ~(vs2 &  vs1)
+    vmandnot.vv vd, vs2, vs1  # vd =   vs2 & ~vs1
+    vmxor.vv  vd, vs2, vs1    # vd =   vs2 ^  vs1
+    vmor.vv  vd, vs2, vs1     # vd =   vs2 |  vs1
+    vmnor.vv  vd, vs2, vs1    # vd = ~(vs2 |  vs1)
+    vmornot.vv  vd, vs2, vs1  # vd =   vs2 | ~vs1
+    vmxnor.vv  vd, vs2, vs1   # vd = ~(vs2 ^  vs1)
+----
+
+Several assembler psuedo-instructions are defined as shorthand for
+common uses of mask logical operations:
+[source]
+----
+    vmmv.v vd, vs  => vmand.vv vd, vs, vs  # Move mask register
+    vmclr.v vd     => vmxor.vd, vd, vd     # Clear mask register
+    vmset.v vd     => vmxnor.vd, vd, vd    # Set mask register
+    vmnot.v vd, vs => vmnand.vv vd, vs, vs # Invert bits
+----
+
+The set of eight mask logical instructions can generate any of the 16
+possibly binary logical functions of the two input masks:
+
+[source]
+----
+inputs
+0 0 1 1 src1
+0 1 0 1 src2
+
+output  instruction                 psuedo-instruction
+0 0 0 0 vmxor.vv vd, vd, vd         vmclr.v vd
+1 0 0 0 vmnor.vv vd, src1, src2
+0 1 0 0 vmandnot.vv vd, src2, src1
+1 1 0 0 vmnand.vv vd, src1, src1    vmnot.v vd, src1
+0 0 1 0 vmandnot.vv vd, src1, src2
+1 0 1 0 vmnand.vv vd, src2, src2    vmnot.v vd, src2
+0 1 1 0 vmxor.vv vd, src1, src2
+1 1 1 0 vmnand.vv vd, src1, src2
+0 0 0 1 vmand.vv vd, src1, src2
+1 0 0 1 vmxnor.vv vd, src1, src2
+0 1 0 1 vmand.vv vd, src2, src2     vmmv.v vd, src2
+1 1 0 1 vmornot.vv vd, src2, src1
+0 0 1 1 vmand.vv vd, src1, src1     vmmv.v vd, src1
+1 0 1 1 vmornot.vv vd, src1, src2
+1 1 1 1 vmxnor.vv vd, vd, vd        vmset.v vd
+----
+
+NOTE: The vector mask logical instructions are designed to be easily fused
+with a following masked vector operation to effectively expand the
+number of predicate registers.
+
 
 === `vmpopc` mask population count
 
@@ -2911,129 +3050,3 @@ As an extension, the vsew field is extended with three upper bits.
 == Vector Instruction Listing
 
 include::inst-table.adoc[]
-
-== OLD TEXT: Alternative design with floating-point registers overlaid on vector registers
-
-NOTE: This text is retained from earlier 0.6 design, which had "F in
-V", but which is not now the plan of record.
-
-
-
-If the system has floating-point registers, the floating-point
-register ``f``__x__ is contained in the FLEN lowest-numbered bits of
-vector register ``v``__x__.
-
-[source]
-----
-Example, FLEN=32, VLEN=64
-
-bytes        7 6 5 4 3 2 1 0
-            |       v0      |
-                    |  f0   |
-----
-
-NOTE: There has been discussion of a desire to keep f registers
-separated, with an option described below.
-
-=== Interaction of vectors and standard scalar floating-point code
-
-The vector extension does not modify the behavior of standard scalar
-floating-point instructions.  Standard scalar floating-point
-instructions operate on the lower FLEN bits of each vector
-register, and perform NaN-boxing on floating-point results that
-are narrower than FLEN.
-
-NOTE: Requiring all VLEN bits to be NaN-boxed would simplify
-microarchitectures that have separate FP and vector physical register
-files.  Alternatively, the high VLEN-FLEN bits could be zeroed.
-
-NOTE: The standard scalar floating-point loads and stores move
-uninterpreted bit patterns between memory and registers and can be
-used to load and store the lower bits of a vector register, using a
-wider immediate offset than the vector extension scalar load and store
-instructions.  However, microarchitectures using floating-point
-recoding techniques or with separate FP and vector physical register
-files might experience a performance penalty when using scalar
-floating-point loads and stores to move values used as
-non-floating-point values.
-
-=== Operation of Floating-Point Load/Store Instructions in Vector Extension
-
-The standard FDQ floating-point extensions' loads and stores retain
-their original meaning.
-
-The standard floating-point loads (FLH, FLW, FLD, FLQ), read a single
-value from memory and update the low stem:[FLEN] bits of the
-destination vector register.  Floating-point types narrower than
-stem:[FLEN] are NaN-boxed, setting upper bits to 1.  If stem:[VLEN >
-FLEN], the upper bits of the vector register are unchanged by the
-floating-point load.
-
-The standard floating-point stores (FSH, FSW, FSD, FDQ) read the
-appropriate number of bits from the least-significant bits of the
-vector register and write these to memory.
-
-=== Interaction with standard FP calling conventions
-
-The standard Unix calling convention for floating-point registers is shown below:
-
-[source]
-----
-Register  ABI Name    Description                  Saver  Number
-f0–7      ft0–7       FP temporaries               Caller    8
-f8–9      fs0–1       FP saved registers           Callee    2
-f10–11    fa0–1       FP arguments/return values   Caller    2
-f12–17    fa2–7       FP arguments                 Caller    6
-f18–27    fs2–11      FP saved registers           Callee   10
-f28–31    ft8–11      FP temporaries               Caller    4
-----
-
-The standard Unix calling convention requires 12 FP registers
-(`fs0`-`fs11`) to be saved and restored by the callee to use all
-registers for vector code, leaving 20 FP registers that can be used
-directly by a vector routine.  However, these 20 FP registers are
-spread across the vector register numbers, impeding use of aligned
-groups of vector registers.
-
-The following table summarizes the number of vector registers
-available at entry to a Unix-ABI function without saving and restoring
-scalar floating-point values, including argument registers.
-
-[source]
-----
-vlmul   Available   Registers
-00          20      v0-7,v10-17,v28-31
-01          10      v0,v2,v4,v6,v10,v12,v14,v16,v28,v30
-10           4      v0,v4,v12,v28
-11           1      v0
-----
-
-NOTE: Some scalar floating-point argument values will only be
-available at some `vlmul` settings.
-
-NOTE: Multiple scalar floating-point register values could be
-saved/restored with one vector memory instruction using the `vlmul`
-field in `vltype`, but because the callee-saved floating-point
-registers are scattered in the number space it is more effective to
-use scalar floating-point loads and stores, which have a large offset
-field and can also be compressed.
-
-NOTE: The proposed embedded calling convention passes floating-point
-arguments in integer registers and treats all floating-point and
-vector state as caller-save, so all vector registers would be
-available on function entry, but floating-point arguments would need
-to be copied to scalars.
-
-==== Vector representation `vrep` encoding
-
-The `vrep` field specifies how the bit patterns stored in each element
-are to be interpeted by default.  Instructions may explicitly override
-the default representation.
-
-[source]
-----
- 'vrep' representation field encoding
-
- 0  Signed two's-complement integer
- 1  IEEE-754/2008 floating-point
-----
