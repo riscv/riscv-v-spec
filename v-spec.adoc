@@ -543,7 +543,7 @@ The vector loads and stores are encoded using the width values that
 are not claimed by the standard scalar floating-point loads and
 stores.
 
-[[Load/Store Types]]
+[#load-store-types]
 [source]
 ----
                      Width xv  Mem     Reg       opcode uoffset scale
@@ -571,8 +571,8 @@ An offset is constructed from bits[31:30] or bits[11:10] for non unit-strided
 loads and stores respectively. For unit-strided loads and stores an offset is
 constructed from bits[31:30,24:20] and bits[11:10,24:20] respectively.
 This unsigned offset that is added to the base register during vector
-addressing.  The offset is scaled according to the last column of Table
-<<Load/Store Types>> (effective offset = uoffset * scale), such that for
+addressing.  The offset is scaled according to the last column of the previous
+<<load-store-types, table>> (effective offset = uoffset * scale), such that for
 fixed-width elements the offset is scaled by the element size.  For
 dynamic-width elements, the offset is not affected by the `vtype` setting to
 avoid having a dependency between address generation and dynamic `vtype` value.
