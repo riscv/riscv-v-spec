@@ -567,9 +567,9 @@ The vector load and store encodings repurpose a portion of the
 standard load/store 12-bit immediate field to provide further vector
 instruction encoding, with bits[26:25] holding the mask information.
 
-An offset is constructed from bits[31:30] for non unit-strided loads
-and stores. For unit-strided loads and stores an offset is constructed
-from bits[31:30,24:20] and bits[31:30,11:7] respectively.
+An offset is constructed from bits[31:30] or bits[11:10] for non unit-strided
+loads and stores respectively. For unit-strided loads and stores an offset is
+constructed from bits[31:30,24:20] and bits[11:10,24:20] respectively.
 This unsigned offset that is added to the base register during vector
 addressing.  The offset is scaled according to the last column of Table
 <<Load/Store Types>> (effective offset = uoffset * scale), such that for
@@ -581,9 +581,10 @@ avoid having a dependency between address generation and dynamic `vtype` value.
 ----
  Use of 12b immediate field in vector load/store instruction encoding
 
-  31 30 29 28 27 26 25 24 23 22 21 20  Load   immediate bits
-  31 30 29 28 27 26 25 11 10  9  8  7  Store   immediate bits
-       funct5    m1 m0   off/str/idx   Field
+  31 30 29 28 27 26 25 24 23 22 21 20 11 10  9  8  7  Load   immediate bits
+       funct5    m1 m0   off/str/idx      dest        Field
+  31 30 29 28 27 26 25 24 23 22 21 20 11 10  9  8  7  Store   immediate bits
+       value     m1 m0   off/str/idx     funct5       Field
 
 
 funct5 encodes:
