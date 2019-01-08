@@ -543,10 +543,11 @@ The vector loads and stores are encoded using the width values that
 are not claimed by the standard scalar floating-point loads and
 stores.
 
+[[Load/Store Types]]
 [source]
 ----
-                     Width xv  Mem     Reg       opcode uoffset5 scale
-                     [2:0]     Bits    Bits             (set by width[1:0])
+                     Width xv  Mem     Reg       opcode uoffset scale
+                     [2:0]     Bits    Bits
 
 Standard scalar FP    001  x    16     FLEN      FLH/FSH N/A
 Standard scalar FP    010  x    32     FLEN      FLW/FSW N/A
@@ -555,29 +556,26 @@ Standard scalar FP    100  x   128     FLEN      FLQ/FSQ N/A
 Vector byte           000  0  vl*8     vl*SEW    VxB     1
 Vector halfword       101  0  vl*16    vl*SEW    VxH     2
 Vector word           110  0  vl*32    vl*SEW    VxW     4
-Vector doubleword     111  0  vl*64    vl*SEW    VxD     8
-Vector single-width   000  1  vl*SEW   vl*SEW    VxE     1
-Vector double-width   101  1  vl*2*SEW vl*2*SEW  VxE2    2
-Vector quad-width     110  1  vl*4*SEW vl*4*SEW  VxE4    4
-Vector octa-width     111  1  vl*8*SEW vl*8*SEW  VxE8    8
+Vector single-width   111  0  vl*SEW   vl*SEW    VxE     1
 
-The one-bit xv field encodes fixed or variable element width, and is located in imm12 field
 Mem bits is the size of element moved in memory
 Reg bits is the size of element accessed in register
-uoffset5 scale is the amount by which the five-bit unsigned immediate is multiplied to obtain a byte offset
+uoffset scale is the amount by which the unsigned immediate is multiplied to obtain a byte offset
 ----
 
 The vector load and store encodings repurpose a portion of the
 standard load/store 12-bit immediate field to provide further vector
 instruction encoding, with bits[26:25] holding the mask information.
 
-Bits [31:27] hold a 5-bit unsigned offset that is added to the base
-register during vector addressing.  The offset is scaled according to
-the low two bits of the width[2:0] field (effective offset =
-uoffset[4:0] * 2^width[1:0]^), such that for fixed-width elements the
-offset is scaled by the element size.  For dynamic-width elements, the
-offset is not affected by the `vtype` setting to avoid having a
-dependency between address generation and dynamic `vtype` value.
+An offset is constructed from bits[31:30] for non unit-strided loads
+and stores. For unit-strided loads and stores an offset is constructed
+from bits[31:30,24:20] and bits[31:30,11:7] respectively.
+This unsigned offset that is added to the base register during vector
+addressing.  The offset is scaled according to the last column of Table
+<<Load/Store Types>> (effective offset = uoffset * scale), such that for
+fixed-width elements the offset is scaled by the element size.  For
+dynamic-width elements, the offset is not affected by the `vtype` setting to
+avoid having a dependency between address generation and dynamic `vtype` value.
 
 [source]
 ----
