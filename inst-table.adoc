@@ -88,142 +88,228 @@
 |========================
 
 
-00000 
-00001 
-00010 
-00011 
-00100 
-00101 
-00110 
-00111 
-01000 
-01001 
-01010 
-01011 
-01100 
-01101 
-01110 
-01111 
-10000 
-10001 
-10010 
-10011 
-10100 
-10101 
-10110 
-10111 
-11000 
-11001 
-11010 
-11011 
-11100 
-11101 
-11110 
-11111 
+Integer OPI
 
-VINT
+funct6
 
-vadd    
-vaddi
-vsub
-vrsub
-vwadd
-vwsub
-vand
-vandi
-vor
-vori
-vxor
-vxori
-vsll
-vslli
-vsrl
-vsrli
-vsra
-vsrai
-vseq
-vseqi
-vsne    
-vsnei
-vslt          
-vslti
-vsltiu
-vslte
-vslteu
-vmin    
-vmax    
-vminu   
-vmaxu   
-vmul    
-vmulh   
-vmulhu  
-vmulhsu 
-vdiv    
-vdivu   
-vrem    
-vremu
+000000 vadd
+000001 vsub
+000010 vrsub
+000011
+000100 vwadd
+000101 vwsub
+000110 vwaddu
+000111 vwsubu
+001000 vwadd.w
+001001 vwsub.w
+001010 vwaddu.w
+001011 vwsubu.w
+001100
+001101
+001110
+001111
+010000 vand
+010001 vor
+010010 vxor
+010011
+010100 vsll
+010101 vsrl
+010110 vsra
+010111
+011000 vnsrl
+011001 vnsra
+011010 vnclipu
+011011 vnclip
+011100
+011101
+011110
+011111 vadc
+100000 vseq
+100001 vsne
+100010 vslt
+100011 vsltu
+100100 vsle
+100101 vsleu
+100110 vsgt
+100111 vsgtu
+101000 vmin
+101001 vmax
+101010 vminu
+101011 vmaxu
+101100
+101101
+101110
+101111 
+110000 vslideup  
+110001 vslidedown
+110010 vrgather
+110011 vcompress 
+110100 
+110101
+110110
+110111
+111000
+111001
+111010
+111011
+111100
+111101
+111110
+111111
 
-DESTRUCTIVE TERNARY
-vmuladd
-vmuladdm
-vmulsub
-vmulsubm
+Integer OPM
 
-VUNARY
+funct6
+
+000000 vmul
+000001 vmulh
+000010 vmulhu
+000011 vmulhsu
+000100 vwmul
+000101 vwmulu
+000110 vwmulsu
+000111
+001000 vmacc
+001001 vmadd
+001010 vmaccu
+001011 vmaddu
+001100 vwmacc
+001101 vwmadd
+001110 vwmaccu
+001111 vwmaddu
+010000 
+010001 
+010010 
+010011 
+010100 vredsum  
+010101 vredmax  
+010110 vredmaxu 
+010111 vredmin  
+011000 vredminu 
+011001 vredand  
+011010 vredor   
+011011 vredxor  
+011100 vwredsum 
+011101 vreddot  
+011110 vwreddot 
+011111 vw4reddot
+100000 vdiv 
+100001 vdivu
+100010 vrem 
+100011 vremu
+100100 
+100101 
+100110 
+100111 
+101000 vmand    
+101001 vmnand   
+101010 vmandnot 
+101011 vmxor    
+101100 vmor     
+101101 vmnor    
+101110 vmornot  
+101111 vmxnor   
+110000       
+110001 vmsbf 
+110010 vmsof 
+110011 vmsif 
+110100 vmiota
+110101 vid   
+110110
+110111 vmerge   
+111000 vins.v.x 
+111001 vext.x.v 
+111010 vmv.v.x  
+111011 vmv.x.v  
+111100
+111101 
+111110 vmpopc 
+111111 vmfirst
 
 VFLOAT
 
-vfadd
-vfsub
-vfmul
-vfdiv
-vfmin
-vfmax
-vfsgnj
-vfsgnn
-vfsgnx
-vfeq
-vflt
-vflte
+funct6
 
-VFUNARY
+000000 vfadd
+000001 vfsub
+000010 vfmul
+000011 vfdiv
+000100 vfmin
+000101 vfmax
+000110 vfsgnj
+000111 vfsgnn
+001000 vfsgnx
+001001 vfeq
+001010 vflt
+001011 vflte
+001100
+001101
+001110
+001111
+010000 vwfadd
+010001 vwfadd.w
+010010 vwfsub
+010011 vwfsub.w
+010100 vwfmul
+010101 vwfmuladd
+010110 vwfmuladdm
+010111 vwfmulsub
+011000 vwfmulsubm
+011001
+011010
+011011
+011100
+011101
+011110 vfsqrt 
+011111 vfclass
+100000 vfredosum   
+100001 vfredsum    
+100010 vfredmax   
+100011 vfredmin   
+100100 vwfredosum 
+100101 vwfredsum  
+100110 vfreddot   
+100111 vwfreddot  
+101000
+101001
+101010
+101011
+101100
+101101
+101110
+101111
+110000 vfmv.f.v
+110001 vfmv.v.f
+110010
+110011
+110100
+110101
+110110
+110111
+111000
+111001
+111010
+111011
+111100
+111101
+111110
+111111
 
-vfsqrt
-vfclass
-
-WIDENING INT
-
-vwadd
-vwwadd
-vwsub
-vwwsub
-
-vwmul
-vwmulu
-vwmulsu
-vwmuladd
-vwmulsub
 vx4muladd
 vx4mulsub
 
-WIDENING FP
-vwfadd
-vwwfadd
-vwfsub
-vwwfsub
 
-vwfmul
-vwfmuladd
-vwfmuladdm
-vwfmulsub
-vwfmulsubm
+
+
+
+
 
 NARROWING
 
-vnclip
-vnclipu
-vnsra
-vnsrl
+
+
+
+
 
 
 
@@ -419,5 +505,3 @@ vnsrl
 2+|vs3|vm|vs2|vs1|110 2+|vd|1001111|VMSUBW.VVS
 
 |========================
-
-
