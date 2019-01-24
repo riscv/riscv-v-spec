@@ -299,21 +299,6 @@ vx4muladd
 vx4mulsub
 
 
-
-
-
-
-
-NARROWING
-
-
-
-
-
-
-
-
-
 .Vector Table
 [width="100%",cols="^3,^3,^3,^4,^4,^3,^3,^3,^7,<10"]
 |========================

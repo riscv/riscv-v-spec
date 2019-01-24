@@ -2068,6 +2068,7 @@ inversion.
 Signed and unsigned integer mininum and maximum instructions are
 supported.
 
+[#load-store-types]
 [source]
 ----
 # Signed minimum
