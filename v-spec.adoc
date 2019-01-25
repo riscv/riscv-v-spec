@@ -2162,7 +2162,7 @@ vwmulsu.vs vd, vs2, rs1, vm # vector-scalar
 
 The integer multiply-add instructions are destructive and are provided
 in two forms, one that overwrites the addend or minuend
-(`vmacc`,`vmscc`) and one that overwrites the first multiplicand
+(`vmacc`,`vmsac`) and one that overwrites the first multiplicand
 (`vmadd`,`vmsub`).
 
 [source]
@@ -2172,8 +2172,8 @@ vmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
 vmacc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
 # Signed-integer multiply-sub, overwrite minuend
-vmscc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vmscc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+vmsac.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
+vmsac.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 
 # Signed-integer multiply-add, overwrite multiplicand
 vmadd.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
@@ -2188,8 +2188,8 @@ vmaccu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
 vmaccu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
 # Unsigned-integer multiply-sub, overwrite minuend
-vmsccu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vmsccu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+vmsacu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
+vmsacu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 
 # Unsigned-integer multiply-add, overwrite multiplicand
 vmaddu.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
@@ -2213,8 +2213,8 @@ vwmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
 vwmacc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
 # Widening signed-integer multiply-sub, overwrite minuend
-vwmscc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vwmscc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+vwmsac.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
+vwmsac.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 ----
 
 ==== Vector Integer Divide Instructions
