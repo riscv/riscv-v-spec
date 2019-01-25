@@ -1702,9 +1702,9 @@ vfop.vf  vd, vs2, rs1, vm # FP vector-scalar operation vd[i] = vs2[i] fop f[rs1]
 
 NOTE: In the encoding, `vs2` is the first operand, while `rs1/simm5`
 is the second operand. This is the opposite to the standard scalar
-ordering.  This arrangment retains the property that instructions that
-read only one scalar register, read it from `rs1`.  Also, that 5-bit
-immediates are sourced from the `rs1` field.
+ordering.  This arrangement retains the existing encoding conventions
+that instructions that read only one scalar register, read it from
+`rs1`, and that 5-bit immediates are sourced from the `rs1` field.
 
 === Widening Vector Arithmetic Instructions
 
@@ -1731,7 +1731,7 @@ distinguished by a `vw4*` prefix on the opcode.
 
 For all widening instructions, the destination element width must be a
 supported element width and the destination LMUL value must also be a
-supported LMUL value (<=8), otherwise an illegal instruction exception
+supported LMUL value (\<=8), otherwise an illegal instruction exception
 is raised.
 
 The destination vector register group must be specified using a vector
@@ -3205,7 +3205,7 @@ quantity.
 ----
 
 The destination elements with indices < START are left undisturbed.
-Any destination elements with indices between START <= index <
+Any destination elements with indices between START \<= index <
 min(START + `vl`, VLMAX) are updated.  Any destination elements between START+index
 
 The destination vector register group for `vslideup` cannot overlap
@@ -3260,7 +3260,7 @@ source vector register group at locations given by a second source
 vector register group.  The index values in the second vector are
 treated as unsigned integers.  The source vector can be read at any
 index < VLMAX.  The number of elements to write to the destination
-register is given by `vl`, and elements past `vl`in the destination
+register is given by `vl`, and elements past `vl` in the destination
 are zeroed.  The operation can be masked.
 
 [source]
@@ -3472,6 +3472,10 @@ SEW  EDIV  Sub-element  accumulator  accumulator
 Each implementation defines a minimum size for a sub-element, _SELEN_,
 which must be at most 8 bits.
 
+NOTE: While _SELEN_ is a fourth implementation-specific parameter,
+values smaller than 8 are considered an additional extension to the
+base vector extension.
+
 === Instructions not affected by EDIV
 
 The vector length `vl` control and vector masking continue to operate
@@ -3578,106 +3582,8 @@ interpreted as relative to the enclosing element only.  Index values
 NOTE: Implementations can provide fast implementations of register
 gathers constrained within a single element width.
 
-== Vector Assembly Code Examples
-
-The following are provided as non-normative text to help explain the vector ISA.
-
-=== Vector-vector add example
-
-[source]
-----
-    # vector-vector add routine of 32-bit integers
-    # void vvaddint32(size_t n, const int*x, const int*y, int*z)
-    # { for (size_t i=0; i<n; i++) { z[i]=x[i]+y[i]; } }
-    #
-    # a0 = n, a1 = x, a2 = y, a3 = z
-    # Non-vector instructions are indented
-vvaddint32:
-    vsetvli t0, a0, vsew32 # Set vector length based on 32-bit vectors
-    vlw.v v0, (a1)           # Get first vector
-      sub a0, a0, t0         # Decrement number done
-      slli t0, t0, 2         # Multiply number done by 4 bytes
-      add a1, a1, t0         # Bump pointer
-    vlw.v v1, (a2)           # Get second vector
-      add a2, a2, t0         # Bump pointer
-    vadd.v v2, v0, v1        # Sum vectors
-    vsw.v v2, (a3)           # Store result
-      add a3, a3, t0         # Bump pointer
-      bnez a0, vvaddint32    # Loop back
-      ret                    # Finished
-----
-
-=== Example with mixed-width mask and compute.
-
-[source]
-----
-# Code using one width for predicate and different width for masked
-# compute.
-#   int8_t a[]; int32_t b[], c[];
-#   for (i=0;  i<n; i++) { b[i] =  (a[i] < 5) ? c[i] : 1; }
-#
-# Mixed-width code that keeps SEW/LMUL=8
-  loop:
-    vsetvli a4, a0, vsew8,vlmul1  # Byte vector for predicate calc
-    vlb.v v1, (a1)                # Load a[i]
-      add a1, a1, a4              # Bump pointer.
-      sub a0, a0, a4              # Decrement count
-    vslti.v v0, v1, 5             # a[i] < 5?
-
-    vsetvtypei vsew32,vlmul4      # Vector of 32-bit values.
-    vmv.vi v4, 1                  # Splat immediate to destination
-    vlw.v v4, (a3), v0.t          # Load requested elements of C.
-      sll t1, a4, 2
-      add a3, a3, t1              # Bump pointer.
-    vsw.v v4, (a2)                # Store b[i].
-      add a2, a2, t1              # Bump pointer.
-      bnez a0, loop               # Any more?
-----
-
-=== Memcpy example
-
-[source]
-----
-    # void *memcpy(void* dest, const void* src, size_t n)
-    # a0=dest, a1=src, a2=n
-    #
-  memcpy:
-      mv a3, a0 # Copy destination
-  loop:
-    vsetvli t0, a2, vsew8,vlmul8  # Vectors of 8b
-    vlb.v v0, (a1)                # Load bytes
-      add a1, a1, t0              # Bump pointer
-      sub a2, a2, t0              # Decrement count
-    vsb.v v0, (a3)                # Store bytes
-      add a3, a3, t0              # Bump pointer
-      bnez a2, loop               # Any more?
-      ret                         # Return
-----
-
-=== Conditional example
-
-[source]
-----
-       (int16) z[i] = ((int8) x[i] < 5) ? (int16) a[i] : (int16) b[i];
-
-Fixed 16b SEW:
-loop:
-    vsetvli t0, a0, vsew16  # Use 16b elements.
-    vlb.v v0, (a1)             # Get x[i], sign-extended to 16b
-      sub a0, a0, t0           # Decrement element count
-      add a1, a1, t0           # x[i] Bump pointer
-    vslt.vi v0, v0, 5          # Set mask in v0
-      slli t0, t0, 1           # Multiply by 2 bytes
-    vlh.v v1, (a2), v0.t        # z[i] = a[i] case
-    vmnot.v v0, v0             # Invert v0
-      add a2, a2, t0           # a[i] bump pointer
-    vlh.v v1, (a3), v0.t         # z[i] = b[i] case
-      add a3, a3, t0           # b[i] bump pointer
-    vsh.v v1, (a4)               # Store z
-      add a4, a4, t0           # b[i] bump pointer
-      bnez a0, loop
-----
-
 == Vector Instruction Listing
 
 include::inst-table.adoc[]
+
+include::vector-examples.adoc[]

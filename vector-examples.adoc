@@ -1,0 +1,101 @@
+[appendix]
+== Vector Assembly Code Examples
+
+The following are provided as non-normative text to help explain the vector ISA.
+
+=== Vector-vector add example
+
+[source]
+----
+    # vector-vector add routine of 32-bit integers
+    # void vvaddint32(size_t n, const int*x, const int*y, int*z)
+    # { for (size_t i=0; i<n; i++) { z[i]=x[i]+y[i]; } }
+    #
+    # a0 = n, a1 = x, a2 = y, a3 = z
+    # Non-vector instructions are indented
+vvaddint32:
+    vsetvli t0, a0, vsew32 # Set vector length based on 32-bit vectors
+    vlw.v v0, (a1)           # Get first vector
+      sub a0, a0, t0         # Decrement number done
+      slli t0, t0, 2         # Multiply number done by 4 bytes
+      add a1, a1, t0         # Bump pointer
+    vlw.v v1, (a2)           # Get second vector
+      add a2, a2, t0         # Bump pointer
+    vadd.v v2, v0, v1        # Sum vectors
+    vsw.v v2, (a3)           # Store result
+      add a3, a3, t0         # Bump pointer
+      bnez a0, vvaddint32    # Loop back
+      ret                    # Finished
+----
+
+=== Example with mixed-width mask and compute.
+
+[source]
+----
+# Code using one width for predicate and different width for masked
+# compute.
+#   int8_t a[]; int32_t b[], c[];
+#   for (i=0;  i<n; i++) { b[i] =  (a[i] < 5) ? c[i] : 1; }
+#
+# Mixed-width code that keeps SEW/LMUL=8
+  loop:
+    vsetvli a4, a0, vsew8,vlmul1  # Byte vector for predicate calc
+    vlb.v v1, (a1)                # Load a[i]
+      add a1, a1, a4              # Bump pointer.
+    vslt.vi v0, v1, 5             # a[i] < 5?
+
+    vsetvli x0, a0, vsew32,vlmul4 # Vector of 32-bit values.
+      sub a0, a0, a4              # Decrement count
+    vmv.vi v4, 1                  # Splat immediate to destination
+    vlw.v v4, (a3), v0.t          # Load requested elements of C.
+      sll t1, a4, 2
+      add a3, a3, t1              # Bump pointer.
+    vsw.v v4, (a2)                # Store b[i].
+      add a2, a2, t1              # Bump pointer.
+      bnez a0, loop               # Any more?
+----
+
+=== Memcpy example
+
+[source]
+----
+    # void *memcpy(void* dest, const void* src, size_t n)
+    # a0=dest, a1=src, a2=n
+    #
+  memcpy:
+      mv a3, a0 # Copy destination
+  loop:
+    vsetvli t0, a2, vsew8,vlmul8  # Vectors of 8b
+    vlb.v v0, (a1)                # Load bytes
+      add a1, a1, t0              # Bump pointer
+      sub a2, a2, t0              # Decrement count
+    vsb.v v0, (a3)                # Store bytes
+      add a3, a3, t0              # Bump pointer
+      bnez a2, loop               # Any more?
+      ret                         # Return
+----
+
+=== Conditional example
+
+[source]
+----
+       (int16) z[i] = ((int8) x[i] < 5) ? (int16) a[i] : (int16) b[i];
+
+Fixed 16b SEW:
+loop:
+    vsetvli t0, a0, vsew16  # Use 16b elements.
+    vlb.v v0, (a1)             # Get x[i], sign-extended to 16b
+      sub a0, a0, t0           # Decrement element count
+      add a1, a1, t0           # x[i] Bump pointer
+    vslt.vi v0, v0, 5          # Set mask in v0
+      slli t0, t0, 1           # Multiply by 2 bytes
+    vlh.v v1, (a2), v0.t        # z[i] = a[i] case
+    vmnot.v v0, v0             # Invert v0
+      add a2, a2, t0           # a[i] bump pointer
+    vlh.v v1, (a3), v0.t         # z[i] = b[i] case
+      add a3, a3, t0           # b[i] bump pointer
+    vsh.v v1, (a4)               # Store z
+      add a4, a4, t0           # b[i] bump pointer
+      bnez a0, loop
+----
+
