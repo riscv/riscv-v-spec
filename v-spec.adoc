@@ -1785,7 +1785,8 @@ Where there is a second source vector, this has the same (narrower)
 width as the result.
 
 A `vn*` prefix on the opcode is used to distinguish these instructions
-in the assembler.
+in the assembler, or a `vfn*` prefix for narrowing floating-point
+opcodes.
 
 NOTE: Comparison operations that set a mask register are also
 implicitly a narrowing operation.
@@ -2126,12 +2127,12 @@ NOTE: There is no `vmulhus` opcode to return high half of
 unsigned-vector * signed-scalar product.
 
 NOTE: The `vmulh*` opcodes perform simple fractional multiplies, but
-with no option to round and/or saturate the result.
+with no option to scale, round, and/or saturate the result.
 
 === Vector Widening Integer Multiply Instructions
 
-The widening integer multiply instructions return a 2*SEW-bit product
-from an SEW-bit*SEW-bit multiply.
+The widening integer multiply instructions return the full 2*SEW-bit
+product from an SEW-bit*SEW-bit multiply.
 
 [source]
 ----
@@ -2151,8 +2152,9 @@ vwmulsu.vs vd, vs2, rs1, vm # vector-scalar
 === Vector Single-Width Integer Multiply-Add Instructions
 
 The integer multiply-add instructions are destructive and are provided
-in two forms, one that overwrites the addend (`vmacc`) and one that
-overwrites the first multiplicand (`vmadd`).
+in two forms, one that overwrites the addend or minuend
+(`vmacc`,`vmscc`) and one that overwrites the first multiplicand
+(`vmadd`,`vmsub`).
 
 [source]
 ----
@@ -2160,39 +2162,51 @@ overwrites the first multiplicand (`vmadd`).
 vmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
 vmacc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
+# Signed-integer multiply-sub, overwrite minuend
+vmscc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
+vmscc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+
 # Signed-integer multiply-add, overwrite multiplicand
 vmadd.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
 vmadd.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] + (vd[i] * x[rs1])
+
+# Signed-integer multiply-sub, overwrite multiplicand
+vmsub.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] - (vd[i] * vs1[i])
+vmsub.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] - (vd[i] * x[rs1])
 
 # Unsigned-integer multiply-add, overwrite addend
 vmaccu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
 vmaccu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
+# Unsigned-integer multiply-sub, overwrite minuend
+vmsccu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
+vmsccu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+
 # Unsigned-integer multiply-add, overwrite multiplicand
 vmaddu.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
 vmaddu.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] + (vd[i] * x[rs1])
-----
 
-NOTE: Probably need to add multiply-sub variants.
+# Unsigned-integer multiply-add, overwrite multiplicand
+vmsubu.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] - (vd[i] * vs1[i])
+vmsubu.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] - (vd[i] * x[rs1])
+----
 
 === Vector Widening Integer Multiply-Add Instructions
 
-The widening integer multiply-add instructions add a SEW-bit*SEW-bit
-multiply result to a 2*SEW-bit value and produce a 2*SEW-bit add
-result.
+The widening integer multiply-add instructions add (subtract) a
+SEW-bit*SEW-bit multiply result to (from) a 2*SEW-bit value and
+produce a 2*SEW-bit result.
 
 [source]
 ----
-# Signed-integer multiply-add, overwrite addend
-vmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
-vmacc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
+# Widening signed-integer multiply-add, overwrite addend
+vwmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
+vwmacc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
-# Signed-integer multiply-add, overwrite multiplicand
-vmadd.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
-vmadd.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] + (vd[i] * x[rs1])
+# Widening signed-integer multiply-sub, overwrite minuend
+vwmscc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
+vwmscc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 ----
-
-NOTE: Probably need to add multiply-sub variants.
 
 ==== Vector Integer Divide Instructions
 
@@ -2291,7 +2305,7 @@ NOTE: Scalar floating-point values will be sourced from the integer
 === Vector Floating-Point Exception Flags
 
 A vector floating-point exception at any active floating-point element
-sets the standard FP exception flags in the `fflags` register.  Masked
+sets the standard FP exception flags in the `fflags` register.  Inactive
 elements do not set FP exception flags.
 
 === Vector Single-Width Floating-Point Add/Subtract Instructions
@@ -2388,9 +2402,9 @@ vfnmsac.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
 ----
 
 NOTE: It would be possible to use the two unused rounding modes in the
-scalar FP FMA encoding to provide a few non-destructive FMAs. However,
-this would be only maskable operation with three inputs and separate
-output.
+scalar FP FMA encoding to provide a few non-destructive FMAs.
+However, this would be the only maskable operation with three inputs
+and separate output.
 
 === Vector Widening Floating-Point Fused Multiply-Add Instructions
 
@@ -2569,18 +2583,18 @@ additional exception flags raised.
 
 === Narrowing Floating-Point/Integer Type-Convert Instructions
 
-A set of convertion instructions are provided to convert wider integer
+A set of conversion instructions are provided to convert wider integer
 and floating-point datatypes to a type of half the width.
 
 [source]
 ----
-vnfcvt.x.f.v  vd, vs2, vm   # Convert double-width float to signed integer.
-vnfcvt.xu.f.v vd, vs2, vm   # Convert double-width float to unsigned integer.
+vfncvt.x.f.v  vd, vs2, vm   # Convert double-width float to signed integer.
+vfncvt.xu.f.v vd, vs2, vm   # Convert double-width float to unsigned integer.
 
-vnfcvt.f.x.v  vd, vs2, vm   # Convert double-width signed integer to float.
-vnfcvt.f.xu.v vd, vs2, vm   # Convert double-width unsigned integer to float.
+vfncvt.f.x.v  vd, vs2, vm   # Convert double-width signed integer to float.
+vfncvt.f.xu.v vd, vs2, vm   # Convert double-width unsigned integer to float.
 
-vnfcvt.f.f.v vd, vs2, vm   # Convert double-width float to single-width float.
+vfncvt.f.f.v vd, vs2, vm   # Convert double-width float to single-width float.
 ----
 
 NOTE: A full set of floating-point widening conversions are not
@@ -2796,7 +2810,7 @@ least-significant bit set, and writes the result to a scalar `x`
 register.
 
 The operation can be performed under a mask, in which case only the
-masked elemnets are counted.
+masked elements are counted.
 
 [source]
 ----
@@ -2855,7 +2869,7 @@ corresponds to no element found.  Vector lengths will not exceed
 The `vmsbf.v` instruction writes a 1 to all active mask elements
 before the first source element that has a set LSB, then writes a zero
 to that element and all following active elements.  If there is no set
-bit in the source vector, the all active elements in the destination
+bit in the source vector, then all active elements in the destination
 are written with a 1.
 
 The tail elements in the destination mask register are cleared.
