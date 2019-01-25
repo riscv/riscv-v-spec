@@ -1631,17 +1631,23 @@ NOTE: Need to flesh out details.
 == Vector Arithmetic Instruction Formats
 
 The vector arithmetic instructions use a new major opcode (OP-V =
-1010111~2~) which neighbors OP-FP.
+1010111~2~) which neighbors OP-FP.  The three-bit `funct3` field is
+used to define sub-categories of vector instructions.
 
-Format for Vector Arithmetic Instructions under OP-V major opcode
 [source]
 ----
+Formats for Vector Arithmetic Instructions under OP-V major opcode
+
 31       26  25   24      20 19      15 14   12 11      7 6     0
-  funct6   | vm  |   vs2    |    vs1   | 0 1 x |  vd/rd  |1010111| OP-V (vv)
-  funct6   | vm  |   vs2    |    rs1   | funct3|  vd/rd  |1010111| OP-V (vs)
-  funct6   | vm  |   vs2    |   simm5  | 0 0 1 |  vd/rd  |1010111| OP-V (vi)
-  000000   |  0  |   rs2    |    rs1   | 1 0 1 |    rd   |1010111| OP-V (config)
-   imm6    |  1  |   imm5   |    rs1   | 1 0 1 |    rd   |1010111| OP-V (configi)
+  funct6   | vm  |   vs2    |    vs1   | 0 0 0 |    vd   |1010111| OP-V (OPIVV)
+  funct6   | vm  |   vs2    |    vs1   | 0 0 1 |    vd   |1010111| OP-V (OPFVV)
+  funct6   | vm  |   vs2    |    vs1   | 0 1 0 |  vd/rd  |1010111| OP-V (OPMVV)
+  funct6   | vm  |   vs2    |   simm5  | 0 1 1 |    vd   |1010111| OP-V (OPIVI)
+  funct6   | vm  |   vs2    |    rs1   | 1 0 0 |    vd   |1010111| OP-V (OPIVX)
+  funct6   | vm  |   vs2    |    rs1   | 1 0 1 |    vd   |1010111| OP-V (OPFVF)
+  funct6   | vm  |   vs2    |    rs1   | 1 1 0 |  vd/rd  |1010111| OP-V (OPMVX)
+   imm6    |  0  |   imm5   |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFGI)
+  000000   |  1  |   rs2    |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFGR)
      6        1        5          5        3        5        7
 ----
 
@@ -1651,16 +1657,16 @@ The `funct3` field encodes the operand type and source locations.
 
 [source]
 ----
-funct3[2:0]       Operands          Source of scalar(s)
+ funct3[2:0]    Operands          Source of scalar(s)
 
-0 0 0   Int OPI   vector-scalar     GPR x register rs1
-0 0 1   Int OPI   vector-immediate  simm[4:0]
-0 1 0   Int OPI   vector-vector           -
-1 0 0   Int OPM   vector-scalar     GPR x register rs1
-1 0 1   Config    scalars-imms      GPR x register rs1 & rs2
-1 1 0   Int OPM   vector-vector           -
-0 1 1   FP        vector-vector             -
-1 1 1   FP        vector-scalar     FP f register rs1
+0 0 0   OPIVV   vector-vector           -
+0 0 1   OPFVV   vector-vector           -
+0 1 0   OPMVV   vector-vector           -
+0 1 1   OPIVI   vector-immediate  simm[4:0]
+1 0 0   OPIVX   vector-scalar     GPR x register rs1
+1 0 1   OPFVF   vector-scalar     FP f register rs1
+1 1 0   OPMVX   vector-scalar     GPR x register rs1
+1 1 1   OPCFG   scalars-imms      GPR x register rs1 & rs2/imm
 ----
 
 Integer operations are performed using unsigned or two's-complement
