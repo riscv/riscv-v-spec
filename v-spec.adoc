@@ -7,6 +7,14 @@ Version 0.7-draft-20190124
 :numbered:
 :stem: latexmath
 
+Contributors include: Alon Amid, Krste Asanovic, Allen Baum, Alex
+Bradbury, Tony Brewer, Chris Celio, Silviu Chiricescu, Ken Dockser,
+Bob Dreyer, Roger Espasa, Sean Halle, John Hauser, David Horner, Bruce
+Hoult, Bill Huffman, Constantine Korikov, Ben Korpan, Robin Kruppe,
+Yunsup Lee, Guy Lemieux, Rich Newell, Albert Ou, David Patterson, Alex
+Solomatnikov, Colin Schmidt, Steve Wallach, Andrew Waterman, Jim
+Wilson.
+
 == Introduction
 
 This document describes the draft of the RISC-V base vector extension.
