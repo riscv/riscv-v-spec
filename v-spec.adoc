@@ -2165,6 +2165,8 @@ in two forms, one that overwrites the addend or minuend
 (`vmacc`,`vmsac`) and one that overwrites the first multiplicand
 (`vmadd`,`vmsub`).
 
+NOTE: "sac" is intended to invoke "subtract from accumulator".
+
 [source]
 ----
 # Signed-integer multiply-add, overwrite addend
