@@ -298,7 +298,8 @@ regardless of LMUL setting.
 === Vector Length Register `vl`
 
 The _XLEN_-bit-wide read-only `vl` CSR can only be updated by the
-`vsetvli` and `vsetvl` instructions.
+`vsetvli` and `vsetvl` instructions, and the _first-fault_ vector load
+instruction variants.
 
 The `vl` register holds an unsigned integer specifying the number of
 elements to be updated by a vector instruction.  Elements in the
