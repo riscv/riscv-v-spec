@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 0.7-draft-20190114
+Version 0.7-draft-20190124
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -34,15 +34,13 @@ machine learning.
 
 == Implementation-defined Constant Parameters
 
-Each hart supporting the vector extension defines two parameters.
+Each hart supporting the vector extension defines three parameters:
 
-The maximum size of a single vector element in bits, _ELEN_, which
+. The maximum size of a single vector element in bits, _ELEN_, which
 must be a power of 2.
-
-The number of bits in a vector register, _VLEN_ >= _ELEN_, which must
+. The number of bits in a vector register, _VLEN_ >= _ELEN_, which must
 be a power of 2.
-
-The striping distance in bits, _SLEN_, which must be VLEN >= SLEN >=
+. The striping distance in bits, _SLEN_, which must be VLEN >= SLEN >=
 32, and which must be a power of 2.
 
 NOTE: Platform profiles may set further constraints on these
@@ -1713,11 +1711,16 @@ stored in a vector register group with twice the number of vector
 registers, i.e., the destination vector register group is 2*LMUL.
 
 The first operand can be either single or double-width. These are
-generally written with a `vw*` prefix on the opcode.
+generally written with a `vw*` prefix on the opcode or `vfw*` for
+vector floating-point operations.
 
 NOTE: Originally, a `w` suffix was used on opcode, but this could be
 confused with the use of a `w` suffix to mean word-sized operations in
 doubleword integers, so the `w` was moved to prefix.
+
+NOTE: The floating-point widening operations were changed to `vfw*`
+from `vwf*` to be more consistent with any scalar widening
+floating-point operations that will be written as `fw*`.
 
 For integer multiply-add, another widening option increases the size
 of the accumulator to 4*SEW (i.e., 4*SEW += SEW*SEW).  These are
@@ -2001,20 +2004,20 @@ vsne.vi vd, vs2, imm, vm   # vector-immediate
 # Set if less than, signed
 vslt.vv vd, vs2, vs1, vm   # Vector-vector
 vslt.vs vd, vs2, rs1, vm   # vector-scalar
-vslt.vi vd, vs2, imm, vm   # vector-immediate
 
 # Set if less than, unsigned
 vsltu.vv vd, vs2, vs1, vm   # Vector-vector
 vsltu.vs vd, vs2, rs1, vm   # Vector-scalar
-vsltu.vi vd, vs2, imm, vm   # Vector-immediate
 
 # Set if less than or equal, signed
 vsle.vv vd, vs2, vs1, vm   # Vector-vector
 vsle.vs vd, vs2, rs1, vm   # vector-scalar
+vsle.vi vd, vs2, imm, vm   # vector-immediate
 
 # Set if less than or equal, unsigned
 vsleu.vv vd, vs2, vs1, vm   # Vector-vector
 vsleu.vs vd, vs2, rs1, vm   # vector-scalar
+vsleu.vi vd, vs2, imm, vm   # Vector-immediate
 
 # Set if greater than, signed
 vsgt.vs vd, vs2, rs1, vm    # Vector-scalar
@@ -2025,8 +2028,12 @@ vsgtu.vs vd, vs2, rs1, vm    # Vector-scalar
 vsgtu.vi vd, vs2, imm, vm    # Vector-immediate
 ----
 
-NOTE: The immediate forms of sle{u} are not provided as the immediate
-value can be increased by 1 and the slt{u} variants used instead.
+NOTE: The immediate forms of slt{u} are not provided as the immediate
+value can be decreased by 1 and the sle{u} variants used instead.  The
+`vsle.vi` range is -16 to 15, resulting in an effective `vslt.vi`
+range of -15 to 16.  The `vsleu.vi` range is 0 to 15 (and ~0-15 to
+~0), giving an effective `vsltu.vi` range of 1 to 16 (`vsltu.vi` with
+immediate 0 is not useful as it is always false).
 
 NOTE: The `vsgt` forms for register scalar and immediates are provided
 to allow a single comparison instruction to provide the correct
@@ -2303,16 +2310,16 @@ elements do not set FP exception flags.
 [source]
 ----
 # Widening FP add/subtract, 2*SEW = SEW +/- SEW
-vwfadd.vv vd, vs2, vs1, vm  # vector-vector
-vwfadd.vs vd, vs2, rs1, vm  # vector-scalar
-vwfsub.vv vd, vs2, vs1, vm  # vector-vector
-vwfsub.vs vd, vs2, rs1, vm  # vector-scalar
+vfwadd.vv vd, vs2, vs1, vm  # vector-vector
+vfwadd.vs vd, vs2, rs1, vm  # vector-scalar
+vfwsub.vv vd, vs2, vs1, vm  # vector-vector
+vfwsub.vs vd, vs2, rs1, vm  # vector-scalar
 
 # Widening FP add/subtract, 2*SEW = 2*SEW +/- SEW
-vwfadd.wv  vd, vs2, vs1, vm  # vector-vector
-vwfadd.ws  vd, vs2, rs1, vm  # vector-scalar
-vwfsub.wv  vd, vs2, vs1, vm  # vector-vector
-vwfsub.ws  vd, vs2, rs1, vm  # vector-scalar
+vfwadd.wv  vd, vs2, vs1, vm  # vector-vector
+vfwadd.ws  vd, vs2, rs1, vm  # vector-scalar
+vfwsub.wv  vd, vs2, vs1, vm  # vector-vector
+vfwsub.ws  vd, vs2, rs1, vm  # vector-scalar
 ----
 
 === Vector Single-Width Floating-Point Multiply/Divide Instructions
@@ -2333,8 +2340,8 @@ vwfsub.ws  vd, vs2, rs1, vm  # vector-scalar
 [source]
 ----
 # Widening floating-point multiply
-vwfmul.vv    vd, vs2, vs1, vm # vector-vector
-vwfmul.vs    vd, vs2, rs1, vm # vector-scalar
+vfwmul.vv    vd, vs2, vs1, vm # vector-vector
+vfwmul.vs    vd, vs2, rs1, vm # vector-scalar
 ----
 
 === Vector Single-Width Floating-Point Fused Multiply-Add Instructions
@@ -2392,20 +2399,20 @@ all SEW wide, while the addend and destination is 2*SEW bits wide.
 [source]
 ----
 # FP widening multiply-accumulate, overwrites addend
-vwfmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) + vd[i]
-vwfmacc.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) + vd[i]
+vfwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) + vd[i]
+vfwmacc.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) + vd[i]
 
 # FP widening negate-(multiply-accumulate), overwrites addend
-vwfnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) - vd[i]
-vwfnmacc.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
+vfwnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) - vd[i]
+vfwnmacc.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
 
 # FP widening multiply-subtract-accumulator, overwrites addend
-vwfmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
-vwfmsac.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
+vfwmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
+vfwmsac.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
 
 # FP widening negate-(multiply-subtract-accumulator), overwrites addend
-vwfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
-vwfnmsac.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
+vfwnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
+vfwnmsac.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
 ----
 
 === Vector Floating-Point Square-Root Instruction
@@ -2538,13 +2545,13 @@ width.
 
 [source]
 ----
-vwfcvt.x.f.v  vd, vs2, vm   # Convert float to double-width signed integer.
-vwfcvt.xu.f.v vd, vs2, vm   # Convert float to double-width unsigned integer.
+vfwcvt.x.f.v  vd, vs2, vm   # Convert float to double-width signed integer.
+vfwcvt.xu.f.v vd, vs2, vm   # Convert float to double-width unsigned integer.
 
-vwfcvt.f.x.v  vd, vs2, vm   # Convert signed integer to double-width float.
-vwfcvt.f.xu.v vd, vs2, vm   # Convert unsigned integer to double-width float.
+vfwcvt.f.x.v  vd, vs2, vm   # Convert signed integer to double-width float.
+vfwcvt.f.xu.v vd, vs2, vm   # Convert unsigned integer to double-width float.
 
-vwfcvt.f.f.v vd, vs2, vm   # Convert single-width float to double-width float.
+vfwcvt.f.f.v vd, vs2, vm   # Convert single-width float to double-width float.
 ----
 
 NOTE: A double-width IEEE floating-point value can always represent a
@@ -2690,11 +2697,11 @@ read and write a double-width reduction result.
 [source]
 ----
  # Simple reductions.
- vwfredosum.v vd, vs2, vs1, vm # Ordered reduce 2*SEW = sum(SEW) + 2*SEW
- vwfredsum.v vd, vs2, vs1, vm  # Unordered reduce  2*SEW = sum(SEW) + 2*SEW
+ vfwredosum.v vd, vs2, vs1, vm # Ordered reduce 2*SEW = sum(SEW) + 2*SEW
+ vfwredsum.v vd, vs2, vs1, vm  # Unordered reduce  2*SEW = sum(SEW) + 2*SEW
 
  # Dot product.
- vwfreddot.v vd, vs2, vs1, vm  # Unordered reduce  2*SEW += sum(SEW*SEW)
+ vfwreddot.v vd, vs2, vs1, vm  # Unordered reduce  2*SEW += sum(SEW*SEW)
 ----
 
 == Vector Mask Instructions
