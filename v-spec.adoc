@@ -1331,7 +1331,9 @@ Fixed-sized vector loads can optionally sign or zero-extend their
 memory element into the destination register element if the register
 element is wider than the memory element.  A fixed-size vector load
 raises an illegal instruction exception if the destination register
-element is narrower than the memory element.
+element is narrower than the memory element.  The variable-sized load
+is encoded as if a zero-extended load, with what would be the
+sign-extended encoding of a variable-sized load currently reserved.
 
 Fixed-size vector stores take their operand from the least-significant
 bits of the register element if the register element if wider than the
