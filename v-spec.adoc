@@ -2246,39 +2246,59 @@ operation.
 === Vector Integer Merge Instruction
 
 The vector integer merge instruction combines two source operands
-based on the mask field.  Where the mask value is zero, the first
-operand is copied to the destination element, otherwise the second
-operand is copied to the destination element.  The first operand is
-always a vector register group.  The second operand is a vector or
-scalar value.
+based on the mask field.  Unlike regular arithmetic instructions, the
+set of active elements is all elements from `vstart` up to the current
+vector length in `vl`, regardless of mask value.
 
-Unlike regular arithmetic instructions, the set of active elements is
-all elements from `vstart` up to the current vector length in `vl`
-regardless of mask value.
+When the operation is masked (`vm=0`), the instructions combine two
+sources as follows.  At elements where the mask value is zero, the
+first operand is copied to the destination element, otherwise the
+second operand is copied to the destination element.  The first
+operand is always a vector register group specified by `vs2`.  The
+second operand is a vector register group specified by `vs1` or a
+scalar `x` register specified by `rs1` or a 5-bit sign-extended
+immediate.
 
 [source]
 ----
-vmerge.vv vd, vs2, vs1, vm  # vd[i] = vm[i] ? vs1[i] : vs2[i]
-vmerge.vs vd, vs2, rs1, vm  # vd[i] = vm[i] ? x[rs1] : vs2[i]
-vmerge.vi vd, vs2, imm, vm  # vd[i] = vm[i] ? imm    : vs2[i]
+# Masked  operations, where vm=0
+vmerge.vv vd, vs2, vs1, v0.t  # vd[i] = v0[i].LSB ? vs1[i] : vs2[i]
+vmerge.vs vd, vs2, rs1, v0.t  # vd[i] = v0[i].LSB ? x[rs1] : vs2[i]
+vmerge.vi vd, vs2, imm, v0.t  # vd[i] = v0[i].LSB ? imm    : vs2[i]
 ----
 
-NOTE: An unmasked `vmerge.vv` instruction can be used to copy one
-vector register group to another.  This is given a vector
-psuedo-instruction `vmv.vv vdest, vsrc` (which expands to `vmerge.vv
-vdest, vsrc, vsrc`).  Microarchitectures can recognize this
-instruction to avoid unnecessary vector register file accesses.
+When the operation is unmasked (`vm=1`), the instructions copies the
+second operand to the first `vl` locations of the destination vector.
+The first operand specifier (`vs2`) in the instruction encoding must
+contain `v0`, and any other vector register number in `vs2` is
+_reserved_.
 
-NOTE: An unmasked `vmerge.vs` instruction can be used to __splat__ a
-scalar `x` register value into all active elements of a vector. This
-is given a vector pseudo-instruction `vmv.vs vd, rs1`.
+NOTE: Microarchitectures can recognize this form to avoid unnecessary
+vector register file accesses from the first vector operand.
 
-NOTE: An unmasked `vmerge.vi` instruction can be used to initialize a
-vector register group with an immediate value.  This is given a vector
-pseudo-instruction `vmv.vi vd, imm`.
+[source]
+----
+# Unmasked  operations, where vm=1
+vmerge.vv vd, v0, vs1  # vd[i] = vs1[i], psuedo-op vmv.v.v vd, vs1
+vmerge.vs vd, v0, rs1  # vd[i] = x[rs1], pseudo-op vmv.v.s vd, rs1
+vmerge.vi vd, v0, imm  # vd[i] = imm,    pseudo-op vmv.v.i vd, imm
+----
+
+An unmasked `vmerge.vv` instruction can be used to copy one vector
+register group to another.  This is given a vector pseudo-instruction
+`vmv.v.v vdest, vsrc` (which expands to `vmerge.vv vdest, v0, vsrc`).
+
+An unmasked `vmerge.vs` instruction can be used to __splat__ a scalar
+`x` register value into all active elements of a vector. This is given
+a vector pseudo-instruction `vmv.v.s vd, rs1`, which expands to `vmerge.vs
+vd, v0, rs1`.
+
+An unmasked `vmerge.vi` instruction can be used to initialize a vector
+register group with an immediate value.  This is given a vector
+pseudo-instruction `vmv.v.i vd, imm`.
 
 NOTE: Mask values can be widened into SEW-width elements using a
-sequence `vmv.vi vd, 0; vmerge.vi vd, vd, 1, v0.t'.
+sequence `vmv.v.i vd, 0; vmerge.vi vd, vd, 1, v0.t'.
 
 == Vector Floating-Point Instructions
 
@@ -2520,20 +2540,33 @@ the destination elements.
 
 === Vector Floating-Point Merge Instruction
 
-A vector-scalar floating-point merge instruction is provided.
-
-Unlike regular arithmetic instructions, the set of active elements is
-all elements from `vstart` up to the current vector length in `vl`
+A vector-scalar floating-point merge instruction is provided.  Unlike
+regular arithmetic instructions, the set of active elements is all
+elements from `vstart` up to the current vector length in `vl`
 regardless of mask value.
+
+When the floating-point merge instruction is unmasked (`vm=0`), at
+elements where the mask value is zero, the first vector operand is
+copied to the destination element, otherwise a scalar floating-point
+is copied to the destination element.
 
 [source]
 ----
-vfmerge.vs vd, vs2, rs1, vm  # vd[i] = vm[i] ? f[rs1] : vs2[i]
+vfmerge.vf vd, vs2, rs1, v0.t  # vd[i] = v0[i].LSB ? f[rs1] : vs2[i]
 ----
 
-NOTE: An unmasked `vfmerge.vs` instruction can be used to __splat__ a
-scalar `f` register value into all active elements of a vector. This
-is given a vector pseudo-instruction `vfsplat.v vd, rs1`.
+The unmasked form (`vm=1`) can be used to __splat__ a scalar `f`
+register value into all active elements of a vector.  The instruction
+must have the `vs2` field set to `v0` and all other values for `vs2`
+are reserved.
+
+[source]
+----
+vfmerge.vf vd, v0, rs1  # vd[i] = f[rs1];
+----
+
+This is given a vector pseudo-instruction `vmv.v.f vd, rs1` which
+expands to `vfmerge.vf vd, v0, rs1`.
 
 === Single-Width Floating-Point/Integer Type-Convert Instructions
 

@@ -21,7 +21,7 @@ vvaddint32:
       add a1, a1, t0         # Bump pointer
     vlw.v v1, (a2)           # Get second vector
       add a2, a2, t0         # Bump pointer
-    vadd.v v2, v0, v1        # Sum vectors
+    vadd.vv v2, v0, v1        # Sum vectors
     vsw.v v2, (a3)           # Store result
       add a3, a3, t0         # Bump pointer
       bnez a0, vvaddint32    # Loop back
@@ -46,7 +46,7 @@ vvaddint32:
 
     vsetvli x0, a0, vsew32,vlmul4 # Vector of 32-bit values.
       sub a0, a0, a4              # Decrement count
-    vmv.vi v4, 1                  # Splat immediate to destination
+    vmv.v.i v4, 1                 # Splat immediate to destination
     vlw.v v4, (a3), v0.t          # Load requested elements of C.
       sll t1, a4, 2
       add a3, a3, t1              # Bump pointer.
@@ -79,23 +79,24 @@ vvaddint32:
 
 [source]
 ----
-       (int16) z[i] = ((int8) x[i] < 5) ? (int16) a[i] : (int16) b[i];
+# (int16) z[i] = ((int8) x[i] < 5) ? (int16) a[i] : (int16) b[i];
+#
+# Fixed 16b SEW:
 
-Fixed 16b SEW:
 loop:
     vsetvli t0, a0, vsew16  # Use 16b elements.
-    vlb.v v0, (a1)             # Get x[i], sign-extended to 16b
-      sub a0, a0, t0           # Decrement element count
-      add a1, a1, t0           # x[i] Bump pointer
-    vslt.vi v0, v0, 5          # Set mask in v0
-      slli t0, t0, 1           # Multiply by 2 bytes
-    vlh.v v1, (a2), v0.t        # z[i] = a[i] case
-    vmnot.v v0, v0             # Invert v0
-      add a2, a2, t0           # a[i] bump pointer
-    vlh.v v1, (a3), v0.t         # z[i] = b[i] case
-      add a3, a3, t0           # b[i] bump pointer
-    vsh.v v1, (a4)               # Store z
-      add a4, a4, t0           # b[i] bump pointer
+    vlb.v v0, (a1)          # Get x[i], sign-extended to 16b
+      sub a0, a0, t0        # Decrement element count
+      add a1, a1, t0        # x[i] Bump pointer
+    vslt.vi v0, v0, 5       # Set mask in v0
+      slli t0, t0, 1        # Multiply by 2 bytes
+    vlh.v v1, (a2), v0.t    # z[i] = a[i] case
+    vmnot.v v0, v0          # Invert v0
+      add a2, a2, t0        # a[i] bump pointer
+    vlh.v v1, (a3), v0.t    # z[i] = b[i] case
+      add a3, a3, t0        # b[i] bump pointer
+    vsh.v v1, (a4)          # Store z
+      add a4, a4, t0        # b[i] bump pointer
       bnez a0, loop
 ----
 
