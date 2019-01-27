@@ -2233,21 +2233,21 @@ extreme inputs.
 
 [source,asm]
 ----
-    # Signed divide
-    vdiv.vv vd, vs2, vs1, vm   # Vector-vector
-    vdiv.vs vd, vs2, rs1, vm   # vector-scalar
-
     # Unsigned divide.
     vdivu.vv vd, vs2, vs1, vm   # Vector-vector
     vdivu.vs vd, vs2, rs1, vm   # vector-scalar
 
-    # Signed remainder
-    vrem.vv vd, vs2, vs1, vm   # Vector-vector
-    vrem.vs vd, vs2, rs1, vm   # vector-scalar
+    # Signed divide
+    vdiv.vv vd, vs2, vs1, vm   # Vector-vector
+    vdiv.vs vd, vs2, rs1, vm   # vector-scalar
 
     # Unsigned remainder
     vremu.vv vd, vs2, vs1, vm   # Vector-vector
     vremu.vs vd, vs2, rs1, vm   # vector-scalar
+
+    # Signed remainder
+    vrem.vv vd, vs2, vs1, vm   # Vector-vector
+    vrem.vs vd, vs2, rs1, vm   # vector-scalar
 ----
 
 NOTE: The decision to include integer divide and remainder was
