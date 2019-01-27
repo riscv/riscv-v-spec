@@ -565,7 +565,7 @@ within the same 128b portion of the datapath.
 
 [source]
 ----
- VLEN=256b
+ VLEN=256b, SLEN=128b
  Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
 
  SEW=8b, LMUL=1, VLMAX=32
@@ -841,7 +841,12 @@ of the current LMUL setting.
 
 NOTE: In a change from v0.6, the floating-point registers no longer
 overlay the vector registers and scalars can now come from the integer
-or floating-point registers.
+or floating-point registers.  Not overlaying the `f` registers reduces
+vector register pressure, avoids interactions with the standard
+calling convention, simplifies high-performance scalar floating-point
+design, and provides compatibility with the Zfinx ISA option.
+Overlaying `f` with `v` would provide the advantage of lowering the
+number of state bits in implementations.
 
 === Vector Operands
 
@@ -940,13 +945,18 @@ elements past the current vector length setting.  The tail elements do
 not raise exceptions, but do zero the results in the destination
 vector register group.
 
+In addition, another term, _body_, is used for the set of elements
+that are either active or inactive, i.e., after prestart but before
+the tail.
+
 [source]
 ----
     for element index x
     prestart    = (0 <= x < vstart)
-    mask(x)     = unmasked || v0[x].LSB
+    mask(x)     = unmasked || v0[x].LSB == 1
     active(x)   = (vstart <= x < vl) && mask(x)
     inactive(x) = (vstart <= x < vl) && !mask(x)
+    body(x)     = active(x) || inactive(x)
     tail(x)     = (vl <= x < VLMAX)
 ----
 
@@ -1875,8 +1885,8 @@ vwsubu.ws  vd, vs2, rs1, vm  # vector-scalar
 
 NOTE: An integer value can be doubled in width using the widening add
 instructions with a scalar operand of `x0`.  Can define assembly
-pseudo-ops `vwcvt.x.x.v vd,vs = vwadd.vs vd,vs,x0` and `vwcvtu.x.x.v
-vd,vs = vwaddu.vs vd,vs,x0`.
+pseudo-ops `vwcvt.x.x.v vd,vs,vm = vwadd.vs vd,vs,x0,vm` and `vwcvtu.x.x.v
+vd,vs,vm = vwaddu.vs vd,vs,x0,vm`.
 
 === Vector Integer Add-with-Carry Instruction
 
@@ -1892,14 +1902,13 @@ To support multi-word arithmetic:
  vadc.vi   vd, vs2, imm  # Vector-immediate
 ----
 
-This instruction uses the implicit mask register `v0` as an implicit
-carry input and carry output to the instruction.
-
-The unmasked version (vm=1) operates on all elements below `vl`, and
-is the usual form used for this instruction.
-
-The mask element in `v0` is written with the carry result in the LSB
-and the upper bits of the mask element are set to 0.
+This instruction is encoded as an unmasked instruction (vm=1) and
+operates on all body elements.  The instruction adds the two source
+operands and also adds in the LSB of the implicit mask register `v0`
+as an implicit carry input.  The sum is stored in the destination
+vector register group.  The mask element in `v0` is written with the
+carry result in the LSB and the upper bits of the mask element are set
+to 0.
 
 The encoding corresponding to the masked version (vm=0) is reserved.
 
@@ -2277,8 +2286,8 @@ operation.
 
 The vector integer merge instruction combines two source operands
 based on the mask field.  Unlike regular arithmetic instructions, the
-set of active elements is all elements from `vstart` up to the current
-vector length in `vl`, regardless of mask value.
+merge operates on all body elements (i.e., the set of elements from
+`vstart` up to the current vector length in `vl`).
 
 When the operation is masked (`vm=0`), the instructions combine two
 sources as follows.  At elements where the mask value is zero, the
