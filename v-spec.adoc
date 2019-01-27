@@ -1858,29 +1858,29 @@ are first sign- or zero-extended before forming the double-width sum.
 
 [source]
 ----
-# Widening signed integer add/subtract, 2*SEW = SEW +/- SEW
-vwadd.vv  vd, vs2, vs1, vm  # vector-vector
-vwadd.vs  vd, vs2, rs1, vm  # vector-scalar
-vwsub.vv  vd, vs2, vs1, vm  # vector-vector
-vwsub.vs  vd, vs2, rs1, vm  # vector-scalar
-
-# Widening signed integer add/subtract, 2*SEW = 2*SEW +/- SEW
-vwadd.wv  vd, vs2, vs1, vm  # vector-vector
-vwadd.ws  vd, vs2, rs1, vm  # vector-scalar
-vwsub.wv  vd, vs2, vs1, vm  # vector-vector
-vwsub.ws  vd, vs2, rs1, vm  # vector-scalar
-
 # Widening unsigned integer add/subtract, 2*SEW = SEW +/- SEW
 vwaddu.vv  vd, vs2, vs1, vm  # vector-vector
 vwaddu.vs  vd, vs2, rs1, vm  # vector-scalar
 vwsubu.vv  vd, vs2, vs1, vm  # vector-vector
 vwsubu.vs  vd, vs2, rs1, vm  # vector-scalar
 
+# Widening signed integer add/subtract, 2*SEW = SEW +/- SEW
+vwadd.vv  vd, vs2, vs1, vm  # vector-vector
+vwadd.vs  vd, vs2, rs1, vm  # vector-scalar
+vwsub.vv  vd, vs2, vs1, vm  # vector-vector
+vwsub.vs  vd, vs2, rs1, vm  # vector-scalar
+
 # Widening unsigned integer add/subtract, 2*SEW = 2*SEW +/- SEW
 vwaddu.wv  vd, vs2, vs1, vm  # vector-vector
 vwaddu.ws  vd, vs2, rs1, vm  # vector-scalar
 vwsubu.wv  vd, vs2, vs1, vm  # vector-vector
 vwsubu.ws  vd, vs2, rs1, vm  # vector-scalar
+
+# Widening signed integer add/subtract, 2*SEW = 2*SEW +/- SEW
+vwadd.wv  vd, vs2, vs1, vm  # vector-vector
+vwadd.ws  vd, vs2, rs1, vm  # vector-scalar
+vwsub.wv  vd, vs2, vs1, vm  # vector-vector
+vwsub.ws  vd, vs2, rs1, vm  # vector-scalar
 ----
 
 NOTE: An integer value can be doubled in width using the widening add
@@ -1996,29 +1996,29 @@ saturation into the final destination format.
 
 [source]
 ----
- # Narrowing signed clip,  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
- #                          SEW           2*SEW                 SEW
- vnclip.vv vd, vs2, vs1, vm   # vector-vector
- vnclip.vs vd, vs2, rs1, vm   # vector-scalar
- vnclip.vi vd, vs2, imm, vm   # vector-immediate
-
  # Narrowing unsigned clip
  vnclipu.vv vd, vs2, vs1, vm   # vector-vector
  vnclipu.vs vd, vs2, rs1, vm   # vector-scalar
  vnclipu.vi vd, vs2, imm, vm   # vector-immediate
+
+# Narrowing signed clip,  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
+ #                          SEW           2*SEW                 SEW
+ vnclip.vv vd, vs2, vs1, vm   # vector-vector
+ vnclip.vs vd, vs2, rs1, vm   # vector-scalar
+ vnclip.vi vd, vs2, imm, vm   # vector-immediate
 ----
 
-For `vnclip`/`vnclipu`, the rounding mode is specified in the `vxrm`
+For `vnclipu`/`vnclip`, the rounding mode is specified in the `vxrm`
 CSR.  Rounding occurs around the least-significant bit of the
 destination and before saturation.
-
-For `vnclip`, the shifted rounded source value is treated as a signed
-integer and saturates if the result would overflow the destination viewed
-as a signed integer.
 
 For `vnclipu`, the shifted rounded source value is treated as an
 unsigned integer and saturates if the result would overflow the
 destination viewed as an unsigned integer.
+
+For `vnclip`, the shifted rounded source value is treated as a signed
+integer and saturates if the result would overflow the destination viewed
+as a signed integer.
 
 If any destination element is saturated, the `vxsat` bit is set in the
 `vxsat` register.
@@ -2043,31 +2043,32 @@ vsne.vv vd, vs2, vs1, vm   # Vector-vector
 vsne.vs vd, vs2, rs1, vm   # vector-scalar
 vsne.vi vd, vs2, imm, vm   # vector-immediate
 
-# Set if less than, signed
-vslt.vv vd, vs2, vs1, vm   # Vector-vector
-vslt.vs vd, vs2, rs1, vm   # vector-scalar
-
 # Set if less than, unsigned
 vsltu.vv vd, vs2, vs1, vm   # Vector-vector
 vsltu.vs vd, vs2, rs1, vm   # Vector-scalar
 
-# Set if less than or equal, signed
-vsle.vv vd, vs2, vs1, vm   # Vector-vector
-vsle.vs vd, vs2, rs1, vm   # vector-scalar
-vsle.vi vd, vs2, imm, vm   # vector-immediate
+# Set if less than, signed
+vslt.vv vd, vs2, vs1, vm   # Vector-vector
+vslt.vs vd, vs2, rs1, vm   # vector-scalar
 
 # Set if less than or equal, unsigned
 vsleu.vv vd, vs2, vs1, vm   # Vector-vector
 vsleu.vs vd, vs2, rs1, vm   # vector-scalar
 vsleu.vi vd, vs2, imm, vm   # Vector-immediate
 
-# Set if greater than, signed
-vsgt.vs vd, vs2, rs1, vm    # Vector-scalar
-vsgt.vi vd, vs2, imm, vm    # Vector-immediate
+# Set if less than or equal, signed
+vsle.vv vd, vs2, vs1, vm   # Vector-vector
+vsle.vs vd, vs2, rs1, vm   # vector-scalar
+vsle.vi vd, vs2, imm, vm   # vector-immediate
 
 # Set if greater than, unsigned
 vsgtu.vs vd, vs2, rs1, vm    # Vector-scalar
 vsgtu.vi vd, vs2, imm, vm    # Vector-immediate
+
+# Set if greater than, signed
+vsgt.vs vd, vs2, rs1, vm    # Vector-scalar
+vsgt.vi vd, vs2, imm, vm    # Vector-immediate
+
 ----
 
 NOTE: The immediate forms of slt{u} are not provided as the immediate
@@ -2099,21 +2100,21 @@ supported.
 [#load-store-types]
 [source]
 ----
-# Signed minimum
-vmin.vv vd, vs2, vs1, vm   # Vector-vector
-vmin.vs vd, vs2, rs1, vm   # vector-scalar
-
-# Signed maximum
-vmax.vv vd, vs2, vs1, vm   # Vector-vector
-vmax.vs vd, vs2, rs1, vm   # vector-scalar
-
 # Unsigned minimum
 vminu.vv vd, vs2, vs1, vm   # Vector-vector
 vminu.vs vd, vs2, rs1, vm   # vector-scalar
 
+# Signed minimum
+vmin.vv vd, vs2, vs1, vm   # Vector-vector
+vmin.vs vd, vs2, rs1, vm   # vector-scalar
+
 # Unsigned maximum
 vmaxu.vv vd, vs2, vs1, vm   # Vector-vector
 vmaxu.vs vd, vs2, rs1, vm   # vector-scalar
+
+# Signed maximum
+vmax.vv vd, vs2, vs1, vm   # Vector-vector
+vmax.vs vd, vs2, rs1, vm   # vector-scalar
 ----
 
 === Vector Single-Width Integer Multiply Instructions
@@ -2174,41 +2175,27 @@ in two forms, one that overwrites the addend or minuend
 (`vmacc`,`vmsac`) and one that overwrites the first multiplicand
 (`vmadd`,`vmsub`).
 
-NOTE: "sac" is intended to invoke "subtract from accumulator".
+The low half of the product is added or subtracted from the third operand.
+
+NOTE: "sac" is intended to be read as "subtract from accumulator".
 
 [source]
 ----
-# Signed-integer multiply-add, overwrite addend
+# Integer multiply-add, overwrite addend
 vmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
 vmacc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
-# Signed-integer multiply-sub, overwrite minuend
+# Integer multiply-sub, overwrite minuend
 vmsac.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
 vmsac.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 
-# Signed-integer multiply-add, overwrite multiplicand
+# Integer multiply-add, overwrite multiplicand
 vmadd.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
 vmadd.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] + (vd[i] * x[rs1])
 
-# Signed-integer multiply-sub, overwrite multiplicand
+# Integer multiply-sub, overwrite multiplicand
 vmsub.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] - (vd[i] * vs1[i])
 vmsub.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] - (vd[i] * x[rs1])
-
-# Unsigned-integer multiply-add, overwrite addend
-vmaccu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
-vmaccu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
-
-# Unsigned-integer multiply-sub, overwrite minuend
-vmsacu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vmsacu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
-
-# Unsigned-integer multiply-add, overwrite multiplicand
-vmaddu.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
-vmaddu.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] + (vd[i] * x[rs1])
-
-# Unsigned-integer multiply-add, overwrite multiplicand
-vmsubu.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] - (vd[i] * vs1[i])
-vmsubu.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] - (vd[i] * x[rs1])
 ----
 
 === Vector Widening Integer Multiply-Add Instructions
@@ -2219,14 +2206,24 @@ produce a 2*SEW-bit result.
 
 [source]
 ----
+# Widening unsigned-integer multiply-add, overwrite addend
+vwmaccu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
+vwmaccu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
+
 # Widening signed-integer multiply-add, overwrite addend
 vwmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
 vwmacc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
+
+# Widening unsigned-integer multiply-sub, overwrite minuend
+vwmsacu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
+vwmsacu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 
 # Widening signed-integer multiply-sub, overwrite minuend
 vwmsac.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
 vwmsac.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 ----
+
+NOTE: There is no signed-unsigned widening multiply-add instruction.
 
 ==== Vector Integer Divide Instructions
 
