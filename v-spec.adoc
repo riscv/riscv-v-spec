@@ -1961,7 +1961,7 @@ Only the low lg2(SEW) bits are read to obtain the shift amount.
 The immediate is treated as an unsigned shift amount, with a maximum
 shift amount of 31.
 
-=== Vector Narrowing Integer Shift Instructions
+=== Vector Narrowing Integer Right Shift Instructions
 
 The narrowing right shifts extract a smaller field from a wider
 operand and have both zero-extending (`srl`) and sign-extending
@@ -1969,7 +1969,8 @@ operand and have both zero-extending (`srl`) and sign-extending
 `x` register or a 5-bit immediate.  The low lg2(2*SEW) bits of the
 vector or scalar shift amount value are used (e.g., the low 6 bits for
 a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate form
-supports shift amounts up to 31 only.
+supports shift amounts up to 31 only and is effectively zero-extended
+for SEW of > 32.
 
 [source]
 ----
@@ -2086,30 +2087,9 @@ These comparisons can effectively AND in the mask, e.g,
 [source,asm]
 ----
     # (a < b) && (b < c) in two instructions
-    vslt.vv    v0, va, vb        # All elements written
-    vslt.vv    v0, vb, vc, v0.t  # Only update unmasked elements
+    vslt.vv    v0, va, vb        # All body elements written
+    vslt.vv    v0, vb, vc, v0.t  # Only update at set mask
 ----
-
-Vector-vector instructions can switch source operand order to produce
-all possible comparisons.  To obtain all comparisons with scalars,
-the mask polarity can be complemented at use:
-
-[source]
-----
-Full set of complementary functions for vector-scalar comparison (same for immediates)
-vseq.vs  v = s      vsne.vs  v != s
-vslt.vs  v < s     vsgte.vs  v >= s
-vslte.vs v <= s     vsgt.vs  v > s
-
-Full set of complementary functions for vector-vector comparison
-vseq.vs  v1 = v2      vsne.vs  v1 != v2
-vslt.vs  v1 < v2     vslte.vs  v2 >= v1
-vslte.vs v1 <= v2     vslt.vs  v1 > v2
-----
-
-NOTE: If the boolean result is needed instead of the mask, then a
-`vrsub.vi v0, v0, 1` instruction will perform a (1-x) boolean
-inversion.
 
 === Vector Integer Min/Max Instructions
 
