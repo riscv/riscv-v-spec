@@ -11,8 +11,8 @@ Contributors include: Alon Amid, Krste Asanovic, Allen Baum, Alex
 Bradbury, Tony Brewer, Chris Celio, Silviu Chiricescu, Ken Dockser,
 Bob Dreyer, Roger Espasa, Sean Halle, John Hauser, David Horner, Bruce
 Hoult, Bill Huffman, Constantine Korikov, Ben Korpan, Robin Kruppe,
-Yunsup Lee, Guy Lemieux, Rich Newell, Albert Ou, David Patterson, Alex
-Solomatnikov, Colin Schmidt, Steve Wallach, Andrew Waterman, Jim
+Yunsup Lee, Guy Lemieux, Rich Newell, Albert Ou, David Patterson,
+Colin Schmidt, Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim
 Wilson.
 
 == Introduction
@@ -24,14 +24,18 @@ extension.
 NOTE: This is a draft of a stable proposal for the vector
 specification to be used for implementation and evaluation.  Once the
 draft label is removed, version 0.7 is intended to be stable enough to
-begin developing detailed encoding, toolchains, functional simulators,
-and initial implementations.
+begin developing toolchains, functional simulators, and initial
+implementations, though will continue to evolve with minor changes and
+updates.
 
 The term _base_ _vector_ _extension_ is used informally to describe
 the standard set of vector ISA components.  The base vector extension
 can expected to be used in the standard Unix platform profile that
 supports vectors.  Other platforms, including embedded platforms, may
 choose to implement subsets of these extensions as described below.
+The exact set of mandatory supported instructions for an
+implementation to be compliant with a given profile is subject to
+change until each profile spec is ratified.
 
 NOTE: Each actual platform profile will formally specify the mandatory
 components of any vector extension adopted by that platform.
@@ -805,12 +809,17 @@ Format for Vector AMO Instructions under AMO major opcode
    5      1   1      5           5         3        5        7
 
 Format for Vector Arithmetic Instructions under OP-V major opcode
+
 31       26  25   24      20 19      15 14   12 11      7 6     0
-  funct6   | vm  |   vs2    |    vs1   | 0 1 x |  vd/rd  |1010111| OP-V (vv)
-  funct6   | vm  |   vs2    |    rs1   | funct3|  vd/rd  |1010111| OP-V (vs)
-  funct6   | vm  |   vs2    |   simm5  | 0 0 1 |  vd/rd  |1010111| OP-V (vi)
-  000000   |  0  |   rs2    |    rs1   | 1 0 1 |    rd   |1010111| OP-V (config)
-   imm6    |  1  |   imm5   |    rs1   | 1 0 1 |    rd   |1010111| OP-V (configi)
+  funct6   | vm  |   vs2    |    vs1   | 0 0 0 |    vd   |1010111| OP-V (OPIVV)
+  funct6   | vm  |   vs2    |    vs1   | 0 0 1 |    vd   |1010111| OP-V (OPFVV)
+  funct6   | vm  |   vs2    |    vs1   | 0 1 0 |  vd/rd  |1010111| OP-V (OPMVV)
+  funct6   | vm  |   vs2    |   simm5  | 0 1 1 |    vd   |1010111| OP-V (OPIVI)
+  funct6   | vm  |   vs2    |    rs1   | 1 0 0 |    vd   |1010111| OP-V (OPIVX)
+  funct6   | vm  |   vs2    |    rs1   | 1 0 1 |    vd   |1010111| OP-V (OPFVF)
+  funct6   | vm  |   vs2    |    rs1   | 1 1 0 |  vd/rd  |1010111| OP-V (OPMVX)
+   imm6    |  0  |   imm5   |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFI)
+  000000   |  1  |   rs2    |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFR)
      6        1        5          5        3        5        7
 ----
 
@@ -1646,8 +1655,8 @@ Formats for Vector Arithmetic Instructions under OP-V major opcode
   funct6   | vm  |   vs2    |    rs1   | 1 0 0 |    vd   |1010111| OP-V (OPIVX)
   funct6   | vm  |   vs2    |    rs1   | 1 0 1 |    vd   |1010111| OP-V (OPFVF)
   funct6   | vm  |   vs2    |    rs1   | 1 1 0 |  vd/rd  |1010111| OP-V (OPMVX)
-   imm6    |  0  |   imm5   |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFGI)
-  000000   |  1  |   rs2    |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFGR)
+   imm6    |  0  |   imm5   |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFI)
+  000000   |  1  |   rs2    |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFR)
      6        1        5          5        3        5        7
 ----
 
@@ -1878,16 +1887,21 @@ To support multi-word arithmetic:
  # vd[i] = sum(vs1[i] + vs2[i] + v0[i].LSB)
  # v0[i] = carry(vs1[i] + vs2[i] + v0[i].LSB)
 
- vadc.vv   vd, vs2, vs1, v0  # Vector-vector
- vadc.vs   vd, vs2, rs1, v0  # Vector-scalar
- vadc.vi   vd, vs2, imm, v0  # Vector-immediate
+ vadc.vv   vd, vs2, vs1  # Vector-vector
+ vadc.vs   vd, vs2, rs1  # Vector-scalar
+ vadc.vi   vd, vs2, imm  # Vector-immediate
 ----
 
-This instruction is unmasked, but uses the mask register `v0` as an
-implicit carry input and carry output to the instruction.
+This instruction uses the implicit mask register `v0` as an implicit
+carry input and carry output to the instruction.
+
+The unmasked version (vm=1) operates on all elements below `vl`, and
+is the usual form used for this instruction.
 
 The mask element in `v0` is written with the carry result in the LSB
 and the upper bits of the mask element are set to 0.
+
+The encoding corresponding to the masked version (vm=0) is reserved.
 
 === Vector Bitwise Logical Instructions
 
@@ -2425,15 +2439,15 @@ vfnmsub.vs vd, rs1, vs2, vm   # vd[i] = -(vd[i] * x[rs1]) + vs2[i]
 vfmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) + vd[i]
 vfmacc.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) + vd[i]
 
-# FP negate-(multiply-accumulate), overwrites addend
+# FP negate-(multiply-accumulate), overwrites subtrahend
 vfnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) - vd[i]
 vfnmacc.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
 
-# FP multiply-subtract-accumulator, overwrites addend
+# FP multiply-subtract-accumulator, overwrites subtrahend
 vfmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
 vfmsac.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
 
-# FP negate-(multiply-subtract-accumulator), overwrites addend
+# FP negate-(multiply-subtract-accumulator), overwrites minuend
 vfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
 vfnmsac.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
 ----

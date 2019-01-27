@@ -88,212 +88,110 @@
 |========================
 
 
-Integer OPI         Integer OPM       VFLOAT                 
-                                                             
-funct6              funct6            funct6                 
-                                                             
-000000 vadd         000000 vmul       000000 vfadd           
-000001 vsub         000001 vmulh      000001 vfsub           
-000010 vrsub        000010 vmulhu     000010 vfmul           
-000011              000011 vmulhsu    000011 vfdiv           
-000100 vwadd        000100 vwmul      000100 vfmin           
-000101 vwsub        000101 vwmulu     000101 vfmax           
-000110 vwaddu       000110 vwmulsu    000110 vfsgnj          
-000111 vwsubu       000111            000111 vfsgnn          
-001000 vwadd.w      001000 vmacc      001000 vfsgnx          
-001001 vwsub.w      001001 vmadd      001001 vfeq            
-001010 vwaddu.w     001010 vmaccu     001010 vflt            
-001011 vwsubu.w     001011 vmaddu     001011 vflte           
-001100              001100 vwmacc     001100                 
-001101              001101 vwmadd     001101                 
-001110              001110 vwmaccu    001110                 
-001111              001111 vwmaddu    001111                 
-010000 vand         010000            010000 vfwadd          
-010001 vor          010001            010001 vfwadd.w        
-010010 vxor         010010            010010 vfwsub          
-010011              010011            010011 vfwsub.w        
-010100 vsll         010100 vredsum    010100 vfwmul          
-010101 vsrl         010101 vredmax    010101 vfwmuladd       
-010110 vsra         010110 vredmaxu   010110 vfwmuladdm      
-010111              010111 vredmin    010111 vfwmulsub       
-011000 vnsrl        011000 vredminu   011000 vfwmulsubm      
-011001 vnsra        011001 vredand    011001                 
-011010 vnclipu      011010 vredor     011010                 
-011011 vnclip       011011 vredxor    011011                 
-011100              011100 vwredsum   011100                 
-011101              011101 vreddot    011101                 
-011110              011110 vwreddot   011110 vfsqrt          
-011111 vadc         011111 vw4reddot  011111 vfclass         
-100000 vseq         100000 vdiv       100000 vfredosum       
-100001 vsne         100001 vdivu      100001 vfredsum        
-100010 vslt         100010 vrem       100010 vfredmax        
-100011 vsltu        100011 vremu      100011 vfredmin        
-100100 vsle         100100            100100 vfwredosum      
-100101 vsleu        100101            100101 vfwredsum       
-100110 vsgt         100110            100110 vfreddot        
-100111 vsgtu        100111            100111 vfwreddot       
-101000 vmin         101000 vmand      101000                 
-101001 vmax         101001 vmnand     101001                 
-101010 vminu        101010 vmandnot   101010                 
-101011 vmaxu        101011 vmxor      101011                 
-101100              101100 vmor       101100                 
-101101              101101 vmnor      101101                 
-101110              101110 vmornot    101110                 
-101111              101111 vmxnor     101111                 
-110000 vslideup     110000            110000 vfmv.f.v        
-110001 vslidedown   110001 vmsbf      110001 vfmv.v.f        
-110010 vrgather     110010 vmsof      110010                 
-110011 vcompress    110011 vmsif      110011                 
-110100              110100 vmiota     110100                 
-110101              110101 vid        110101                 
-110110              110110            110110                 
-110111              110111 vmerge     110111                 
-111000              111000 vins.v.x   111000                 
-111001              111001 vext.x.v   111001                 
-111010              111010 vmv.v.x    111010                 
-111011              111011 vmv.x.v    111011                 
-111100              111100            111100                 
-111101              111101            111101                 
-111110              111110 vmpopc     111110                 
-111111              111111 vmfirst    111111                 
+Integer           Integer           FP
 
-Integer OPM
+OPIVV  V           OPMVV             OPFVV
+OPIVX   X          OPMVX             OPFVF
+OPIVI    I
 
-funct6
+000000 VXI vadd       000000 vmul       000000 vfadd
+000001 VX  vsub       000001 vmulh      000001 vfsub
+000010 VXI vadc       000010 vmulhu     000010 vfmul
+000011  XI vrsub      000011 vmulhsu    000011 vfdiv
+000100                000100 vwmul      000100 vfmin
+000101                000101 vwmulu     000101 vfmax
+000110                000110 vwmulsu    000110 vfsgnj
+000111                000111            000111 vfsgnn
+001000 VXI vand       001000 vmacc      001000 vfsgnx
+001001 VXI vor        001001 vmadd      001001 vfeq
+001010 VXI vxor       001010 vmaccu     001010 vflt
+001011                001011 vmaddu     001011 vflte
+001100 VXI vsll       001100 vwmacc     001100
+001101 VXI vsrl       001101 vwmadd     001101
+001110 VXI vsra       001110 vwmaccu    001110
+001111                001111 vwmaddu    001111
+010000                010000            010000 vfwadd
+010001                010001            010001 vfwadd.w
+010010                010010            010010 vfwsub
+010011                010011            010011 vfwsub.w
+010100                010100 vredsum    010100 vfwmul
+010101                010101 vredmax    010101                      
+010110                010110 vredmaxu   010110
+010111                010111 vredmin    010111
+011000     vnsrl      011000 vredminu   011000
+011001     vnsra      011001 vredand    011001
+011010     vnclipu    011010 vredor     011010
+011011     vnclip     011011 vredxor    011011
+011100                011100 vwredsum   011100
+011101                011101 vreddot    011101
+011110                011110 vwreddot   011110 vfsqrt
+011111                011111 vw4reddot  011111 vfclass
+100000 VXI vseq       100000 vdiv       100000
+100001 VXI vsne       100001 vdivu      100001
+100010 VXI vslt       100010 vrem       100010
+100011 VXI vsltu      100011 vremu      100011
+100100 VXI vsle       100100            100100 vfwmacc
+100101 VXI vsleu      100101            100101 vfwnmacc
+100110 VXI vsgt       100110            100110 vfwmsac
+100111 VXI vsgtu      100111            100111 vfwnmsac
+101000     vmin       101000 vmand      101000 vfmadd
+101001     vmax       101001 vmnand     101001 vfnmadd
+101010     vminu      101010 vmandnot   101010 vfmsub
+101011     vmaxu      101011 vmxor      101011 vfnmsub
+101100                101100 vmor       101100 vfmacc
+101101                101101 vmnor      101101 vfnmacc
+101110                101110 vmornot    101110 vfmsac
+101111                101111 vmxnor     101111 vfnmsac
+110000     vslideup   110000            110000
+110001     vslidedown 110001 vmsbf      110001
+110010     vrgather   110010 vmsof      110010
+110011     vcompress  110011 vmsif      110011
+110100                110100 vmiota     110100
+110101                110101 vid        110101
+110110                110110            110110
+110111                110111 vmerge     110111
+111000 VX  vwadd      111000 vins.v.x   111000
+111001 VX  vwsub      111001 vext.x.v   111001
+111010 VX  vwaddu     111010 vmv.v.x    111010
+111011 VX  vwsubu     111011 vmv.x.v    111011
+111100 VX  vwadd.w    111100            111100 vfmv.f.v
+111101 VX  vwsub.w    111101            111101 vfmv.v.f
+111110 VX  vwaddu.w   111110 vmpopc     111110
+111111 VX  vwsubu.w   111111 vmfirst    111111
 
-000000 vmul
-000001 vmulh
-000010 vmulhu
-000011 vmulhsu
-000100 vwmul
-000101 vwmulu
-000110 vwmulsu
-000111
-001000 vmacc
-001001 vmadd
-001010 vmaccu
-001011 vmaddu
-001100 vwmacc
-001101 vwmadd
-001110 vwmaccu
-001111 vwmaddu
-010000 
-010001 
-010010 
-010011 
-010100 vredsum  
-010101 vredmax  
-010110 vredmaxu 
-010111 vredmin  
-011000 vredminu 
-011001 vredand  
-011010 vredor   
-011011 vredxor  
-011100 vwredsum 
-011101 vreddot  
-011110 vwreddot 
-011111 vw4reddot
-100000 vdiv 
-100001 vdivu
-100010 vrem 
-100011 vremu
-100100 
-100101 
-100110 
-100111 
-101000 vmand    
-101001 vmnand   
-101010 vmandnot 
-101011 vmxor    
-101100 vmor     
-101101 vmnor    
-101110 vmornot  
-101111 vmxnor   
-110000       
-110001 vmsbf 
-110010 vmsof 
-110011 vmsif 
-110100 vmiota
-110101 vid   
-110110
-110111 vmerge   
-111000 vins.v.x 
-111001 vext.x.v 
-111010 vmv.v.x  
-111011 vmv.x.v  
-111100
-111101 
-111110 vmpopc 
-111111 vmfirst    
 
-VFLOAT
 
-funct6
 
-000000 vfadd
-000001 vfsub
-000010 vfmul
-000011 vfdiv
-000100 vfmin
-000101 vfmax
-000110 vfsgnj
-000111 vfsgnn
-001000 vfsgnx
-001001 vfeq
-001010 vflt
-001011 vflte
-001100
-001101
-001110
-001111
-010000 vfwadd
-010001 vfwadd.w
-010010 vfwsub
-010011 vfwsub.w
-010100 vfwmul
-010101 vfwmuladd
-010110 vfwmuladdm
-010111 vfwmulsub
-011000 vfwmulsubm
-011001
-011010
-011011
-011100
-011101
-011110 vfsqrt 
-011111 vfclass
-100000 vfredosum   
-100001 vfredsum    
-100010 vfredmax   
-100011 vfredmin   
-100100 vfwredosum 
-100101 vfwredsum  
-100110 vfreddot   
-100111 vfwreddot  
-101000
-101001
-101010
-101011
-101100
-101101
-101110
-101111
-110000 vfmv.f.v
-110001 vfmv.v.f
-110010
-110011
-110100
-110101
-110110
-110111
-111000
-111001
-111010
-111011
-111100
-111101
-111110
-111111 
+
+
+
+
+
+
+vfredosum
+vfredsum
+vfredmax
+vfredmin
+vfwredosum
+vfwredsum
+vfreddot
+vfwreddot
+
+
+
+
+
+
+
+
+vfmadd
+vfnmadd
+vfmsub
+vfnmsub
+vfmacc
+vfnmacc
+vfmsac
+vfnmsac
 
 vx4muladd
 vx4mulsub
