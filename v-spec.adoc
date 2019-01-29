@@ -2569,15 +2569,15 @@ This is a unary vector-vector instruction.
 
 The vector floating-point `vfmin` and `vfmax` instructions have the
 same behavior as the corresponding scalar floating-point instructions
-in version 2.2 of the RISC-V F extension.
+in version 2.2 of the RISC-V F/D/Q extension.
 
 [source]
 ----
-    # Signed minimum
+    # Floating-point minimum
     vfmin.vv vd, vs2, vs1, vm   # Vector-vector
     vfmin.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Signed maximum
+    # Floating-point maximum
     vfmax.vv vd, vs2, vs1, vm   # Vector-vector
     vfmax.vf vd, vs2, rs1, vm   # vector-scalar
 ----
@@ -2672,15 +2672,14 @@ the destination elements.
 
 === Vector Floating-Point Merge Instruction
 
-A vector-scalar floating-point merge instruction is provided.  Unlike
-regular arithmetic instructions, the set of active elements is all
-elements from `vstart` up to the current vector length in `vl`
-regardless of mask value.
+A vector-scalar floating-point merge instruction is provided, which
+operates on all body elements, from `vstart` up to the current vector
+length in `vl` regardless of mask value.
 
 When the floating-point merge instruction is unmasked (`vm=0`), at
 elements where the mask value is zero, the first vector operand is
 copied to the destination element, otherwise a scalar floating-point
-is copied to the destination element.
+register value is copied to the destination element.
 
 [source]
 ----
@@ -2689,8 +2688,8 @@ vfmerge.vf vd, vs2, rs1, v0.t  # vd[i] = v0[i].LSB ? f[rs1] : vs2[i]
 
 The unmasked form (`vm=1`) can be used to __splat__ a scalar `f`
 register value into all active elements of a vector.  The instruction
-must have the `vs2` field set to `v0` and all other values for `vs2`
-are reserved.
+must have the `vs2` field set to `v0`, with all other values for `vs2`
+reserved.
 
 [source]
 ----
@@ -2700,19 +2699,21 @@ vfmerge.vf vd, v0, rs1  # vd[i] = f[rs1];
 This is given a vector pseudo-instruction `vmv.v.f vd, rs1` which
 expands to `vfmerge.vf vd, v0, rs1`.
 
+NOTE: In Zfinx systems, the instruction is identical to `vmerge.vx`.
+
 === Single-Width Floating-Point/Integer Type-Convert Instructions
 
 Conversion operations are provided to convert to and from
-floating-point values and signed and unsigned integers, where both
+floating-point values and unsigned and signed integers, where both
 source and destination are SEW wide.
 
 [source]
 ----
-vfcvt.x.f.v  vd, vs2, vm   # Convert float to signed integer.
 vfcvt.xu.f.v vd, vs2, vm   # Convert float to unsigned integer.
+vfcvt.x.f.v  vd, vs2, vm   # Convert float to signed integer.
 
-vfcvt.f.x.v  vd, vs2, vm   # Convert signed integer to float.
 vfcvt.f.xu.v vd, vs2, vm   # Convert unsigned integer to float.
+vfcvt.f.x.v  vd, vs2, vm   # Convert signed integer to float.
 ----
 
 The conversions follow the same rules on exceptional conditions as the
@@ -2727,11 +2728,11 @@ width.
 
 [source]
 ----
-vfwcvt.x.f.v  vd, vs2, vm   # Convert float to double-width signed integer.
 vfwcvt.xu.f.v vd, vs2, vm   # Convert float to double-width unsigned integer.
+vfwcvt.x.f.v  vd, vs2, vm   # Convert float to double-width signed integer.
 
-vfwcvt.f.x.v  vd, vs2, vm   # Convert signed integer to double-width float.
 vfwcvt.f.xu.v vd, vs2, vm   # Convert unsigned integer to double-width float.
+vfwcvt.f.x.v  vd, vs2, vm   # Convert signed integer to double-width float.
 
 vfwcvt.f.f.v vd, vs2, vm   # Convert single-width float to double-width float.
 ----
@@ -2754,11 +2755,11 @@ and floating-point datatypes to a type of half the width.
 
 [source]
 ----
-vfncvt.x.f.v  vd, vs2, vm   # Convert double-width float to signed integer.
 vfncvt.xu.f.v vd, vs2, vm   # Convert double-width float to unsigned integer.
+vfncvt.x.f.v  vd, vs2, vm   # Convert double-width float to signed integer.
 
-vfncvt.f.x.v  vd, vs2, vm   # Convert double-width signed integer to float.
 vfncvt.f.xu.v vd, vs2, vm   # Convert double-width unsigned integer to float.
+vfncvt.f.x.v  vd, vs2, vm   # Convert double-width signed integer to float.
 
 vfncvt.f.f.v vd, vs2, vm   # Convert double-width float to single-width float.
 ----

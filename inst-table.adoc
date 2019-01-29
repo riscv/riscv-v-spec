@@ -102,20 +102,20 @@ OPIVI    I
 000101 VX  vmin       000101                000101
 000110 VX  vmaxu      000110                000110 VF vfmax
 000111 VX  vmax       000111                000111
-001000 VXI vand       001000                001000
-001001 VXI vor        001001                001001
-001010 VXI vxor       001010                001010
-001011 VXI vrgather   001011     vcompress  001011
-001100  XI vslideup   001100                001100 VF vfsgnj
-001101  XI vslidedown 001101                001101 VF vfsgnn
-001110 VXI vmerge     001110                001110 VF vfsgnx
-001111                001111                001111
+001000 VXI vand       001000                001000 VF vfsgnj
+001001 VXI vor        001001                001001 VF vfsgnn
+001010 VXI vxor       001010                001010 VF vfsgnx
+001011                001011     vcompress  001011
+001100  XI vslideup   001100                001100 V  vfunary0 (unary encoding space)
+001101  XI vslidedown 001101                001101 V  vfunary1 (unary encoding space)
+001110 VXI vmerge     001110                001110  F vfmerge.vf
+001111 VXI vrgather   001111                001111
 010000 VXI vsrl       010000                010000    vfmv.f.v
 010001 VXI vsra       010001                010001    vfmv.v.f
 010010 VXI vsll       010010                010010
 010011                010011                010011
 010100 VXI vnsrl      010100                010100
-010101 VXI vnsra      010101                010101    vfclass
+010101 VXI vnsra      010101                010101
 010110 VXI vnclipu    010110                010110
 010111 VXI vnclip     010111                010111
 011000 VX  vwaddu     011000                011000 VF vfwadd
@@ -136,7 +136,7 @@ OPIVI    I
 100111  XI vsgt       100111    vmxnor      100111
 101000 VX  vdivu      101000                101000 VF vfdiv
 101001 VX  vdiv       101001    vmsbf       101001  F vfrdiv
-101010 VX  vremu      101010    vmsof       101010 V  vfsqrt  (unary encoding)
+101010 VX  vremu      101010    vmsof       101010
 101011 VX  vrem       101011    vmsif       101011
 101100 VX  vmulhu     101100    vmiota      101100 VF vfmul
 101101 VX  vmul       101101    vid         101101
@@ -158,6 +158,35 @@ OPIVI    I
 111101 VX  vwmacc     111101    vreddot     111101 VF vfwnmacc
 111110 VX  vwmsacu    111110    vwreddot    111110 VF vfwmsac
 111111 VX  vwmsac     111111    vw4reddot   111111 VF vfwnmsac
+
+vfunary0 encoding space
+ rs1
+00000 vfcvt.xu.f.v
+00001 vfcvt.x.f.v
+00010 vfcvt.f.xu.v
+00011 vfcvt.f.x.v
+
+01000 vfwcvt.xu.f.v
+01001 vfwcvt.x.f.v
+01010 vfwcvt.f.xu.v
+01011 vfwcvt.f.x.v
+01100 vfwcvt.f.f.v
+
+10000 vfncvt.xu.f.v
+10001 vfncvt.x.f.v
+10010 vfncvt.f.xu.v
+10011 vfncvt.f.x.v
+10100 vfncvt.f.f.v
+
+vfunary1 encoding space
+ rs1   
+00000 vfsqrt.v
+00001 vfclass.v
+
+
+X  vsgteu
+  X  vsgte
+
 
 vfredosum
 vfredsum
