@@ -1144,7 +1144,7 @@ loop:
     vlh.v v8, (a1)          # Sign-extend 16b load values to 32b elements
       sll t1, a3, 1
       add a1, a1, t1        # Bump pointer
-    vmul.vs  v8, v8, v1     # 32b multiply result
+    vmul.vx  v8, v8, v1     # 32b multiply result
     vsrl.vi  v8, v8, 3      # Shift elements
     vsw.v v8, (a2)          # Store vector of 32b results
       sll t1, a3, 2
@@ -1159,7 +1159,7 @@ loop:
     vlh.v v4, (a1)          # Get 16b vector
       slli t1, a3, 1
       add a1, a1, t1        # Bump pointer
-    vwmul.vs v8, v4, v1     # 32b in <v8--v15>
+    vwmul.vx v8, v4, v1     # 32b in <v8--v15>
 
     vsetvli x0, a0, vsew32,vlmul8  # Operate on 32b values
     vsrl.vi v8, v8, 3
@@ -1726,7 +1726,7 @@ Assembly syntax pattern for vector arithmetic instructions
 
 # Operations returning vector results, masked by vm (v0.t, <nothing>)
 vop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
-vop.vs  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
+vop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 vop.vi  vd, vs2, imm, vm  # integer vector-immediate   vd[i] = vs2[i] op imm
 
 vfop.vv  vd, vs2, vs1, vm # FP vector-vector operation vd[i] = vs2[i] fop vs1[i]
@@ -1784,7 +1784,7 @@ Assembly syntax pattern for vector widening arithmetic instructions
 
 # Double-width result, two single-width sources: 2*SEW = SEW op SEW
 vwop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
-vwop.vs  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
+vwop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 
 # Double-width result, first source double-width, second source single-width: 2*SEW = 2*SEW op SEW
 vwop.wv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
@@ -1838,15 +1838,15 @@ instructions are also provided for the vector-scalar forms.
 ----
 # Integer adds.
 vadd.vv vd, vs2, vs1, vm   # Vector-vector
-vadd.vs vd, vs2, rs1, vm   # vector-scalar
+vadd.vx vd, vs2, rs1, vm   # vector-scalar
 vadd.vi vd, vs2, imm, vm   # vector-immediate
 
 # Integer subtract
 vsub.vv vd, vs2, vs1, vm   # Vector-vector
-vsub.vs vd, vs2, rs1, vm   # vector-scalar
+vsub.vx vd, vs2, rs1, vm   # vector-scalar
 
 # Integer reverse subtract
-vrsub.vs vd, vs2, rs1, vm   # vd[i] = rs1 - vs2[i]
+vrsub.vx vd, vs2, rs1, vm   # vd[i] = rs1 - vs2[i]
 vrsub.vi vd, vs2, imm, vm   # vd[i] = imm - vs2[i]
 ----
 
@@ -1860,15 +1860,15 @@ are first sign- or zero-extended before forming the double-width sum.
 ----
 # Widening unsigned integer add/subtract, 2*SEW = SEW +/- SEW
 vwaddu.vv  vd, vs2, vs1, vm  # vector-vector
-vwaddu.vs  vd, vs2, rs1, vm  # vector-scalar
+vwaddu.vx  vd, vs2, rs1, vm  # vector-scalar
 vwsubu.vv  vd, vs2, vs1, vm  # vector-vector
-vwsubu.vs  vd, vs2, rs1, vm  # vector-scalar
+vwsubu.vx  vd, vs2, rs1, vm  # vector-scalar
 
 # Widening signed integer add/subtract, 2*SEW = SEW +/- SEW
 vwadd.vv  vd, vs2, vs1, vm  # vector-vector
-vwadd.vs  vd, vs2, rs1, vm  # vector-scalar
+vwadd.vx  vd, vs2, rs1, vm  # vector-scalar
 vwsub.vv  vd, vs2, vs1, vm  # vector-vector
-vwsub.vs  vd, vs2, rs1, vm  # vector-scalar
+vwsub.vx  vd, vs2, rs1, vm  # vector-scalar
 
 # Widening unsigned integer add/subtract, 2*SEW = 2*SEW +/- SEW
 vwaddu.wv  vd, vs2, vs1, vm  # vector-vector
@@ -1885,8 +1885,8 @@ vwsub.ws  vd, vs2, rs1, vm  # vector-scalar
 
 NOTE: An integer value can be doubled in width using the widening add
 instructions with a scalar operand of `x0`.  Can define assembly
-pseudo-ops `vwcvt.x.x.v vd,vs,vm = vwadd.vs vd,vs,x0,vm` and `vwcvtu.x.x.v
-vd,vs,vm = vwaddu.vs vd,vs,x0,vm`.
+pseudo-ops `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and `vwcvtu.x.x.v
+vd,vs,vm = vwaddu.vx vd,vs,x0,vm`.
 
 === Vector Integer Add-with-Carry Instruction
 
@@ -1898,7 +1898,7 @@ To support multi-word arithmetic:
  # v0[i] = carry(vs1[i] + vs2[i] + v0[i].LSB)
 
  vadc.vv   vd, vs2, vs1  # Vector-vector
- vadc.vs   vd, vs2, rs1  # Vector-scalar
+ vadc.vx   vd, vs2, rs1  # Vector-scalar
  vadc.vi   vd, vs2, imm  # Vector-immediate
 ----
 
@@ -1918,15 +1918,15 @@ The encoding corresponding to the masked version (vm=0) is reserved.
 ----
 # Bitwise logical operations.
 vand.vv vd, vs2, vs1, vm   # Vector-vector
-vand.vs vd, vs2, rs1, vm   # vector-scalar
+vand.vx vd, vs2, rs1, vm   # vector-scalar
 vand.vi vd, vs2, imm, vm   # vector-immediate
 
 vor.vv vd, vs2, vs1, vm    # Vector-vector
-vor.vs vd, vs2, rs1, vm    # vector-scalar
+vor.vx vd, vs2, rs1, vm    # vector-scalar
 vor.vi vd, vs2, imm, vm    # vector-immediate
 
 vxor.vv vd, vs2, vs1, vm    # Vector-vector
-vxor.vs vd, vs2, rs1, vm    # vector-scalar
+vxor.vx vd, vs2, rs1, vm    # vector-scalar
 vxor.vi vd, vs2, imm, vm    # vector-immediate
 ----
 
@@ -1944,15 +1944,15 @@ logical shift left, and logical (zero-extending) and arithmetic
 ----
 # Bit shift operations
 vsll.vv vd, vs2, vs1, vm   # Vector-vector
-vsll.vs vd, vs2, rs1, vm   # vector-scalar
+vsll.vx vd, vs2, rs1, vm   # vector-scalar
 vsll.vi vd, vs2, imm, vm   # vector-immediate
 
 vsrl.vv vd, vs2, vs1, vm   # Vector-vector
-vsrl.vs vd, vs2, rs1, vm   # vector-scalar
+vsrl.vx vd, vs2, rs1, vm   # vector-scalar
 vsrl.vi vd, vs2, imm, vm   # vector-immediate
 
 vsra.vv vd, vs2, vs1, vm   # Vector-vector
-vsra.vs vd, vs2, rs1, vm   # vector-scalar
+vsra.vx vd, vs2, rs1, vm   # vector-scalar
 vsra.vi vd, vs2, imm, vm   # vector-immediate
 ----
 
@@ -1976,12 +1976,12 @@ for SEW of > 32.
 ----
  # Narrowing shift right logical, SEW = (2*SEW) >> SEW
  vnsrl.vv vd, vs2, vs1, vm   # vector-vector
- vnsrl.vs vd, vs2, rs1, vm   # vector-scalar
+ vnsrl.vx vd, vs2, rs1, vm   # vector-scalar
  vnsrl.vi vd, vs2, imm, vm   # vector-immediate
 
  # Narrowing shift right arithmetic, SEW = (2*SEW) >> SEW
  vnsra.vv vd, vs2, vs1, vm   # vector-vector
- vnsra.vs vd, vs2, rs1, vm   # vector-scalar
+ vnsra.vx vd, vs2, rs1, vm   # vector-scalar
  vnsra.vi vd, vs2, imm, vm   # vector-immediate
 ----
 
@@ -1998,13 +1998,13 @@ saturation into the final destination format.
 ----
  # Narrowing unsigned clip
  vnclipu.vv vd, vs2, vs1, vm   # vector-vector
- vnclipu.vs vd, vs2, rs1, vm   # vector-scalar
+ vnclipu.vx vd, vs2, rs1, vm   # vector-scalar
  vnclipu.vi vd, vs2, imm, vm   # vector-immediate
 
 # Narrowing signed clip,  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
  #                          SEW           2*SEW                 SEW
  vnclip.vv vd, vs2, vs1, vm   # vector-vector
- vnclip.vs vd, vs2, rs1, vm   # vector-scalar
+ vnclip.vx vd, vs2, rs1, vm   # vector-scalar
  vnclip.vi vd, vs2, imm, vm   # vector-immediate
 ----
 
@@ -2035,38 +2035,38 @@ Section <<sec-mask-register-layout>>.
 ----
 # Set if equal
 vseq.vv vd, vs2, vs1, vm   # Vector-vector
-vseq.vs vd, vs2, rs1, vm   # vector-scalar
+vseq.vx vd, vs2, rs1, vm   # vector-scalar
 vseq.vi vd, vs2, imm, vm   # vector-immediate
 
 # Set if not equal
 vsne.vv vd, vs2, vs1, vm   # Vector-vector
-vsne.vs vd, vs2, rs1, vm   # vector-scalar
+vsne.vx vd, vs2, rs1, vm   # vector-scalar
 vsne.vi vd, vs2, imm, vm   # vector-immediate
 
 # Set if less than, unsigned
 vsltu.vv vd, vs2, vs1, vm   # Vector-vector
-vsltu.vs vd, vs2, rs1, vm   # Vector-scalar
+vsltu.vx vd, vs2, rs1, vm   # Vector-scalar
 
 # Set if less than, signed
 vslt.vv vd, vs2, vs1, vm   # Vector-vector
-vslt.vs vd, vs2, rs1, vm   # vector-scalar
+vslt.vx vd, vs2, rs1, vm   # vector-scalar
 
 # Set if less than or equal, unsigned
 vsleu.vv vd, vs2, vs1, vm   # Vector-vector
-vsleu.vs vd, vs2, rs1, vm   # vector-scalar
+vsleu.vx vd, vs2, rs1, vm   # vector-scalar
 vsleu.vi vd, vs2, imm, vm   # Vector-immediate
 
 # Set if less than or equal, signed
 vsle.vv vd, vs2, vs1, vm   # Vector-vector
-vsle.vs vd, vs2, rs1, vm   # vector-scalar
+vsle.vx vd, vs2, rs1, vm   # vector-scalar
 vsle.vi vd, vs2, imm, vm   # vector-immediate
 
 # Set if greater than, unsigned
-vsgtu.vs vd, vs2, rs1, vm    # Vector-scalar
+vsgtu.vx vd, vs2, rs1, vm    # Vector-scalar
 vsgtu.vi vd, vs2, imm, vm    # Vector-immediate
 
 # Set if greater than, signed
-vsgt.vs vd, vs2, rs1, vm    # Vector-scalar
+vsgt.vx vd, vs2, rs1, vm    # Vector-scalar
 vsgt.vi vd, vs2, imm, vm    # Vector-immediate
 
 ----
@@ -2102,19 +2102,19 @@ supported.
 ----
 # Unsigned minimum
 vminu.vv vd, vs2, vs1, vm   # Vector-vector
-vminu.vs vd, vs2, rs1, vm   # vector-scalar
+vminu.vx vd, vs2, rs1, vm   # vector-scalar
 
 # Signed minimum
 vmin.vv vd, vs2, vs1, vm   # Vector-vector
-vmin.vs vd, vs2, rs1, vm   # vector-scalar
+vmin.vx vd, vs2, rs1, vm   # vector-scalar
 
 # Unsigned maximum
 vmaxu.vv vd, vs2, vs1, vm   # Vector-vector
-vmaxu.vs vd, vs2, rs1, vm   # vector-scalar
+vmaxu.vx vd, vs2, rs1, vm   # vector-scalar
 
 # Signed maximum
 vmax.vv vd, vs2, vs1, vm   # Vector-vector
-vmax.vs vd, vs2, rs1, vm   # vector-scalar
+vmax.vx vd, vs2, rs1, vm   # vector-scalar
 ----
 
 === Vector Single-Width Integer Multiply Instructions
@@ -2127,19 +2127,19 @@ write the high word of the product to the destination register.
 ----
 # Signed multiply, returning low bits of product
 vmul.vv vd, vs2, vs1, vm   # Vector-vector
-vmul.vs vd, vs2, rs1, vm   # vector-scalar
+vmul.vx vd, vs2, rs1, vm   # vector-scalar
 
 # Signed multiply, returning high bits of product
 vmulh.vv vd, vs2, vs1, vm   # Vector-vector
-vmulh.vs vd, vs2, rs1, vm   # vector-scalar
+vmulh.vx vd, vs2, rs1, vm   # vector-scalar
 
 # Unsigned multiply, returning high bits of product
 vmulhu.vv vd, vs2, vs1, vm   # Vector-vector
-vmulhu.vs vd, vs2, rs1, vm   # vector-scalar
+vmulhu.vx vd, vs2, rs1, vm   # vector-scalar
 
 # Signed(vs2)-Unsigned multiply, returning high bits of product
 vmulhsu.vv vd, vs2, vs1, vm   # Vector-vector
-vmulhsu.vs vd, vs2, rs1, vm   # vector-scalar
+vmulhsu.vx vd, vs2, rs1, vm   # vector-scalar
 ----
 
 NOTE: There is no `vmulhus` opcode to return high half of
@@ -2157,15 +2157,15 @@ product from an SEW-bit*SEW-bit multiply.
 ----
 # Widening signed-integer multiply
 vwmul.vv  vd, vs2, vs1, vm# vector-vector
-vwmul.vs  vd, vs2, rs1, vm # vector-scalar
+vwmul.vx  vd, vs2, rs1, vm # vector-scalar
 
 # Widening unsigned-integer multiply
 vwmulu.vv vd, vs2, vs1, vm # vector-vector
-vwmulu.vs vd, vs2, rs1, vm # vector-scalar
+vwmulu.vx vd, vs2, rs1, vm # vector-scalar
 
 # Widening signed-unsigned integer multiply
 vwmulsu.vv vd, vs2, vs1, vm # vector-vector
-vwmulsu.vs vd, vs2, rs1, vm # vector-scalar
+vwmulsu.vx vd, vs2, rs1, vm # vector-scalar
 ----
 
 === Vector Single-Width Integer Multiply-Add Instructions
@@ -2183,19 +2183,19 @@ NOTE: "sac" is intended to be read as "subtract from accumulator".
 ----
 # Integer multiply-add, overwrite addend
 vmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
-vmacc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
+vmacc.vx vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
 # Integer multiply-sub, overwrite minuend
 vmsac.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vmsac.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+vmsac.vx vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 
 # Integer multiply-add, overwrite multiplicand
 vmadd.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
-vmadd.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] + (vd[i] * x[rs1])
+vmadd.vx vd, vs2, rs1, vm    # vd[i] = vs2[i] + (vd[i] * x[rs1])
 
 # Integer multiply-sub, overwrite multiplicand
 vmsub.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] - (vd[i] * vs1[i])
-vmsub.vs vd, vs2, rs1, vm    # vd[i] = vs2[i] - (vd[i] * x[rs1])
+vmsub.vx vd, vs2, rs1, vm    # vd[i] = vs2[i] - (vd[i] * x[rs1])
 ----
 
 === Vector Widening Integer Multiply-Add Instructions
@@ -2208,19 +2208,19 @@ produce a 2*SEW-bit result.
 ----
 # Widening unsigned-integer multiply-add, overwrite addend
 vwmaccu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
-vwmaccu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
+vwmaccu.vx vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
 # Widening signed-integer multiply-add, overwrite addend
 vwmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
-vwmacc.vs vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
+vwmacc.vx vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
 
 # Widening unsigned-integer multiply-sub, overwrite minuend
 vwmsacu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vwmsacu.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+vwmsacu.vx vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 
 # Widening signed-integer multiply-sub, overwrite minuend
 vwmsac.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vwmsac.vs vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+vwmsac.vx vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
 ----
 
 NOTE: There is no signed-unsigned widening multiply-add instruction.
@@ -2235,19 +2235,19 @@ extreme inputs.
 ----
     # Unsigned divide.
     vdivu.vv vd, vs2, vs1, vm   # Vector-vector
-    vdivu.vs vd, vs2, rs1, vm   # vector-scalar
+    vdivu.vx vd, vs2, rs1, vm   # vector-scalar
 
     # Signed divide
     vdiv.vv vd, vs2, vs1, vm   # Vector-vector
-    vdiv.vs vd, vs2, rs1, vm   # vector-scalar
+    vdiv.vx vd, vs2, rs1, vm   # vector-scalar
 
     # Unsigned remainder
     vremu.vv vd, vs2, vs1, vm   # Vector-vector
-    vremu.vs vd, vs2, rs1, vm   # vector-scalar
+    vremu.vx vd, vs2, rs1, vm   # vector-scalar
 
     # Signed remainder
     vrem.vv vd, vs2, vs1, vm   # Vector-vector
-    vrem.vs vd, vs2, rs1, vm   # vector-scalar
+    vrem.vx vd, vs2, rs1, vm   # vector-scalar
 ----
 
 NOTE: The decision to include integer divide and remainder was
@@ -2279,7 +2279,7 @@ immediate.
 ----
 # Masked  operations, where vm=0
 vmerge.vv vd, vs2, vs1, v0.t  # vd[i] = v0[i].LSB ? vs1[i] : vs2[i]
-vmerge.vs vd, vs2, rs1, v0.t  # vd[i] = v0[i].LSB ? x[rs1] : vs2[i]
+vmerge.vx vd, vs2, rs1, v0.t  # vd[i] = v0[i].LSB ? x[rs1] : vs2[i]
 vmerge.vi vd, vs2, imm, v0.t  # vd[i] = v0[i].LSB ? imm    : vs2[i]
 ----
 
@@ -2296,7 +2296,7 @@ vector register file accesses from the first vector operand.
 ----
 # Unmasked  operations, where vm=1
 vmerge.vv vd, v0, vs1  # vd[i] = vs1[i], psuedo-op vmv.v.v vd, vs1
-vmerge.vs vd, v0, rs1  # vd[i] = x[rs1], pseudo-op vmv.v.s vd, rs1
+vmerge.vx vd, v0, rs1  # vd[i] = x[rs1], pseudo-op vmv.v.s vd, rs1
 vmerge.vi vd, v0, imm  # vd[i] = imm,    pseudo-op vmv.v.i vd, imm
 ----
 
@@ -2304,9 +2304,9 @@ An unmasked `vmerge.vv` instruction can be used to copy one vector
 register group to another.  This is given a vector pseudo-instruction
 `vmv.v.v vdest, vsrc` (which expands to `vmerge.vv vdest, v0, vsrc`).
 
-An unmasked `vmerge.vs` instruction can be used to __splat__ a scalar
+An unmasked `vmerge.vx` instruction can be used to __splat__ a scalar
 `x` register value into all active elements of a vector. This is given
-a vector pseudo-instruction `vmv.v.s vd, rs1`, which expands to `vmerge.vs
+a vector pseudo-instruction `vmv.v.s vd, rs1`, which expands to `vmerge.vx
 vd, v0, rs1`.
 
 An unmasked `vmerge.vi` instruction can be used to initialize a vector
@@ -2351,11 +2351,11 @@ elements do not set FP exception flags.
 ----
     # Floating-point add
     vfadd.vv vd, vs2, vs1, vm   # Vector-vector
-    vfadd.vs vd, vs2, rs1, vm   # vector-scalar
+    vfadd.vf vd, vs2, rs1, vm   # vector-scalar
 
     # Floating-point subtract
     vfsub.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsub.vs vd, vs2, rs1, vm   # vector-scalar
+    vfsub.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
 === Vector Widening Floating-Point Add/Subtract Instructions
@@ -2364,9 +2364,9 @@ elements do not set FP exception flags.
 ----
 # Widening FP add/subtract, 2*SEW = SEW +/- SEW
 vfwadd.vv vd, vs2, vs1, vm  # vector-vector
-vfwadd.vs vd, vs2, rs1, vm  # vector-scalar
+vfwadd.vf vd, vs2, rs1, vm  # vector-scalar
 vfwsub.vv vd, vs2, vs1, vm  # vector-vector
-vfwsub.vs vd, vs2, rs1, vm  # vector-scalar
+vfwsub.vf vd, vs2, rs1, vm  # vector-scalar
 
 # Widening FP add/subtract, 2*SEW = 2*SEW +/- SEW
 vfwadd.wv  vd, vs2, vs1, vm  # vector-vector
@@ -2381,11 +2381,14 @@ vfwsub.ws  vd, vs2, rs1, vm  # vector-scalar
 ----
     # Floating-point multiply
     vfmul.vv vd, vs2, vs1, vm   # Vector-vector
-    vfmul.vs vd, vs2, rs1, vm   # vector-scalar
+    vfmul.vf vd, vs2, rs1, vm   # vector-scalar
 
     # Floating-point divide
     vfdiv.vv vd, vs2, vs1, vm   # Vector-vector
-    vfdiv.vs vd, vs2, rs1, vm   # vector-scalar
+    vfdiv.vf vd, vs2, rs1, vm   # vector-scalar
+
+    # Reverse floating-point divide vector = scalar / vector
+    vfrdiv.vf vd, vs2, rs1, vm  # scalar-vector, vd[i] = f[rs1]/vs2[i]
 ----
 
 === Vector Widening Floating-Point Multiply
@@ -2394,7 +2397,7 @@ vfwsub.ws  vd, vs2, rs1, vm  # vector-scalar
 ----
 # Widening floating-point multiply
 vfwmul.vv    vd, vs2, vs1, vm # vector-vector
-vfwmul.vs    vd, vs2, rs1, vm # vector-scalar
+vfwmul.vf    vd, vs2, rs1, vm # vector-scalar
 ----
 
 === Vector Single-Width Floating-Point Fused Multiply-Add Instructions
@@ -2407,35 +2410,35 @@ addend or the first multiplicand.
 ----
 # FP multiply-add, overwrites multiplicand
 vfmadd.vv vd, vs1, vs2, vm    # vd[i] = +(vd[i] * vs1[i]) + vs2[i]
-vfmadd.vs vd, rs1, vs2, vm    # vd[i] = +(vd[i] * x[rs1]) + vs2[i]
+vfmadd.vf vd, rs1, vs2, vm    # vd[i] = +(vd[i] * x[rs1]) + vs2[i]
 
 # FP negate-(multiply-add), overwrites multiplicand
 vfnmadd.vv vd, vs1, vs2, vm   # vd[i] = -(vd[i] * vs1[i]) - vs2[i]
-vfnmadd.vs vd, rs1, vs2, vm   # vd[i] = -(vd[i] * x[rs1]) - vs2[i]
+vfnmadd.vf vd, rs1, vs2, vm   # vd[i] = -(vd[i] * x[rs1]) - vs2[i]
 
 # FP multiply-sub, overwrites multiplicand
 vfmsub.vv vd, vs1, vs2, vm    # vd[i] = +(vd[i] * vs1[i]) - vs2[i]
-vfmsub.vs vd, rs1, vs2, vm    # vd[i] = +(vd[i] * x[rs1]) - vs2[i]
+vfmsub.vf vd, rs1, vs2, vm    # vd[i] = +(vd[i] * x[rs1]) - vs2[i]
 
 # FP negate-(multiply-sub), overwrites multiplicand
 vfnmsub.vv vd, vs1, vs2, vm   # vd[i] = -(vd[i] * vs1[i]) + vs2[i]
-vfnmsub.vs vd, rs1, vs2, vm   # vd[i] = -(vd[i] * x[rs1]) + vs2[i]
+vfnmsub.vf vd, rs1, vs2, vm   # vd[i] = -(vd[i] * x[rs1]) + vs2[i]
 
 # FP multiply-accumulate, overwrites addend
 vfmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) + vd[i]
-vfmacc.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) + vd[i]
+vfmacc.vf vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) + vd[i]
 
 # FP negate-(multiply-accumulate), overwrites subtrahend
 vfnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) - vd[i]
-vfnmacc.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
+vfnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
 
 # FP multiply-subtract-accumulator, overwrites subtrahend
 vfmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
-vfmsac.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
+vfmsac.vf vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
 
 # FP negate-(multiply-subtract-accumulator), overwrites minuend
 vfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
-vfnmsac.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
+vfnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
 ----
 
 NOTE: It would be possible to use the two unused rounding modes in the
@@ -2453,19 +2456,19 @@ all SEW wide, while the addend and destination is 2*SEW bits wide.
 ----
 # FP widening multiply-accumulate, overwrites addend
 vfwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) + vd[i]
-vfwmacc.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) + vd[i]
+vfwmacc.vf vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) + vd[i]
 
 # FP widening negate-(multiply-accumulate), overwrites addend
 vfwnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) - vd[i]
-vfwnmacc.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
+vfwnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
 
 # FP widening multiply-subtract-accumulator, overwrites addend
 vfwmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
-vfwmsac.vs vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
+vfwmsac.vf vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
 
 # FP widening negate-(multiply-subtract-accumulator), overwrites addend
 vfwnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
-vfwnmsac.vs vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
+vfwnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
 ----
 
 === Vector Floating-Point Square-Root Instruction
@@ -2488,11 +2491,11 @@ in version 2.2 of the RISC-V F extension.
 ----
     # Signed minimum
     vfmin.vv vd, vs2, vs1, vm   # Vector-vector
-    vfmin.vs vd, vs2, rs1, vm   # vector-scalar
+    vfmin.vf vd, vs2, rs1, vm   # vector-scalar
 
     # Signed maximum
     vfmax.vv vd, vs2, vs1, vm   # Vector-vector
-    vfmax.vs vd, vs2, rs1, vm   # vector-scalar
+    vfmax.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
 === Vector Floating-Point Sign-Injection Instructions
@@ -2503,13 +2506,13 @@ takes all bits except the sign bit from the vector `vs2` operands.
 [source]
 ----
     vfsgnj.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsgnj.vs vd, vs2, rs1, vm   # vector-scalar
+    vfsgnj.vf vd, vs2, rs1, vm   # vector-scalar
 
     vfsgnjn.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsgnjn.vs vd, vs2, rs1, vm   # vector-scalar
+    vfsgnjn.vf vd, vs2, rs1, vm   # vector-scalar
 
     vfsgnjx.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsgnjx.vs vd, vs2, rs1, vm   # vector-scalar
+    vfsgnjx.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
 === Vector Floating-Point Compare Instructions
@@ -2526,15 +2529,15 @@ floating-point compare instructions.
 ----
     # Compare equal
     vfeq.vv vd, vs2, vs1, vm   # Vector-vector
-    vfeq.vs vd, vs2, rs1, vm   # vector-scalar
+    vfeq.vf vd, vs2, rs1, vm   # vector-scalar
 
     # Compare less than
     vflt.vv vd, vs2, vs1, vm   # Vector-vector
-    vflt.vs vd, vs2, rs1, vm   # vector-scalar
+    vflt.vf vd, vs2, rs1, vm   # vector-scalar
 
     # Compare less than or equal
     vflte.vv vd, vs2, vs1, vm   # Vector-vector
-    vflte.vs vd, vs2, rs1, vm   # vector-scalar
+    vflte.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
 NOTE: Need to revisit support for unordered comparisons.
@@ -3232,7 +3235,7 @@ group.
 
 [source]
 ----
- vslideup.vs vd, vs2, rs1, vm        # vd[i+rs1] = vs2[i]
+ vslideup.vx vd, vs2, rs1, vm        # vd[i+rs1] = vs2[i]
  vslideup.vi vd, vs2, uimm[4:0], vm  # vd[i+imm] = vs2[i]
 ----
 
@@ -3268,7 +3271,7 @@ input vectors during execution, and to enable restart with non-zero
 
 [source]
 ----
- vslidedown.vs vd, vs2, rs1, vm       # vd[i] = vs2[i+rs1]
+ vslidedown.vx vd, vs2, rs1, vm       # vd[i] = vs2[i+rs1]
  vslidedown.vi vd, vs2, uimm[4:0], vm # vd[i] = vs2[i+imm]
 ----
 
@@ -3329,7 +3332,7 @@ NOTE: These forms allow any vector element to be "splatted" to an entire vector.
 
 [source]
 ----
-vrgather.vs vd, vs2, rs1, vm # vd[i] = vs2[rs1]
+vrgather.vx vd, vs2, rs1, vm # vd[i] = vs2[rs1]
 vrgather.vi vd, vs2, imm, vm # vd[i] = vs2[imm]
 ----
 
@@ -3568,7 +3571,7 @@ vector add of 8-bit elements with a vector length of 20.
 ----
 vsetvli t0, a0, vsew32,vlmul1,vdiv4  # Vectors of 32-bit elements, divided into byte sub-elements
 vadd.vv v1,v2,v3                     # Performs a vector of 4*vl 8-bit additions.
-vsll.vs v1,v2,x1                     # Performs a vector of 4*vl 8-bit shifts.
+vsll.vx v1,v2,x1                     # Performs a vector of 4*vl 8-bit shifts.
 ----
 
 ==== Vector Reduction Instructions under EDIV
