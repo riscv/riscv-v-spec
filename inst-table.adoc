@@ -127,15 +127,13 @@ OPIVI    I
 011110 VX  vwsubu.w   011110                011110 VF vfwsub.w
 011111 VX  vwsub.w    011111                011111
 100000 VXI vseq       100000    vmand       100000 VF vfeq
-100001 VXI vsne       100001    vmnand      100001
+100001 VXI vsne       100001    vmnand      100001 VF vfne
 100010 VX  vsltu      100010    vmandnot    100010 VF vflt
-100011 VX  vslt       100011    vmxor       100011
+100011 VX  vslt       100011    vmxor       100011 VF vfgte
 100100 VXI vsleu      100100    vmor        100100 VF vflte
 100101 VXI vsle       100101    vmnor       100101
-100110  XI vsgtu      100110    vmornot     100110
+100110  XI vsgtu      100110    vmornot     100110 VF vfgt
 100111  XI vsgt       100111    vmxnor      100111
-        X  vsgteu
-        X  vsgte
 101000 VX  vdivu      101000                101000 VF vfdiv
 101001 VX  vdiv       101001    vmsbf       101001  F vfrdiv
 101010 VX  vremu      101010    vmsof       101010 V  vfsqrt  (unary encoding)

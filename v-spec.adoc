@@ -2025,9 +2025,9 @@ If any destination element is saturated, the `vxsat` bit is set in the
 
 === Vector Integer Comparison Instructions
 
-The following integer compare instructions write `1` to the
+The following integer compare instructions write 1 to the
 destination mask register element if the comparison evaluates to true,
-and `0` otherwise.  The destination mask vector is always held in a
+and 0 otherwise.  The destination mask vector is always held in a
 single vector register, with a layout of elements as described in
 Section <<sec-mask-register-layout>>.
 
@@ -2069,31 +2069,34 @@ vsgtu.vi vd, vs2, imm, vm    # Vector-immediate
 vsgt.vx vd, vs2, rs1, vm    # Vector-scalar
 vsgt.vi vd, vs2, imm, vm    # Vector-immediate
 
+# Following two instructions are not provided directly
 # Set if greater than or equal, unsigned
-vsgteu.vx vd, vs2, rs1, vm    # Vector-scalar
-
+# vsgteu.vx vd, vs2, rs1, vm    # Vector-scalar
 # Set if greater than or equal, signed
-vsgte.vx vd, vs2, rs1, vm    # Vector-scalar
+# vsgte.vx vd, vs2, rs1, vm    # Vector-scalar
 ----
+
+The following table indicates how all comparisons are implemented in
+native machine code.
 
 [source]
 ----
-Comparison      Assembler Mapping
+Comparison      Assembler Mapping                                Assembler Pseudo-op
 
-va < vb         vslt{u}.vv vd, va, vb, vm
+va < vb         vslt{u}.vv vd, va, vb, vm                        
 va <= vb        vslte{u}.vv vd, va, vb, vm
-va > vb         vslt{u}.vv vd, vb, va, vm
-va >= vb        vslte{u}.vv vd, vb, va, vm
+va > vb         vslt{u}.vv vd, vb, va, vm                        vsgt{u}.vv vd, va, vb, vm
+va >= vb        vslte{u}.vv vd, vb, va, vm                       vsgte{u}.vv vd, va, vb, vm
 
 va < x          vslt{u}.vx vd, va, x, vm
 va <= x         vslte{u}.vx vd, va, x, vm
 va > x          vsgt{u}.vx vd, va, x, vm
-va >= x         vsgte{u}.vx vd, va, x, vm
+va >= x         see below
 
-va < i          vslte{u}.vi vd, va, i-1, vm
+va < i          vslte{u}.vi vd, va, i-1, vm                      vslt{u}.vi vd, va, i, vm
 va <= i         vslte{u}.vi vd, va, i, vm
 va > i          vsgt{u}.vi vd, va, i, vm
-va >= i         vsgt{u}.vi vd, va, i-1, vm
+va >= i         vsgt{u}.vi vd, va, i-1, vm                       vsgte{u}.vi vd, va, i, vm
 
 va, vb vector register groups
 x      scalar integer register
@@ -2117,7 +2120,54 @@ to allow a single comparison instruction to provide the correct
 polarity of mask value without using additional mask logical
 instructions.
 
-These comparisons can effectively AND in the mask, e.g,
+To reduce encoding space, the `vsgte{u}.vx` form is not directly
+provided, and so the `va >= x` case requires special treatment.
+
+NOTE: The `vsgte{u}.vx` could potentially be encoded in a
+non-orthogonal way under the unused OPIVI variant of `vslt{u}`.  These
+would be the only instructions in OPIVI that use a scalar `x`register
+however.  Alternatively, a further two funct6 encodings could be used,
+but these would have a different operand format (writes to mask
+register) than others in the same group of 8 funct6 encodings.  The
+current PoR is to omit these instructions and to synthesize where
+needed as described below.
+
+The `vsgte{u}.vx` operation can be synthesized by reducing the
+value of `x` by 1 and using the `vsgt{u}.vx` instruction, when it is
+known that this will not underflow the representation in `x`.
+
+[source]
+----
+Sequences to synthesize `vsgte{u}.vx` instruction
+
+va >= x,  x > minimum
+
+   addi t0, x, -1; vsgt{u}.vx vd, va, t0, vm
+----
+
+The above sequence will usually be the most efficient implementation,
+but assembler pseudo-op sequences can be provided for cases where the
+range of `x` is unknown.
+
+[source]
+----
+unmasked va >= x
+
+  pseudo-op: vsgte{u}.vx vd, va, x
+  expansion: vslt{u}.vx vd, va, x; vmnand.vv vd, vd, vd
+
+masked va >= x, vd != v0
+
+  pseudo-op: vsgte{u}.vx vd, va, x, v0.t
+  expansion: vslt{u}.vx vd, va, x, v0.t; vmxor.vv vd, vd, v0
+
+masked va >= x, vd == v0
+
+  pseudo-op: vsgte{u}.vx v0, va, x, v0.t
+  expansion: needs additional temp, so unsupported
+----
+
+Comparisons effectively AND in the mask, e.g,
 
 [source,asm]
 ----
@@ -2565,6 +2615,10 @@ floating-point compare instructions.
     vfeq.vv vd, vs2, vs1, vm   # Vector-vector
     vfeq.vf vd, vs2, rs1, vm   # vector-scalar
 
+    # Compare not equal
+    vfne.vv vd, vs2, vs1, vm   # Vector-vector
+    vfne.vf vd, vs2, rs1, vm   # vector-scalar
+
     # Compare less than
     vflt.vv vd, vs2, vs1, vm   # Vector-vector
     vflt.vf vd, vs2, rs1, vm   # vector-scalar
@@ -2572,9 +2626,34 @@ floating-point compare instructions.
     # Compare less than or equal
     vflte.vv vd, vs2, vs1, vm   # Vector-vector
     vflte.vf vd, vs2, rs1, vm   # vector-scalar
+
+    # Compare greater than
+    vfgt.vf vd, vs2, rs1, vm   # vector-scalar
+
+    # Compare greater than or equal
+    vfgte.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
-NOTE: Need to revisit support for unordered comparisons.
+[source]
+----
+Comparison      Assembler Mapping             Assembler Pseudo-op
+
+va < vb         vflt.vv vd, va, vb, vm     
+va <= vb        vflte.vv vd, va, vb, vm
+va > vb         vflt.vv vd, vb, va, vm     vfgt.vv vd, va, vb, vm
+va >= vb        vflte.vv vd, vb, va, vm    vfgte.vv vd, va, vb, vm
+
+va < f          vflt.vf vd, va, f, vm
+va <= f         vflte.vf vd, va, f, vm
+va > f          vfgt.vf vd, va, f, vm
+va >= f         vfgte.vf vd, va, f, vm
+
+va, vb vector register groups
+f      scalar floating-point register
+----
+
+NOTE: Providing all forms is necessary to correctly handle unordered
+comparisons for NaNs.
 
 === Vector Floating-Point Classify Instruction
 
