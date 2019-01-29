@@ -2069,14 +2069,48 @@ vsgtu.vi vd, vs2, imm, vm    # Vector-immediate
 vsgt.vx vd, vs2, rs1, vm    # Vector-scalar
 vsgt.vi vd, vs2, imm, vm    # Vector-immediate
 
+# Set if greater than or equal, unsigned
+vsgteu.vx vd, vs2, rs1, vm    # Vector-scalar
+
+# Set if greater than or equal, signed
+vsgte.vx vd, vs2, rs1, vm    # Vector-scalar
 ----
 
-NOTE: The immediate forms of slt{u} are not provided as the immediate
-value can be decreased by 1 and the sle{u} variants used instead.  The
-`vsle.vi` range is -16 to 15, resulting in an effective `vslt.vi`
-range of -15 to 16.  The `vsleu.vi` range is 0 to 15 (and ~0-15 to
-~0), giving an effective `vsltu.vi` range of 1 to 16 (`vsltu.vi` with
-immediate 0 is not useful as it is always false).
+[source]
+----
+Comparison      Assembler Mapping
+
+va < vb         vslt{u}.vv vd, va, vb, vm
+va <= vb        vslte{u}.vv vd, va, vb, vm
+va > vb         vslt{u}.vv vd, vb, va, vm
+va >= vb        vslte{u}.vv vd, vb, va, vm
+
+va < x          vslt{u}.vx vd, va, x, vm
+va <= x         vslte{u}.vx vd, va, x, vm
+va > x          vsgt{u}.vx vd, va, x, vm
+va >= x         vsgte{u}.vx vd, va, x, vm
+
+va < i          vslte{u}.vi vd, va, i-1, vm
+va <= i         vslte{u}.vi vd, va, i, vm
+va > i          vsgt{u}.vi vd, va, i, vm
+va >= i         vsgt{u}.vi vd, va, i-1, vm
+
+va, vb vector register groups
+x      scalar integer register
+i      immediate
+----
+
+NOTE: The immediate forms of `vslt{u}.vi` are not provided as the
+immediate value can be decreased by 1 and the `vsle{u}.vi` variants
+used instead.  The `vsle.vi` range is -16 to 15, resulting in an
+effective `vslt.vi` range of -15 to 16.  The `vsleu.vi` range is 0 to
+15 (and `(~0)-15` to `~0`), giving an effective `vsltu.vi` range of 1 to 16
+(Note, `vsltu.vi` with immediate 0 is not useful as it is always
+false). Similarly, `vsgte{u}.vi` is not provided and the comparison is
+implemented using `vsgt{u}.vi` with the immediate decremented by one.
+The resulting effective `vgte.vi` range is -15 to 16, and the
+resulting effective `vgteu.vi` range is 1 to 16 (Note, `vgteu.vi` with
+immediate 0 is not useful as it is always true).
 
 NOTE: The `vsgt` forms for register scalar and immediates are provided
 to allow a single comparison instruction to provide the correct
