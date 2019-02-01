@@ -15,6 +15,15 @@ Yunsup Lee, Guy Lemieux, Rich Newell, Albert Ou, David Patterson,
 Colin Schmidt, Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim
 Wilson.
 
+Known issues with current document.
+
+- additional fixed-point arithmetic support needs to be added.
+- encoding needs further cleaning/slight reorg, better formatting
+- figure out how best to get effect of vlmul?max
+- drop vins and add slide1up/slide1down to help debugger, reduce complexity? or move vins to OPCFG space
+- vector memory consistency model needs to be clarified
+- interaction with privileged architectures
+
 == Introduction
 
 This document describes the draft of the RISC-V base vector extension.
