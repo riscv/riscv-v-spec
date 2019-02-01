@@ -1030,18 +1030,14 @@ XLEN-1:9    Reserved (write 0)
  vlmul2   # Vlmul x2
  vlmul4   # Vlmul x4
  vlmul8   # Vlmul x8
+----
 
+////
  vlmul1max   # Vlmul x1 max
  vlmul2max   # Vlmul x2 max
  vlmul4max   # Vlmul x4 max
  vlmul8max   # Vlmul x8 max
-----
-
-NOTE: The immediate argument `vtypei` can be a compressed form of the
-full vtype setting, capturing the most common use cases.  For the base
-proposed here, it is assumed that at least four bits of immediate are
-available to write all standard values of `vtype` (`vsew[2:0]` and
-`vlmul[1:0]`).
+////
 
 The `vtype` setting must be supported by the implementation, and the
  `vsetvl{i}` instructions will raise an illegal instruction exception
@@ -1095,6 +1091,7 @@ This allows software to avoid needing to explicitly calculate a running
 maximum of vector lengths observed during a stripmined loop.
 --
 
+////
 === Rules for `vlmul`
 
 Due to the striping of elements across multiple vector registers,
@@ -1121,6 +1118,7 @@ Software sets `vlmulmax` according to how many register groups are
 used by the code.  Software must not use any vector register numbers
 that would be illegal if the largest value of `vlmulmax` is chosen for
 `vlmul`.
+////
 
 === `vsetvl` Instruction
 
@@ -1144,7 +1142,7 @@ throughput on mixed-width operations in a single loop.
 # Loop using only widest elements:
 
 loop:
-    vsetvli a3, a0, vsew32,vlmul8max   # Use only 32-bit elements
+    vsetvli a3, a0, vsew32,vlmul8   # Use only 32-bit elements
     vlh.v v8, (a1)          # Sign-extend 16b load values to 32b elements
       sll t1, a3, 1
       add a1, a1, t1        # Bump pointer
@@ -1179,6 +1177,7 @@ machines where 16b widening multiplies are faster than 32b integer
 multiplies, and where 16b vector load can run faster due to the
 narrower writes to the vector regfile.
 
+////
 NOTE: The `vlmul8max` version is used in the single-width loop to
 reduce LMUL for shorter application vector lengths.  The mixed-width
 loop has to use a fixed SEW=16/LMULMAX=4 and the SEW=32/LMULMAX=8
@@ -1190,6 +1189,7 @@ within the vector registers would not line up correctly.
 NOTE: It should be possible to specify a different form of vlmulmax
 that specifies the range of element widths to be used in overall loop
 to set LMUL correctly. TBD.
+////
 
 == Vector Loads and Stores
 
@@ -1394,64 +1394,6 @@ address of the vector memory access.
     vse.v     vs3, offset(rs1), vm  # SEW store
 ----
 
-[[sec-aos]]
-=== Vector Array-of-Structures Load/Store Instructions
-
-NOTE: This is being considered as a possible extension.
-
-These instructions move a packed contiguous array of structures into
-multiple destination vector registers.  The low three bits of `*umop`
-indicate the number of memory fields in a structure from 1-8. The
-width encoding gives the size of the memory fields, which must be
-homogeneous.
-
-NOTE: Array-of-structs memory instruction with structure size of 1 is
-identical to a unit-stride instruction with LMUL=1.
-
-NOTE: Software can further unpack fields within a structure into
-separate vector registers.
-
-The assembler prefix `vlaos`/`vsaos` is used for loads and stores
-respectively. 
-
-[source,asm]
-----
-    vlaos2b.v vd, offset(rs1), vm   # Load vector of 2*1-byte structure into destination vd, vd+1
-    vlaos3b.v vd, offset(rs1), vm   # Load vector of 3*1-byte structure into destination vd, vd+1
-    vlaos7w.v vd, offset(rs1), vm   # Load vector of 7*4-byte structure into destination vd, vd+1, ... vd+6
-    vlaos8e.v vd, offset(rs1), vm   # Load vector of 8*SEW-byte structure into destination vd, vd+1, .. vd+7
-
-    vsaos3b.v vs3, offset(rs1), vm
-----
-
-[source]
-----
-    # Example 1
-    # Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
-    vlaos3b.v v8, (a0), vm
-    # v8 holds the red pixels
-    # v9 holds the green pixels
-    # v10 holds the blue pixels
-
-    # Example 2
-    # Memory structure holds complex values, 32b for real and 32b for imaginary
-    vlaos2w.v v8, (a0), vm
-    # v8 holds real
-    # v9 holds imaginary
-----
-
-For loads, the `vd` register is the first register in the group to be
-loaded. For stores, the `vs3` register is the first register to be
-stored.
-
-LMUL is ignored and these instructions load each vector register as if
-LMUL=1.
-
-The `vl` register gives the number of structures to move, which is
-equal to the number of elements tranferred to each vector register.
-
-If a trap is taken, `vstart` is in units of structures.
-
 === Vector Strided Instructions
 
 [source,asm]
@@ -1568,6 +1510,66 @@ security.  It is possible that security mitigations can be
 implemented to allow first-fault variants of non-contiguous accesses
 in future vector extensions.
 
+[[sec-aos]]
+=== Vector Array-of-Structures Load/Store Instructions
+
+NOTE: This is being considered as a possible extension.
+
+These instructions move a packed contiguous array of structures into
+multiple destination vector registers.  The low three bits of `*umop`
+indicate the number of memory fields in a structure from 1-8. The
+width encoding gives the size of the memory fields, which must be
+homogeneous.
+
+NOTE: An array-of-structs memory instruction with structure size of 1
+is identical to a unit-stride instruction with LMUL=1.
+
+NOTE: Software can further unpack fields within a structure into
+separate vector registers.
+
+The assembler prefix `vlaos`/`vsaos` is used for loads and stores
+respectively. 
+
+[source,asm]
+----
+    vlaos2b.v vd, offset(rs1), vm   # Load vector of 2*1-byte structure into destination vd, vd+1
+    vlaos3b.v vd, offset(rs1), vm   # Load vector of 3*1-byte structure into destination vd, vd+1
+    vlaos7w.v vd, offset(rs1), vm   # Load vector of 7*4-byte structure into destination vd, vd+1, ... vd+6
+    vlaos8e.v vd, offset(rs1), vm   # Load vector of 8*SEW-byte structure into destination vd, vd+1, .. vd+7
+
+    vsaos3b.v vs3, offset(rs1), vm
+----
+
+[source]
+----
+    # Example 1
+    # Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
+    vlaos3b.v v8, (a0), vm
+    # v8 holds the red pixels
+    # v9 holds the green pixels
+    # v10 holds the blue pixels
+
+    # Example 2
+    # Memory structure holds complex values, 32b for real and 32b for imaginary
+    vlaos2w.v v8, (a0), vm
+    # v8 holds real
+    # v9 holds imaginary
+----
+
+For loads, the `vd` register is the first register in the group to be
+loaded. For stores, the `vs3` register is the first register to be
+stored.
+
+LMUL is ignored and these instructions load each vector register as if
+LMUL=1.
+
+The `vl` register gives the number of structures to move, which is
+equal to the number of elements tranferred to each vector register.
+
+If a trap is taken, `vstart` is in units of structures.
+
+There are also first-fault versions of these instructions.
+
 == Vector AMO Operations
 
 NOTE: Profiles will dictate whether vector AMO operations are
@@ -1582,13 +1584,10 @@ Vector AMO operations are encoded using the unused width encodings
 under the standard AMO major opcode.  Each active element performs an
 atomic read-modify-write of a single memory location.
 
+include::vamo-format.adoc[]
+
 [source]
 ----
-Format for Vector AMO Instructions
-31    27 26  25  24      20 19       15 14   12 11      7 6     0
- amoop  |wd| vm |   vs2    |    rs1    | width | vs3/vd  |0101111| VAMO*
-   5      1   1      5           5         3        5        7
-
 vs2[4:0] specifies v register holding address
 vs3/vd[4:0] specifies v register holding source operand and destination
 
@@ -3835,60 +3834,49 @@ interpreted as relative to the enclosing element only.  Index values
 NOTE: Implementations can provide fast implementations of register
 gathers constrained within a single element width.
 
-=== Vector Single-Width Integer Dot-Product Instructions
+=== Vector Integer Dot-Product Instruction
 
 The dot-product reduction `vdot.vv` performs an element-wise
-multiplication between the source vectors then accumulates the result
-into the destination vector register.  Note the assembler syntax uses
-a `.vv` suffix since both inputs are vectors of elements.
+multiplication between the source sub-elements then accumulates the
+result into the full-width destination vector element.  Note the
+assembler syntax uses a `.vv` suffix since both inputs are vectors of
+elements.
 
 [source]
 ----
-    # Dot product
-    vdot.vv  vd, vs2, vs1, vm   # vd[0] += sum_i( vs2[i] * vs1[i] )
+# Signed dot-product
+vdot.vv vd, vs2, vs1, vm   # Vector-vector
+
+# Unsigned dot-product
+vdotu.vv vd, vs2, vs1, vm  # Vector-vector
 ----
-
-=== Vector Widening Integer Dot-Product Instructions
-
-The `vwdotu.vv` instruction calculates an unsigned dot-product of
-the input vectors and stores the result in a double-width element 0 of
-the vector destination register.
-
-The dot-product instruction can perform an unordered summation, but
-the result must correspond to some sequential ordering of the
-individual add operations.
 
 [source]
 ----
-    # Unsigned dot product into double-width result
-    vwdotu.vv  vd, vs2, vs1, vm   # 2*SEW = sum_i(SEW[i]*SEW[i])
+  # Dot product, SEW=32, EDIV=1
+  vdot.vv  vd, vs2, vs1, vm   # vd[i][31:0] += vs2[i][31:0] * vs1[i][31:0]
 
-    # Signed dot product into double-width result
-    vwdot.vv  vd, vs2, vs1, vm   # 2*SEW = sum_i(SEW[i]*SEW[i])
+  # Dot product, SEW=32, EDIV=2
+  vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
+                                            + vs2[i][15:0] * vs1[i][15:0]
+
 ----
 
-The `vw4dotu.vv` and `vw4dot.vv` instructions uses a quad-width
-vector element for the accumulator value in the dot-product.
+=== Vector Floating-Point Dot Product Instruction
 
 [source]
 ----
-    # Unsigned dot product.
-    vw4dotu.vv  vd, vs2, vs1, vm   # 4*SEW += sum(SEW*SEW)
-
-    # Signed dot product.
-    vw4dot.vv  vd, vs2, vs1, vm   # 4*SEW += sum(SEW*SEW)
+# Signed dot-product
+vfdot.vv vd, vs2, vs1, vm   # Vector-vector
 ----
-
-=== Vector Floating-Point Dot Product
 
 [source]
 ----
-    # Dot product.
-    vfdot.v  vd, vs2, vs1, vm # vd[0] += sum_i(vs2[i] * vs1[i])
-
-    # Widening dot product.
-    vfwdot.v vd, vs2, vs1, vm  # 2*SEW += sum(SEW*SEW)
+  # Dot product. SEW=32, EDIV=2
+  vfdot.v  vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
+                                             + vs2[i][15:0] * vs1[i][15:0]
 ----
+
 == Vector Instruction Listing
 
 include::inst-table.adoc[]

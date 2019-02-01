@@ -1,0 +1,7 @@
+[source]
+----
+Format for Vector AMO Instructions under AMO major opcode
+31    27 26  25  24      20 19       15 14   12 11      7 6     0
+ amoop  |wd| vm |   vs2    |    rs1    | width | vs3/vd  |0101111| VAMO*
+   5      1   1      5           5         3        5        7
+----

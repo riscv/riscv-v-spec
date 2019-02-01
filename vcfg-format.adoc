@@ -1,0 +1,9 @@
+[source]                                                     
+----                                                         
+Formats for Vector Configuration Instructions                
+                                                             
+ 31 30         25 24      20 19      15 14   12 11      7 6     0
+ 0 |        zimm[10:0]      |    rs1   | 1 1 1 |    rd   |1010111| vsetvli
+ 1 |   000000    |   rs2    |    rs1   | 1 1 1 |    rd   |1010111| vsetvl
+ 1        6            5          5        3        5        7
+----
