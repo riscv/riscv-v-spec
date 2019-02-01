@@ -100,3 +100,34 @@ loop:
       bnez a0, loop
 ----
 
+=== SAXPY example
+
+[source]
+----
+# void
+# saxpy(size_t n, const float a, const float *x, float *y)
+# {
+#   size_t i;
+#   for (i=0; i<n; i++)
+#     y[i] = a * x[i] + y[i];
+# }
+#
+# register arguments:
+#     a0      n
+#     fa1     a
+#     a2      x
+#     a3      y
+
+saxpy:
+    setvli a4, a0, vsew32, vmul8
+    vlw.v v0, (a2)
+    sub a0, a0, a4
+    slli a4, a4, 2
+    add a2, a2, a4
+    vlw.v v8, (a3)
+    vfmacc.vf v8, v0, fa1
+    vsw.v v8, (a3)
+    add a3, a3, a4
+    bnez a0, saxpy
+    ret
+----

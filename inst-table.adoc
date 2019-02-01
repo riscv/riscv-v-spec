@@ -63,7 +63,7 @@
 |off[1:0]|011|vm|vs2|rs1|111 2+|vd|0000111|VLXE.V
 |off[1:0]|111|vm|vs2|rs1|000 2+|vd|0000111|VLXB.V
 |off[1:0]|111|vm|vs2|rs1|101 2+|vd|0000111|VLXH.V
-|off[1:0]|111|vm|vs2|rs1|110 2+|vd|0000111|VLXW.V
+|off[1:0]|111|vm|vs2|rs1|110 2+|vd|0000111|VLXW.V                    
 2+|vs3|vm|vs2|rs1|000|off[1:0]|011|0100111|VSXB.V
 2+|vs3|vm|vs2|rs1|101|off[1:0]|011|0100111|VSXH.V
 2+|vs3|vm|vs2|rs1|110|off[1:0]|011|0100111|VSXW.V
@@ -94,117 +94,114 @@ OPIVV  V              OPMVV  V              OPFVV  V
 OPIVX   X             OPMVX   X             OPFVF   F
 OPIVI    I
 
-000000 VXI vadd       000000                000000 VF vfadd
-000001 VX  vsub       000001                000001 VF vfsub
-000010 VXI vadc       000010                000010
-000011  XI vrsub      000011                000011
-000100 VX  vminu      000100                000100 VF vfmin
-000101 VX  vmin       000101                000101
-000110 VX  vmaxu      000110                000110 VF vfmax
-000111 VX  vmax       000111                000111
-001000 VXI vand       001000                001000 VF vfsgnj
-001001 VXI vor        001001                001001 VF vfsgnn
-001010 VXI vxor       001010                001010 VF vfsgnx
-001011                001011     vcompress  001011
-001100  XI vslideup   001100                001100 V  vfunary0 (unary encoding space)
-001101  XI vslidedown 001101                001101 V  vfunary1 (unary encoding space)
-001110 VXI vmerge     001110                001110  F vfmerge.vf
-001111 VXI vrgather   001111                001111
-010000 VXI vsrl       010000                010000    vfmv.f.v
-010001 VXI vsra       010001                010001    vfmv.v.f
+000000 VXI vadd       000000 V  vredsum     000000 VF vfadd
+000001 VX  vsub       000001 V  vredand     000001 VF vfsub
+000010                000010 V  vredor      000010 V  vfredsum
+000011  XI vrsub      000011 V  vredxor     000011 V  vfredosum
+000100 VX  vminu      000100 V  vredminu    000100 VF vfmin
+000101 VX  vmin       000101 V  vredmin     000101 V  vfredmin
+000110 VX  vmaxu      000110 V  vredmaxu    000110 VF vfmax
+000111 VX  vmax       000111 V  vredmax     000111 V  vfredmax
+001000                001000 V  vmandnot    001000 VF vfmul 
+001001 VXI vand       001001 V  vmand       001001
+001010 VXI vor        001010 V  vmor        001010 VF vfdiv 
+001011 VXI vxor       001011 V  vmxor       001011  F vfrdiv
+001100  XI vslideup   001100 V  vmornot     001100
+001101  XI vslidedown 001101 V  vmnand      001101
+001110                001110 V  vmnor       001110 V  VFUNARY0
+001111 VXI vrgather   001111 V  vmxnor      001111 V  VFUNARY1
+
+010000 VXI vsrl       010000 V  vmpopc      010000
+010001 VXI vsra       010001 V  vmfirst     010001           
 010010 VXI vsll       010010                010010
-010011                010011                010011
-010100 VXI vnsrl      010100                010100
-010101 VXI vnsra      010101                010101
-010110 VXI vnclipu    010110                010110
-010111 VXI vnclip     010111                010111
-011000 VX  vwaddu     011000                011000 VF vfwadd
-011001 VX  vwadd      011001                011001
+010011 VXI vmerge     010011 V  vcompress   010011  F vfmerge.vf
+010100 VXI vnsrl      010100                010100 VF vfsgnj
+010101 VXI vnsra      010101                010101 VF vfsgnn
+010110 VXI vnclipu    010110                010110 VF vfsgnx
+010111 VXI vnclip     010111                010111        
+011000 VX  vwaddu     011000 V  vwredsumu   011000 VF vfwadd
+011001 VX  vwadd      011001 V  vwredsum    011001 V  vfwredsum
 011010 VX  vwsubu     011010                011010 VF vfwsub
-011011 VX  vwsub      011011                011011
+011011 VX  vwsub      011011                011011 V  vfwredosum
 011100 VX  vwaddu.w   011100                011100 VF vfwadd.w
 011101 VX  vwadd.w    011101                011101
 011110 VX  vwsubu.w   011110                011110 VF vfwsub.w
 011111 VX  vwsub.w    011111                011111
-100000 VXI vseq       100000    vmand       100000 VF vfeq
-100001 VXI vsne       100001    vmnand      100001 VF vfne
-100010 VX  vsltu      100010    vmandnot    100010 VF vflt
-100011 VX  vslt       100011    vmxor       100011 VF vfgte
-100100 VXI vsleu      100100    vmor        100100 VF vflte
-100101 VXI vsle       100101    vmnor       100101
-100110  XI vsgtu      100110    vmornot     100110 VF vfgt
-100111  XI vsgt       100111    vmxnor      100111
-101000 VX  vdivu      101000                101000 VF vfdiv
-101001 VX  vdiv       101001    vmsbf       101001  F vfrdiv
-101010 VX  vremu      101010    vmsof       101010
-101011 VX  vrem       101011    vmsif       101011
-101100 VX  vmulhu     101100    vmiota      101100 VF vfmul
-101101 VX  vmul       101101    vid         101101
-101110 VX  vmulhsu    101110    vmpopc      101110
-101111 VX  vmulh      101111    vmfirst     101111
-110000                110000    vredsum     110000 VF vfmadd
-110001 VX  vmadd      110001    vredmax     110001 VF vfnmadd
-110010                110010    vredmaxu    110010 VF vfmsub
-110011 VX  vmsub      110011    vredmin     110011 VF vfnmsub
-110100                110100    vredminu    110100 VF vfmacc
-110101 VX  vmacc      110101    vredand     110101 VF vfnmacc
-110110                110110    vredor      110110 VF vfmsac
-110111 VX  vmsac      110111    vredxor     110111 VF vfnmsac
-111000 VX  vwmulu     111000    vins.v.x    111000 VF vfwmul
-111001                111001    vext.x.v    111001
-111010 VX  vwmulsu    111010    vmv.v.x     111010
-111011 VX  vwmul      111011    vmv.x.v     111011
-111100 VX  vwmaccu    111100    vwredsum    111100 VF vfwmacc
-111101 VX  vwmacc     111101    vreddot     111101 VF vfwnmacc
-111110 VX  vwmsacu    111110    vwreddot    111110 VF vfwmsac
-111111 VX  vwmsac     111111    vw4reddot   111111 VF vfwnmsac
 
-vfunary0 encoding space
+100000 VXI vseq       100000 V VMUNARY0     100000 VF vfeq
+100001 VXI vsne       100001                100001 VF vflte
+100010 VX  vsltu      100010                100010 VF vford
+100011 VX  vslt       100011                100011 VF vflt
+100100 VXI vsleu      100100                100100 VF vfne
+100101 VXI vsle       100101                100101  F vfgt
+100110  XI vsgtu      100110                100110
+100111  XI vsgt       100111                100111  F vfgte
+101000 VXI vadc       101000  X vext.x.v    101000 V  vfdot
+101001 VXI vsbc       101001  X vins.v.x    101001
+101010                101010 V   vmv.x.s    101010 V  vfmv.f.s
+101011                101011  X  vmv.s.x    101011  F vfmv.s.f          
+101100 VX  vmulhu     101100                101100                 
+101101 VX  vmul       101101                101101
+101110 VX  vmulhsu    101110                101110                          
+101111 VX  vmulh      101111                101111
+
+110000                110000 VX vdivu       110000 VF vfmadd
+110001 VX  vmadd      110001 VX vdiv        110001 VF vfnmadd
+110010                110010 VX vremu       110010 VF vfmsub
+110011 VX  vmsub      110011 VX vrem        110011 VF vfnmsub
+110100                110100                110100 VF vfmacc
+110101 VX  vmacc      110101 V  vdot        110101 VF vfnmacc
+110110                110110                110110 VF vfmsac
+110111 VX  vmsac      110111                110111 VF vfnmsac
+111000 VX  vwmulu     111000                111000 VF vfwmul
+111001                111001                111001
+111010 VX  vwmulsu    111010                111010
+111011 VX  vwmul      111011                111011 V  vfwdot
+111100 VX  vwmaccu    111100 V  vwdotu      111100 VF vfwmacc
+111101 VX  vwmacc     111101 V  vwdot       111101 VF vfwnmacc
+111110 VX  vwmsacu    111110 V  vw4dotu     111110 VF vfwmsac
+111111 VX  vwmsac     111111 V  vw4dot      111111 VF vfwnmsac
+
+VFUNARY0 encoding space
  rs1
+ single-width converts
 00000 vfcvt.xu.f.v
 00001 vfcvt.x.f.v
 00010 vfcvt.f.xu.v
 00011 vfcvt.f.x.v
 
+ widening converts
 01000 vfwcvt.xu.f.v
 01001 vfwcvt.x.f.v
 01010 vfwcvt.f.xu.v
 01011 vfwcvt.f.x.v
 01100 vfwcvt.f.f.v
 
+ narrowing converts
 10000 vfncvt.xu.f.v
 10001 vfncvt.x.f.v
 10010 vfncvt.f.xu.v
 10011 vfncvt.f.x.v
 10100 vfncvt.f.f.v
 
-vfunary1 encoding space
- rs1   
+VFUNARY1 encoding space
+ rs1
 00000 vfsqrt.v
-00001 vfclass.v
+10000 vfclass.v
+
+VMUNARY0 encoding space
+ rs1
+00001 vmsbf
+00010 vmsof
+00011 vmsif
+10000 vmiota
+10001 vid   
+
 
 
 X  vsgteu
   X  vsgte
 
-
-vfredosum
-vfredsum
-vfredmax
-vfredmin
-vfwredosum
-vfwredsum
-vfreddot
-vfwreddot
-
-vfmadd
-vfnmadd
-vfmsub
-vfnmsub
-vfmacc
-vfnmacc
-vfmsac
-vfnmsac
 
 vx4muladd
 vx4mulsub
