@@ -787,41 +787,13 @@ floating-point load/store 12-bit immediate field to provide further
 vector instruction encoding, with bit 25 holding the standard vector
 mask bit (see <<sec-vector-mask-encoding>>).
 
-[source]
-----
-Format for Vector Load Instructions under LOAD-FP major opcode
-31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
- off | mop | vm |  lumop   |    rs1    | width |    vd   |0000111| VL*  unit-stride
- off | mop | vm |   rs2    |    rs1    | width |    vd   |0000111| VLS* strided
- off | mop | vm |   vs2    |    rs1    | width |    vd   |0000111| VLX* indexed
-  3     3     1      5           5         3         5       7
+include::vmem-format.adoc[]
 
-Format for Vector Store Instructions under STORE-FP major opcode
-31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
- off | mop | vm |  sumop   |    rs1    | width |   vs3   |0100111| VS*  unit-stride
- off | mop | vm |   rs2    |    rs1    | width |   vs3   |0100111| VSS* strided
- off | mop | vm |   vs2    |    rs1    | width |   vs3   |0100111| VSX* indexed
-  3     3     1      5           5         3         5        7
+include::vamo-format.adoc[]
 
-Format for Vector AMO Instructions under AMO major opcode
-31    27 26  25  24      20 19       15 14   12 11      7 6     0
- amoop  |wd| vm |   vs2    |    rs1    | width | vs3/vd  |0101111| VAMO*
-   5      1   1      5           5         3        5        7
+include::valu-format.adoc[]
 
-Format for Vector Arithmetic Instructions under OP-V major opcode
-
-31       26  25   24      20 19      15 14   12 11      7 6     0
-  funct6   | vm  |   vs2    |    vs1   | 0 0 0 |    vd   |1010111| OP-V (OPIVV)
-  funct6   | vm  |   vs2    |    vs1   | 0 0 1 |    vd   |1010111| OP-V (OPFVV)
-  funct6   | vm  |   vs2    |    vs1   | 0 1 0 |  vd/rd  |1010111| OP-V (OPMVV)
-  funct6   | vm  |   vs2    |   simm5  | 0 1 1 |    vd   |1010111| OP-V (OPIVI)
-  funct6   | vm  |   vs2    |    rs1   | 1 0 0 |    vd   |1010111| OP-V (OPIVX)
-  funct6   | vm  |   vs2    |    rs1   | 1 0 1 |    vd   |1010111| OP-V (OPFVF)
-  funct6   | vm  |   vs2    |    rs1   | 1 1 0 |  vd/rd  |1010111| OP-V (OPMVX)
-   imm6    |  0  |   imm5   |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFI)
-  000000   |  1  |   rs2    |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFR)
-     6        1        5          5        3        5        7
-----
+include::vcfg-format.adoc[]
 
 Vector instructions can have scalar or vector source operands and
 produce scalar or vector results, and most vector instructions can be
@@ -1032,25 +1004,17 @@ arguments, and writes the new value of `vl` into `rd`.
 The new `vtype` setting is encoded in the immediate fields of
 `vsetvli` and in the `rs2` register for `vsetvl`.
 
-[source]
-----
-31 30          25   24      20 19      15 14   12 11      7 6     0
- 0|            zimm[11:0]     |    rs1   | 1 1 1 |    rd   |1010111| vsetvli
- 1|   000000       |   rs2    |    rs1   | 1 1 1 |    rd   |1010111| vsetvl
- 1      6       5          5        3        5        7
-----
+include::vcfg-format.adoc[]
 
 [source]
 ----
-
-
+    vtype register format
+    
     bits    contents
 XLEN-1:9    Reserved (write 0)
      8:2    vsew[5:0]
      1:0    vlmul[1:0]
 ----
-
-
 
 [source]
 ----
@@ -1244,22 +1208,10 @@ floating-point load/store 12-bit immediate field to provide further
 vector instruction encoding, with bit 25 holding the standard vector
 mask bit (see <<sec-vector-mask-encoding>>).
 
+include::vmem-format.adoc[]
+
 [source]
 ----
-Format for Vector Load Instructions under LOAD-FP major opcode
-31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
- off | mop | vm |  lumop   |    rs1    | width |    vd   |0000111| VL*  unit-stride
- off | mop | vm |   rs2    |    rs1    | width |    vd   |0000111| VLS* strided
- off | mop | vm |   vs2    |    rs1    | width |    vd   |0000111| VLX* indexed
-  3     3     1      5           5         3         5       7
-
-Format for Vector Store Instructions under STORE-FP major opcode
-31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
- off | mop | vm |  sumop   |    rs1    | width |   vs3   |0100111| VS*  unit-stride
- off | mop | vm |   rs2    |    rs1    | width |   vs3   |0100111| VSS* strided
- off | mop | vm |   vs2    |    rs1    | width |   vs3   |0100111| VSX* indexed
-  3     3     1      5           5         3         5        7
-
 rs1[4:0] specifies x register holding base address
 rs2[4:0] specifies x register holding stride
 vs2[4:0] specifies v register holding address offsets
@@ -1350,20 +1302,18 @@ instruction encodings respectively.
 ----
 lumop[4:0]
    00000  unit-stride
+   00sss  array-of-structures sss=(fields-1)
    10000  unit-stride first-fault
+   10sss  array-of-structure first-fault sss=(fields-1)
    yxxxx  reserved, xxxx!=0
 
 sumop[4:0]
    00000  unit-stride
+   00sss  array-of-structures sss=(fields-1)
    xxxxx  reserved, xxxxx!=0
 ----
 
-NOTE: A further possible unit-stride vector addressing mode would
-transfer array-of-structures formats in memory into multiple
-destination vector registers.  This would use the low three bits of
-`*umop` to indicate the number of memory fields in a structure from
-1-8.  Different fields in the structure would be held in different
-vector registers.
+The array-of-structures addressing mode is described below. [[ sec-aos ]]
 
 === Vector Load/Store Width Encoding
 
@@ -1443,6 +1393,64 @@ address of the vector memory access.
     vsw.v     vs3, offset(rs1), vm  # 32b store
     vse.v     vs3, offset(rs1), vm  # SEW store
 ----
+
+[[sec-aos]]
+=== Vector Array-of-Structures Load/Store Instructions
+
+NOTE: This is being considered as a possible extension.
+
+These instructions move a packed contiguous array of structures into
+multiple destination vector registers.  The low three bits of `*umop`
+indicate the number of memory fields in a structure from 1-8. The
+width encoding gives the size of the memory fields, which must be
+homogeneous.
+
+NOTE: Array-of-structs memory instruction with structure size of 1 is
+identical to a unit-stride instruction with LMUL=1.
+
+NOTE: Software can further unpack fields within a structure into
+separate vector registers.
+
+The assembler prefix `vlaos`/`vsaos` is used for loads and stores
+respectively. 
+
+[source,asm]
+----
+    vlaos2b.v vd, offset(rs1), vm   # Load vector of 2*1-byte structure into destination vd, vd+1
+    vlaos3b.v vd, offset(rs1), vm   # Load vector of 3*1-byte structure into destination vd, vd+1
+    vlaos7w.v vd, offset(rs1), vm   # Load vector of 7*4-byte structure into destination vd, vd+1, ... vd+6
+    vlaos8e.v vd, offset(rs1), vm   # Load vector of 8*SEW-byte structure into destination vd, vd+1, .. vd+7
+
+    vsaos3b.v vs3, offset(rs1), vm
+----
+
+[source]
+----
+    # Example 1
+    # Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
+    vlaos3b.v v8, (a0), vm
+    # v8 holds the red pixels
+    # v9 holds the green pixels
+    # v10 holds the blue pixels
+
+    # Example 2
+    # Memory structure holds complex values, 32b for real and 32b for imaginary
+    vlaos2w.v v8, (a0), vm
+    # v8 holds real
+    # v9 holds imaginary
+----
+
+For loads, the `vd` register is the first register in the group to be
+loaded. For stores, the `vs3` register is the first register to be
+stored.
+
+LMUL is ignored and these instructions load each vector register as if
+LMUL=1.
+
+The `vl` register gives the number of structures to move, which is
+equal to the number of elements tranferred to each vector register.
+
+If a trap is taken, `vstart` is in units of structures.
 
 === Vector Strided Instructions
 
@@ -1693,22 +1701,7 @@ The vector arithmetic instructions use a new major opcode (OP-V =
 1010111~2~) which neighbors OP-FP.  The three-bit `funct3` field is
 used to define sub-categories of vector instructions.
 
-[source]
-----
-Formats for Vector Arithmetic Instructions under OP-V major opcode
-
-31       26  25   24      20 19      15 14   12 11      7 6     0
-  funct6   | vm  |   vs2    |    vs1   | 0 0 0 |    vd   |1010111| OP-V (OPIVV)
-  funct6   | vm  |   vs2    |    vs1   | 0 0 1 |    vd   |1010111| OP-V (OPFVV)
-  funct6   | vm  |   vs2    |    vs1   | 0 1 0 |  vd/rd  |1010111| OP-V (OPMVV)
-  funct6   | vm  |   vs2    |   simm5  | 0 1 1 |    vd   |1010111| OP-V (OPIVI)
-  funct6   | vm  |   vs2    |    rs1   | 1 0 0 |    vd   |1010111| OP-V (OPIVX)
-  funct6   | vm  |   vs2    |    rs1   | 1 0 1 |    vd   |1010111| OP-V (OPFVF)
-  funct6   | vm  |   vs2    |    rs1   | 1 1 0 |  vd/rd  |1010111| OP-V (OPMVX)
-  0|        zimm[10:0]      |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFI)
-  1  00000    0  |   rs2    |    rs1   | 1 1 1 |    rd   |1010111| OP-V (OPCFR)
-     6        1        5          5        3        5        7
-----
+include::valu-format.adoc[]
 
 === Vector Arithmetic Instruction encoding
 
