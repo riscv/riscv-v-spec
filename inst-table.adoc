@@ -51,9 +51,9 @@ funct6                funct6                funct6
 100101 VXI vsle       100101                100101  F vfgt
 100110  XI vsgtu      100110                100110
 100111  XI vsgt       100111                100111  F vfgte
-101000 VXI vadc       101000  X vext.x.v    101000
-101001 VXI vsbc       101001  X vins.v.x    101001
-101010                101010 V   vmv.x.s    101010 V  vfmv.f.s
+101000 VXI vadc       101000                101000
+101001 VXI vsbc       101001                101001
+101010                101010 V   vext.x.s   101010 V  vfmv.f.s
 101011                101011  X  vmv.s.x    101011  F vfmv.s.f          
 101100                101100                101100                 
 101101                101101                101101

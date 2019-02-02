@@ -1829,7 +1829,7 @@ vwop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 
 # Double-width result, first source double-width, second source single-width: 2*SEW = 2*SEW op SEW
 vwop.wv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
-vwop.ws  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
+vwop.wx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 
 # Quad-width result/third source, two single-width sources: 4*SEW = SEW op SEW
 # Mainly used for 4*SEW += SEW * SEW integer widening multiply-adds and reductions
@@ -1913,15 +1913,15 @@ vwsub.vx  vd, vs2, rs1, vm  # vector-scalar
 
 # Widening unsigned integer add/subtract, 2*SEW = 2*SEW +/- SEW
 vwaddu.wv  vd, vs2, vs1, vm  # vector-vector
-vwaddu.ws  vd, vs2, rs1, vm  # vector-scalar
+vwaddu.wx  vd, vs2, rs1, vm  # vector-scalar
 vwsubu.wv  vd, vs2, vs1, vm  # vector-vector
-vwsubu.ws  vd, vs2, rs1, vm  # vector-scalar
+vwsubu.wx  vd, vs2, rs1, vm  # vector-scalar
 
 # Widening signed integer add/subtract, 2*SEW = 2*SEW +/- SEW
 vwadd.wv  vd, vs2, vs1, vm  # vector-vector
-vwadd.ws  vd, vs2, rs1, vm  # vector-scalar
+vwadd.wx  vd, vs2, rs1, vm  # vector-scalar
 vwsub.wv  vd, vs2, vs1, vm  # vector-vector
-vwsub.ws  vd, vs2, rs1, vm  # vector-scalar
+vwsub.wx  vd, vs2, rs1, vm  # vector-scalar
 ----
 
 NOTE: An integer value can be doubled in width using the widening add
@@ -2435,7 +2435,7 @@ vector register file accesses from the first vector operand.
 ----
 # Unmasked  operations, where vm=1
 vmerge.vv vd, v0, vs1  # vd[i] = vs1[i], psuedo-op vmv.v.v vd, vs1
-vmerge.vx vd, v0, rs1  # vd[i] = x[rs1], pseudo-op vmv.v.s vd, rs1
+vmerge.vx vd, v0, rs1  # vd[i] = x[rs1], pseudo-op vmv.v.x vd, rs1
 vmerge.vi vd, v0, imm  # vd[i] = imm,    pseudo-op vmv.v.i vd, imm
 ----
 
@@ -2445,7 +2445,7 @@ register group to another.  This is given a vector pseudo-instruction
 
 An unmasked `vmerge.vx` instruction can be used to __splat__ a scalar
 `x` register value into all active elements of a vector. This is given
-a vector pseudo-instruction `vmv.v.s vd, rs1`, which expands to `vmerge.vx
+a vector pseudo-instruction `vmv.v.x vd, rs1`, which expands to `vmerge.vx
 vd, v0, rs1`.
 
 An unmasked `vmerge.vi` instruction can be used to initialize a vector
@@ -2509,9 +2509,9 @@ vfwsub.vf vd, vs2, rs1, vm  # vector-scalar
 
 # Widening FP add/subtract, 2*SEW = 2*SEW +/- SEW
 vfwadd.wv  vd, vs2, vs1, vm  # vector-vector
-vfwadd.ws  vd, vs2, rs1, vm  # vector-scalar
+vfwadd.wf  vd, vs2, rs1, vm  # vector-scalar
 vfwsub.wv  vd, vs2, vs1, vm  # vector-vector
-vfwsub.ws  vd, vs2, rs1, vm  # vector-scalar
+vfwsub.wf  vd, vs2, rs1, vm  # vector-scalar
 ----
 
 === Vector Single-Width Floating-Point Multiply/Divide Instructions
@@ -3332,28 +3332,20 @@ same datapath as `vmiota.v` but with an implicit set mask source.
 A range of permutation instructions are provided to move elements
 around within the vector registers.
 
-=== Integer Bit Insert/Extract
+=== Integer Extract Instruction
 
-The first form of insert/extract operations transfer a single value
-between a GPR and one element of a vector register.  These
-instructions ignore LMUL and vector register groups.
+The integer extract operation transfers a single value between one
+element of a vector register and a GPR.  This instruction ignores
+LMUL and vector register groups.
 
 [source]
 ----
-vins.v.x vd, rs1, rs2  # vd[rs1] = rs2
 vext.x.v rd, vs2, rs1  # rd = vs2[rs1]
 ----
 
 The GPR `rs1` register gives the element index, treated as an unsigned
-integer.  If the index is out of range for a vector insert, the write
-is ignored.  If the index is out of range on a vector extract (i.e.,
->= VLEN/SEW), then zero is returned for the element value.
-
-The vector insert operation, `vins.v.x` writes one SEW-width element
-with the contents of an `x` register.  If XLEN > SEW, the
-least-significant bits are transferred and the upper XLEN-SEW bits are
-ignored.  If XLEN < SEW, the value is zero-extended to SEW bits.  The
-other bits in the vector register are unchanged.
+integer.  If the index is out of range (i.e., >= VLEN/SEW), then zero
+is returned for the element value.
 
 The vector extract operation, `vext.x.v` reads one SEW-width element
 from a vector register group at the element index and writes it to GPR
@@ -3361,27 +3353,18 @@ destination register rd.  If SEW > XLEN, the least-significant bits
 are copied to the destination and the upper SEW-XLEN bits are ignored.
 If SEW < XLEN, the value is zero-extended to XLEN.
 
-NOTE: These instructions are primarily provided to help with debugger
-access to vector registers using the program buffer approach.  The
-debugger can save `vtype` then change SEW to access all portions of
-elements when SEW > XLEN.
+An assembler pseudo-instruction `vmv.x.s rd, vs2` expanding to
+`vext.x.v rd, vs2, x0` is provided as clearer complement to the
+`vmv.s.x` instruction below.
 
-NOTE: Applications programmers should avoid these instructions as they
-are difficult to implement in advanced pipelines and so are unlikely
-to run quickly across a range of implementations.  Being able to
-dynamically index any element of any vector register complicates
-hazard detection and chaining.  Writing a single element while leaving
-remaining elements unchanged can be expected to be slow on a machine
-with vector register renaming.
+=== Integer Scalar Move Instruction
 
-=== Integer Scalar Move Instructions
-
-The integer scalar read/write instructions transfer a single value
-between a scalar `x` register and element 0 of a vector register.  The
+The integer scalar move instruction transfers a single value
+from a scalar `x` register to element 0 of a vector register.  The
 instructions ignore LMUL and vector register groups.
 
-NOTE: In the base vector extension, these instructions can be used to
-initialize and access the input and output of reduction instructions.
+NOTE: In the base vector extension, this instructions can be used to
+initialize the input of a reduction instruction.
 
 NOTE: Using scalar move instructions to access element 0 of other than
 the base register in a vector register group can expose differences in
@@ -3390,17 +3373,8 @@ implementations.
 
 [source]
 ----
-vmv.x.s rd, vs2  # rd = vs2[0], vext.x.v rd, vs2, x0
 vmv.s.x vd, rs2  # vd[0] = rs2, vins.v.x vd, x0, rs2
 ----
-
-NOTE: `vmv` uses same encoding as `vins/vext` but with `rs1` = `x0`.
-
-The `vmv.x.s` instruction copies a single SEW-wide element from index
-0 of the source vector register to a destination scalar integer
-register.  If SEW > XLEN, the least-significant XLEN bits are
-transferred and the upper SEW-XLEN bits are ignored.  If SEW < XLEN,
-the value is zero-extended to XLEN bits.
 
 The `vmv.s.x` instruction copies the scalar integer register to
 element 0 of the destination vector register.  If SEW < XLEN, the
@@ -3412,6 +3386,16 @@ VLEN/SEW) are zeroed.
 NOTE: Restricting the `vmv.s.x` to only write element 0 and to zero
 remaining elements significantly reduces implementation cost for
 renamed registers.
+
+NOTE: The complementary `vins.v.x` instruction, which allow a write to
+any element in a vector register, has been removed.  This instruction
+would be the only instruction (apart from `vsetvl`) that requires two
+integer source operands, and also would be slow to execute in an
+implementation with vector register renaming, relegating its main use
+to debugger modifications to state.  The alternative and more
+generally useful `vslide1up` and `vslide1down` instructions can be
+used to update vector register state in place over a debug link
+without accessing memory.
 
 === Floating-Point Scalar Move Instructions
 
