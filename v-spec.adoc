@@ -3387,14 +3387,14 @@ NOTE: Restricting the `vmv.s.x` to only write element 0 and to zero
 remaining elements significantly reduces implementation cost for
 renamed registers.
 
-NOTE: The complementary `vins.v.x` instruction, which allow a write to
-any element in a vector register, has been removed.  This instruction
-would be the only instruction (apart from `vsetvl`) that requires two
-integer source operands, and also would be slow to execute in an
-implementation with vector register renaming, relegating its main use
-to debugger modifications to state.  The alternative and more
-generally useful `vslide1up` and `vslide1down` instructions can be
-used to update vector register state in place over a debug link
+NOTE: The complementary `vins.v.x` instruction, which allows a write
+to any element in a vector register, has been removed.  This
+instruction would be the only instruction (apart from `vsetvl`) that
+requires two integer source operands, and also would be slow to
+execute in an implementation with vector register renaming, relegating
+its main use to debugger modifications to state.  The alternative and
+more generally useful `vslide1up` and `vslide1down` instructions can
+be used to update vector register state in place over a debug link
 without accessing memory.
 
 === Floating-Point Scalar Move Instructions
@@ -3438,8 +3438,8 @@ group.
  vslideup.vi vd, vs2, uimm[4:0], vm  # vd[i+imm] = vs2[i]
 ----
 
-For `vslideup`, the value in `vl` specifies the number of source
-elements that are read.  The start index (_OFFSET_) for the
+For `vslideup`, the value in `vl` specifies the number of destination
+elements that are written.  The start index (_OFFSET_) for the
 destination can be either specified using an unsigned integer in the
 `x` register specified by `rs1`, or a 5-bit immediate treated as an
 unsigned 5-bit quantity.
@@ -3450,9 +3450,10 @@ unsigned 5-bit quantity.
 
    OFFSET is amount to slideup, either from x register or a 5-bit immediate
 
-                    0 <  i < max(vstart, OFFSET)        Unchanged
-  max(vstart, OFFSET) <= i < min(OFFSET + vl, VLMAX)    vd[i] = vs2[i-OFFSET] if mask enabled, unchanged if not
-          OFFSET + vl <= i < VLMAX                      Zeroed, vd[i] = 0
+                    0 <  i < max(vstart, OFFSET)  Unchanged
+  max(vstart, OFFSET) <= i < vl                   vd[i] = vs2[i-OFFSET] if mask enabled,
+                                                   unchanged if not
+                   vl <= i < VLMAX                Tail elements, vd[i] = 0
 ----
 
 The destination vector register group for `vslideup` cannot overlap
