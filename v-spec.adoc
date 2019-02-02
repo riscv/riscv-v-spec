@@ -20,7 +20,6 @@ Known issues with current document.
 - additional fixed-point arithmetic support needs to be added.
 - encoding needs further cleaning/slight reorg, better formatting
 - figure out how best to get effect of vlmul?max
-- drop vins and add slide1up/slide1down to help debugger, reduce complexity? or move vins to OPCFG space
 - vector memory consistency model needs to be clarified
 - interaction with privileged architectures
 
@@ -1263,10 +1262,10 @@ are wider than XLEN, the least-significant XLEN bits are used in the
 address calculation.
 
 NOTE: Current PoR requires that vector byte offset and vector
-read/write data are of same width.  One question is how to allow for
-two sizes of vector operand in a vector indexed instruction?  E.g.,
-for scatter/gather of byte values in a 64-bit address space without
-requiring bytes use 64b of space in a vector register.
+read/write data are of same width.  One question is whether and how to
+allow for two sizes of vector operand in a vector indexed instruction?
+For example, for scatter/gather of byte values in a 64-bit address
+space without requiring bytes use 64b of space in a vector register.
 
 The vector addressing modes are encoded using the 3-bit `mop[2:0]`
 field.
@@ -1274,14 +1273,14 @@ field.
 [source]
 ----
 mop [2:0] encoding for loads
-   0 0 0  zero-extended unit-stride         VLxU
+   0 0 0  zero-extended unit-stride         VLxU,VLE
    0 0 1  reserved
-   0 1 0  zero-extended strided             VLSxU
-   0 1 1  zero-extended indexed             VLXxU
-   1 0 0  sign-extended unit-stride         VLx
+   0 1 0  zero-extended strided             VLSxU, VLSE
+   0 1 1  zero-extended indexed             VLXxU, VLXE
+   1 0 0  sign-extended unit-stride         VLx  (x!=E)
    1 0 1  reserved
-   1 1 0  sign-extended strided             VLSx
-   1 1 1  sign-extended indexed             VLXx
+   1 1 0  sign-extended strided             VLSx (x!=E)
+   1 1 1  sign-extended indexed             VLXx (x!=E)
 
 mop [2:0] encoding for stores
    0 0 0  unit-stride                       VSx
@@ -3431,6 +3430,12 @@ the destination vector register ( 0 < index < VLEN/SEW) are zeroed.
 
 The slide instructions move elements up and down a vector register
 group.
+
+[source]
+----
+ vslide1up.vx vd, vs2, rs1, vm        # vd[0]=x[rs1], vd[i+1] = vs2[i]
+ vslide1down.vx vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
+----
 
 [source]
 ----
