@@ -4,7 +4,7 @@
 Integer               Integer               FP
 
 funct3                funct3                funct3
-OPIVV  V              OPMVV  V              OPFVV  V     
+OPIVV  V              OPMVV  V              OPFVV  V
 OPIVX   X             OPMVX   X             OPFVF   F
 OPIVI    I
 
@@ -17,9 +17,9 @@ funct6                funct6                funct6
 000101 VX  vmin       000101 V  vredmin     000101 V  vfredmin
 000110 VX  vmaxu      000110 V  vredmaxu    000110 VF vfmax
 000111 VX  vmax       000111 V  vredmax     000111 V  vfredmax
-001000                001000 V  vmandnot    001000 VF vfmul 
+001000                001000 V  vmandnot    001000 VF vfmul
 001001 VXI vand       001001 V  vmand       001001
-001010 VXI vor        001010 V  vmor        001010 VF vfdiv 
+001010 VXI vor        001010 V  vmor        001010 VF vfdiv
 001011 VXI vxor       001011 V  vmxor       001011  F vfrdiv
 001100                001100 V  vmornot     001100
 001101                001101 V  vmnand      001101
@@ -27,13 +27,13 @@ funct6                funct6                funct6
 001111                001111 V  vmxnor      001111 V  VFUNARY1
 
 010000 VXI vsrl       010000 V  vmpopc      010000
-010001 VXI vsra       010001 V  vmfirst     010001           
+010001 VXI vsra       010001 V  vmfirst     010001
 010010 VXI vsll       010010                010010
 010011 VXI vmerge     010011 V  vcompress   010011  F vfmerge.vf
 010100 VXI vnsrl      010100                010100 VF vfsgnj
 010101 VXI vnsra      010101                010101 VF vfsgnn
 010110 VXI vnclipu    010110                010110 VF vfsgnx
-010111 VXI vnclip     010111                010111        
+010111 VXI vnclip     010111                010111
 011000 VX  vwaddu     011000 V  vwredsumu   011000 VF vfwadd
 011001 VX  vwadd      011001 V  vwredsum    011001 V  vfwredsum
 011010 VX  vwsubu     011010                011010 VF vfwsub
@@ -53,12 +53,12 @@ funct6                funct6                funct6
 100111  XI vsgt       100111                100111  F vfgte
 101000 VXI vadc       101000                101000
 101001 VXI vsbc       101001                101001
-101010 VXI vrgather   101010 V   vext.x.s   101010 V  vfmv.f.s
-101011                101011  X  vmv.s.x    101011  F vfmv.s.f          
-101100  XI vslideup   101100  X vslide1up   101100                 
-101101  XI vslidedown 101101  X vslide1down 101101
-101110                101110                101110                          
-101111                101111                101111
+101010                101010                101010
+101011                101011                101011
+101100 VXI vrgather   101100 V   vext.x.s   101100 V  vfmv.f.s
+101101                101101  X  vmv.s.x    101101  F vfmv.s.f
+101110  XI vslideup   101110  X vslide1up   101110
+101111  XI vslidedown 101111  X vslide1down 101111
 
 110000 VX  vmulhu     110000                110000 VF vfmadd
 110001 VX  vmul       110001 VX vmadd       110001 VF vfnmadd
@@ -71,7 +71,7 @@ funct6                funct6                funct6
 111000 VX  vwmulu     111000 V  vdotu       111000 VF vfwmul
 111001                111001 V  vdot        111001 V  vfdot
 111010 VX  vwmulsu    111010                111010
-111011 VX  vwmul      111011                111011 
+111011 VX  vwmul      111011                111011
 111100 VX  vwmaccu    111100                111100 VF vfwmacc
 111101 VX  vwmacc     111101                111101 VF vfwnmacc
 111110 VX  vwmsacu    111110                111110 VF vfwmsac
@@ -119,7 +119,7 @@ VMUNARY0 encoding space
 00010 vmsof
 00011 vmsif
 10000 vmiota
-10001 vid   
+10001 vid
 ----
 
 
@@ -189,7 +189,7 @@ VMUNARY0 encoding space
 |off[1:0]|011|vm|vs2|rs1|111 2+|vd|0000111|VLXE.V
 |off[1:0]|111|vm|vs2|rs1|000 2+|vd|0000111|VLXB.V
 |off[1:0]|111|vm|vs2|rs1|101 2+|vd|0000111|VLXH.V
-|off[1:0]|111|vm|vs2|rs1|110 2+|vd|0000111|VLXW.V                    
+|off[1:0]|111|vm|vs2|rs1|110 2+|vd|0000111|VLXW.V
 2+|vs3|vm|vs2|rs1|000|off[1:0]|011|0100111|VSXB.V
 2+|vs3|vm|vs2|rs1|101|off[1:0]|011|0100111|VSXH.V
 2+|vs3|vm|vs2|rs1|110|off[1:0]|011|0100111|VSXW.V
