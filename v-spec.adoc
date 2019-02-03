@@ -15,7 +15,7 @@ Yunsup Lee, Guy Lemieux, Rich Newell, Albert Ou, David Patterson,
 Colin Schmidt, Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim
 Wilson.
 
-Known issues with current document.
+Known issues with current version.
 
 - additional fixed-point arithmetic support needs to be added.
 - encoding needs further cleaning/slight reorg, better formatting
@@ -954,43 +954,59 @@ NOTE: The inactive and tail update rules were designed to provide an
 efficient compromise between requirements of implementations with and
 without vector register ECC and/or renaming.
 
-NOTE: For the zeroing tail updates, implementations with temporally
-long vector registers, either with or without register renaming, will
-be motivated to add microarchitectural state to avoid actually writing
-zeros to all tail elements, but this is a relatively simple
-microarchitectural optimization.  The microarchitectural state for an
-element group indicates that zero should be returned for the element
-group on a read, and that zero should be substituted in for any
-masked-off elements in the group on a write (after which the element
-group zero bit can be cleared).
+NOTE: Not zeroing past `vl` would penalize renamed implementations that
+would have to copy all elements past VL on every instruction
+execution, whereas it's a small penalty for non-renamed
+implementations to implement the tail zeroing.  While a renamed
+machine could avoid copying for whole vector registers in a group by
+not renaming, operations on individual registers may be deep enough
+that requiring full occupancy for any vector length would be
+problematic.  Zeroing values past `vl` does not impact most software,
+except for a small cost in some reduction cases.
 
-NOTE: Not zeroing inactive elements on a masked operation reduces code
-path length for many code blocks, and reduces register pressure by
-allowing different code paths to use disjoint sets of elements in the
-same vector register.  Implementations with vector register ECC or
-renaming will have to perform read-update-write on the destination
-register value to preserve inactive elements on arithmetic
-instructions, so would appear to need an extra vector register read
-port.  However, the arithmetic instructions are designed such that the
-largest read-port requirement is for fused multiply-add instructions
-that are destructive and overwrite one source, and hence do not need
-an extra read port to preserve inactive elements.  Given that linear
-algebra is one of the more important applications for vector units,
-and that fused multiply-add is the dominant operation in linear
-algebra routines, microarchitectures will be optimized for fused
-multiply-add operations and so should be able to preserve inactive
-elements on other arithmetic operations without large additional cost.
-However, masked vector load instructions incur the cost of an
-additional read port on their destination register.  The need to
-support resumable vector loads with non-zero `vstart` values also
-drives the need to preserve vector load destination register values.
-The AMOs have been defined to be destructive in their source operand
-to reduce the maximum read port requirement for the memory pipe. An
-option that was considered was to have loads behave differently from
-arithmetic instructions and to zero any masked-off elements. However,
-this would require additional instructions and increase register
-pressure, and vector loads must in any case still cope with non-zero
-`vstart` values through some mechanism.
+NOTE: For zeroing tail updates, implementations with temporally long
+vector registers, either with or without register renaming, will be
+motivated to add microarchitectural state to avoid actually writing
+zeros to all tail elements, but this is a relatively simple
+microarchitectural optimization.  For example, one bit per element
+group or a quantized VL can be used to track the extent of zeroing.
+An element group is the set of elements comprising the smallest atomic
+unit of execution in the microarchitecture (often equivalent to the
+width of the physical datapath in the machine).  The
+microarchitectural state for an element group indicates that zero
+should be returned for the element group on a read, and that zero
+should be substituted in for any masked-off elements in the group on
+the first write to that element group (after which the element group
+zero bit can be cleared).
+
+NOTE: Providing merging predication instead of zeroing inactive
+elements on a masked operation reduces code path length for many code
+blocks, and reduces register pressure by allowing different code paths
+to use disjoint sets of elements in the same vector register.
+Implementations with vector register ECC or renaming will have to
+perform read-update-write on the destination register value to
+preserve inactive elements on arithmetic instructions, so would appear
+to need an extra vector register read port.  However, the arithmetic
+instructions are designed such that the largest read-port requirement
+is for fused multiply-add instructions that are destructive and
+overwrite one source, and hence do not need an extra read port to
+preserve inactive elements.  Given that linear algebra is one of the
+more important applications for vector units, and that fused
+multiply-add is the dominant operation in linear algebra routines,
+microarchitectures will be optimized for fused multiply-add operations
+and so should be able to preserve inactive elements on other
+arithmetic operations without large additional cost.  However, masked
+vector load instructions incur the cost of an additional read port on
+their destination register.  The need to support resumable vector
+loads with non-zero `vstart` values also drives the need to preserve
+vector load destination register values.  The AMOs have been defined
+to be destructive in their source operand to reduce the maximum read
+port requirement for the memory pipe. An option that was considered
+was to have loads behave differently from arithmetic instructions and
+to zero any masked-off elements. However, this would require
+additional instructions and increase register pressure, and vector
+loads must in any case still cope with non-zero `vstart` values
+through some mechanism.
 
 == Configuration-Setting Instructions
 
