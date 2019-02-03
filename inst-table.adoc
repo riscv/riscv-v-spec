@@ -21,10 +21,10 @@ funct6                funct6                funct6
 001001 VXI vand       001001 V  vmand       001001
 001010 VXI vor        001010 V  vmor        001010 VF vfdiv 
 001011 VXI vxor       001011 V  vmxor       001011  F vfrdiv
-001100  XI vslideup   001100 V  vmornot     001100
-001101  XI vslidedown 001101 V  vmnand      001101
+001100                001100 V  vmornot     001100
+001101                001101 V  vmnand      001101
 001110                001110 V  vmnor       001110 V  VFUNARY0
-001111 VXI vrgather   001111 V  vmxnor      001111 V  VFUNARY1
+001111                001111 V  vmxnor      001111 V  VFUNARY1
 
 010000 VXI vsrl       010000 V  vmpopc      010000
 010001 VXI vsra       010001 V  vmfirst     010001           
@@ -53,10 +53,10 @@ funct6                funct6                funct6
 100111  XI vsgt       100111                100111  F vfgte
 101000 VXI vadc       101000                101000
 101001 VXI vsbc       101001                101001
-101010                101010 V   vext.x.s   101010 V  vfmv.f.s
+101010 VXI vrgather   101010 V   vext.x.s   101010 V  vfmv.f.s
 101011                101011  X  vmv.s.x    101011  F vfmv.s.f          
-101100                101100                101100                 
-101101                101101                101101
+101100  XI vslideup   101100  X vslide1up   101100                 
+101101  XI vslidedown 101101  X vslide1down 101101
 101110                101110                101110                          
 101111                101111                101111
 

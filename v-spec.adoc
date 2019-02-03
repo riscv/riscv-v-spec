@@ -3289,14 +3289,14 @@ loop:
     setvli a5, a0, vsew32,vlmul8  # 32-bit integers
     vlw.v v8, (a1)                # Load input vector
       sub a0, a0, a5              # Decrement number done
-      sll a5, a5, 2               # Multiply by four bytes
+      slli a5, a5, 2              # Multiply by four bytes
     vsne.vi v0, v8, 0             # Locate non-zero values
       add a1, a1, a5              # Bump input pointer
     vmpopc.m a5, v0               # Count number of elements set in v0
     vmiota.m v16, v0              # Get destination offsets of active elements
       add a6, a6, a5              # Accumulate number of elements
     vsll.vi v16, v16, 2, v0.t     # Multiply offsets by four bytes
-      sll a5, a5, 2               # Multiply number of non-zero elements by four bytes
+      slli a5, a5, 2              # Multiply number of non-zero elements by four bytes
     vsuxw.v v8, (a2), v16, v0.t   # Scatter using scaled vmiota results under mask
       add a2, a2, a5              # Bump output pointer
       bnez a0, loop               # Any more?
