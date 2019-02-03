@@ -3431,11 +3431,17 @@ the destination vector register ( 0 < index < VLEN/SEW) are zeroed.
 The slide instructions move elements up and down a vector register
 group.
 
-[source]
-----
- vslide1up.vx vd, vs2, rs1, vm        # vd[0]=x[rs1], vd[i+1] = vs2[i]
- vslide1down.vx vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
-----
+NOTE: The slide operations can be implemented much more efficiently
+than using the arbitrary register gather instruction.  Implementations
+may optimize certain OFFSET values for `vslideup` and `vslidedown`.
+In particular, power-of-2 offsets may operate substantially faster
+than other offsets.
+
+For all of the `vslideup`, `vslidedown`, `vslide1up`, and
+`vslide1down` instructions, if `vl`=0, the instruction performs no
+operation and leaves the destination vector register unchanged.
+
+==== Vector Slideup Instructions
 
 [source]
 ----
@@ -3470,6 +3476,8 @@ NOTE: The non-overlap constraints are to avoid WAR hazards on the
 input vectors during execution, and to enable restart with non-zero
 `vstart`.
 
+==== Vector Slidedown Instructions
+
 [source]
 ----
  vslidedown.vx vd, vs2, rs1, vm       # vd[i] = vs2[i+rs1]
@@ -3496,15 +3504,98 @@ using an unsigned integer in the `x` register specified by `rs1`, or a
 
 ----
 
+NOTE: Microarchitectures can optimize zeros written to the end of a
+vector for large offsets by treating as effectively smaller vector
+length, and encoding using the same internal scheme as for regular
+vector instruction writes.
+
 The destination vector register group for `vslidedown` cannot overlap
 the vector mask register if the instruction is masked, otherwise an
 illegal instruction exception is raised.
 
-NOTE: The slide operations can be implemented much more efficiently
-than individual element moves or using the arbitrary register gather
-instructions.  Implementations may optimize certain OFFSET values for
-`vslideup` and `vslidedown`.  In particular, power-of-2 offsets may
-operate substantially faster than other offsets.
+==== Vector Slide1up 
+
+Variants of slide are provided that only move by one element but which
+also allow a scalar integer value to be inserted at the vacated
+element position.
+
+[source]
+----
+ vslide1up.vx vd, vs2, rs1, vm        # vd[0]=x[rs1], vd[i+1] = vs2[i]
+----
+
+The `vslide1up` instruction places the `x` register argument at
+location 0 of the destination vector register group, provided that
+element 0 is active, otherwise the destination element is unchanged.
+If XLEN < SEW, the value is zero-extended to SEW bits.  If XLEN > SEW,
+the least-significant bits are copied over and the high SEW-XLEN bits
+are ignored.
+
+The remaining active `vl`-1 elements are copied over from index _i_ in
+the source vector register group to index _i_+1 in the destination
+vector register group.
+
+The `vl` register specifies how many of the destination vector
+register elements are written with source values, and all tail
+elements are zeroed.
+
+
+[source]
+----
+   vslide1up behavior
+
+                    i < vstart  unchanged
+                0 = i = vstart  vd[i] = x[rs1] if mask enabled, unchanged if not
+  max(vstart, 1) <= i < vl      vd[i] = vs2[i-1] if mask enabled, unchanged if not
+              vl <= i < VLMAX   tail elements, vd[i] = 0
+----
+
+The `vslide1up` instruction requires that the destination vector
+register group is disjoint from the source vector register group and
+the mask register if masked.  Otherwise, an illegal instruction
+exception is raised.
+
+==== Vector Slide1down Instruction
+
+The `vslide1down` instruction copies the first `vl`-1 active elements
+values from index _i_+1 in the source vector register group to index
+_i_ in the destination vector register group.
+
+The `vl` register specifies how many of the destination vector
+register elements are written with source values, and all tail
+elements are zeroed.
+
+[source]
+----
+ vslide1down.vx vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
+----
+
+The `vslide1down` instruction places the `x` register argument at
+location `vl`-1 in the destination vector register, provided that
+element `vl-1` is active, otherwise the destination element is
+unchanged. If XLEN < SEW, the value is zero-extended to SEW bits.  If
+XLEN > SEW, the least-significant bits are copied over and the high
+SEW-XLEN bits are ignored.
+
+[source]
+----
+   vslide1down behavior
+
+                       i < vstart  unchanged
+             vstart <= i < vl-1    vd[i] = vs2[i+1] if mask enabled, unchanged if not
+             vstart <= i = vl-1    vd[vl-1] = x[rs1] if mask enabled, unchanged if not
+                 vl <= i < VLMAX   tail elements, vd[i] = 0
+----
+
+The `vslide1down` instruction requires that the destination vector
+register group is disjoint from the mask register if masked.
+Otherwise, an illegal instruction exception is raised.
+
+NOTE: The `vslide1down` instruction can be used to load values into a
+vector register without using memory and without disturbing other
+vector registers.  This provides a path for debuggers to modify the
+contents of a vector register, albeit slowly, with multiple repeated
+`vslide1down` invocations.
 
 === Vector Register Gather Instruction
 
