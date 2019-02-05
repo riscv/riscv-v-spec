@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 0.7-draft-20190131
+Version 0.7-draft-20190205
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -210,7 +210,7 @@ type also determines the organization of elements in each vector
 register, and how multiple vector registers are grouped.
 
 In the base vector extension, the `type` register has two fields,
-`vsew[5:0]`, and `vlmul`.
+`vsew[2:0]`, and `vlmul`.
 
 [source]
 ----
@@ -218,7 +218,7 @@ vtype layout
 
     bits    contents
 XLEN-1:9    Reserved (write 0)
-     8:2    vsew[5:0]
+     4:2    vsew[2:0]
      1:0    vlmul[1:0]
 ----
 
@@ -241,19 +241,18 @@ only SEW up to max(XLEN,FLEN) are required to be supported.
 
 [source]
 ----
-  vsew[5:0] (standard element width) encoding
+  vsew[2:0] (standard element width) encoding
 
-  vsew[5:0]  SEW
+ vsew[2:0]    SEW
   ---        ----
-  000000        8
-  000001       16
-  000010       32
-  000011       64
-  000100      128
-  000101      256
-  000110      512
-  000111     1024
-  xxx???     reserved xxx!=0
+  000           8
+  001          16
+  010          32
+  011          64
+  100         128
+  101         256
+  110         512
+  111        1024
 ----
 
 [source]
@@ -608,13 +607,33 @@ Larger LMUL settings can also used to simply increase vector length to
 reduce instruction fetch and dispatch overheads, in cases where fewer
 logical vector registers are required.
 
-Larger LMUL values can cause lower datapath utilization for short
-vectors.  In the example above with VLEN=256b and LMUL=8, if the
+The following table uses a column of LMUL values to represent each
+possible constant SEW/LMUL operating point for loops with mixed-width
+operations.
+
+[source]
+----
+       Columns of LMUL values for constant SEW/LMUL
+   SEW       
+     8   8  4  2  1    
+    16      8  4  2  1
+    32         8  4  2  1
+    64            8  4  2  1
+   128               8  4  2  1
+   256                  8  4  2  1
+   512                     8  4  2  1
+  1024                        8  4  2  1
+----
+
+NOTE: Larger LMUL values can cause lower datapath utilization for
+short vectors if SLEN is less than the spatial datapath width.  In the
+example above with VLEN=256b, SLEN=128b, and LMUL=8, if the
 implementation is purely spatial with a 256b-wide vector datapath,
 then for an application vector length less than 17, only half of the
-datapath will be active.  The `setvl` instructions below have a
-facility to dynamically select an appropriate LMUL according to the
-required application vector length (AVL).
+datapath will be active.  The `setvl` instructions below could have a
+facility added to dynamically select an appropriate LMUL according to
+the required application vector length (AVL) and range of element
+widths.
 
 NOTE: Narrower machines will set SLEN to be at least as large as the
 datapath spatial width, so there is no need to reduce LMUL. Wider
@@ -1036,7 +1055,7 @@ include::vcfg-format.adoc[]
     
     bits    contents
 XLEN-1:9    Reserved (write 0)
-     8:2    vsew[5:0]
+     4:2    vsew[2:0]
      1:0    vlmul[1:0]
 ----
 
@@ -3775,8 +3794,8 @@ vtype layout
 
     bit s    contents
 XLEN-1:11    Reserved (write 0)
-     10:9    vediv[1:0]
-      8:2    vsew[5:0]
+      6:5    vediv[1:0]
+      4:2    vsew[2:0]
       1:0    vlmul[1:0]
 ----
 
