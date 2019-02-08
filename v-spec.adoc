@@ -19,7 +19,7 @@ Known issues with current version.
 
 - additional fixed-point arithmetic support needs to be added.
 - encoding needs further cleaning/slight reorg, better formatting
-- figure out how best to get effect of vlmul?max
+- figure out how best to optimize vlmul for systems where SLEN is less than spatial datapath width
 - vector memory consistency model needs to be clarified
 - interaction with privileged architectures
 
@@ -1189,7 +1189,7 @@ loop:
     vlh.v v8, (a1)          # Sign-extend 16b load values to 32b elements
       sll t1, a3, 1
       add a1, a1, t1        # Bump pointer
-    vmul.vx  v8, v8, v1     # 32b multiply result
+    vmul.vx  v8, v8, x10    # 32b multiply result
     vsrl.vi  v8, v8, 3      # Shift elements
     vsw.v v8, (a2)          # Store vector of 32b results
       sll t1, a3, 2
@@ -1204,7 +1204,7 @@ loop:
     vlh.v v4, (a1)          # Get 16b vector
       slli t1, a3, 1
       add a1, a1, t1        # Bump pointer
-    vwmul.vx v8, v4, v1     # 32b in <v8--v15>
+    vwmul.vx v8, v4, x10    # 32b in <v8--v15>
 
     vsetvli x0, a0, vsew32,vlmul8  # Operate on 32b values
     vsrl.vi v8, v8, 3
@@ -1529,11 +1529,11 @@ strlen example using unit-stride fault-first instruction
 strlen:
     mv a3, a0             # Save start
 loop:
-    setvli a1, x0, vsew8  # Vector of bytes of maximum length
+    vsetvli a1, x0, vsew8  # Vector of bytes of maximum length
     vlbff.v v1, (a3)      # Load bytes
     csrr a1, vl           # Get bytes read
     vseq.vi v0, v1, 0     # Set v0[i] where v1[i] = 0
-    vmfirst a2, v0        # Find first set bit
+    vmfirst.m a2, v0      # Find first set bit
     add a3, a3, a1        # Bump pointer
     bltz a2, loop         # Not found?
 
@@ -1960,8 +1960,8 @@ vwsub.wx  vd, vs2, rs1, vm  # vector-scalar
 
 NOTE: An integer value can be doubled in width using the widening add
 instructions with a scalar operand of `x0`.  Can define assembly
-pseudo-ops `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and `vwcvtu.x.x.v
-vd,vs,vm = vwaddu.vx vd,vs,x0,vm`.
+pseudoinstructions `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and
+`vwcvtu.x.x.v vd,vs,vm = vwaddu.vx vd,vs,x0,vm`.
 
 === Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 
@@ -2021,7 +2021,7 @@ vxor.vi vd, vs2, imm, vm    # vector-immediate
 
 NOTE: With an immediate of -1, scalar-immediate forms of the `vxor`
 instruction provide a bitwise NOT operation.  This can be provided as
-an assembler pseudo-instruction `vnot.v`.
+an assembler pseudoinstruction `vnot.v`.
 
 === Vector Single-Width Bit Shift Instructions
 
@@ -2170,22 +2170,22 @@ native machine code.
 
 [source]
 ----
-Comparison      Assembler Mapping                                Assembler Pseudo-op
+Comparison      Assembler Mapping             Assembler Pseudoinstruction
 
 va < vb         vslt{u}.vv vd, va, vb, vm
 va <= vb        vslte{u}.vv vd, va, vb, vm
-va > vb         vslt{u}.vv vd, vb, va, vm                        vsgt{u}.vv vd, va, vb, vm
-va >= vb        vslte{u}.vv vd, vb, va, vm                       vsgte{u}.vv vd, va, vb, vm
+va > vb         vslt{u}.vv vd, vb, va, vm     vsgt{u}.vv vd, va, vb, vm
+va >= vb        vslte{u}.vv vd, vb, va, vm    vsgte{u}.vv vd, va, vb, vm
 
 va < x          vslt{u}.vx vd, va, x, vm
 va <= x         vslte{u}.vx vd, va, x, vm
 va > x          vsgt{u}.vx vd, va, x, vm
 va >= x         see below
 
-va < i          vslte{u}.vi vd, va, i-1, vm                      vslt{u}.vi vd, va, i, vm
+va < i          vslte{u}.vi vd, va, i-1, vm   vslt{u}.vi vd, va, i, vm
 va <= i         vslte{u}.vi vd, va, i, vm
 va > i          vsgt{u}.vi vd, va, i, vm
-va >= i         vsgt{u}.vi vd, va, i-1, vm                       vsgte{u}.vi vd, va, i, vm
+va >= i         vsgt{u}.vi vd, va, i-1, vm    vsgte{u}.vi vd, va, i, vm
 
 va, vb vector register groups
 x      scalar integer register
@@ -2235,24 +2235,24 @@ va >= x,  x > minimum
 ----
 
 The above sequence will usually be the most efficient implementation,
-but assembler pseudo-op sequences can be provided for cases where the
+but assembler pseudoinstructions can be provided for cases where the
 range of `x` is unknown.
 
 [source]
 ----
 unmasked va >= x
 
-  pseudo-op: vsgte{u}.vx vd, va, x
+  pseudoinstruction: vsgte{u}.vx vd, va, x
   expansion: vslt{u}.vx vd, va, x; vmnand.vv vd, vd, vd
 
 masked va >= x, vd != v0
 
-  pseudo-op: vsgte{u}.vx vd, va, x, v0.t
+  pseudoinstruction: vsgte{u}.vx vd, va, x, v0.t
   expansion: vslt{u}.vx vd, va, x, v0.t; vmxor.vv vd, vd, v0
 
 masked va >= x, vd == v0
 
-  pseudo-op: vsgte{u}.vx v0, va, x, v0.t, vt
+  pseudoinstruction: vsgte{u}.vx v0, va, x, v0.t, vt
   expansion: vslt{u}.vx vt, va, x;  vmandnot.vv v0, v0, vt
 ----
 
@@ -2468,23 +2468,23 @@ vector register file accesses from the first vector operand.
 [source]
 ----
 # Unmasked  operations, where vm=1
-vmerge.vv vd, v0, vs1  # vd[i] = vs1[i], psuedo-op vmv.v.v vd, vs1
-vmerge.vx vd, v0, rs1  # vd[i] = x[rs1], pseudo-op vmv.v.x vd, rs1
-vmerge.vi vd, v0, imm  # vd[i] = imm,    pseudo-op vmv.v.i vd, imm
+vmerge.vv vd, v0, vs1  # vd[i] = vs1[i], pseudoinstruction vmv.v.v vd, vs1
+vmerge.vx vd, v0, rs1  # vd[i] = x[rs1], pseudoinstruction vmv.v.x vd, rs1
+vmerge.vi vd, v0, imm  # vd[i] = imm,    pseudoinstruction vmv.v.i vd, imm
 ----
 
 An unmasked `vmerge.vv` instruction can be used to copy one vector
-register group to another.  This is given a vector pseudo-instruction
+register group to another.  This is given a vector pseudoinstruction
 `vmv.v.v vdest, vsrc` (which expands to `vmerge.vv vdest, v0, vsrc`).
 
 An unmasked `vmerge.vx` instruction can be used to __splat__ a scalar
 `x` register value into all active elements of a vector. This is given
-a vector pseudo-instruction `vmv.v.x vd, rs1`, which expands to `vmerge.vx
+a vector pseudoinstruction `vmv.v.x vd, rs1`, which expands to `vmerge.vx
 vd, v0, rs1`.
 
 An unmasked `vmerge.vi` instruction can be used to initialize a vector
 register group with an immediate value.  This is given a vector
-pseudo-instruction `vmv.v.i vd, imm`.
+pseudoinstruction `vmv.v.i vd, imm`.
 
 NOTE: Mask values can be widened into SEW-width elements using a
 sequence `vmv.v.i vd, 0; vmerge.vi vd, vd, 1, v0.t'.
@@ -2725,7 +2725,7 @@ floating-point compare instructions.
 
 [source]
 ----
-Comparison      Assembler Mapping             Assembler Pseudo-op
+Comparison      Assembler Mapping             Assembler pseudoinstruction
 
 va < vb         vflt.vv vd, va, vb, vm
 va <= vb        vflte.vv vd, va, vb, vm
@@ -2771,7 +2771,7 @@ way as the scalar classify instruction.
 
 [source]
 ----
-    vfclass.v vd, vs2, vs1, vm   # Vector-vector
+    vfclass.v vd, vs2, vm   # Vector-vector
 ----
 
 The 10-bit mask produced by this instruction is placed in the
@@ -2805,7 +2805,7 @@ reserved.
 vfmerge.vf vd, v0, rs1  # vd[i] = f[rs1];
 ----
 
-This is given a vector pseudo-instruction `vmv.v.f vd, rs1` which
+This is given a vector pseudoinstruction `vmv.v.f vd, rs1` which
 expands to `vfmerge.vf vd, v0, rs1`.
 
 NOTE: In Zfinx systems, the instruction is identical to `vmerge.vx`.
@@ -3011,7 +3011,7 @@ zeroed.
     vmxnor.mm vd, vs2, vs1   # vd = ~(vs2 ^  vs1)
 ----
 
-Several assembler psuedo-instructions are defined as shorthand for
+Several assembler pseudoinstructions are defined as shorthand for
 common uses of mask logical operations:
 [source]
 ----
@@ -3030,7 +3030,7 @@ inputs
 0 0 1 1 src1
 0 1 0 1 src2
 
-output  instruction                 psuedo-instruction
+output  instruction                 pseudoinstruction
 0 0 0 0 vmxor.mm vd, vd, vd         vmclr.v vd
 1 0 0 0 vmnor.mm vd, src1, src2
 0 1 0 0 vmandnot.mm vd, src2, src1
@@ -3087,8 +3087,8 @@ Traps on `vmpopc.m` are always reported with a `vstart` of 0.  The
     vmfirst.m rd, vs2, vm
 ----
 
-The `vmfirst` instruction finds the lowest-numbered element of the
-source mask vector that has its LSB set and writes that element's
+The `vmfirst` instruction finds the lowest-numbered active element of
+the source mask vector that has its LSB set and writes that element's
 index to a GPR.  If no element has an LSB set, -1 is written to the
 GPR.
 
@@ -3204,15 +3204,15 @@ The following is an example of vectorizing a data-dependent exit loop.
 ----
   # char* strcpy(char *dst, const char* src)
 strcpy:
-      mv a2, a0               # Copy dst
+      mv a2, a0             # Copy dst
 loop:
-    setvli x0, x0, vsew8    # Max length vectors of bytes
-    vlbuff.v v1, (a1)        # Get src bytes
+    vsetvli x0, x0, vsew8   # Max length vectors of bytes
+    vlbuff.v v1, (a1)       # Get src bytes
       csrr t1, vl           # Get number of bytes fetched
     vseq.vi v0, v1, 0       # Flag zero bytes
-    vmfirst a3, v0          # Zero found?
+    vmfirst.m a3, v0        # Zero found?
       add a1, a1, t1        # Bump pointer
-    vmsif.v v0, v0          # Set mask up to and including zero byte.
+    vmsif.m v0, v0          # Set mask up to and including zero byte.
     vsb.v v1, (a2), v0.t    # Write out bytes
       add a2, a2, t1        # Bump pointer
       bltz a3, loop         # Zero byte not found, so loop
@@ -3221,13 +3221,13 @@ loop:
 
   # char* strncpy(char *dst, const char* src, size_t n)
 strncpy:
-      mv a3, a0               # Copy dst
+      mv a3, a0             # Copy dst
 loop:
-    setvli x0, a2, vsew8    # Vectors of bytes.
+    vsetvli x0, a2, vsew8   # Vectors of bytes.
     vlbuff.v v1, (a1)       # Get src bytes
     vseq.vi v0, v1, 0       # Flag zero bytes
-    vmfirst a4, v0          # Zero found?
-    vmsif.v v0, v0          # Set mask up to and including zero byte.
+    vmfirst.m a4, v0        # Zero found?
+    vmsif.m v0, v0          # Set mask up to and including zero byte.
     vsb.v v1, (a3), v0.t    # Write out bytes
       bgez a4, exit         # Done
       csrr t1, vl           # Get number of bytes fetched
@@ -3321,7 +3321,7 @@ instructions (indexed stores) to perform vector compress functions.
 compact_non_zero:
     li a6, 0                      # Clear count of non-zero elements
 loop:
-    setvli a5, a0, vsew32,vlmul8  # 32-bit integers
+    vsetvli a5, a0, vsew32,vlmul8  # 32-bit integers
     vlw.v v8, (a1)                # Load input vector
       sub a0, a0, a5              # Decrement number done
       slli a5, a5, 2              # Multiply by four bytes
@@ -3387,7 +3387,7 @@ destination register rd.  If SEW > XLEN, the least-significant bits
 are copied to the destination and the upper SEW-XLEN bits are ignored.
 If SEW < XLEN, the value is zero-extended to XLEN.
 
-An assembler pseudo-instruction `vmv.x.s rd, vs2` expanding to
+An assembler pseudoinstruction `vmv.x.s rd, vs2` expanding to
 `vext.x.v rd, vs2, x0` is provided as clearer complement to the
 `vmv.s.x` instruction below.
 

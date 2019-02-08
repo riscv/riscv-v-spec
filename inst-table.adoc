@@ -81,7 +81,7 @@ funct6                funct6                funct6
 [source]
 ----
 VFUNARY0 encoding space
- rs1
+ vs1
  single-width converts
 00000 vfcvt.xu.f.v
 00001 vfcvt.x.f.v
@@ -106,7 +106,7 @@ VFUNARY0 encoding space
 [source]
 ----
 VFUNARY1 encoding space
- rs1
+ vs1
 00000 vfsqrt.v
 10000 vfclass.v
 ----
@@ -114,7 +114,7 @@ VFUNARY1 encoding space
 [source]
 ----
 VMUNARY0 encoding space
- rs1
+ vs1
 00001 vmsbf
 00010 vmsof
 00011 vmsif
