@@ -1347,16 +1347,16 @@ lumop[4:0]
    00000  unit-stride
    00sss  array-of-structures sss=(fields-1)
    10000  unit-stride first-fault
-   10sss  array-of-structure first-fault sss=(fields-1)
-   yxxxx  reserved, xxxx!=0
+   10sss  array-of-structures first-fault sss=(fields-1)
+   x1xxx  reserved
 
 sumop[4:0]
    00000  unit-stride
    00sss  array-of-structures sss=(fields-1)
-   xxxxx  reserved, xxxxx!=0
+   xxyyy  reserved, xx!=0
 ----
 
-The array-of-structures addressing mode is described below. [[ sec-aos ]]
+The array-of-structures addressing mode is described below in Section <<sec-aos>>.
 
 === Vector Load/Store Width Encoding
 
@@ -3699,8 +3699,8 @@ The destination vector register group cannot overlap the source vector
 register group or the source vector mask register, otherwise an
 illegal instruction exception is raised.
 
-A trap on a `vmcompress` instruction is always reported with a
-`vstart` of 0.  Executing a `vmcompress` instruction with a non-zero
+A trap on a `vcompress` instruction is always reported with a
+`vstart` of 0.  Executing a `vcompress` instruction with a non-zero
 `vstart` raises an illegal instruction exception.
 
 NOTE: Although possible, `vcompress` is one of the more difficult
