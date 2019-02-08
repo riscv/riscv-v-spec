@@ -37,16 +37,20 @@ implementations, though will continue to evolve with minor changes and
 updates.
 
 The term _base_ _vector_ _extension_ is used informally to describe
-the standard set of vector ISA components.  The base vector extension
-can expected to be used in the standard Unix platform profile that
-supports vectors.  Other platforms, including embedded platforms, may
-choose to implement subsets of these extensions as described below.
-The exact set of mandatory supported instructions for an
-implementation to be compliant with a given profile is subject to
-change until each profile spec is ratified.
+the standard set of vector ISA components.  This draft spec is
+intended to capture how a certain vector function will be implemented
+as vector instructions, but to not yet determine what set of vector
+instructions are mandatory for a given platform.
 
 NOTE: Each actual platform profile will formally specify the mandatory
-components of any vector extension adopted by that platform.
+components of any vector extension adopted by that platform.  The base
+vector extension can expected to be close to that which will
+eventually be used in the standard Unix platform profile that supports
+vectors.  Other platforms, including embedded platforms, may choose to
+implement subsets of these extensions.  The exact set of mandatory
+supported instructions for an implementation to be compliant with a
+given profile is subject to change until each profile spec is
+ratified.
 
 The base vector extension is designed to act as a base for additional
 vector extensions in various domains, including cryptography and
@@ -607,22 +611,25 @@ Larger LMUL settings can also used to simply increase vector length to
 reduce instruction fetch and dispatch overheads, in cases where fewer
 logical vector registers are required.
 
-The following table uses a column of LMUL values to represent each
-possible constant SEW/LMUL operating point for loops with mixed-width
-operations.
+The following table shows each possible constant SEW/LMUL operating
+point for loops with mixed-width operations.
 
 [source]
 ----
-       Columns of LMUL values for constant SEW/LMUL
-   SEW       
-     8   8  4  2  1    
-    16      8  4  2  1
-    32         8  4  2  1
-    64            8  4  2  1
-   128               8  4  2  1
-   256                  8  4  2  1
-   512                     8  4  2  1
-  1024                        8  4  2  1
+       Numbers in columns are LMUL values, and each column
+       represents constant SEW/LMUL operating point
+
+ SEW/LMUL    1   2   4   8  16  32  64 128 256 512 1024
+
+      SEW  
+        8    8   4   2   1      
+       16        8   4   2   1
+       32            8   4   2   1
+       64                8   4   2   1
+      128                    8   4   2   1
+      256                        8   4   2   1
+      512                            8   4   2   1
+     1024                                8   4   2   1
 ----
 
 NOTE: Larger LMUL values can cause lower datapath utilization for
@@ -630,7 +637,7 @@ short vectors if SLEN is less than the spatial datapath width.  In the
 example above with VLEN=256b, SLEN=128b, and LMUL=8, if the
 implementation is purely spatial with a 256b-wide vector datapath,
 then for an application vector length less than 17, only half of the
-datapath will be active.  The `setvl` instructions below could have a
+datapath will be active.  The `vsetvl` instructions below could have a
 facility added to dynamically select an appropriate LMUL according to
 the required application vector length (AVL) and range of element
 widths.
@@ -1098,8 +1105,9 @@ a trap on use.
 
 The requested application vector length (AVL) is passed in `rs1` as an
 unsigned integer.  Using `x0` as the `rs1` register specifier, encodes
-an infinite AVL, and so requests the maximum possible vector length is
-used.  A `vsetvl` with AVL=`x0` can be used to read current VLMAX,
+an infinite AVL, and so requests the maximum possible vector length.
+
+NOTE: A `vsetvl` with AVL=`x0` can be used to read current VLMAX,
 though this does overwrite `vl`.
 
 === Constraints on Setting `vl`
@@ -1115,7 +1123,7 @@ The resulting `vl` setting must satisfy the following constraints:
 .. `vl > 0` if `AVL > 0`
 .. `vl \<= VLMAX`
 .. `vl \<= AVL`
-
+.. a value read from `vl` when used as AVL arg to `vsetvl{i}` results in same value in `vl`
 
 [NOTE]
 --
@@ -3243,7 +3251,7 @@ exit:
 
 === Vector Iota Instruction
 
-The `vmiota` instruction reads a source vector mask register and
+The `vmiota.m` instruction reads a source vector mask register and
 writes to each element of the destination vector register group the
 sum of all the least-significant bits of elements in the mask register
 whose index is less than the element, e.g., a parallel prefix sum of
@@ -3262,13 +3270,13 @@ written.
      7 6 5 4 3 2 1 0   Element number
 
      1 0 0 1 0 0 0 1   v2 contents
-                       vmiota.v v4, v2 # Unmasked
+                       vmiota.m v4, v2 # Unmasked
      2 2 2 1 1 1 1 0   v4 result
 
      1 1 1 0 1 0 1 1   v0 contents
      1 0 0 1 0 0 0 1   v2 contents
      2 3 4 5 6 7 8 9   v4 contents
-                       vmiota.v v4, v2, v0.t # Masked
+                       vmiota.m v4, v2, v0.t # Masked
      1 1 1 5 1 7 1 0   v4 results
 ----
 
@@ -3276,7 +3284,7 @@ The result value is zero-extended to fill the destination element if
 SEW is wider than the result.  If the result value would overflow the
 destination SEW, the least-significant SEW bits are retained.
 
-Traps on `vmiota` are always reported with a `vstart` of 0, and
+Traps on `vmiota.m` are always reported with a `vstart` of 0, and
 execution is always restarted from the begininng when resuming after a
 trap handler.  An illegal instruction exception is raised if `vstart`
 is non-zero.
@@ -3291,7 +3299,7 @@ avoidance of WAR hazards in implementatons with temporally long vector
 registers and no vector register renaming.  Second, to enable resuming
 execution after a trap simpler.
 
-The `vmiota` instruction can be combined with memory scatter
+The `vmiota.m` instruction can be combined with memory scatter
 instructions (indexed stores) to perform vector compress functions.
 
 [source]
@@ -3377,19 +3385,18 @@ LMUL and vector register groups.
 vext.x.v rd, vs2, rs1  # rd = vs2[rs1]
 ----
 
-The GPR `rs1` register gives the element index, treated as an unsigned
-integer.  If the index is out of range (i.e., >= VLEN/SEW), then zero
-is returned for the element value.
-
-The vector extract operation, `vext.x.v` reads one SEW-width element
+The integer extract operation, `vext.x.v` reads one SEW-width element
 from a vector register group at the element index and writes it to GPR
-destination register rd.  If SEW > XLEN, the least-significant bits
-are copied to the destination and the upper SEW-XLEN bits are ignored.
-If SEW < XLEN, the value is zero-extended to XLEN.
+destination register rd.  The GPR `rs1` register gives the element
+index, treated as an unsigned integer.  If the index is out of range
+(i.e., x[rs1] >= VLEN/SEW), then zero is returned for the element
+value.  If SEW > XLEN, the least-significant bits are copied to the
+destination and the upper SEW-XLEN bits are ignored.  If SEW < XLEN,
+the value is zero-extended to XLEN.
 
 An assembler pseudoinstruction `vmv.x.s rd, vs2` expanding to
-`vext.x.v rd, vs2, x0` is provided as clearer complement to the
-`vmv.s.x` instruction below.
+`vext.x.v rd, vs2, x0` is provided as a complement to the `vmv.s.x`
+instruction below.
 
 === Integer Scalar Move Instruction
 
@@ -3407,7 +3414,7 @@ implementations.
 
 [source]
 ----
-vmv.s.x vd, rs2  # vd[0] = rs2, vins.v.x vd, x0, rs2
+vmv.s.x vd, rs1  # vd[0] = rs1, vins.v.x vd, x0, rs1
 ----
 
 The `vmv.s.x` instruction copies the scalar integer register to
@@ -3416,10 +3423,6 @@ least-significant bits are copied and the upper XLEN-SEW bits are
 ignored.  If SEW > XLEN, the value is zero-extended to SEW bits.  The
 other elements in the destination vector register ( 0 < index <
 VLEN/SEW) are zeroed.
-
-NOTE: Restricting the `vmv.s.x` to only write element 0 and to zero
-remaining elements significantly reduces implementation cost for
-renamed registers.
 
 NOTE: The complementary `vins.v.x` instruction, which allows a write
 to any element in a vector register, has been removed.  This
@@ -3442,12 +3445,6 @@ register.  The instructions ignore LMUL and vector register groups.
 vfmv.f.s rd, vs2  # rd = vs2[0] (rs1=0)
 vfmv.s.f vd, rs1  # vd[0] = rs1 (rs2=0)
 ----
-
-NOTE: The floating-point value in `vfmv.s.f` is read from `f` register
-named in `rs1` specifier, which is different than `vmv.s.x`, which
-reads from `rs2` position.  This maintains property that vector-scalar
-floating-point instructions only read floating-point values from `rs1`
-position.
 
 The `vfmv.f.s` instruction copies a single SEW-wide element from index
 0 of the source vector register to a destination scalar floating-point
