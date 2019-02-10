@@ -2,15 +2,15 @@
 ----
 Format for Vector Load Instructions under LOAD-FP major opcode
 31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
- off | mop | vm |  lumop   |    rs1    | width |    vd   |0000111| VL*  unit-stride
- off | mop | vm |   rs2    |    rs1    | width |    vd   |0000111| VLS* strided
- off | mop | vm |   vs2    |    rs1    | width |    vd   |0000111| VLX* indexed
+ nf  | mop | vm |  lumop   |    rs1    | width |    vd   |0000111| VL*  unit-stride
+ nf  | mop | vm |   rs2    |    rs1    | width |    vd   |0000111| VLS* strided
+ nf  | mop | vm |   vs2    |    rs1    | width |    vd   |0000111| VLX* indexed
   3     3     1      5           5         3         5       7
 
 Format for Vector Store Instructions under STORE-FP major opcode
 31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
- off | mop | vm |  sumop   |    rs1    | width |   vs3   |0100111| VS*  unit-stride
- off | mop | vm |   rs2    |    rs1    | width |   vs3   |0100111| VSS* strided
- off | mop | vm |   vs2    |    rs1    | width |   vs3   |0100111| VSX* indexed
+ nf  | mop | vm |  sumop   |    rs1    | width |   vs3   |0100111| VS*  unit-stride
+ nf  | mop | vm |   rs2    |    rs1    | width |   vs3   |0100111| VSS* strided
+ nf  | mop | vm |   vs2    |    rs1    | width |   vs3   |0100111| VSX* indexed
   3     3     1      5           5         3         5        7
 ----

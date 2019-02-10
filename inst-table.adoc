@@ -30,10 +30,10 @@ funct6                funct6                funct6
 010001 VXI vsra       010001 V  vmfirst     010001 VF vfsgnn
 010010 VXI vsll       010010 V  VMUNARY0    010010 VF vfsgnx
 010011 VXI vmerge     010011 V  vcompress   010011  F vfmerge.vf
-010100 VXI vnsrl      010100 VX vdivu       010100 VF vfdiv 
-010101 VXI vnsra      010101 VX vdiv        010101  F vfrdiv
-010110 VXI vnclipu    010110 VX vremu       010110 V  VFUNARY0
-010111 VXI vnclip     010111 VX vrem        010111 V  VFUNARY1
+010100 VXI vnsrl      010100                010100       
+010101 VXI vnsra      010101                010101
+010110 VXI vnclipu    010110                010110
+010111 VXI vnclip     010111                010111
 011000 VXI vseq       011000 V  vmandnot    011000 VF vfeq
 011001 VXI vsne       011001 V  vmand       011001 VF vflte
 011010 VX  vsltu      011010 V  vmor        011010 VF vford
@@ -47,10 +47,10 @@ funct6                funct6                funct6
 100001 VXI vsbc       100001 VX vmul        100001
 100010                100010 VX vmulhsu     100010
 100011                100011 VX vmulh       100011
-100100                100100                100100
-100101                100101                100101
-100110                100110                100110
-100111                100111                100111
+100100                100100 VX vdivu       100100 VF vfdiv   
+100101                100101 VX vdiv        100101  F vfrdiv  
+100110                100110 VX vremu       100110 V  VFUNARY0
+100111                100111 VX vrem        100111 V  VFUNARY1
 101000                101000                101000 VF vfmadd
 101001                101001 VX vmadd       101001 VF vfnmadd
 101010                101010                101010 VF vfmsub

@@ -321,7 +321,7 @@ regardless of LMUL setting.
 === Vector Length Register `vl`
 
 The _XLEN_-bit-wide read-only `vl` CSR can only be updated by the
-`vsetvli` and `vsetvl` instructions, and the _first-fault_ vector load
+`vsetvli` and `vsetvl` instructions, and the _fault-only-first_ vector load
 instruction variants.
 
 The `vl` register holds an unsigned integer specifying the number of
@@ -1271,8 +1271,8 @@ vd[4:0]  specifies v register destination of load
 
 vm specifies vector mask
 width[2:0] specifies size of memory elements, and distinguishes from FP scalar
-mop[2;0] specifies memory addressing mode
-off[2:0] is a three-bit address offset field
+mop[2:0] specifies memory addressing mode
+nf[2:0] specifies the number of fields in each segment, for segment load/stores
 
 lumop[4:0]/sumop[4:0] are additional fields encoding variants of unit-stride instructions
 ----
@@ -1283,9 +1283,8 @@ The base vector extension supports unit-stride, strided, and
 indexed (scatter/gather) addressing modes.  Vector load/store base
 registers and strides are taken from the GPR `x` registers.
 
-The base effective address for all vector accesses is given by adding
-the contents of the `x` register named in `rs1` to the three-bit offset
-scaled by the width parameter (1, 2, 4, or 8).
+The base effective address for all vector accesses is given by the
+contents of the `x` register named in `rs1`.
 
 Vector unit-stride operations access elements stored contiguously in
 memory starting from the base effective address.
@@ -1304,11 +1303,12 @@ adding to the base effective address.  If the vector offset elements
 are wider than XLEN, the least-significant XLEN bits are used in the
 address calculation.
 
-NOTE: Current PoR requires that vector byte offset and vector
-read/write data are of same width.  One question is whether and how to
-allow for two sizes of vector operand in a vector indexed instruction?
-For example, for scatter/gather of byte values in a 64-bit address
-space without requiring bytes use 64b of space in a vector register.
+NOTE: Current PoR for vector indexed instructions requires that vector
+byte offset (vs2) and vector read/write data (vs3/vd) are of same
+width.  One question is whether and how to allow for two sizes of
+vector operand in a vector indexed instruction?  For example, for
+scatter/gather of byte values in a 64-bit address space without
+requiring bytes use 64b of space in a vector register.
 
 The vector addressing modes are encoded using the 3-bit `mop[2:0]`
 field.
@@ -1353,18 +1353,27 @@ instruction encodings respectively.
 ----
 lumop[4:0]
    00000  unit-stride
-   00sss  array-of-structures sss=(fields-1)
-   10000  unit-stride first-fault
-   10sss  array-of-structures first-fault sss=(fields-1)
-   x1xxx  reserved
+   0xxxx  reserved, x!=0
+   10000  unit-stride fault-only-first
+   1xxxx  reserved, x!=0
 
 sumop[4:0]
    00000  unit-stride
-   00sss  array-of-structures sss=(fields-1)
-   xxyyy  reserved, xx!=0
+   0xxxx  reserved, x!=0
+   1xxxx  reserved
 ----
 
-The array-of-structures addressing mode is described below in Section <<sec-aos>>.
+The `nf[2:0]` field encodes the number of fields in each segment.  For
+regular vector loads and stores, `nf`=0, indicating that a single
+value is moved between a vector register group and memory at each
+element position.  Larger values in the `nf` field are used to access
+multiple contiguous fields within a segment as described below in
+Section <<sec-aos>>.
+
+NOTE: The `nf` field for segment load/stores has replaced the use of
+the same bits for an address offset field.  The offset can be replaced
+with a single scalar integer calculation, while segment load/stores
+add more powerful primitives to move items to and from memory.
 
 === Vector Load/Store Width Encoding
 
@@ -1376,24 +1385,20 @@ the fourth encoding moves SEW-bit memory elements.
 
 [source]
 ----
-                     Width   Mem     Reg       Offset  Opcode
-                     [2:0]   bits    bits      scale
+                     Width   Mem     Reg       Opcode
+                     [2:0]   bits    bits      
 
-Standard scalar FP    001     16     FLEN      -       FLH/FSH
-Standard scalar FP    010     32     FLEN      -       FLW/FSW
-Standard scalar FP    011     64     FLEN      -       FLD/FSD
-Standard scalar FP    100    128     FLEN      -       FLQ/FSQ
-Vector byte           000   vl*8     vl*SEW    1       VxB
-Vector halfword       101   vl*16    vl*SEW    2       VxH
-Vector word           110   vl*32    vl*SEW    4       VxW
-Vector element        111   vl*SEW   vl*SEW    8       VxE
+Standard scalar FP    001     16     FLEN      FLH/FSH
+Standard scalar FP    010     32     FLEN      FLW/FSW
+Standard scalar FP    011     64     FLEN      FLD/FSD
+Standard scalar FP    100    128     FLEN      FLQ/FSQ
+Vector byte           000   vl*8     vl*SEW    VxB
+Vector halfword       101   vl*16    vl*SEW    VxH
+Vector word           110   vl*32    vl*SEW    VxW
+Vector element        111   vl*SEW   vl*SEW    VxE
 
 Mem bits is the size of element accessed in memory
 Reg bits is the size of element accessed in register
-
-Offset scale is the amount by which the three-bit unsigned immediate
-offset is multiplied to obtain a byte offset from the scalar base
-register rs1.
 ----
 
 Fixed-sized vector loads can optionally sign or zero-extend their
@@ -1410,39 +1415,28 @@ memory element.  Fixed-sized vector stores raise an illegal
 instruction exception if the memory element is wider than the register
 element.
 
-The vector load/store instruction encoding includes a 3-bit unsigned
-offset.  The offset is scaled according to the low two bits of the
-width[2:0] field (effective offset = off[2:0] * 2^width[1:0]^),
-such that for fixed-width elements the offset is scaled by the element
-size.  For dynamic-width elements, the offset scale is fixed to 8 and
-is not affected by the `vtype` setting to avoid having a dependency
-between the dynamic `vtype` value and address generation.  The scaled
-offset is added to the scalar base register `rs1` to form the base
-address of the vector memory access.
-
 === Vector Unit-Stride Instructions
 
 [source,asm]
 ----
     # Vector unit-stride loads and stores
-    # Assembler offset is written as effective byte offset, not element offset
 
     # vd destination, rs1 base address, vm is mask encoding (v0.t or <missing>)
-    vlb.v    vd, offset(rs1), vm # 8b signed
-    vlh.v    vd, offset(rs1), vm # 16b signed
-    vlw.v    vd, offset(rs1), vm # 32b signed
+    vlb.v  vd, (rs1), vm # 8b signed
+    vlh.v  vd, (rs1), vm # 16b signed
+    vlw.v  vd, (rs1), vm # 32b signed
 
-    vlbu.v   vd, offset(rs1), vm # 8b unsigned
-    vlhu.v   vd, offset(rs1), vm # 16b unsigned
-    vlwu.v   vd, offset(rs1), vm # 32b unsigned
+    vlbu.v vd, (rs1), vm # 8b unsigned
+    vlhu.v vd, (rs1), vm # 16b unsigned
+    vlwu.v vd, (rs1), vm # 32b unsigned
 
-    vle.v    vd, offset(rs1), vm # SEW
+    vle.v  vd, (rs1), vm # SEW
 
     # vs3 store data, rs1 base address, vm is mask encoding (v0.t or <missing>)
-    vsb.v     vs3, offset(rs1), vm  # 8b store
-    vsh.v     vs3, offset(rs1), vm  # 16b store
-    vsw.v     vs3, offset(rs1), vm  # 32b store
-    vse.v     vs3, offset(rs1), vm  # SEW store
+    vsb.v  vs3, (rs1), vm  # 8b store
+    vsh.v  vs3, (rs1), vm  # 16b store
+    vsw.v  vs3, (rs1), vm  # 32b store
+    vse.v  vs3, (rs1), vm  # SEW store
 ----
 
 === Vector Strided Instructions
@@ -1452,21 +1446,21 @@ address of the vector memory access.
     # Vector strided loads and stores
 
     # vd destination, rs1 base address, rs2 byte stride
-    vlsb.v    vd, offset(rs1), rs2, vm # 8b
-    vlsh.v    vd, offset(rs1), rs2, vm # 16b
-    vlsw.v    vd, offset(rs1), rs2, vm # 32b
+    vlsb.v  vd, (rs1), rs2, vm # 8b
+    vlsh.v  vd, (rs1), rs2, vm # 16b
+    vlsw.v  vd, (rs1), rs2, vm # 32b
 
-    vlsbu.v    vd, offset(rs1), rs2, vm # unsigned 8b
-    vlshu.v    vd, offset(rs1), rs2, vm # unsigned 16b
-    vlswu.v    vd, offset(rs1), rs2, vm # unsigned 32b
+    vlsbu.v vd, (rs1), rs2, vm # unsigned 8b
+    vlshu.v vd, (rs1), rs2, vm # unsigned 16b
+    vlswu.v vd, (rs1), rs2, vm # unsigned 32b
 
-    vlse.v    vd, offset(rs1), rs2, vm  # SEW
+    vlse.v  vd, (rs1), rs2, vm  # SEW
 
     # vs3 store data, rs1 base address, rs2 byte stride
-    vssb.v    vs3, offset(rs1), rs2, vm  # 8b
-    vssh.v    vs3, offset(rs1), rs2, vm  # 16b
-    vssw.v    vs3, offset(rs1), rs2, vm  # 32b
-    vsse.v    vs3, offset(rs1), rs2, vm  # SEW
+    vssb.v vs3, (rs1), rs2, vm  # 8b
+    vssh.v vs3, (rs1), rs2, vm  # 16b
+    vssw.v vs3, (rs1), rs2, vm  # 32b
+    vsse.v vs3, (rs1), rs2, vm  # SEW
 ----
 
 === Vector Indexed Instructions
@@ -1476,37 +1470,33 @@ address of the vector memory access.
     # Vector indexed loads and stores
 
     # vd destination, rs1 base address, vs2 indices
-    vlxb.v    vd, offset(rs1), vs2, vm  # 8b
-    vlxh.v    vd, offset(rs1), vs2, vm  # 16b
-    vlxw.v    vd, offset(rs1), vs2, vm  # 32b
+    vlxb.v  vd, (rs1), vs2, vm  # 8b
+    vlxh.v  vd, (rs1), vs2, vm  # 16b
+    vlxw.v  vd, (rs1), vs2, vm  # 32b
 
-    vlxbu.v    vd, offset(rs1), vs2, vm  # 8b unsigned
-    vlxhu.v    vd, offset(rs1), vs2, vm  # 16b unsigned
-    vlxwu.v    vd, offset(rs1), vs2, vm  # 32b unsigned
+    vlxbu.v vd, (rs1), vs2, vm  # 8b unsigned
+    vlxhu.v vd, (rs1), vs2, vm  # 16b unsigned
+    vlxwu.v vd, (rs1), vs2, vm  # 32b unsigned
 
-    vlxe.v    vd, offset(rs1), vs2, vm  # SEW
+    vlxe.v  vd, (rs1), vs2, vm  # SEW
 
     # Vector ordered-indexed store instructions
-    vsxb.v    vs3, offset(rs1), vs2, vm  # 8b
-    vsxh.v    vs3, offset(rs1), vs2, vm  # 16b
-    vsxw.v    vs3, offset(rs1), vs2, vm  # 32b
-    vsxe.v    vs3, offset(rs1), vs2, vm  # SEW
+    # vs3 store data, rs1 base address, vs2 indices
+    vsxb.v vs3, (rs1), vs2, vm  # 8b
+    vsxh.v vs3, (rs1), vs2, vm  # 16b
+    vsxw.v vs3, (rs1), vs2, vm  # 32b
+    vsxe.v vs3, (rs1), vs2, vm  # SEW
 
     # Vector unordered-indexed store instructions
-    vsuxb.v   vs3, offset(rs1), vs2, vm  # 8b
-    vsuxh.v   vs3, offset(rs1), vs2, vm  # 16b
-    vsuxw.v   vs3, offset(rs1), vs2, vm  # 32b
-    vsuxe.v   vs3, offset(rs1), vs2, vm  # SEW
+    vsuxb.v vs3, (rs1), vs2, vm  # 8b
+    vsuxh.v vs3, (rs1), vs2, vm  # 16b
+    vsuxw.v vs3, (rs1), vs2, vm  # 32b
+    vsuxe.v vs3, (rs1), vs2, vm  # SEW
 ----
 
-NOTE: Previous proposals included possibility of reverse-ordered
-scatter, but common use case in vectorized memory dependence checks
-can be replaced with `vamomin` operation, and vector AMOs are more
-generally useful than reverse-ordered scatters.
+=== Unit-stride Fault-Only-First Loads
 
-=== Unit-stride First-Fault Loads
-
-The unit-stride fault-first load instructions are used to vectorize
+The unit-stride fault-only-first load instructions are used to vectorize
 loops with data-dependent exit conditions (while loops).  These
 instructions execute as a regular load except that they will only take
 a trap on element 0.  If an element > 0 raises an exception, that
@@ -1516,20 +1506,20 @@ number of elements processed without a trap.
 
 [source,asm]
 ----
-    vlbff.v    vd, offset(rs1), vm # 8b
-    vlhff.v    vd, offset(rs1), vm # 16b
-    vlwff.v    vd, offset(rs1), vm # 32b
+    vlbff.v  vd, (rs1), vm # 8b
+    vlhff.v  vd, (rs1), vm # 16b
+    vlwff.v  vd, (rs1), vm # 32b
 
-    vlbuff.v    vd, offset(rs1), vm # unsigned 8b
-    vlhuff.v    vd, offset(rs1), vm # unsigned 16b
-    vlwuff.v    vd, offset(rs1), vm # unsigned 32b
+    vlbuff.v vd, (rs1), vm # unsigned 8b
+    vlhuff.v vd, (rs1), vm # unsigned 16b
+    vlwuff.v vd, (rs1), vm # unsigned 32b
 
-    vleff.v    vd, offset(rs1), vm # SEW
+    vleff.v  vd, (rs1), vm # SEW
 ----
 
 [source]
 ----
-strlen example using unit-stride fault-first instruction
+strlen example using unit-stride fault-only-first instruction
 
 # size_t strlen(const char *str)
 # a0 holds *str
@@ -1552,92 +1542,171 @@ loop:
     ret
 ----
 
-NOTE: Strided and scatter-gather fault-first instructions are not
+NOTE: Strided and scatter-gather fault-only-first instructions are not
 provided as they represent a large security hole, allowing software to
 check multiple random pages for accessibility without experiencing a
 trap. The unit-stride versions only allow probing a region immediately
 contiguous to a known region, and so do not appreciably impact
 security.  It is possible that security mitigations can be
-implemented to allow first-fault variants of non-contiguous accesses
+implemented to allow fault-only-first variants of non-contiguous accesses
 in future vector extensions.
 
 [[sec-aos]]
-=== Vector Array-of-Structures Load/Store Instructions
+=== Vector Load/Store Segment Instructions (`Zvlsseg`)
 
-NOTE: This is being considered as a possible extension.
+NOTE: This is being written as an extension but could be mandated in
+some profiles.
 
-These instructions move a packed contiguous array of structures into
-multiple destination vector register groups.  The low three bits of
-`*umop` indicate the number of memory fields (_NFIELDS_) in a
-structure from 1-8. The width encoding gives the size of the memory
-fields, which must be homogeneous.
+The vector load/store segment instructions move multiple contiguous
+fields in memory to and from consecutively numbered vector register
+groups.
 
-NOTE: For structures with heterogeneous-sized fields, software can
-unpack fields using additional instructions after the
-array-of-structures load brings the values into the separate vector
+NOTE: These operations support operations on "array-of-structures"
+datatypes by unpacking each field in a structure into separate vector
 registers.
 
-The assembler prefix `vlaos`/`vsaos` is used for loads and stores
-respectively.
+As for regular vector loads and stores, the width encoding gives the
+size of the memory elements, which are homogeneous in size, while SEW
+encodes the size of the register elements.
+
+The three-bit `nf` field in the vector instruction encoding is an
+unsigned integer that contains one less than the number of fields per
+segment, _NFIELDS_.
+
+[source]
+----
+nf[2:0] NFIELDS  vector reg alignment
+ 000      1       1 (v0, v1, ..., v31)
+ 001      2       2 (v0, v2, ..., v30)
+ 010      3       4 (v0, v4, ..., v28)
+ 011      4       4 
+ 100      5       8 (v0, v8, v16, v24)
+ 101      6       8
+ 110      7       8
+ 111      8       8
+----
+
+LMUL must be set to 1 for a segment load or store (NFIELDS > 1), and
+each field will be held in successively numbered vector register
+numbers.  If LMUL > 1, an illegal instruction exception will be
+raised.
+
+The vector register numbers used in a segment load or store are
+constrained to be aligned according to the table above.  When
+NFIELDS=2, only even-numbered vector registers can be used.  When
+NFIELDS=3 or NFIELDS=4, only multiples of 4 can be used in vector
+register numbers.  When NFIELDS > 4, only multiples of 8 can be used
+in vector register numbers.  Other vector register numbers will raise
+an illegal instruction exception.
+
+The `vl` register gives the number of structures to move, which is
+equal to the number of elements transferred to each vector register
+group.
+
+If a trap is taken, `vstart` is in units of structures.
+
+==== Vector Unit-Stride Segment Loads and Stores
+
+The vector unit-stride load and store segment instructions move packed
+contiguous segments ("array-of-structures") into multiple destination
+vector register groups.
+
+NOTE: For segments with heterogeneous-sized fields, software can later
+unpack fields using additional instructions after the segment load
+brings the values into the separate vector registers.
+
+The assembler prefixes `vlseg`/`vsseg` are used for unit-stride
+segment loads and stores respectively.
 
 [source,asm]
 ----
-    vlaos2b.v vd, offset(rs1), vm   # Load vector of 2*1-byte structure into destination vd, vd+1 when LMUL=1
-    vlaos3b.v vd, offset(rs1), vm   # Load vector of 3*1-byte structure into destination vd, vd+1
-    vlaos7w.v vd, offset(rs1), vm   # Load vector of 7*4-byte structure into destination vd, vd+1, ... vd+6
-    vlaos8e.v vd, offset(rs1), vm   # Load vector of 8*SEW-byte structure into destination vd, vd+1, .. vd+7
+    # Format
+    vlseg<nf>{b,h,w,e}.v vd, (rs1),  vm   # Unit-stride segment load template
+    vsseg<nf>{b,h,w,e}.v vs3, (rs1), vm  # Unit-stride segment store template
 
-    vsaos3b.v vs3, offset(rs1), vm
+    # Examples
+    vlseg2b.v vd, (rs1), vm   # Load vector of 2*1-byte segments into vd, vd+1
+    vlseg3b.v vd, (rs1), vm   # Load vector of 3*1-byte segments into vd, vd+1
+    vlseg7w.v vd, (rs1), vm   # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
+    vlseg8e.v vd, (rs1), vm   # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
+
+    vsseg3b.v vs3, (rs1), vm  # Store packed vector of 3*1-byte segments from vd,vd+1,vd+2 to memory
 ----
+
+For loads, the `vd` register will hold the first field loaded from the
+segment.  For stores, the `vs3` register is read to provide the first
+field to be stored in each segment.
 
 [source]
 ----
     # Example 1
     # Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
-    vlaos3b.v v8, (a0), vm
+    vlseg3b.v v8, (a0), vm
     # v8 holds the red pixels
     # v9 holds the green pixels
     # v10 holds the blue pixels
 
     # Example 2
     # Memory structure holds complex values, 32b for real and 32b for imaginary
-    vlaos2w.v v8, (a0), vm
+    vlseg2w.v v8, (a0), vm
     # v8 holds real
     # v9 holds imaginary
 ----
 
-For loads, the `vd` register is the first register in the group to be
-loaded. For stores, the `vs3` register is the first register to be
-stored.
+There are also fault-only-first versions of the unit-stride instructions. 
 
-When LMUL=1, each field is held in successively numbered vector
-register numbers.  When LMUL > 1, each field is held in a vector
-register group constructed from LMUL consecutive vector registers.
+[source,asm]
+----
+    # Template for vector fault-only-first unit-stride segment loads and stores.
+    vlsegff<nf>{b,h,w,e}.v vd, (rs1),  vm  # Unit-stride fault-only-first segment load template
+    vssegff<nf>{b,h,w,e}.v vs3, (rs1), vm  # Unit-stride fault-only-first segment store template
+----
 
-The value of LMUL must be such that LMUL multiplied by the number of
-NFIELDS is less than or equal to 8, otherwise an illegal instruction
-exception is raised.
+==== Vector Strided Segment Loads and Stores
+
+Vector strided segment loads and stores move contiguous segments where
+each segment is separated by the byte stride offset given in the `rs2`
+GPR argument.
 
 [source]
 ----
-    vsetvli x0, a0, vsew32,vlmul4
-    vloas2w.v v8, (a1)  # <v8,v9,v10,v11> holds first field, <v12,v13,v14,v15> holds second field
+    # Format
+    vlsseg<nf>{b,h,w,e}.v vd, (rs1), rs2, vm  # Strided segment load
+    vssseg<nf>{b,h,w,e}.v vs3, (rs1), rs2, vm # Strided segment store
+
+    # Examples
+    vlsseg3b.v v4, (x5), x6   # Load bytes at addresses x5+i*x6   into v4[i],
+                              #  and bytes at addresses x5+i*x6+1 into v5[i],
+                              #  and bytes at addresses x5+i*x6+2 into v6[i].
+
+    # Examples
+    vssseg2w.v v2, (x5), x6   # Store words from v2[i] to address x5+i*x6
+                              #   and words from v3[i] to address x5+i*x6+4
 ----
 
-The base vector register specifier given in the vector load or store
-instruction must obey the vector register number constraints for a
-vector register group with an effective LMUL of NFIELDS*LMUL (i.e.,
-with NFIELDS=3 and LMUL=2, vector register number must be a multiple
-of 8), otherwise an illegal instruction exception is raised.
+==== Vector Indexed Segment Loads and Stores
 
-The `vl` register gives the number of structures to move, which is
-equal to the number of elements tranferred to each vector register.
+Vector indexed segment loads and stores move contiguous segments where
+each segment is located at an address given by adding the scalar base
+address in the `rs1` field to byte offsets in vector register `vs2`.
 
-If a trap is taken, `vstart` is in units of structures.
+[source]
+----
+    # Format
+    vlxseg<nf>{b,h,w,e}.v vd, (rs1), vs2, vm  # Indexed segment load
+    vsxseg<nf>{b,h,w,e}.v vs3, (rs1), vs2, vm # Indexed segment store
 
-There are also first-fault versions of these instructions.
+    # Examples
+    vlxseg3b.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
+                              #  and bytes at addresses x5+v3[i]+1 into v5[i],
+                              #  and bytes at addresses x5+v3[i]+2 into v6[i].
 
-== Vector AMO Operations
+    # Examples
+    vsxseg2w.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]  
+                              #   and words from v3[i] to address x5+v5[i]+4
+----
+
+== Vector AMO Operations (`Zvamo`)
 
 NOTE: Profiles will dictate whether vector AMO operations are
 supported.  The expectation is that the Unix profile will require
