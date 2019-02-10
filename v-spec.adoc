@@ -621,8 +621,8 @@ point for loops with mixed-width operations.
 
  SEW/LMUL    1   2   4   8  16  32  64 128 256 512 1024
 
-      SEW  
-        8    8   4   2   1      
+      SEW
+        8    8   4   2   1
        16        8   4   2   1
        32            8   4   2   1
        64                8   4   2   1
@@ -1059,7 +1059,7 @@ include::vcfg-format.adoc[]
 [source]
 ----
     vtype register format
-    
+
     bits    contents
 XLEN-1:9    Reserved (write 0)
      4:2    vsew[2:0]
@@ -1567,23 +1567,22 @@ in future vector extensions.
 NOTE: This is being considered as a possible extension.
 
 These instructions move a packed contiguous array of structures into
-multiple destination vector registers.  The low three bits of `*umop`
-indicate the number of memory fields in a structure from 1-8. The
-width encoding gives the size of the memory fields, which must be
-homogeneous.
+multiple destination vector register groups.  The low three bits of
+`*umop` indicate the number of memory fields (_NFIELDS_) in a
+structure from 1-8. The width encoding gives the size of the memory
+fields, which must be homogeneous.
 
-NOTE: An array-of-structs memory instruction with structure size of 1
-is identical to a unit-stride instruction with LMUL=1.
-
-NOTE: Software can further unpack fields within a structure into
-separate vector registers.
+NOTE: For structures with heterogeneous-sized fields, software can
+unpack fields using additional instructions after the
+array-of-structures load brings the values into the separate vector
+registers.
 
 The assembler prefix `vlaos`/`vsaos` is used for loads and stores
-respectively. 
+respectively.
 
 [source,asm]
 ----
-    vlaos2b.v vd, offset(rs1), vm   # Load vector of 2*1-byte structure into destination vd, vd+1
+    vlaos2b.v vd, offset(rs1), vm   # Load vector of 2*1-byte structure into destination vd, vd+1 when LMUL=1
     vlaos3b.v vd, offset(rs1), vm   # Load vector of 3*1-byte structure into destination vd, vd+1
     vlaos7w.v vd, offset(rs1), vm   # Load vector of 7*4-byte structure into destination vd, vd+1, ... vd+6
     vlaos8e.v vd, offset(rs1), vm   # Load vector of 8*SEW-byte structure into destination vd, vd+1, .. vd+7
@@ -1611,8 +1610,25 @@ For loads, the `vd` register is the first register in the group to be
 loaded. For stores, the `vs3` register is the first register to be
 stored.
 
-LMUL is ignored and these instructions load each vector register as if
-LMUL=1.
+When LMUL=1, each field is held in successively numbered vector
+register numbers.  When LMUL > 1, each field is held in a vector
+register group constructed from LMUL consecutive vector registers.
+
+The value of LMUL must be such that LMUL multiplied by the number of
+NFIELDS is less than or equal to 8, otherwise an illegal instruction
+exception is raised.
+
+[source]
+----
+    vsetvli x0, a0, vsew32,vlmul4
+    vloas2w.v v8, (a1)  # <v8,v9,v10,v11> holds first field, <v12,v13,v14,v15> holds second field
+----
+
+The base vector register specifier given in the vector load or store
+instruction must obey the vector register number constraints for a
+vector register group with an effective LMUL of NFIELDS*LMUL (i.e.,
+with NFIELDS=3 and LMUL=2, vector register number must be a multiple
+of 8), otherwise an illegal instruction exception is raised.
 
 The `vl` register gives the number of structures to move, which is
 equal to the number of elements tranferred to each vector register.
@@ -1653,7 +1669,7 @@ no immediate offset.  A vector of byte offsets in register `vs2` are
 added to the scalar base register in `rs1` to give the addresses of
 the AMO operations.
 
-The `vs2` vector register supplies the memory address of each element,
+The `vs2` vector register supplies the byte offset of each element,
 while the `vs3` vector register supplies the source data for the
 atomic memory operation.
 
@@ -1667,9 +1683,9 @@ preserved.
 
 NOTE: The AMOs were defined to overwrite source data partly to reduce
 total memory pipeline read port count for implementations with
-register renaming.  Also, to keep the same addressing mode as vector
-indexed operations and because vector AMOs are less likely to need the
-result given that the primary use is parallel in-memory reductions.
+register renaming.  Also, to support the same addressing mode as vector
+indexed operations, and because vector AMOs are less likely to need
+results given that the primary use is parallel in-memory reductions.
 
 Vector AMOs operate as if `aq` and `rl` bits were zero on each element
 with regard to ordering relative to other instructions in the same
@@ -1704,6 +1720,10 @@ returned from memory is sign-extended to fill SEW.
 If SEW is less than XLEN, then addresses in the vector `vs2` are
 sign-extended to XLEN.  If SEW is greater than XLEN, an illegal
 instruction exception is raised.
+
+Note, the AMO instruction encoding does not support arbitrary SEW-bit
+memory elements, only the standard 32-bit, 64-bit, 128-bit sizes
+required by the standard scalar base architecture.
 
 The vector `amoop[4:0]` field uses the same encoding as the scalar
 5-bit AMO instruction field, except that LR and SC are not supported.
@@ -2759,8 +2779,8 @@ arguments are ordered (i.e., neither argument is NaN).
 [source]
 ----
     # Are args ordered?
-    vford.vv   # Vector-vector
-    vford.vf   # Vector-scalar
+    vford.vv  vd, vs2, vs1, vm   # Vector-vector
+    vford.vf  vd, vs2, rs1, vm   # Vector-scalar
 ----
 
 [source]
@@ -2770,7 +2790,7 @@ arguments are ordered (i.e., neither argument is NaN).
     vfgt.v v0, va, vb, v0.t   # so only set flags on ordered values.
 ----
 
-NOTE: Detailed NaN signalling conventions to be added.
+NOTE: Detailed NaN signaling conventions to be added.
 
 === Vector Floating-Point Classify Instruction
 
@@ -2986,6 +3006,17 @@ read and write a double-width reduction result.
  vfwredosum.vs vd, vs2, vs1, vm # Ordered reduce 2*SEW = sum(SEW) + 2*SEW
  vfwredsum.vs vd, vs2, vs1, vm  # Unordered reduce  2*SEW = sum(SEW) + 2*SEW
 ----
+
+The reduction of the SEW-width elements is performed as in the
+single-width reduction case, with the final SEW-width result promoted
+to 2*SEW bits before adding to the 2*SEW-width accumulator.
+
+For the `vfwredsum.vs` instruction, implementations may optionally
+perform the reduction by first promoting elements to the wider (2*SEW)
+format.
+
+NOTE: The `vfwredosum.vs` instruction must round as if performed
+sequentially in the original format.
 
 == Vector Mask Instructions
 
@@ -3305,7 +3336,7 @@ instructions (indexed stores) to perform vector compress functions.
 [source]
 ----
     # Compact non-zero elements from input memory array to output memory array
-    #   
+    #
     # size_t compact_non_zero(size_t n, const int* in, int* out)
     # {
     #   size_t i;
@@ -3545,7 +3576,7 @@ The destination vector register group for `vslidedown` cannot overlap
 the vector mask register if the instruction is masked, otherwise an
 illegal instruction exception is raised.
 
-==== Vector Slide1up 
+==== Vector Slide1up
 
 Variants of slide are provided that only move by one element but which
 also allow a scalar integer value to be inserted at the vacated
@@ -3782,9 +3813,20 @@ This mechanism is not defined in the base vector ISA.
 
 == Divided Element Extension ('Zvediv')
 
-NOTE: Debatable whether this makes it into mandatory base, but cost is low.
+The divided element extension allows each element to be treated as a
+packed sub-vector of narrower elements. This provides efficient
+support for some forms of narrow-width and mixed-width arithmetic, and
+also to allow outer-loop vectorization of short vector and matrix
+operations.  In addition to modifying the behavior of some existing
+instructions, a few new instructions are provided to operate on
+vectors when EDIV > 1. 
 
-The divided element extension adds a two-bit field, `vediv[1:0]` to the `vtype` register.
+NOTE: This is written as an extension for now, but could become
+part of mandatory base in Unix vector profile.
+
+The divided element extension adds a two-bit field, `vediv[1:0]` to
+the `vtype` register.
+
 [source]
 ----
 vtype layout
@@ -3813,44 +3855,45 @@ vediv Division
 
 [source]
 ----
-Examples (not all need to be supported in an standard implementation)
 
-                        Integer      FP
-                        reduction    reduction
-SEW  EDIV  Sub-element  accumulator  accumulator
-  8b   2      4b           8b          -
-  8b   4      2b           8b          -
-  8b   8      1b           4b          -
+                        Integer     Integer       FP sum/dot   FP sum/dot   FP sum/dot
+                        sum         dot           accumulator  accumulator  accumulator
+SEW  EDIV  Sub-element  accumulator accumulator    FLEN=32      FLEN=64      FLEN=128
+  8b   2      4b          8b            8b          -            -            -
+  8b   4      2b          8b            8b          -            -            -
+  8b   8      1b          8b            8b          -            -            -
 
- 16b   2      8b          16b          16b (with 8b float)
- 16b   4      4b          16b          -
- 16b   8      2b           8b          -
+ 16b   2      8b         16b           16b          -            -            -
+ 16b   4      4b          8b           16b          -            -            -
+ 16b   8      2b          8b            8b          -            -            -
 
- 32b   2     16b          32b          32b
- 32b   4      8b          32b          16b (with 8b float)
- 32b   8      4b          16b           -
+ 32b   2     16b         32b           32b          32b          32b          32b
+ 32b   4      8b         16b           32b           -            -            -
+ 32b   8      4b          8b           16b           -            -            -
 
- 64b   2     32b          64b          64b
- 64b   4     16b          64b          32b
- 64b   8      8b          32b          16b (with 8b float)
+ 64b   2     32b         64b           64b          32b          64b          64b
+ 64b   4     16b         32b           64b          32b          32b          32b
+ 64b   8      8b         16b           32b           -            -            -
 
-128b   2     64b         128b         128b
-128b   4     32b         128b          64b
-128b   8     16b          64b          32b
+128b   2     64b        128b          128b          32b          64b         128b
+128b   4     32b         64b          128b          32b          64b          64b
+128b   8     16b         32b           64b          32b          32b          32b
 
-256b   2    128b         256b         128b
-256b   4     64b         256b         128b
-256b   8     32b         128b          64b
+256b   2    128b        256b          256b          32b          64b         128b
+256b   4     64b        128b          256b          32b          64b         128b
+256b   8     32b         64b          128b          32b          64b          64b
 ----
 
 Each implementation defines a minimum size for a sub-element, _SELEN_,
 which must be at most 8 bits.
 
 NOTE: While _SELEN_ is a fourth implementation-specific parameter,
-values smaller than 8 are considered an additional extension to the
-base vector extension.
+values smaller than 8 would be considered an additional extension.
 
 === Instructions not affected by EDIV
+
+The vector start register `vstart` and exception reporting continue to
+work as before.
 
 The vector length `vl` control and vector masking continue to operate
 at the element level.
@@ -3865,8 +3908,7 @@ Vector load/store and AMO instructions are unaffected by EDIV, and
 continue to move whole elements.
 
 Vector mask logical operations are unchanged by EDIV setting, and
-continue to operate on whole vector registers containing whole element
-masks.
+continue to operate on vector registers containing element masks.
 
 Vector mask population count (`vmpopc`), find-first and related
 instructions (`vmfirst`, `vmsbf`, `vmsif`, `vmsof`), iota (`vmiota`),
@@ -3898,49 +3940,47 @@ vsll.vx v1,v2,x1                     # Performs a vector of 4*vl 8-bit shifts.
 
 ==== Vector Reduction Instructions under EDIV
 
-Vector reduction operations now operate to reduce sub-element values
-within a sub-vector to a single element-wide result.
-
-Sub-element integer reductions produce a final result that is
-min(SEW,4*SEW/EDIV) bits wide, sign- or zero-extended to full SEW if
-necessary.
-
-Sub-element floating-point reductions produce a final result that is
-min(2*SEW,128), NaN-boxed to the full SEW width if necessary.
-
-Widening vector reduction operations with non-zero EDIV are reserved.
-
-NOTE: While these could be defined, it is unclear they are needed and
-this reduces implementation complexity.
+Vector reduction instructions now operate independently on all
+elements in a vector, reducing sub-element values within an element to
+an element-wide result.
 
 [source]
 ----
-vsetvli t0, a0, ve32,vlmul1,vediv4  # Vectors of 32-bit elements, divided into byte sub-elements
-# Sum each sub-vector of four bytes into a 32-bit result.
-vredsum.vv v1, v2, v3                # v1[i][31:0] = v2[i][31:24] + v2[i][23:16] + v2[i][15:8] + v2[i][7:0] + v3[i][31:0]
+# Sum each sub-vector of four bytes into a 16-bit result.
+vsetvli t0, a0, ve32,vediv4  # Vectors of 32-bit elements, divided into byte sub-elements
+vredsum.vv v1, v2, v3 # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
+                      #              + v2[i][15:8] + v2[i][7:0] + v3[i][31:0]
 
-# Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
-vsetvli t0, a0, ve32,vlmul1,vediv2  # Vectors of 32-bit elements, divided into 16b sub-elements
-vfdot.vv v1, v2, v3   # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0]
-
-# Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
-vsetvli t0, a0, ve32,vlmul1,vediv2  # Vectors of 32-bit elements, divided into 16b sub-elements
-vfdot.vv v1, v2, v3   # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0]
-
-# Floating-point sub-vectors of four half-precision floats packed into 64-bit elements.
-vsetvli t0, a0, ve64,vlmul1,vediv4  # Vectors of 64-bit elements, divided into 16b sub-elements
-vfdot.vv v1, v2, v3
-                 # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0] +
-                 #                 v2[i][63:48]*v3[i][63:48] + v2[i][47:32]*v3[i][47:32];
-                 # v1[i][63:32] = ~0 (NaN boxing)
+vredmax.vv v5, v6, v7 # v5[i][31:0] = max(v6[i][31:24], v6[i][23:16],
+                      #                    v6[i][15:8], v6[i][7:0], v7[i][31:0])
 ----
 
-==== Vector Permute Instructions under EDIV
+Integer sub-element non-sum reductions produce a final result that is
+max(8,SEW/EDIV) bits wide, sign- or zero-extended to full SEW if
+necessary.
+
+Integer sub-element sum reductions produce a final result that is
+max(8,min(SEW,2*SEW/EDIV)) bits wide, sign- or zero-extended to full
+SEW if necessary.
+
+Floating-point sub-element non-sum reductions produce a final result
+that is SEW/EDIV bits wide.
+
+Floating-point sub-element sum reductions produce a final result that
+is min(2*SEW/EDIV,FLEN) bits wide, NaN-boxed to the full SEW width if
+necessary.
+
+Widening vector reduction operations with non-zero EDIV are reserved.
+NOTE: While these could be defined, it is unclear they are needed and
+this reduces implementation complexity.
+
+
+==== Vector Register Gather Instructions under EDIV
 
 Vector register gather instructions under non-zero EDIV only gather
 sub-elements within the element.  The source and index values are
 interpreted as relative to the enclosing element only.  Index values
->= EDIV return a zero value.
+>= EDIV write a zero value into the result sub-element.
 
 [source]
 ----
@@ -3951,18 +3991,26 @@ interpreted as relative to the enclosing element only.  Index values
         0 1 9 2 0 2 3 2  v2
                             vrgather.vv v3, v1, v2
         d a 0 e f e b e  v3
+                            vrgather.vi v4, v1, 1
+        a a a a e e e e  v4
 ----
+
+NOTE: Vector register gathers with scalar or immediate arguments can
+"splat" values across sub-elements within an element.
 
 NOTE: Implementations can provide fast implementations of register
 gathers constrained within a single element width.
 
 === Vector Integer Dot-Product Instruction
 
-The dot-product reduction `vdot.vv` performs an element-wise
+The integer dot-product reduction `vdot.vv` performs an element-wise
 multiplication between the source sub-elements then accumulates the
-result into the full-width destination vector element.  Note the
-assembler syntax uses a `.vv` suffix since both inputs are vectors of
-elements.
+results into the destination vector element.  Note the assembler syntax
+uses a `.vv` suffix since both inputs are vectors of elements.
+
+Sub-element integer dot reductions produce a final result
+that is max(8,min(SEW,4*SEW/EDIV)) bits wide, sign- or zero-extended
+to full SEW if necessary.
 
 [source]
 ----
@@ -3986,6 +4034,11 @@ vdotu.vv vd, vs2, vs1, vm  # Vector-vector
 
 === Vector Floating-Point Dot Product Instruction
 
+The floating-point dot-product reduction `vfdot.vv` performs an element-wise
+multiplication between the source sub-elements then accumulates the
+results into the destination vector element.  Note the assembler syntax
+uses a `.vv` suffix since both inputs are vectors of elements.
+
 [source]
 ----
 # Signed dot-product
@@ -3997,6 +4050,22 @@ vfdot.vv vd, vs2, vs1, vm   # Vector-vector
   # Dot product. SEW=32, EDIV=2
   vfdot.v  vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
                                              + vs2[i][15:0] * vs1[i][15:0]
+
+# Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
+vsetvli t0, a0, vsew32,vlmul1,vediv2  # Vectors of 32-bit elements, divided into 16b sub-elements
+vfdot.vv v1, v2, v3   # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0]
+
+# Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
+vsetvli t0, a0, vsew32,vlmul1,vediv2  # Vectors of 32-bit elements, divided into 16b sub-elements
+vfdot.vv v1, v2, v3   # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0]
+
+# Floating-point sub-vectors of four half-precision floats packed into 64-bit elements.
+vsetvli t0, a0, vsew64,vlmul1,vediv4  # Vectors of 64-bit elements, divided into 16b sub-elements
+vfdot.vv v1, v2, v3
+                 # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0] +
+                 #                 v2[i][63:48]*v3[i][63:48] + v2[i][47:32]*v3[i][47:32];
+                 # v1[i][63:32] = ~0 (NaN boxing)
+
 ----
 
 == Vector Instruction Listing
