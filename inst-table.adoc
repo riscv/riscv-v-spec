@@ -10,28 +10,28 @@ OPIVI    I
 
 funct6                funct6                funct6
 000000 VXI vadd       000000 V  vredsum     000000 VF vfadd
-000001 VX  vsub       000001 V  vredand     000001 V  vfredsum
-000010                000010 V  vredor      000010 VF vfsub
+000001                000001 V  vredand     000001 V  vfredsum
+000010 VX  vsub       000010 V  vredor      000010 VF vfsub
 000011  XI vrsub      000011 V  vredxor     000011 V  vfredosum
 000100 VX  vminu      000100 V  vredminu    000100 VF vfmin
 000101 VX  vmin       000101 V  vredmin     000101 V  vfredmin
 000110 VX  vmaxu      000110 V  vredmaxu    000110 VF vfmax
 000111 VX  vmax       000111 V  vredmax     000111 V  vfredmax
-001000                001000                001000
-001001 VXI vand       001001                001001
-001010 VXI vor        001010                001010
+001000                001000                001000 VF vfsgnj
+001001 VXI vand       001001                001001 VF vfsgnn
+001010 VXI vor        001010                001010 VF vfsgnx
 001011 VXI vxor       001011                001011
 001100 VXI vrgather   001100 V  vext.x.s    001100 V  vfmv.f.s
 001101                001101  X vmv.s.x     001101  F vfmv.s.f
 001110  XI vslideup   001110  X vslide1up   001110
 001111  XI vslidedown 001111  X vslide1down 001111
 
-010000 VXI vsrl       010000 V  vmpopc      010000 VF vfsgnj
-010001 VXI vsra       010001 V  vmfirst     010001 VF vfsgnn
-010010 VXI vsll       010010 V  VMUNARY0    010010 VF vfsgnx
+010000 VXI vsrl       010000 VX vadc        010000 
+010001 VXI vsra       010001 V  VMUNARY0    010001 
+010010 VXI vsll       010010 VX vsbc        010010 
 010011 VXI vmerge     010011 V  vcompress   010011  F vfmerge.vf
-010100 VXI vnsrl      010100                010100       
-010101 VXI vnsra      010101                010101
+010100 VXI vnsrl      010100 V  vmpopc      010100
+010101 VXI vnsra      010101 V  vmfirst     010101
 010110 VXI vnclipu    010110                010110
 010111 VXI vnclip     010111                010111
 011000 VXI vseq       011000 V  vmandnot    011000 VF vfeq
@@ -43,14 +43,14 @@ funct6                funct6                funct6
 011110  XI vsgtu      011110 V  vmnor       011110
 011111  XI vsgt       011111 V  vmxnor      011111  F vfgte
 
-100000 VXI vadc       100000 VX vmulhu      100000 VF vfmul
-100001 VXI vsbc       100001 VX vmul        100001
-100010                100010 VX vmulhsu     100010
-100011                100011 VX vmulh       100011
-100100                100100 VX vdivu       100100 VF vfdiv   
-100101                100101 VX vdiv        100101  F vfrdiv  
-100110                100110 VX vremu       100110 V  VFUNARY0
-100111                100111 VX vrem        100111 V  VFUNARY1
+100000 VXI vsaddu     100000 VX vdivu       100000 VF vfdiv   
+100001 VXI vsadd      100001 VX vdiv        100001  F vfrdiv  
+100010 VX  vssubu     100010 VX vremu       100010 V  VFUNARY0
+100011 VX  vssub      100011 VX vrem        100011 V  VFUNARY1
+100100 VXI vaadd      100100 VX vmulhu      100100 VF vfmul
+100101                100101 VX vmul        100101 
+100110 VX  vasub      100110 VX vmulhsu     100110 
+100111 VX  vsmul      100111 VX vmulh       100111 
 101000                101000                101000 VF vfmadd
 101001                101001 VX vmadd       101001 VF vfnmadd
 101010                101010                101010 VF vfmsub

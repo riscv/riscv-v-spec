@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 0.7-draft-20190209
+Version 0.7-draft-20190210
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -1228,20 +1228,6 @@ machines where 16b widening multiplies are faster than 32b integer
 multiplies, and where 16b vector load can run faster due to the
 narrower writes to the vector regfile.
 
-////
-NOTE: The `vlmul8max` version is used in the single-width loop to
-reduce LMUL for shorter application vector lengths.  The mixed-width
-loop has to use a fixed SEW=16/LMULMAX=4 and the SEW=32/LMULMAX=8
-settings to the `vsetvli` instructions to obtain correct results.  If
-the `vlmul?max` versions were used, the two different element widths
-could have the same LMUL=1 for short vector lengths, and the elements
-within the vector registers would not line up correctly.
-
-NOTE: It should be possible to specify a different form of vlmulmax
-that specifies the range of element widths to be used in overall loop
-to set LMUL correctly. TBD.
-////
-
 == Vector Loads and Stores
 
 Vector loads and stores move values between vector registers and
@@ -1555,11 +1541,10 @@ in future vector extensions.
 === Vector Load/Store Segment Instructions (`Zvlsseg`)
 
 NOTE: This is being written as an extension but could be mandated in
-some profiles.
+some profiles. 
 
 The vector load/store segment instructions move multiple contiguous
-fields in memory to and from consecutively numbered vector register
-groups.
+fields in memory to and from consecutively numbered vector registers.
 
 NOTE: These operations support operations on "array-of-structures"
 datatypes by unpacking each field in a structure into separate vector
@@ -1575,6 +1560,19 @@ segment, _NFIELDS_.
 
 [source]
 ----
+nf[2:0] NFIELDS 
+ 000      1     
+ 001      2     
+ 010      3     
+ 011      4     
+ 100      5     
+ 101      6     
+ 110      7     
+ 111      8     
+----
+////
+[source]
+----
 nf[2:0] NFIELDS  vector reg alignment
  000      1       1 (v0, v1, ..., v31)
  001      2       2 (v0, v2, ..., v30)
@@ -1585,12 +1583,13 @@ nf[2:0] NFIELDS  vector reg alignment
  110      7       8
  111      8       8
 ----
+////
 
 LMUL must be set to 1 for a segment load or store (NFIELDS > 1), and
-each field will be held in successively numbered vector register
-numbers.  If LMUL > 1, an illegal instruction exception will be
-raised.
+each field will be held in successively numbered vector registers.  If
+LMUL > 1, an illegal instruction exception will be raised.
 
+////
 The vector register numbers used in a segment load or store are
 constrained to be aligned according to the table above.  When
 NFIELDS=2, only even-numbered vector registers can be used.  When
@@ -1598,12 +1597,16 @@ NFIELDS=3 or NFIELDS=4, only multiples of 4 can be used in vector
 register numbers.  When NFIELDS > 4, only multiples of 8 can be used
 in vector register numbers.  Other vector register numbers will raise
 an illegal instruction exception.
+////
 
 The `vl` register gives the number of structures to move, which is
-equal to the number of elements transferred to each vector register
-group.
+equal to the number of elements transferred to each vector register.
 
 If a trap is taken, `vstart` is in units of structures.
+
+NOTE: An earlier version imposed a vector register number constraint,
+but this decreased ability to make use of all registers when NFIELDS
+was not a power of 2.
 
 ==== Vector Unit-Stride Segment Loads and Stores
 
@@ -2071,7 +2074,6 @@ To support multi-word arithmetic:
 
  vadc.vv   vd, vs2, vs1  # Vector-vector
  vadc.vx   vd, vs2, rs1  # Vector-scalar
- vadc.vi   vd, vs2, imm  # Vector-immediate
 ----
 
 This instruction is encoded as an unmasked instruction (vm=1) and
@@ -2092,7 +2094,6 @@ function to support long word arithmetic for subtraction.
 
  vsbc.vv   vd, vs2, vs1  # Vector-vector
  vsbc.vx   vd, vs2, rs1  # Vector-scalar
- vsbc.vi   vd, vs2, imm  # Vector-immediate
 ----
 
 The encodings corresponding to the masked versions (vm=0) of `vadc`
@@ -2173,41 +2174,6 @@ for SEW of > 32.
 
 NOTE: It could be useful to add support for `n4` variants, where the
 destination is 1/4 width of source.
-
-=== Vector Narrowing Fixed-Point Clip Instructions
-
-The `vnclip` instructions are used to pack a fixed-point value into a
-narrower destination.  The instructions support rounding, scaling, and
-saturation into the final destination format.
-
-[source]
-----
- # Narrowing unsigned clip
- vnclipu.vv vd, vs2, vs1, vm   # vector-vector
- vnclipu.vx vd, vs2, rs1, vm   # vector-scalar
- vnclipu.vi vd, vs2, imm, vm   # vector-immediate
-
-# Narrowing signed clip,  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
- #                          SEW           2*SEW                 SEW
- vnclip.vv vd, vs2, vs1, vm   # vector-vector
- vnclip.vx vd, vs2, rs1, vm   # vector-scalar
- vnclip.vi vd, vs2, imm, vm   # vector-immediate
-----
-
-For `vnclipu`/`vnclip`, the rounding mode is specified in the `vxrm`
-CSR.  Rounding occurs around the least-significant bit of the
-destination and before saturation.
-
-For `vnclipu`, the shifted rounded source value is treated as an
-unsigned integer and saturates if the result would overflow the
-destination viewed as an unsigned integer.
-
-For `vnclip`, the shifted rounded source value is treated as a signed
-integer and saturates if the result would overflow the destination viewed
-as a signed integer.
-
-If any destination element is saturated, the `vxsat` bit is set in the
-`vxsat` register.
 
 === Vector Integer Comparison Instructions
 
@@ -2415,8 +2381,11 @@ vmulhsu.vx vd, vs2, rs1, vm   # vector-scalar
 NOTE: There is no `vmulhus` opcode to return high half of
 unsigned-vector * signed-scalar product.
 
-NOTE: The `vmulh*` opcodes perform simple fractional multiplies, but
-with no option to scale, round, and/or saturate the result.
+NOTE: The current `vmulh*` opcodes perform simple fractional
+multiplies, but with no option to scale, round, and/or saturate the
+result.  Can consider changing definition of `vmulh`, `vmulhu`,
+`vmulhsu` to use `vxrm` rounding mode when discarding low half of
+product.  There is no possibility of overflow in this case.
 
 === Vector Widening Integer Multiply Instructions
 
@@ -2585,6 +2554,135 @@ pseudoinstruction `vmv.v.i vd, imm`.
 
 NOTE: Mask values can be widened into SEW-width elements using a
 sequence `vmv.v.i vd, 0; vmerge.vi vd, vd, 1, v0.t'.
+
+== Vector Fixed-Point Arithmetic Instructions
+
+A set of vector arithmetic instructions are provided to support
+fixed-point arithmetic.
+
+An N-bit element can hold two's-complement signed integers in the
+range -2^N-1^...+2^N-1^-1, and unsigned integers in the range 0
+... +2^N^-1.  The fixed-point instructions help preserve precision in
+narrow operands by supporting scaling and rounding, and can handle
+overflow by saturating results into the destination format range.
+
+NOTE: The widening integer operations described above can also be used
+to remove the possibility of overflow.
+
+=== Vector Single-Width Saturating Add and Subtract
+
+Saturating forms of integer add and subtract are provided, for both
+signed and unsigned integers.  If the result would overflow the
+destination, the result is replaced with the closest representable
+value.
+
+[source]
+----
+# Saturating adds of unsigned integers.
+vsaddu.vv vd, vs2, vs1, vm   # Vector-vector
+vsaddu.vx vd, vs2, rs1, vm   # vector-scalar
+vsaddu.vi vd, vs2, imm, vm   # vector-immediate
+
+# Saturating adds of signed integers.
+vsadd.vv vd, vs2, vs1, vm   # Vector-vector
+vsadd.vx vd, vs2, rs1, vm   # vector-scalar
+vsadd.vi vd, vs2, imm, vm   # vector-immediate
+
+# Saturating subtract of unsigned integers.
+vssubu.vv vd, vs2, vs1, vm   # Vector-vector
+vssubu.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Saturating subtract of signed integers.
+vssub.vv vd, vs2, vs1, vm   # Vector-vector
+vssub.vx vd, vs2, rs1, vm   # vector-scalar
+----
+
+=== Vector Single-Width Averaging Add and Subtract
+
+The averaging add and subtract instructions right shift the result by
+one bit and round off the result according to the setting in `vxrm`.
+There can be no overflow in the result.
+
+[source]
+----
+# Averaging add
+# result = (src1 + src2 + round) >> 1;
+
+# Averaging adds of integers.
+vaadd.vv vd, vs2, vs1, vm   # Vector-vector
+vaadd.vx vd, vs2, rs1, vm   # vector-scalar
+vaadd.vi vd, vs2, imm, vm   # vector-immediate
+
+# Averaging subtract
+# result = (src1 - src2 + round) >> 1;
+
+# Averaging subtract of integers.
+vasub.vv vd, vs2, vs1, vm   # Vector-vector
+vasub.vx vd, vs2, rs1, vm   # vector-scalar
+----
+
+=== Vector Single-Width Fractional Multiply with Rounding and Saturation
+
+The signed fractional multiply instruction produces a 2*SEW product of
+the two SEW inputs, then shifts the result right by SEW-1 bits,
+rounding these bits according to `vxrm`, then saturates the result to
+fit into SEW bits.  If the result causes saturation, the `vxsat` bit
+is set.
+
+[source]
+----
+# Signed saturating and rounding fractional multiply
+vsmul.vv vd, vs2, vs1, vm   # Vector-vector
+vsmul.vx vd, vs2, rs1, vm   # vector-scalar
+----
+
+NOTE: When multiplying two N-bit signed numbers, the largest magnitude
+is obtained for -2^N-1^ * -2^N-1^ producing a result +2^2N-2^, which
+has a single (zero) sign bit when held in 2N bits.  All other products
+have two sign bits in 2N bits.  To retain greater precision in N
+result bits, the product is shifted right by one bit less than N,
+saturating the largest magnitude result but increasing precision by
+one bit for all other products when they are reduced back down to N
+bits.
+
+NOTE: Considering adding `vxrm`-controlled rounding to `vmulhu`,
+`vmulhsu`, and `vmulh` to further support fixed-point.  These would
+not have saturation.
+
+=== Vector Narrowing Fixed-Point Clip Instructions
+
+The `vnclip` instructions are used to pack a fixed-point value into a
+narrower destination.  The instructions support rounding, scaling, and
+saturation into the final destination format.
+
+[source]
+----
+ # Narrowing unsigned clip
+ vnclipu.vv vd, vs2, vs1, vm   # vector-vector
+ vnclipu.vx vd, vs2, rs1, vm   # vector-scalar
+ vnclipu.vi vd, vs2, imm, vm   # vector-immediate
+
+# Narrowing signed clip,  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
+ #                          SEW           2*SEW                 SEW
+ vnclip.vv vd, vs2, vs1, vm   # vector-vector
+ vnclip.vx vd, vs2, rs1, vm   # vector-scalar
+ vnclip.vi vd, vs2, imm, vm   # vector-immediate
+----
+
+For `vnclipu`/`vnclip`, the rounding mode is specified in the `vxrm`
+CSR.  Rounding occurs around the least-significant bit of the
+destination and before saturation.
+
+For `vnclipu`, the shifted rounded source value is treated as an
+unsigned integer and saturates if the result would overflow the
+destination viewed as an unsigned integer.
+
+For `vnclip`, the shifted rounded source value is treated as a signed
+integer and saturates if the result would overflow the destination viewed
+as a signed integer.
+
+If any destination element is saturated, the `vxsat` bit is set in the
+`vxsat` register.
 
 == Vector Floating-Point Instructions
 
