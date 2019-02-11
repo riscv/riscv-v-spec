@@ -1067,24 +1067,17 @@ XLEN-1:9    Reserved (write 0)
 ----
  Suggested assembler names used for vtypei setting
 
- vsew8    #   8b elements
- vsew16   #  16b elements
- vsew32   #  32b elements
- vsew64   #  64b elements
- vsew128  # 128b elements
+ e8    #   8b elements
+ e16   #  16b elements
+ e32   #  32b elements
+ e64   #  64b elements
+ e128  # 128b elements
 
- vlmul1   # Vlmul x1
- vlmul2   # Vlmul x2
- vlmul4   # Vlmul x4
- vlmul8   # Vlmul x8
+ m1   # Vlmul x1
+ m2   # Vlmul x2
+ m4   # Vlmul x4
+ m8   # Vlmul x8
 ----
-
-////
- vlmul1max   # Vlmul x1 max
- vlmul2max   # Vlmul x2 max
- vlmul4max   # Vlmul x4 max
- vlmul8max   # Vlmul x8 max
-////
 
 The `vtype` setting must be supported by the implementation, and the
  `vsetvl{i}` instructions will raise an illegal instruction exception
@@ -1190,7 +1183,7 @@ throughput on mixed-width operations in a single loop.
 # Loop using only widest elements:
 
 loop:
-    vsetvli a3, a0, vsew32,vlmul8   # Use only 32-bit elements
+    vsetvli a3, a0, e32,m8   # Use only 32-bit elements
     vlh.v v8, (a1)          # Sign-extend 16b load values to 32b elements
       sll t1, a3, 1
       add a1, a1, t1        # Bump pointer
@@ -1205,13 +1198,13 @@ loop:
 # Alternative loop that switches element widths.
 
 loop:
-    vsetvli a3, a0, vsew16,vlmul4  # vtype = 16-bit integer vectors
+    vsetvli a3, a0, e16,m4  # vtype = 16-bit integer vectors
     vlh.v v4, (a1)          # Get 16b vector
       slli t1, a3, 1
       add a1, a1, t1        # Bump pointer
     vwmul.vx v8, v4, x10    # 32b in <v8--v15>
 
-    vsetvli x0, a0, vsew32,vlmul8  # Operate on 32b values
+    vsetvli x0, a0, e32,m8  # Operate on 32b values
     vsrl.vi v8, v8, 3
     vsw.v v8, (a2)          # Store vector of 32b
       slli t1, t1, 2
@@ -1510,7 +1503,7 @@ strlen example using unit-stride fault-only-first instruction
 strlen:
     mv a3, a0             # Save start
 loop:
-    vsetvli a1, x0, vsew8  # Vector of bytes of maximum length
+    vsetvli a1, x0, e8  # Vector of bytes of maximum length
     vlbff.v v1, (a3)      # Load bytes
     csrr a1, vl           # Get bytes read
     vseq.vi v0, v1, 0     # Set v0[i] where v1[i] = 0
@@ -3480,7 +3473,7 @@ The following is an example of vectorizing a data-dependent exit loop.
 strcpy:
       mv a2, a0             # Copy dst
 loop:
-    vsetvli x0, x0, vsew8   # Max length vectors of bytes
+    vsetvli x0, x0, e8   # Max length vectors of bytes
     vlbuff.v v1, (a1)       # Get src bytes
       csrr t1, vl           # Get number of bytes fetched
     vseq.vi v0, v1, 0       # Flag zero bytes
@@ -3497,7 +3490,7 @@ loop:
 strncpy:
       mv a3, a0             # Copy dst
 loop:
-    vsetvli x0, a2, vsew8   # Vectors of bytes.
+    vsetvli x0, a2, e8   # Vectors of bytes.
     vlbuff.v v1, (a1)       # Get src bytes
     vseq.vi v0, v1, 0       # Flag zero bytes
     vmfirst.m a4, v0        # Zero found?
@@ -3595,7 +3588,7 @@ instructions (indexed stores) to perform vector compress functions.
 compact_non_zero:
     li a6, 0                      # Clear count of non-zero elements
 loop:
-    vsetvli a5, a0, vsew32,vlmul8  # 32-bit integers
+    vsetvli a5, a0, e32,m8  # 32-bit integers
     vlw.v v8, (a1)                # Load input vector
       sub a0, a0, a5              # Decrement number done
       slli a5, a5, 2              # Multiply by four bytes
@@ -4168,7 +4161,7 @@ vector add of 8-bit elements with a vector length of 20.
 
 [source]
 ----
-vsetvli t0, a0, vsew32,vlmul1,vdiv4  # Vectors of 32-bit elements, divided into byte sub-elements
+vsetvli t0, a0, e32,m1,vdiv4  # Vectors of 32-bit elements, divided into byte sub-elements
 vadd.vv v1,v2,v3                     # Performs a vector of 4*vl 8-bit additions.
 vsll.vx v1,v2,x1                     # Performs a vector of 4*vl 8-bit shifts.
 ----
@@ -4182,7 +4175,7 @@ an element-wide result.
 [source]
 ----
 # Sum each sub-vector of four bytes into a 16-bit result.
-vsetvli t0, a0, ve32,vediv4  # Vectors of 32-bit elements, divided into byte sub-elements
+vsetvli t0, a0, ve32,d4  # Vectors of 32-bit elements, divided into byte sub-elements
 vredsum.vv v1, v2, v3 # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
                       #              + v2[i][15:8] + v2[i][7:0] + v3[i][31:0]
 
@@ -4282,20 +4275,20 @@ vfdot.vv vd, vs2, vs1, vm   # Vector-vector
 
 [source]
 ----
-  # Dot product. SEW=32, EDIV=2
-  vfdot.v  vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
-                                             + vs2[i][15:0] * vs1[i][15:0]
+# Dot product. SEW=32, EDIV=2
+vfdot.v  vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
+                                          + vs2[i][15:0] * vs1[i][15:0]
 
 # Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
-vsetvli t0, a0, vsew32,vlmul1,vediv2  # Vectors of 32-bit elements, divided into 16b sub-elements
+vsetvli t0, a0, e32,m1,d2  # Vectors of 32-bit elements, divided into 16b sub-elements
 vfdot.vv v1, v2, v3   # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0]
 
 # Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
-vsetvli t0, a0, vsew32,vlmul1,vediv2  # Vectors of 32-bit elements, divided into 16b sub-elements
+vsetvli t0, a0, e32,m1,d2  # Vectors of 32-bit elements, divided into 16b sub-elements
 vfdot.vv v1, v2, v3   # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0]
 
 # Floating-point sub-vectors of four half-precision floats packed into 64-bit elements.
-vsetvli t0, a0, vsew64,vlmul1,vediv4  # Vectors of 64-bit elements, divided into 16b sub-elements
+vsetvli t0, a0, e64,m1,d4  # Vectors of 64-bit elements, divided into 16b sub-elements
 vfdot.vv v1, v2, v3
                  # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0] +
                  #                 v2[i][63:48]*v3[i][63:48] + v2[i][47:32]*v3[i][47:32];

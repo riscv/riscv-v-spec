@@ -14,7 +14,7 @@ The following are provided as non-normative text to help explain the vector ISA.
     # a0 = n, a1 = x, a2 = y, a3 = z
     # Non-vector instructions are indented
 vvaddint32:
-    vsetvli t0, a0, vsew32 # Set vector length based on 32-bit vectors
+    vsetvli t0, a0, e32 # Set vector length based on 32-bit vectors
     vlw.v v0, (a1)           # Get first vector
       sub a0, a0, t0         # Decrement number done
       slli t0, t0, 2         # Multiply number done by 4 bytes
@@ -39,12 +39,12 @@ vvaddint32:
 #
 # Mixed-width code that keeps SEW/LMUL=8
   loop:
-    vsetvli a4, a0, vsew8,vlmul1  # Byte vector for predicate calc
+    vsetvli a4, a0, e8,m1  # Byte vector for predicate calc
     vlb.v v1, (a1)                # Load a[i]
       add a1, a1, a4              # Bump pointer.
     vslt.vi v0, v1, 5             # a[i] < 5?
 
-    vsetvli x0, a0, vsew32,vlmul4 # Vector of 32-bit values.
+    vsetvli x0, a0, e32,m4 # Vector of 32-bit values.
       sub a0, a0, a4              # Decrement count
     vmv.v.i v4, 1                 # Splat immediate to destination
     vlw.v v4, (a3), v0.t          # Load requested elements of C.
@@ -65,7 +65,7 @@ vvaddint32:
   memcpy:
       mv a3, a0 # Copy destination
   loop:
-    vsetvli t0, a2, vsew8,vlmul8  # Vectors of 8b
+    vsetvli t0, a2, e8,m8  # Vectors of 8b
     vlb.v v0, (a1)                # Load bytes
       add a1, a1, t0              # Bump pointer
       sub a2, a2, t0              # Decrement count
@@ -84,7 +84,7 @@ vvaddint32:
 # Fixed 16b SEW:
 
 loop:
-    vsetvli t0, a0, vsew16  # Use 16b elements.
+    vsetvli t0, a0, e16  # Use 16b elements.
     vlb.v v0, (a1)          # Get x[i], sign-extended to 16b
       sub a0, a0, t0        # Decrement element count
       add a1, a1, t0        # x[i] Bump pointer
@@ -119,7 +119,7 @@ loop:
 #     a3      y
 
 saxpy:
-    setvli a4, a0, vsew32, vlmul8
+    setvli a4, a0, e32, m8
     vlw.v v0, (a2)
     sub a0, a0, a4
     slli a4, a4, 2
@@ -207,7 +207,7 @@ c_row_loop: # Loop across rows of C blocks
     mv cnp, c # Initialize C n-loop pointer
 
 c_col_loop: # Loop across one row of C blocks
-    vsetvli nvl, nt, vsew32  # 32-bit vectors, LMUL=1
+    vsetvli nvl, nt, e32  # 32-bit vectors, LMUL=1
 
     mv akp, a   # reset pointer into A to beginning
     mv bkp, bnp # step to next column in B matrix
