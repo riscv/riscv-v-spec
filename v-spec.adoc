@@ -277,11 +277,12 @@ standard-width elements.  Vector register groups also provide greater
 execution efficiency for longer application vectors.
 
 The number of vector registers in a group, _LMUL_, is an integer power
-of two set by the `vlmul` field in `vtype` (LMUL = 2^``vlmul[1:0]``^).
+of two set by the `vlmul` field in `vtype` (LMUL = 2^`vlmul[1:0]`^).
 The maximum vector length possible in a single vector instruction,
 VLMAX, is then increased by a factor of LMUL.
 
 [source]
+
 ----
  vlmul  LMUL  #groups   VLMAX        Grouped registers
  00       1       32      VLEN/SEW   vn (no group)
@@ -290,8 +291,8 @@ VLMAX, is then increased by a factor of LMUL.
  11       8        4    8*VLEN/SEW   vn, ..., vn+7
 ----
 
-When `vlmul=01`, then vector operations on register ``v``__n__ also
-operate on vector register``v``__n__+1, giving twice the vector length
+When `vlmul=01`, then vector operations on register `v`__n__ also
+operate on vector register `v`__n__+1, giving twice the vector length
 in bits.  Instructions specifying a vector operand with an
 odd-numbered vector register will raise an illegal instruction
 exception.
