@@ -15,11 +15,9 @@ Yunsup Lee, Guy Lemieux, Rich Newell, Albert Ou, David Patterson,
 Colin Schmidt, Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim
 Wilson.
 
-Known issues with current version.
+Known issues with current version:
 
-- additional fixed-point arithmetic support needs to be added.
-- encoding needs further cleaning/slight reorg, better formatting
-- figure out how best to optimize vlmul for systems where SLEN is less than spatial datapath width
+- encoding needs better formatting
 - vector memory consistency model needs to be clarified
 - interaction with privileged architectures
 
@@ -181,8 +179,7 @@ NOTE: The rounding mode can be set with a single `csrwi` instruction.
 
 The `vxsat` CSR holds a single read-write bit that indicates if a
 fixed-point instruction has had to saturate an output value to fit
-into a destination format.  In the base vector extension, only the
-vector narrowing fixed-point clip instructions (`vnclip`) set `vxsat`.
+into a destination format.
 
 The `vxsat` bit is mirrored in the upper bits of `fcsr`.
 
@@ -2074,6 +2071,7 @@ To support multi-word arithmetic:
 
  vadc.vv   vd, vs2, vs1  # Vector-vector
  vadc.vx   vd, vs2, rs1  # Vector-scalar
+ vadc.vi   vd, vs2, imm  # Vector-scalar
 ----
 
 This instruction is encoded as an unmasked instruction (vm=1) and
@@ -2574,7 +2572,7 @@ to remove the possibility of overflow.
 Saturating forms of integer add and subtract are provided, for both
 signed and unsigned integers.  If the result would overflow the
 destination, the result is replaced with the closest representable
-value.
+value, and the `vxsat` bit is set.
 
 [source]
 ----
@@ -2605,6 +2603,8 @@ There can be no overflow in the result.
 
 [source]
 ----
+# For vrxm=rnu, round = 1
+
 # Averaging add
 # result = (src1 + src2 + round) >> 1;
 
@@ -2632,8 +2632,8 @@ is set.
 [source]
 ----
 # Signed saturating and rounding fractional multiply
-vsmul.vv vd, vs2, vs1, vm   # Vector-vector
-vsmul.vx vd, vs2, rs1, vm   # vector-scalar
+vsmul.vv vd, vs2, vs1, vm  # vd[i] = clip((vs2[i]*vs1[i]+round)>>(SEW-1))
+vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip((vs2[i]*x[rs1]+round)>>(SEW-1))
 ----
 
 NOTE: When multiplying two N-bit signed numbers, the largest magnitude
@@ -2641,13 +2641,81 @@ is obtained for -2^N-1^ * -2^N-1^ producing a result +2^2N-2^, which
 has a single (zero) sign bit when held in 2N bits.  All other products
 have two sign bits in 2N bits.  To retain greater precision in N
 result bits, the product is shifted right by one bit less than N,
-saturating the largest magnitude result but increasing precision by
-one bit for all other products when they are reduced back down to N
-bits.
+saturating the largest magnitude result but increasing result
+precision by one bit for all other products.
 
 NOTE: Considering adding `vxrm`-controlled rounding to `vmulhu`,
 `vmulhsu`, and `vmulh` to further support fixed-point.  These would
 not have saturation.
+
+=== Vector Widening Saturating Scaled Multiply-Add
+
+The widening saturating scaled multiply-add instructions perform an
+SEW-bit * SEW-bit multiply to yield a 2*SEW-bit product. The product
+is then right-shifted by SEW/2 bits with the shifted bits rounded off
+according to `vxrm`, and the rounded product is added to a 2*SEW-bit
+destination accumulator, with saturation if the result would overflow
+the destination accumulator. The `vxsat` bit is set if any overflow
+occurs.
+
+[source]
+----
+        Product  Rounded                Guard
+ SEW     Width   Product   Accumulator   Bits
+   8       16       12         16         4
+  16       32       24         32         8
+  32       64       48         64        16
+----
+
+[source]
+----
+# Widening unsigned-integer scaled multiply-accumulate
+vwsmaccu.vv vd, vs2, vs1, vm # vd[i] = clipu(vd[i]+((vs2[i]*vs1[i]+round)>>SEW/2))
+vwsmaccu.vx vd, vs2, rs1, vm # vd[i] = clipu(vd[i]+((vs2[i]*x[rs1]+round)>>SEW/2))
+
+# Widening signed-integer scaled multiply-accumulate
+vwsmacc.vv vd, vs2, vs1, vm  # vd[i] = clip(vd[i]+((vs2[i]*vs1[i]+round)>>SEW/2))
+vwsmacc.vx vd, vs2, rs1, vm  # vd[i] = clip(vd[i]+((vs2[i]*x[rs1]+round)>>SEW/2))
+
+# Widening unsigned-integer scaled multiply-subtract
+vwsmsacu.vv vd, vs2, vs1, vm # vd[i] = clipu(vd[i]-((vs2[i]*vs1[i]+round)>>SEW/2))
+vwsmsacu.vx vd, vs2, rs1, vm # vd[i] = clipu(vd[i]-((vs2[i]*x[rs1]+round)>>SEW/2))
+
+# Widening signed-integer scaled  multiply-subtract
+vwsmsac.vv vd, vs2, vs1, vm  # vd[i] = clip(vd[i]-((vs2[i]*vs1[i]+round)>>SEW/2))
+vwsmsac.vx vd, vs2, rs1, vm  # vd[i] = clip(vd[i]-((vs2[i]*x[rs1]+round)>>SEW/2))
+
+# For vxrm=rnu, round = ( 1 << (SEW/2-1))
+----
+
+NOTE: An arbitrary scaling/shift amount would be more flexible but
+would require a fourth source operand.
+
+=== Vector Single-Width Scaling Shift Instructions
+
+These instructions shift the input value right, and round off the
+shifted out bits according to `vxrm`.  The scaling right shifts have
+both zero-extending (`vssrl`) and sign-extending (`vssra`) forms.  The
+shift amount can come from a vector or a scalar `x` register or a
+5-bit immediate.  The low lg2(2*SEW) bits of the vector or scalar
+shift amount value are used (e.g., the low 6 bits for a SEW=64-bit to
+SEW=32-bit narrowing operation).  The immediate form supports shift
+amounts up to 31 only and is effectively zero-extended for SEW of >
+32.
+
+[source]
+----
+ # For vxrm=rnu, round = 1 << (src2-1)
+ # Scaling shift right logical
+ vssrl.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
+ vssrl.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
+ vssrl.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)   
+
+ # Scaling shift right arithmetic
+ vssra.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
+ vssra.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
+ vssra.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)   
+----
 
 === Vector Narrowing Fixed-Point Clip Instructions
 
@@ -2663,7 +2731,7 @@ saturation into the final destination format.
  vnclipu.vi vd, vs2, imm, vm   # vector-immediate
 
 # Narrowing signed clip,  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
- #                          SEW           2*SEW                 SEW
+#                          SEW           2*SEW                 SEW
  vnclip.vv vd, vs2, vs1, vm   # vector-vector
  vnclip.vx vd, vs2, rs1, vm   # vector-scalar
  vnclip.vi vd, vs2, imm, vm   # vector-immediate

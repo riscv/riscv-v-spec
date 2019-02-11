@@ -26,14 +26,14 @@ funct6                funct6                funct6
 001110  XI vslideup   001110  X vslide1up   001110
 001111  XI vslidedown 001111  X vslide1down 001111
 
-010000 VXI vsrl       010000 VX vadc        010000 
-010001 VXI vsra       010001 V  VMUNARY0    010001 
-010010 VXI vsll       010010 VX vsbc        010010 
-010011 VXI vmerge     010011 V  vcompress   010011  F vfmerge.vf
-010100 VXI vnsrl      010100 V  vmpopc      010100
-010101 VXI vnsra      010101 V  vmfirst     010101
-010110 VXI vnclipu    010110                010110
-010111 VXI vnclip     010111                010111
+010000 VXI vadc       010000                010000 
+010001                010001                010001 
+010010 VX  vsbc       010010                010010 
+010011                010011                010011
+010100                010100 V  vmpopc      010100
+010101                010101 V  vmfirst     010101
+010110                010110 V  VMUNARY0    010110
+010111 VXI vmerge     010111 V  vcompress   010111  F vfmerge.vf
 011000 VXI vseq       011000 V  vmandnot    011000 VF vfeq
 011001 VXI vsne       011001 V  vmand       011001 VF vflte
 011010 VX  vsltu      011010 V  vmor        011010 VF vford
@@ -48,17 +48,17 @@ funct6                funct6                funct6
 100010 VX  vssubu     100010 VX vremu       100010 V  VFUNARY0
 100011 VX  vssub      100011 VX vrem        100011 V  VFUNARY1
 100100 VXI vaadd      100100 VX vmulhu      100100 VF vfmul
-100101                100101 VX vmul        100101 
+100101 VXI vsll       100101 VX vmul        100101 
 100110 VX  vasub      100110 VX vmulhsu     100110 
 100111 VX  vsmul      100111 VX vmulh       100111 
-101000                101000                101000 VF vfmadd
-101001                101001 VX vmadd       101001 VF vfnmadd
-101010                101010                101010 VF vfmsub
-101011                101011 VX vmsub       101011 VF vfnmsub
-101100                101100                101100 VF vfmacc
-101101                101101 VX vmacc       101101 VF vfnmacc
-101110                101110                101110 VF vfmsac
-101111                101111 VX vmsac       101111 VF vfnmsac
+101000 VXI vsrl       101000                101000 VF vfmadd
+101001 VXI vsra       101001 VX vmadd       101001 VF vfnmadd
+101010 VXI vssrl      101010                101010 VF vfmsub
+101011 VXI vssra      101011 VX vmsub       101011 VF vfnmsub
+101100 VXI vnsrl      101100                101100 VF vfmacc
+101101 VXI vnsra      101101 VX vmacc       101101 VF vfnmacc
+101110 VXI vnclipu    101110                101110 VF vfmsac
+101111 VXI vnclip     101111 VX vmsac       101111 VF vfnmsac
 
 110000 V  vwredsumu   110000 VX vwaddu      110000 VF vfwadd
 110001 V  vwredsum    110001 VX vwadd       110001 V  vfwredsum
@@ -68,14 +68,14 @@ funct6                funct6                funct6
 110101                110101 VX vwadd.w     110101
 110110                110110 VX vwsubu.w    110110 VF vfwsub.w
 110111                110111 VX vwsub.w     110111
-111000                111000 VX vwmulu      111000 VF vfwmul
-111001                111001                111001 V  vfdot
+111000 V  vdotu       111000 VX vwmulu      111000 VF vfwmul
+111001 V  vdot        111001                111001 V  vfdot
 111010                111010 VX vwmulsu     111010
 111011                111011 VX vwmul       111011
-111100 V  vdotu       111100 VX vwmaccu     111100 VF vfwmacc
-111101 V  vdot        111101 VX vwmacc      111101 VF vfwnmacc
-111110                111110 VX vwmsacu     111110 VF vfwmsac
-111111                111111 VX vwmsac      111111 VF vfwnmsac
+111100 VX vwsmaccu    111100 VX vwmaccu     111100 VF vfwmacc
+111101 VX vwsmacc     111101 VX vwmacc      111101 VF vfwnmacc
+111110 VX vxwmsacu    111110 VX vwmsacu     111110 VF vfwmsac
+111111 VX vxwmsacu    111111 VX vwmsac      111111 VF vfwnmsac
 ----
 
 [source]
