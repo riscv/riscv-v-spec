@@ -1163,7 +1163,7 @@ that would be illegal if the largest value of `vlmulmax` is chosen for
 
 === `vsetvl` Instruction
 
-The `vsetvl` variant operates similary to `vsetvli` except that it
+The `vsetvl` variant operates similarly to `vsetvli` except that it
 takes a `vtype` value from `rs2` and can be used for context restore,
 and when the `vtypei` field is too small to hold the desired setting.
 
@@ -1228,7 +1228,7 @@ vector stores do not update inactive memory elements.
 
 === Vector Load/Store Instruction Encoding
 
-Vector loads and stores are encoding within the scalar floating-point
+Vector loads and stores are encoded within the scalar floating-point
 load and store major opcodes (LOAD-FP/STORE-FP).  The vector load and
 store encodings repurpose a portion of the standard scalar
 floating-point load/store 12-bit immediate field to provide further
@@ -1518,7 +1518,7 @@ loop:
     ret
 ----
 
-NOTE: Strided and scatter-gather fault-only-first instructions are not
+NOTE: Strided and scatter/gather fault-only-first instructions are not
 provided as they represent a large security hole, allowing software to
 check multiple random pages for accessibility without experiencing a
 trap. The unit-stride versions only allow probing a region immediately
@@ -1619,7 +1619,7 @@ segment loads and stores respectively.
 
     # Examples
     vlseg2b.v vd, (rs1), vm   # Load vector of 2*1-byte segments into vd, vd+1
-    vlseg3b.v vd, (rs1), vm   # Load vector of 3*1-byte segments into vd, vd+1
+    vlseg3b.v vd, (rs1), vm   # Load vector of 3*1-byte segments into vd, vd+1, vd+2
     vlseg7w.v vd, (rs1), vm   # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
     vlseg8e.v vd, (rs1), vm   # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
 
