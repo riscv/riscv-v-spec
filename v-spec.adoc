@@ -1619,7 +1619,7 @@ segment loads and stores respectively.
 
     # Examples
     vlseg2b.v vd, (rs1), vm   # Load vector of 2*1-byte segments into vd, vd+1
-    vlseg3b.v vd, (rs1), vm   # Load vector of 3*1-byte segments into vd, vd+1
+    vlseg3b.v vd, (rs1), vm   # Load vector of 3*1-byte segments into vd, vd+1, vd+2
     vlseg7w.v vd, (rs1), vm   # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
     vlseg8e.v vd, (rs1), vm   # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
 
