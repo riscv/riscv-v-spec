@@ -3702,7 +3702,7 @@ register.  The instructions ignore LMUL and vector register groups.
 [source]
 ----
 vfmv.f.s rd, vs2  # rd = vs2[0] (rs1=0)
-vfmv.s.f vd, rs1  # vd[0] = rs1 (rs2=0)
+vfmv.s.f vd, rs1  # vd[0] = rs1 (vs2=0)
 ----
 
 The `vfmv.f.s` instruction copies a single SEW-wide element from index
