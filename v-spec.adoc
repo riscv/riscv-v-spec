@@ -3015,7 +3015,7 @@ arguments are ordered (i.e., neither argument is NaN).
 ----
     # Example of implementing isgreater()
     vford.vv v0, va, vb       # Only set where args are ordered,
-    vfgt.v v0, va, vb, v0.t   # so only set flags on ordered values.
+    vfgt.vv v0, va, vb, v0.t   # so only set flags on ordered values.
 ----
 
 NOTE: Detailed NaN signaling conventions to be added.
@@ -4161,7 +4161,7 @@ vector add of 8-bit elements with a vector length of 20.
 
 [source]
 ----
-vsetvli t0, a0, e32,m1,vdiv4  # Vectors of 32-bit elements, divided into byte sub-elements
+vsetvli t0, a0, e32,m1,d4  # Vectors of 32-bit elements, divided into byte sub-elements
 vadd.vv v1,v2,v3                     # Performs a vector of 4*vl 8-bit additions.
 vsll.vx v1,v2,x1                     # Performs a vector of 4*vl 8-bit shifts.
 ----
@@ -4175,7 +4175,7 @@ an element-wide result.
 [source]
 ----
 # Sum each sub-vector of four bytes into a 16-bit result.
-vsetvli t0, a0, ve32,d4  # Vectors of 32-bit elements, divided into byte sub-elements
+vsetvli t0, a0, e32,d4  # Vectors of 32-bit elements, divided into byte sub-elements
 vredsum.vv v1, v2, v3 # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
                       #              + v2[i][15:8] + v2[i][7:0] + v3[i][31:0]
 
