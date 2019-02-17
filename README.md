@@ -1,7 +1,7 @@
 # riscv-v-spec
 Working draft of the proposed RISC-V V vector extension.
 
-The top level file is (./vspec.adoc)
+The top level file is [v-spec.adoc](./v-spec.adoc)
 
 Simply clicking on the file in the github repo viewer will render a usable
 version as markdown.
