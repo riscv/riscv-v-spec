@@ -3082,7 +3082,7 @@ vfcvt.f.x.v  vd, vs2, vm   # Convert signed integer to float.
 ----
 
 The conversions follow the same rules on exceptional conditions as the
-scalar conversion instructions.  The conversions always used the
+scalar conversion instructions.  The conversions always use the
 dynamic rounding mode in `frm`.
 
 === Widening Floating-Point/Integer Type-Convert Instructions
@@ -3140,8 +3140,8 @@ integer shift instructions with a shift amount of 0.
 
 == Vector Reduction Operations
 
-Vector reduction operations takes a vector register group of elements
-and a scalar held in element 0 of a vector register, and performs a
+Vector reduction operations take a vector register group of elements
+and a scalar held in element 0 of a vector register, and perform a
 reduction using some binary operator, to produce a scalar result in
 element 0 of a vector register.  The scalar input and output operands
 are held in element 0 of a single vector register, not a vector
@@ -3167,7 +3167,7 @@ register.
 === Vector Single-Width Integer Reduction Instructions
 
 All operands and results of single-width reduction instructions have
-the same SEW width.  Overflows wraparound on arithmetic sums.
+the same SEW width.  Overflows wrap around on arithmetic sums.
 
 [source]
 ----
@@ -3663,7 +3663,7 @@ The integer scalar move instruction transfers a single value
 from a scalar `x` register to element 0 of a vector register.  The
 instructions ignore LMUL and vector register groups.
 
-NOTE: In the base vector extension, this instructions can be used to
+NOTE: In the base vector extension, this instruction can be used to
 initialize the input of a reduction instruction.
 
 NOTE: Using scalar move instructions to access element 0 of other than
