@@ -3171,15 +3171,15 @@ the same SEW width.  Overflows wrap around on arithmetic sums.
 
 [source]
 ----
-    # Simple reductions.
-    vredsum.vs  vd, vs2, vs1, vm   # vd[0] =  sum_i( vs2[i] ) + vs1[0]
-    vredmaxu.vs vd, vs2, vs1, vm   # vd[0] = maxu_i( vs2[i] ) + vs1[0]
-    vredmax.vs  vd, vs2, vs1, vm   # vd[0] =  max_i( vs2[i] ) + vs1[0]
-    vredminu.vs vd, vs2, vs1, vm   # vd[0] = minu_i( vs2[i] ) + vs1[0]
-    vredmin.vs  vd, vs2, vs1, vm   # vd[0] =  min_i( vs2[i] ) + vs1[0]
-    vredand.vs  vd, vs2, vs1, vm   # vd[0] =  and_i( vs2[i] ) + vs1[0]
-    vredor.vs   vd, vs2, vs1, vm   # vd[0] =   or_i( vs2[i] ) + vs1[0]
-    vredxor.vs  vd, vs2, vs1, vm   # vd[0] =  xor_i( vs2[i] ) + vs1[0]
+    # Simple reductions, where [*] denoters all active elements:
+    vredsum.vs  vd, vs2, vs1, vm   # vd[0] =  sum( vs2[*] , vs1[0] )
+    vredmaxu.vs vd, vs2, vs1, vm   # vd[0] = maxu( vs2[*] , vs1[0] )
+    vredmax.vs  vd, vs2, vs1, vm   # vd[0] =  max( vs2[*] , vs1[0] )
+    vredminu.vs vd, vs2, vs1, vm   # vd[0] = minu( vs2[*] , vs1[0] )
+    vredmin.vs  vd, vs2, vs1, vm   # vd[0] =  min( vs2[*] , vs1[0] )
+    vredand.vs  vd, vs2, vs1, vm   # vd[0] =  and( vs2[*] , vs1[0] )
+    vredor.vs   vd, vs2, vs1, vm   # vd[0] =   or( vs2[*] , vs1[0] )
+    vredxor.vs  vd, vs2, vs1, vm   # vd[0] =  xor( vs2[*] , vs1[0] )
 ----
 
 === Vector Widening Integer Reduction Instructions
