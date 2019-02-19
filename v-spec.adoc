@@ -218,7 +218,7 @@ In the base vector extension, the `type` register has two fields,
 vtype layout
 
     bits    contents
-XLEN-1:9    Reserved (write 0)
+XLEN-1:5    Reserved (write 0)
      4:2    vsew[2:0]
      1:0    vlmul[1:0]
 ----
@@ -4059,11 +4059,11 @@ the `vtype` register.
 ----
 vtype layout
 
-    bit s    contents
-XLEN-1:11    Reserved (write 0)
-      6:5    vediv[1:0]
-      4:2    vsew[2:0]
-      1:0    vlmul[1:0]
+    bits    contents
+XLEN-1:7    Reserved (write 0)
+     6:5    vediv[1:0]
+     4:2    vsew[2:0]
+     1:0    vlmul[1:0]
 ----
 
 The `vediv` field encodes the number of ways, _EDIV_, into which each
