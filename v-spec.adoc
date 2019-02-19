@@ -3188,7 +3188,7 @@ The unsigned `vwredsumu.vs` instruction zero-extends the SEW-wide
 vector elements before summing them, then adds the 2*SEW-width scalar
 element, and stores the result in a 2*SEW-width scalar element.
 
-The `vwredsum.vv` instruction sign-extends the SEW-wide vector
+The `vwredsum.vs` instruction sign-extends the SEW-wide vector
 elements before summing them.
 
 [source]
