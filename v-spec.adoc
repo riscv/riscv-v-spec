@@ -60,13 +60,13 @@ Each hart supporting the vector extension defines three parameters:
 
 . The maximum size of a single vector element in bits, _ELEN_, which
 must be a power of 2.
-. The number of bits in a vector register, _VLEN_ >= _ELEN_, which must
+. The number of bits in a vector register, _VLEN_ &ge; _ELEN_, which must
 be a power of 2.
-. The striping distance in bits, _SLEN_, which must be VLEN >= SLEN >=
+. The striping distance in bits, _SLEN_, which must be VLEN &ge; SLEN &ge;
 32, and which must be a power of 2.
 
 NOTE: Platform profiles may set further constraints on these
-parameters, for example, requiring that ELEN >= max(XLEN,FLEN), or
+parameters, for example, requiring that ELEN &ge; max(XLEN,FLEN), or
 requiring a minimum VLEN value, or setting an SLEN value.
 
 The ISA supports writing binary code that under certain constraints
@@ -324,7 +324,7 @@ instruction variants.
 
 The `vl` register holds an unsigned integer specifying the number of
 elements to be updated by a vector instruction.  Elements in the
-destination vector with indices >= `vl` are zeroed during
+destination vector with indices &ge; `vl` are zeroed during
 execution of a vector instruction.  As a special case, when `vl`=0,
 no elements are updated in the destination vector.
 
@@ -458,7 +458,7 @@ in the group.  So, when LMUL=2, the even-numbered vector register
 contains the even-numbered elements of the vector and the odd-numbered
 vector register contains the odd-numbered elements of the vector.
 
-NOTE: In most implementations, the striping distance SLEN >= ELEN.
+NOTE: In most implementations, the striping distance SLEN &ge; ELEN.
 
 [source]
 ----
@@ -1120,7 +1120,7 @@ The resulting `vl` setting must satisfy the following constraints:
 --
 The `vl` setting rules are designed to be sufficiently strict to
 preserve `vl` behavior across register spills and context swaps for
-`AVL <= VLMAX`, yet flexible enough to enable implementations to improve
+`AVL &le; VLMAX`, yet flexible enough to enable implementations to improve
 vector lane utilization for `AVL > VLMAX`.
 
 For example, this permits an implementation to set `vl = ceil(AVL / 2)`
@@ -1930,7 +1930,7 @@ distinguished by a `vw4*` prefix on the opcode.
 
 For all widening instructions, the destination element width must be a
 supported element width and the destination LMUL value must also be a
-supported LMUL value (\<=8), otherwise an illegal instruction exception
+supported LMUL value (&le;8), otherwise an illegal instruction exception
 is raised.
 
 The destination vector register group must be specified using a vector
@@ -2265,7 +2265,7 @@ polarity of mask value without using additional mask logical
 instructions.
 
 To reduce encoding space, the `vsgte{u}.vx` form is not directly
-provided, and so the `va >= x` case requires special treatment.
+provided, and so the `va &ge; x` case requires special treatment.
 
 NOTE: The `vsgte{u}.vx` could potentially be encoded in a
 non-orthogonal way under the unused OPIVI variant of `vslt{u}`.  These
@@ -3649,7 +3649,7 @@ The integer extract operation, `vext.x.v` reads one SEW-width element
 from a vector register group at the element index and writes it to GPR
 destination register rd.  The GPR `rs1` register gives the element
 index, treated as an unsigned integer.  If the index is out of range
-(i.e., x[rs1] >= VLEN/SEW), then zero is returned for the element
+(i.e., x[rs1] &ge; VLEN/SEW), then zero is returned for the element
 value.  If SEW > XLEN, the least-significant bits are copied to the
 destination and the upper SEW-XLEN bits are ignored.  If SEW < XLEN,
 the value is zero-extended to XLEN.
@@ -3904,7 +3904,7 @@ the destination are zeroed.  The operation can be masked.
 vrgather.vv vd, vs2, vs1, vm # vd[i] = (vs1[i] >= VLMAX) ? 0 : vs2[vs1[i]];
 ----
 
-If the element indices are out of range ( `vs1[i]` >= VLMAX )
+If the element indices are out of range ( `vs1[i]` &ge; VLMAX )
 then zero is returned for the element value.
 
 Vector-scalar and vector-immediate forms of the register gather are
@@ -4209,7 +4209,7 @@ this reduces implementation complexity.
 Vector register gather instructions under non-zero EDIV only gather
 sub-elements within the element.  The source and index values are
 interpreted as relative to the enclosing element only.  Index values
->= EDIV write a zero value into the result sub-element.
+&ge; EDIV write a zero value into the result sub-element.
 
 [source]
 ----
