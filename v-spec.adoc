@@ -1104,15 +1104,15 @@ though this does overwrite `vl`.
 
 The resulting `vl` setting must satisfy the following constraints:
 
-. `vl = AVL` if `AVL <= VLMAX`
-. `vl >= ceil(AVL / 2)` if `AVL < (2 * VLMAX)`
-. `vl = VLMAX` if `AVL >= (2 * VLMAX)`
+. `vl = AVL` if `AVL &le; VLMAX`
+. `vl &ge; ceil(AVL / 2)` if `AVL < (2 * VLMAX)`
+. `vl = VLMAX` if `AVL &ge; (2 * VLMAX)`
 . Deterministic on any given implementation for same input AVL and `vtype` values
 . These specific properties follow from the prior rules:
 .. `vl = 0` if  `AVL = 0`
 .. `vl > 0` if `AVL > 0`
-.. `vl <= VLMAX`
-.. `vl <= AVL`
+.. `vl &le; VLMAX`
+.. `vl &le; AVL`
 .. a value read from `vl` when used as AVL arg to `vsetvl{i}` results in same value in `vl`
 
 [NOTE]
