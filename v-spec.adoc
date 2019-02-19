@@ -1623,7 +1623,7 @@ segment loads and stores respectively.
     vlseg7w.v vd, (rs1), vm   # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
     vlseg8e.v vd, (rs1), vm   # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
 
-    vsseg3b.v vs3, (rs1), vm  # Store packed vector of 3*1-byte segments from vd,vd+1,vd+2 to memory
+    vsseg3b.v vs3, (rs1), vm  # Store packed vector of 3*1-byte segments from vs3,vs3+1,vs3+2 to memory
 ----
 
 For loads, the `vd` register will hold the first field loaded from the
