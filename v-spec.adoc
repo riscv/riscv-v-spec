@@ -3673,7 +3673,7 @@ implementations.
 
 [source]
 ----
-vmv.s.x vd, rs1  # vd[0] = rs1, vins.v.x vd, x0, rs1
+vmv.s.x vd, rs1  # vd[0] = rs1
 ----
 
 The `vmv.s.x` instruction copies the scalar integer register to
