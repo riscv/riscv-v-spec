@@ -2297,17 +2297,17 @@ range of `x` is unknown.
 unmasked va >= x
 
   pseudoinstruction: vsgte{u}.vx vd, va, x
-  expansion: vslt{u}.vx vd, va, x; vmnand.vv vd, vd, vd
+  expansion: vslt{u}.vx vd, va, x; vmnand.mm vd, vd, vd
 
 masked va >= x, vd != v0
 
   pseudoinstruction: vsgte{u}.vx vd, va, x, v0.t
-  expansion: vslt{u}.vx vd, va, x, v0.t; vmxor.vv vd, vd, v0
+  expansion: vslt{u}.vx vd, va, x, v0.t; vmxor.mm vd, vd, v0
 
 masked va >= x, vd == v0
 
   pseudoinstruction: vsgte{u}.vx v0, va, x, v0.t, vt
-  expansion: vslt{u}.vx vt, va, x;  vmandnot.vv v0, v0, vt
+  expansion: vslt{u}.vx vt, va, x;  vmandnot.mm v0, v0, vt
 ----
 
 Comparisons effectively AND in the mask, e.g,
@@ -3282,10 +3282,10 @@ Several assembler pseudoinstructions are defined as shorthand for
 common uses of mask logical operations:
 [source]
 ----
-    vmmv.m vd, vs  => vmand.vv vd, vs, vs   # Move mask register
-    vmclr.m vd     => vmxor.vv vd, vd, vd   # Clear mask register
-    vmset.m vd     => vmxnor.vv vd, vd, vd  # Set mask register
-    vmnot.m vd, vs => vmnand.vv vd, vs, vs  # Invert bits
+    vmmv.m vd, vs  => vmand.mm vd, vs, vs   # Move mask register
+    vmclr.m vd     => vmxor.mm vd, vd, vd   # Clear mask register
+    vmset.m vd     => vmxnor.mm vd, vd, vd  # Set mask register
+    vmnot.m vd, vs => vmnand.mm vd, vs, vs  # Invert bits
 ----
 
 The set of eight mask logical instructions can generate any of the 16
@@ -3298,21 +3298,21 @@ inputs
 0 1 0 1 src2
 
 output  instruction                 pseudoinstruction
-0 0 0 0 vmxor.mm vd, vd, vd         vmclr.v vd
+0 0 0 0 vmxor.mm vd, vd, vd         vmclr.m vd
 1 0 0 0 vmnor.mm vd, src1, src2
 0 1 0 0 vmandnot.mm vd, src2, src1
-1 1 0 0 vmnand.mm vd, src1, src1    vmnot.v vd, src1
+1 1 0 0 vmnand.mm vd, src1, src1    vmnot.m vd, src1
 0 0 1 0 vmandnot.mm vd, src1, src2
-1 0 1 0 vmnand.mm vd, src2, src2    vmnot.v vd, src2
+1 0 1 0 vmnand.mm vd, src2, src2    vmnot.m vd, src2
 0 1 1 0 vmxor.mm vd, src1, src2
 1 1 1 0 vmnand.mm vd, src1, src2
 0 0 0 1 vmand.mm vd, src1, src2
 1 0 0 1 vmxnor.mm vd, src1, src2
-0 1 0 1 vmand.mm vd, src2, src2     vmmv.v vd, src2
+0 1 0 1 vmand.mm vd, src2, src2     vmmv.m vd, src2
 1 1 0 1 vmornot.mm vd, src2, src1
-0 0 1 1 vmand.mm vd, src1, src1     vmmv.v vd, src1
+0 0 1 1 vmand.mm vd, src1, src1     vmmv.m vd, src1
 1 0 1 1 vmornot.mm vd, src1, src2
-1 1 1 1 vmxnor.mm vd, vd, vd        vmset.v vd
+1 1 1 1 vmxnor.mm vd, vd, vd        vmset.m vd
 ----
 
 NOTE: The vector mask logical instructions are designed to be easily
@@ -3626,7 +3626,7 @@ NOTE: This constraint is to avoid WAR hazards in long vector
 implementations without register renaming, and to support restart.
 
 NOTE: Microarchitectures can implement `vid.v` instruction using the
-same datapath as `vmiota.v` but with an implicit set mask source.
+same datapath as `vmiota.m` but with an implicit set mask source.
 
 == Vector Permutation Instructions
 
