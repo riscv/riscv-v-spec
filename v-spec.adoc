@@ -1617,12 +1617,14 @@ segment loads and stores respectively.
 [source,asm]
 ----
     # Format
-    vlseg<nf>{b,h,w,e}.v vd, (rs1),  vm   # Unit-stride segment load template
+    vlseg<nf>{b,h,w}.v vd, (rs1),  vm    # Unit-stride signed segment load template
+    vlseg<nf>e.v vd, (rs1), vm           # Unit-stride segment load template
+    vlseg<nf>{b,h,w}u.v vd, (rs1), vm    # Unit-stride unsigned segment load template
     vsseg<nf>{b,h,w,e}.v vs3, (rs1), vm  # Unit-stride segment store template
 
     # Examples
-    vlseg2b.v vd, (rs1), vm   # Load vector of 2*1-byte segments into vd, vd+1
-    vlseg3b.v vd, (rs1), vm   # Load vector of 3*1-byte segments into vd, vd+1, vd+2
+    vlseg2b.v vd, (rs1), vm   # Load vector of signed 2*1-byte segments into vd, vd+1
+    vlseg3bu.v vd, (rs1), vm  # Load vector of unsigned 3*1-byte segments into vd, vd+1, vd+2
     vlseg7w.v vd, (rs1), vm   # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
     vlseg8e.v vd, (rs1), vm   # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
 
@@ -1637,7 +1639,7 @@ field to be stored in each segment.
 ----
     # Example 1
     # Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
-    vlseg3b.v v8, (a0), vm
+    vlseg3bu.v v8, (a0), vm
     # v8 holds the red pixels
     # v9 holds the green pixels
     # v10 holds the blue pixels
@@ -1654,8 +1656,10 @@ There are also fault-only-first versions of the unit-stride instructions.
 [source,asm]
 ----
     # Template for vector fault-only-first unit-stride segment loads and stores.
-    vlsegff<nf>{b,h,w,e}.v vd, (rs1),  vm  # Unit-stride fault-only-first segment load template
-    vssegff<nf>{b,h,w,e}.v vs3, (rs1), vm  # Unit-stride fault-only-first segment store template
+    vlsegff<nf>{b,h,w}.v vd, (rs1),  vm    # Unit-stride signed fault-only-first segment loads
+    vlsegff<nf>e.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
+    vlsegff<nf>{b,h,w}u.v vd, (rs1),   vm  # Unit-stride unsigned fault-only-first segment loads
+    vssegff<nf>{b,h,w,e}.v vs3, (rs1), vm  # Unit-stride fault-only-first segment stores
 ----
 
 ==== Vector Strided Segment Loads and Stores
@@ -1667,8 +1671,10 @@ GPR argument.
 [source]
 ----
     # Format
-    vlsseg<nf>{b,h,w,e}.v vd, (rs1), rs2, vm  # Strided segment load
-    vssseg<nf>{b,h,w,e}.v vs3, (rs1), rs2, vm # Strided segment store
+    vlsseg<nf>{b,h,w}.v vd, (rs1), rs2, vm    # Strided signed segment loads
+    vlsseg<nf>e.v vd, (rs1), rs2, vm          # Strided segment loads
+    vlsseg<nf>{b,h,w}u.v vd, (rs1), rs2, vm   # Strided unsigned segment loads
+    vssseg<nf>{b,h,w,e}.v vs3, (rs1), rs2, vm # Strided segment stores
 
     # Examples
     vlsseg3b.v v4, (x5), x6   # Load bytes at addresses x5+i*x6   into v4[i],
@@ -1689,11 +1695,13 @@ address in the `rs1` field to byte offsets in vector register `vs2`.
 [source]
 ----
     # Format
-    vlxseg<nf>{b,h,w,e}.v vd, (rs1), vs2, vm  # Indexed segment load
-    vsxseg<nf>{b,h,w,e}.v vs3, (rs1), vs2, vm # Indexed segment store
+    vlxseg<nf>{b,h,w}.v vd, (rs1), vs2, vm    # Indexed signed segment loads
+    vlxseg<nf>e.v vd, (rs1), vs2, vm          # Indexed segment loads
+    vlxseg<nf>{b,h,w}u.v vd, (rs1), vs2, vm   # Indexed unsigned segment loads
+    vsxseg<nf>{b,h,w,e}.v vs3, (rs1), vs2, vm # Indexed segment stores
 
     # Examples
-    vlxseg3b.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
+    vlxseg3bu.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
                               #  and bytes at addresses x5+v3[i]+1 into v5[i],
                               #  and bytes at addresses x5+v3[i]+2 into v6[i].
 
