@@ -20,7 +20,7 @@ funct6                funct6                funct6
 001001 VXI vand       001001                001001 VF vfsgnn
 001010 VXI vor        001010                001010 VF vfsgnx
 001011 VXI vxor       001011                001011
-001100 VXI vrgather   001100 V  vext.x.s    001100 V  vfmv.f.s
+001100 VXI vrgather   001100 V  vext.x.v    001100 V  vfmv.f.s
 001101                001101  X vmv.s.x     001101  F vfmv.s.f
 001110  XI vslideup   001110  X vslide1up   001110
 001111  XI vslidedown 001111  X vslide1down 001111
@@ -73,8 +73,8 @@ funct6                funct6                funct6
 111011                111011 VX vwmul       111011
 111100 VX vwsmaccu    111100 VX vwmaccu     111100 VF vfwmacc
 111101 VX vwsmacc     111101 VX vwmacc      111101 VF vfwnmacc
-111110 VX vxwmsacu    111110 VX vwmsacu     111110 VF vfwmsac
-111111 VX vxwmsacu    111111 VX vwmsac      111111 VF vfwnmsac
+111110 VX vwsmsacu    111110 VX vwmsacu     111110 VF vfwmsac
+111111 VX vwsmsac     111111 VX vwmsac      111111 VF vfwnmsac
 ----
 
 ----
