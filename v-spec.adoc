@@ -212,17 +212,12 @@ register, and how multiple vector registers are grouped.
 In the base vector extension, the `type` register has two fields,
 `vsew[2:0]`, and `vlmul`.
 
-----
-vtype layout
-
-    bits    contents
-XLEN-1:5    Reserved (write 0)
-     4:2    vsew[2:0]
-     1:0    vlmul[1:0]
-----
+include::vtype-format.adoc[]
 
 NOTE: The smallest base implementation has only four bits in `vtype`,
 two bits for `vsew[1:0]` and two bits for `vlmul[1:0]`.
+
+NOTE: The vediv[1:0] field is used bythe EDIV extension described below.
 
 NOTE: Further standard and custom extensions to the vector base will
 extend these fields to support a greater variety of data types.
@@ -1034,14 +1029,7 @@ The new `vtype` setting is encoded in the immediate fields of
 
 include::vcfg-format.adoc[]
 
-----
-    vtype register format
-
-    bits    contents
-XLEN-1:9    Reserved (write 0)
-     4:2    vsew[2:0]
-     1:0    vlmul[1:0]
-----
+include::vtype-format.adoc[]
 
 ----
  Suggested assembler names used for vtypei setting
@@ -3086,7 +3074,7 @@ All operands and results of single-width reduction instructions have
 the same SEW width.  Overflows wrap around on arithmetic sums.
 
 ----
-    # Simple reductions, where [*] denoters all active elements:
+    # Simple reductions, where [*] denotes all active elements:
     vredsum.vs  vd, vs2, vs1, vm   # vd[0] =  sum( vs2[*] , vs1[0] )
     vredmaxu.vs vd, vs2, vs1, vm   # vd[0] = maxu( vs2[*] , vs1[0] )
     vredmax.vs  vd, vs2, vs1, vm   # vd[0] =  max( vs2[*] , vs1[0] )
@@ -3939,15 +3927,7 @@ part of mandatory base in Unix vector profile.
 The divided element extension adds a two-bit field, `vediv[1:0]` to
 the `vtype` register.
 
-----
-vtype layout
-
-    bits    contents
-XLEN-1:7    Reserved (write 0)
-     6:5    vediv[1:0]
-     4:2    vsew[2:0]
-     1:0    vlmul[1:0]
-----
+include::vtype-format.adoc[]
 
 The `vediv` field encodes the number of ways, _EDIV_, into which each
 SEW-bit element is subdivided into equal sub-elements.  A vector
