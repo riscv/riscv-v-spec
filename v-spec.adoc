@@ -2166,9 +2166,9 @@ vsgt.vi vd, vs2, imm, vm    # Vector-immediate
 
 # Following two instructions are not provided directly
 # Set if greater than or equal, unsigned
-# vsgteu.vx vd, vs2, rs1, vm    # Vector-scalar
+# vsgeu.vx vd, vs2, rs1, vm    # Vector-scalar
 # Set if greater than or equal, signed
-# vsgte.vx vd, vs2, rs1, vm    # Vector-scalar
+# vsge.vx vd, vs2, rs1, vm    # Vector-scalar
 ----
 
 The following table indicates how all comparisons are implemented in
@@ -2178,19 +2178,19 @@ native machine code.
 Comparison      Assembler Mapping             Assembler Pseudoinstruction
 
 va < vb         vslt{u}.vv vd, va, vb, vm
-va <= vb        vslte{u}.vv vd, va, vb, vm
+va <= vb        vsle{u}.vv vd, va, vb, vm
 va > vb         vslt{u}.vv vd, vb, va, vm     vsgt{u}.vv vd, va, vb, vm
-va >= vb        vslte{u}.vv vd, vb, va, vm    vsgte{u}.vv vd, va, vb, vm
+va >= vb        vsle{u}.vv vd, vb, va, vm     vsge{u}.vv vd, va, vb, vm
 
 va < x          vslt{u}.vx vd, va, x, vm
-va <= x         vslte{u}.vx vd, va, x, vm
+va <= x         vsle{u}.vx vd, va, x, vm
 va > x          vsgt{u}.vx vd, va, x, vm
 va >= x         see below
 
-va < i          vslte{u}.vi vd, va, i-1, vm   vslt{u}.vi vd, va, i, vm
-va <= i         vslte{u}.vi vd, va, i, vm
+va < i          vsle{u}.vi vd, va, i-1, vm    vslt{u}.vi vd, va, i, vm
+va <= i         vsle{u}.vi vd, va, i, vm
 va > i          vsgt{u}.vi vd, va, i, vm
-va >= i         vsgt{u}.vi vd, va, i-1, vm    vsgte{u}.vi vd, va, i, vm
+va >= i         vsgt{u}.vi vd, va, i-1, vm    vsge{u}.vi vd, va, i, vm
 
 va, vb vector register groups
 x      scalar integer register
@@ -2203,10 +2203,10 @@ used instead.  The `vsle.vi` range is -16 to 15, resulting in an
 effective `vslt.vi` range of -15 to 16.  The `vsleu.vi` range is 0 to
 15 (and `(~0)-15` to `~0`), giving an effective `vsltu.vi` range of 1 to 16
 (Note, `vsltu.vi` with immediate 0 is not useful as it is always
-false). Similarly, `vsgte{u}.vi` is not provided and the comparison is
+false). Similarly, `vsge{u}.vi` is not provided and the comparison is
 implemented using `vsgt{u}.vi` with the immediate decremented by one.
-The resulting effective `vgte.vi` range is -15 to 16, and the
-resulting effective `vgteu.vi` range is 1 to 16 (Note, `vgteu.vi` with
+The resulting effective `vsge.vi` range is -15 to 16, and the
+resulting effective `vsgeu.vi` range is 1 to 16 (Note, `vsgeu.vi` with
 immediate 0 is not useful as it is always true).
 
 NOTE: The `vsgt` forms for register scalar and immediates are provided
@@ -2214,10 +2214,10 @@ to allow a single comparison instruction to provide the correct
 polarity of mask value without using additional mask logical
 instructions.
 
-To reduce encoding space, the `vsgte{u}.vx` form is not directly
+To reduce encoding space, the `vsge{u}.vx` form is not directly
 provided, and so the `va {ge} x` case requires special treatment.
 
-NOTE: The `vsgte{u}.vx` could potentially be encoded in a
+NOTE: The `vsge{u}.vx` could potentially be encoded in a
 non-orthogonal way under the unused OPIVI variant of `vslt{u}`.  These
 would be the only instructions in OPIVI that use a scalar `x`register
 however.  Alternatively, a further two funct6 encodings could be used,
@@ -2226,12 +2226,12 @@ register) than others in the same group of 8 funct6 encodings.  The
 current PoR is to omit these instructions and to synthesize where
 needed as described below.
 
-The `vsgte{u}.vx` operation can be synthesized by reducing the
+The `vsge{u}.vx` operation can be synthesized by reducing the
 value of `x` by 1 and using the `vsgt{u}.vx` instruction, when it is
 known that this will not underflow the representation in `x`.
 
 ----
-Sequences to synthesize `vsgte{u}.vx` instruction
+Sequences to synthesize `vsge{u}.vx` instruction
 
 va >= x,  x > minimum
 
@@ -2245,17 +2245,17 @@ range of `x` is unknown.
 ----
 unmasked va >= x
 
-  pseudoinstruction: vsgte{u}.vx vd, va, x
+  pseudoinstruction: vsge{u}.vx vd, va, x
   expansion: vslt{u}.vx vd, va, x; vmnand.mm vd, vd, vd
 
 masked va >= x, vd != v0
 
-  pseudoinstruction: vsgte{u}.vx vd, va, x, v0.t
+  pseudoinstruction: vsge{u}.vx vd, va, x, v0.t
   expansion: vslt{u}.vx vd, va, x, v0.t; vmxor.mm vd, vd, v0
 
 masked va >= x, vd == v0
 
-  pseudoinstruction: vsgte{u}.vx v0, va, x, v0.t, vt
+  pseudoinstruction: vsge{u}.vx v0, va, x, v0.t, vt
   expansion: vslt{u}.vx vt, va, x;  vmandnot.mm v0, v0, vt
 ----
 
