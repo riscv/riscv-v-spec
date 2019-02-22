@@ -921,7 +921,7 @@ operand, with `.t` indicating if operation occurs when `v0[i].LSB` is
 
 [source,asm]
 ----
-    vop.v*    v1, v2, v3, v0.t  # enabled where v0[i].LSB=0, m=0
+    vop.v*    v1, v2, v3, v0.t  # enabled where v0[i].LSB=1, m=0
     vop.v*    v1, v2, v3        # unmasked vector operation, m=1
 ----
 
