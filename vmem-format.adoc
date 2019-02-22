@@ -1,4 +1,3 @@
-[source]
 ----
 Format for Vector Load Instructions under LOAD-FP major opcode
 31 29 28 26  25  24      20 19       15 14   12 11      7 6     0

@@ -1,4 +1,3 @@
-[source]
 ----
 Formats for Vector Arithmetic Instructions under OP-V major opcode
 

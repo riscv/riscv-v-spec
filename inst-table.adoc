@@ -1,4 +1,3 @@
-[source]
 ----
 
 Integer               Integer               FP
@@ -78,7 +77,6 @@ funct6                funct6                funct6
 111111 VX vxwmsacu    111111 VX vwmsac      111111 VF vfwnmsac
 ----
 
-[source]
 ----
 VFUNARY0 encoding space
  vs1
@@ -103,7 +101,6 @@ VFUNARY0 encoding space
 10100 vfncvt.f.f.v
 ----
 
-[source]
 ----
 VFUNARY1 encoding space
  vs1
@@ -111,7 +108,6 @@ VFUNARY1 encoding space
 10000 vfclass.v
 ----
 
-[source]
 ----
 VMUNARY0 encoding space
  vs1

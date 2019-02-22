@@ -1,4 +1,3 @@
-[source]                                                     
 ----                                                         
 Formats for Vector Configuration Instructions under OP-V major opcode
                                                              
