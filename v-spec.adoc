@@ -3729,7 +3729,7 @@ elements are zeroed.
 ----
 
 The `vslide1up` instruction requires that the destination vector
-register group is disjoint from the source vector register group and
+register group does not overlap the source vector register group and
 the mask register if masked.  Otherwise, an illegal instruction
 exception is raised.
 
@@ -3764,7 +3764,7 @@ SEW-XLEN bits are ignored.
 ----
 
 The `vslide1down` instruction requires that the destination vector
-register group is disjoint from the mask register if masked.
+register group does not overlap the mask register if masked.
 Otherwise, an illegal instruction exception is raised.
 
 NOTE: The `vslide1down` instruction can be used to load values into a
