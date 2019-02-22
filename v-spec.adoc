@@ -3059,6 +3059,12 @@ types not supported in the scalar unit.
 
 Inactive elements are excluded from the reduction.
 
+The other elements in the destination vector register ( 0 < index <
+VLEN/SEW) are zeroed.
+
+If `vl`=0, no operation is performed and the destination register is
+not updated.
+
 Traps on vector reduction instructions are always reported with a
 `vstart` of 0.  Vector reduction operations raise an illegal
 instruction exception if `vstart` is non-zero.
@@ -3564,9 +3570,13 @@ vmv.s.x vd, rs1  # vd[0] = rs1
 The `vmv.s.x` instruction copies the scalar integer register to
 element 0 of the destination vector register.  If SEW < XLEN, the
 least-significant bits are copied and the upper XLEN-SEW bits are
-ignored.  If SEW > XLEN, the value is zero-extended to SEW bits.  The
-other elements in the destination vector register ( 0 < index <
+ignored.  If SEW > XLEN, the value is zero-extended to SEW bits.
+
+The other elements in the destination vector register ( 0 < index <
 VLEN/SEW) are zeroed.
+
+If `vl`=0, no operation is performed and the destination register is
+not updated.
 
 NOTE: The complementary `vins.v.x` instruction, which allows a write
 to any element in a vector register, has been removed.  This
@@ -3598,8 +3608,10 @@ the value is NaN-boxed (1-extended) to FLEN bits.
 The `vfmv.s.f` instruction copies the scalar register to element 0 of
 the destination vector register.  If SEW < FLEN, the least-significant
 bits are copied and the upper XLEN-SEW bits are ignored.  If SEW >
-XLEN, the value is NaN-boxed (1-extended) to SEW bits.  The other elements in
-the destination vector register ( 0 < index < VLEN/SEW) are zeroed.
+XLEN, the value is NaN-boxed (1-extended) to SEW bits.  The other
+elements in the destination vector register ( 0 < index < VLEN/SEW)
+are zeroed.  If `vl`=0, no operation is performed and the destination
+register is not updated.
 
 === Vector Slide Instructions
 
