@@ -1959,11 +1959,6 @@ vwop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 # Double-width result, first source double-width, second source single-width: 2*SEW = 2*SEW op SEW
 vwop.wv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
 vwop.wx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
-
-# Quad-width result/third source, two single-width sources: 4*SEW = SEW op SEW
-# Mainly used for 4*SEW += SEW * SEW integer widening multiply-adds and reductions
-vw4op.vv  vd, vs2, vs1, vm
-vw4op.vv  vd, vs2, vs1, vm
 ----
 
 === Narrowing Vector Arithmetic Instructions
