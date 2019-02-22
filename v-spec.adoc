@@ -2253,10 +2253,13 @@ masked va >= x, vd != v0
   pseudoinstruction: vsge{u}.vx vd, va, x, v0.t
   expansion: vslt{u}.vx vd, va, x, v0.t; vmxor.mm vd, vd, v0
 
-masked va >= x, vd == v0
+masked va >= x, any vd
 
-  pseudoinstruction: vsge{u}.vx v0, va, x, v0.t, vt
-  expansion: vslt{u}.vx vt, va, x;  vmandnot.mm v0, v0, vt
+  pseudoinstruction: vsge{u}.vx vd, va, x, v0.t, vt
+  expansion: vslt{u}.vx vt, va, x;  vmandnot.mm vd, vd, vt
+
+  The vt argument to the pseudoinstruction must name a temporary vector register that is
+  not same as vd and which will be clobbered by the pseudoinstruction
 ----
 
 Comparisons effectively AND in the mask, e.g,
