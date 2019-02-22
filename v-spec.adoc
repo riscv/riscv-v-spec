@@ -1811,7 +1811,7 @@ The `funct3` field encodes the operand type and source locations.
 0 0 0   OPIVV   vector-vector           -
 0 0 1   OPFVV   vector-vector           -
 0 1 0   OPMVV   vector-vector           -
-0 1 1   OPIVI   vector-immediate  simm[4:0]
+0 1 1   OPIVI   vector-immediate  imm[4:0]
 1 0 0   OPIVX   vector-scalar     GPR x register rs1
 1 0 1   OPFVF   vector-scalar     FP f register rs1
 1 1 0   OPMVX   vector-scalar     GPR x register rs1
@@ -1833,8 +1833,8 @@ cases take one vector of operands from a vector register group
 specified by `vs2` and a second scalar source operand from one of
 three alternative sources.
 
-. For integer operations, the scalar can be a sign-extended 5-bit
-immediate encoded in the `rs1` field.  The value is sign-extended to SEW bits.
+. For integer operations, the scalar can be a 5-bit immediate encoded
+in the `rs1` field.  The value is sign- or zero-extended to SEW bits.
 . For integer operations, the scalar can be taken from the
 scalar `x` register specified by `rs1`.  If XLEN>SEW, the
 least-significant bits of the `x` register are used.  If XLEN<SEW, the
