@@ -2655,7 +2655,7 @@ saturation into the final destination format.
  vnclipu.vx vd, vs2, rs1, vm   # vector-scalar
  vnclipu.vi vd, vs2, imm, vm   # vector-immediate
 
-# Narrowing signed clip,  vd[i] = clip(round(vs1[i] + rnd) >> vs2[i])
+# Narrowing signed clip,  vd[i] = clip(round(vs2[i] + rnd) >> vs1[i])
 #                          SEW           2*SEW                 SEW
  vnclip.vv vd, vs2, vs1, vm   # vector-vector
  vnclip.vx vd, vs2, rs1, vm   # vector-scalar
