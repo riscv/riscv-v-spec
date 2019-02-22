@@ -1926,9 +1926,11 @@ NOTE: The floating-point widening operations were changed to `vfw*`
 from `vwf*` to be more consistent with any scalar widening
 floating-point operations that will be written as `fw*`.
 
-For integer multiply-add, another widening option increases the size
-of the accumulator to 4*SEW (i.e., 4*SEW += SEW*SEW).  These are
-distinguished by a `vw4*` prefix on the opcode.
+NOTE: For integer multiply-add, another possible widening option
+increases the size of the accumulator to 4*SEW (i.e., 4*SEW +=
+SEW*SEW).  These would be distinguished by a `vw4*` prefix on the
+opcode.  These are not included at this time, but are a possible
+addition to spec.
 
 For all widening instructions, the destination element width must be a
 supported element width and the destination LMUL value must also be a
