@@ -217,7 +217,7 @@ include::vtype-format.adoc[]
 NOTE: The smallest base implementation has only four bits in `vtype`,
 two bits for `vsew[1:0]` and two bits for `vlmul[1:0]`.
 
-NOTE: The vediv[1:0] field is used bythe EDIV extension described below.
+NOTE: The vediv[1:0] field is used by the EDIV extension described below.
 
 NOTE: Further standard and custom extensions to the vector base will
 extend these fields to support a greater variety of data types.
@@ -1040,10 +1040,20 @@ include::vtype-format.adoc[]
  e64   #  64b elements
  e128  # 128b elements
 
- m1   # Vlmul x1
+ m1   # Vlmul x1, assumed if m setting absent
  m2   # Vlmul x2
  m4   # Vlmul x4
  m8   # Vlmul x8
+
+ d1   # EDIV 1, assumed if d setting absent
+ d2   # EDIV 2
+ d4   # EDIV 4
+ d8   # EDIV 8
+
+Examples:
+    vsetvli t0, a0, e8          # SEW= 8, LMUL=1, EDIV=1
+    vsetvli t0, a0, e8,m2       # SEW= 8, LMUL=2, EDIV=1
+    vsetvli t0, a0, e32,m2,d4   # SEW=32, LMUL=2, EDIV=4
 ----
 
 The `vtype` setting must be supported by the implementation, and the
