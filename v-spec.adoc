@@ -1871,7 +1871,7 @@ that instructions that read only one scalar register, read it from
 A few vector arithmetic instructions are defined to be __widening__
 operations where the destination elements are 2*SEW wide and are
 stored in a vector register group with twice the number of vector
-registers, i.e., the destination vector register group is 2*LMUL.
+registers.
 
 The first operand can be either single or double-width. These are
 generally written with a `vw*` prefix on the opcode or `vfw*` for
@@ -1891,10 +1891,15 @@ SEW*SEW).  These would be distinguished by a `vw4*` prefix on the
 opcode.  These are not included at this time, but are a possible
 addition to spec.
 
+The destination vector register group results are arranged as if both
+SEW and LMUL were at twice their current settings (i.e., the
+destination element width is 2*SEW, and the destination vector
+register group LMUL is 2*LMUL).
+
 For all widening instructions, the destination element width must be a
 supported element width and the destination LMUL value must also be a
-supported LMUL value ({le}8), otherwise an illegal instruction exception
-is raised.
+supported LMUL value ({le}8, i.e., current LMUL must be {le}4),
+otherwise an illegal instruction exception is raised.
 
 The destination vector register group must be specified using a vector
 register number that is valid for the destination's LMUL value,
@@ -1922,8 +1927,10 @@ vwop.wx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 === Narrowing Vector Arithmetic Instructions
 
 A few instructions are provided to convert double-width source vectors
-into single-width destination vectors.  These instructions convert
-2*LMUL/2*SEW vectors/elements into LMUL/SEW vectors/elements.
+into single-width destination vectors.  These instructions convert a
+vector register group organized as if LMUL and SEW were twice the
+current settings, and convert to a vector register group with the
+current LMUL/SEW vectors/elements.
 
 If (2*LMUL > 8), or (2 * SEW) > ELEN, an illegal instruction exception
 is raised.
