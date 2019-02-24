@@ -1849,7 +1849,7 @@ Vector arithmetic instructions are masked under control of the `vm`
 field.
 
 ----
-Assembly syntax pattern for vector arithmetic instructions
+# Assembly syntax pattern for vector binary arithmetic instructions
 
 # Operations returning vector results, masked by vm (v0.t, <nothing>)
 vop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
@@ -1865,6 +1865,32 @@ is the second operand. This is the opposite to the standard scalar
 ordering.  This arrangement retains the existing encoding conventions
 that instructions that read only one scalar register, read it from
 `rs1`, and that 5-bit immediates are sourced from the `rs1` field.
+
+----
+# Assembly syntax pattern for vector ternary arithmetic instructions (multiply-add)
+
+# Integer operations overwriting third source
+vop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i]*vs2[i] + vd[i]
+vop.vx vd, rs1, vs2, vm  # vd[i] = x[rs1]*vs2[i] + vd[i]
+
+# Integer operations overwriting first source
+vop.vv vd, vs1, vs2, vm  # vd[i] = vd[i]*vs1[i] + vs2[i]
+vop.vx vd, rs1, vs2, vm  # vd[i] = vd[i]*x[rs1] + vs2[i]
+
+# Floating-point operations overwriting third source
+vfop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i]*vs2[i] + vd[i]
+vfop.vf vd, rs1, vs2, vm  # vd[i] = f[rs1]*vs2[i] + vd[i]
+
+# Floating-point operations overwriting first source
+vfop.vv vd, vs1, vs2, vm  # vd[i] = vd[i]*vs1[i] + vs2[i] 
+vfop.vf vd, rs1, vs2, vm  # vd[i] = vd[i]*f[rs1] + vs2[i]
+----
+
+NOTE: For ternary multiply-add operations, the assembler syntax always
+places the destination vector register first, followed by either `rs1`
+or `vs1`, then `vs2`.  This ordering provides a more natural reading
+of the assembler for these ternary operations, as the multiply
+operands are always next to each other.
 
 === Widening Vector Arithmetic Instructions
 
@@ -2363,20 +2389,20 @@ NOTE: "sac" is intended to be read as "subtract from accumulator".
 
 ----
 # Integer multiply-add, overwrite addend
-vmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
-vmacc.vx vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
+vmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
 # Integer multiply-sub, overwrite minuend
-vmsac.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vmsac.vx vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+vmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i] 
+vmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 
 # Integer multiply-add, overwrite multiplicand
-vmadd.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] + (vd[i] * vs1[i])
-vmadd.vx vd, vs2, rs1, vm    # vd[i] = vs2[i] + (vd[i] * x[rs1])
+vmadd.vv vd, vs1, vs2, vm    # vd[i] = (vd[i] * vs1[i]) + vs2[i]
+vmadd.vx vd, rs1, vs2, vm    # vd[i] = (vd[i] * x[rs1]) + vs2[i]
 
 # Integer multiply-sub, overwrite multiplicand
-vmsub.vv vd, vs2, vs1, vm    # vd[i] = vs2[i] - (vd[i] * vs1[i])
-vmsub.vx vd, vs2, rs1, vm    # vd[i] = vs2[i] - (vd[i] * x[rs1])
+vmsub.vv vd, vs1, vs2, vm    # vd[i] = (vd[i] * vs1[i]) - vs2[i]
+vmsub.vx vd, rs1, vs2, vm    # vd[i] = (vd[i] * x[rs1]) - vs2[i]
 ----
 
 === Vector Widening Integer Multiply-Add Instructions
@@ -2387,20 +2413,20 @@ produce a 2*SEW-bit result.
 
 ----
 # Widening unsigned-integer multiply-add, overwrite addend
-vwmaccu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
-vwmaccu.vx vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
+vwmaccu.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vwmaccu.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
 # Widening signed-integer multiply-add, overwrite addend
-vwmacc.vv vd, vs2, vs1, vm    # vd[i] = vd[i] + (vs2[i] * vs1[i])
-vwmacc.vx vd, vs2, rs1, vm    # vd[i] = vd[i] + (vs2[i] * x[rs1])
+vwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vwmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
 # Widening unsigned-integer multiply-sub, overwrite minuend
-vwmsacu.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vwmsacu.vx vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+vwmsacu.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i] 
+vwmsacu.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 
 # Widening signed-integer multiply-sub, overwrite minuend
-vwmsac.vv vd, vs2, vs1, vm    # vd[i] = vd[i] - (vs2[i] * vs1[i])
-vwmsac.vx vd, vs2, rs1, vm    # vd[i] = vd[i] - (vs2[i] * x[rs1])
+vwmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i] 
+vwmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 ----
 
 NOTE: There is no signed-unsigned widening multiply-add instruction.
@@ -2491,7 +2517,7 @@ register group with an immediate value.  This is given a vector
 pseudoinstruction `vmv.v.i vd, imm`.
 
 NOTE: Mask values can be widened into SEW-width elements using a
-sequence `vmv.v.i vd, 0; vmerge.vi vd, vd, 1, v0.t'.
+sequence `vmv.v.i vd, 0; vmerge.vi vd, vd, 1, v0.t`.
 
 == Vector Fixed-Point Arithmetic Instructions
 
@@ -2605,20 +2631,20 @@ occurs.
 
 ----
 # Widening unsigned-integer scaled multiply-accumulate
-vwsmaccu.vv vd, vs2, vs1, vm # vd[i] = clipu(vd[i]+((vs2[i]*vs1[i]+round)>>SEW/2))
-vwsmaccu.vx vd, vs2, rs1, vm # vd[i] = clipu(vd[i]+((vs2[i]*x[rs1]+round)>>SEW/2))
+vwsmaccu.vv vd, vs1, vs2, vm # vd[i] = clipu((+(vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
+vwsmaccu.vx vd, rs1, vs2, vm # vd[i] = clipu((+(x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
 
 # Widening signed-integer scaled multiply-accumulate
-vwsmacc.vv vd, vs2, vs1, vm  # vd[i] = clip(vd[i]+((vs2[i]*vs1[i]+round)>>SEW/2))
-vwsmacc.vx vd, vs2, rs1, vm  # vd[i] = clip(vd[i]+((vs2[i]*x[rs1]+round)>>SEW/2))
+vwsmacc.vv vd, vs1, vs2, vm  # vd[i] = clipu((+(vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
+vwsmacc.vx vd, rs1, vs2, vm  # vd[i] = clipu((+(x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
 
 # Widening unsigned-integer scaled multiply-subtract
-vwsmsacu.vv vd, vs2, vs1, vm # vd[i] = clipu(vd[i]-((vs2[i]*vs1[i]+round)>>SEW/2))
-vwsmsacu.vx vd, vs2, rs1, vm # vd[i] = clipu(vd[i]-((vs2[i]*x[rs1]+round)>>SEW/2))
+vwsmsacu.vv vd, vs1, vs2, vm # vd[i] = clipu(-((vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
+vwsmsacu.vx vd, rs1, vs2, vm # vd[i] = clipu(-((x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
 
 # Widening signed-integer scaled  multiply-subtract
-vwsmsac.vv vd, vs2, vs1, vm  # vd[i] = clip(vd[i]-((vs2[i]*vs1[i]+round)>>SEW/2))
-vwsmsac.vx vd, vs2, rs1, vm  # vd[i] = clip(vd[i]-((vs2[i]*x[rs1]+round)>>SEW/2))
+vwsmsac.vv vd, vs1, vs2, vm  # vd[i] = clipu(-((vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
+vwsmsac.vx vd, rs1, vs2, vm  # vd[i] = clipu(-((x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
 
 # For vxrm=rnu, round = ( 1 << (SEW/2-1))
 ----
@@ -2772,37 +2798,37 @@ destructive forms that overwrite one of the operands, either the
 addend or the first multiplicand.
 
 ----
+# FP multiply-accumulate, overwrites addend
+vfmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vfmacc.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) + vd[i]
+
+# FP negate-(multiply-accumulate), overwrites subtrahend
+vfnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) - vd[i]
+vfnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) - vd[i]
+
+# FP multiply-subtract-accumulator, overwrites subtrahend
+vfmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) - vd[i]
+vfmsac.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) - vd[i]
+
+# FP negate-(multiply-subtract-accumulator), overwrites minuend
+vfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
+vfnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
+
 # FP multiply-add, overwrites multiplicand
 vfmadd.vv vd, vs1, vs2, vm    # vd[i] = +(vd[i] * vs1[i]) + vs2[i]
-vfmadd.vf vd, rs1, vs2, vm    # vd[i] = +(vd[i] * x[rs1]) + vs2[i]
+vfmadd.vf vd, rs1, vs2, vm    # vd[i] = +(vd[i] * f[rs1]) + vs2[i]
 
 # FP negate-(multiply-add), overwrites multiplicand
 vfnmadd.vv vd, vs1, vs2, vm   # vd[i] = -(vd[i] * vs1[i]) - vs2[i]
-vfnmadd.vf vd, rs1, vs2, vm   # vd[i] = -(vd[i] * x[rs1]) - vs2[i]
+vfnmadd.vf vd, rs1, vs2, vm   # vd[i] = -(vd[i] * f[rs1]) - vs2[i]
 
 # FP multiply-sub, overwrites multiplicand
 vfmsub.vv vd, vs1, vs2, vm    # vd[i] = +(vd[i] * vs1[i]) - vs2[i]
-vfmsub.vf vd, rs1, vs2, vm    # vd[i] = +(vd[i] * x[rs1]) - vs2[i]
+vfmsub.vf vd, rs1, vs2, vm    # vd[i] = +(vd[i] * f[rs1]) - vs2[i]
 
 # FP negate-(multiply-sub), overwrites multiplicand
 vfnmsub.vv vd, vs1, vs2, vm   # vd[i] = -(vd[i] * vs1[i]) + vs2[i]
-vfnmsub.vf vd, rs1, vs2, vm   # vd[i] = -(vd[i] * x[rs1]) + vs2[i]
-
-# FP multiply-accumulate, overwrites addend
-vfmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) + vd[i]
-vfmacc.vf vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) + vd[i]
-
-# FP negate-(multiply-accumulate), overwrites subtrahend
-vfnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) - vd[i]
-vfnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
-
-# FP multiply-subtract-accumulator, overwrites subtrahend
-vfmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
-vfmsac.vf vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
-
-# FP negate-(multiply-subtract-accumulator), overwrites minuend
-vfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
-vfnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
+vfnmsub.vf vd, rs1, vs2, vm   # vd[i] = -(vd[i] * f[rs1]) + vs2[i]
 ----
 
 NOTE: It would be possible to use the two unused rounding modes in the
@@ -2818,20 +2844,20 @@ all SEW wide, while the addend and destination is 2*SEW bits wide.
 
 ----
 # FP widening multiply-accumulate, overwrites addend
-vfwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) + vd[i]
-vfwmacc.vf vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) + vd[i]
+vfwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vfwmacc.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) + vd[i]
 
 # FP widening negate-(multiply-accumulate), overwrites addend
-vfwnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) - vd[i]
-vfwnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) - vd[i]
+vfwnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) - vd[i]
+vfwnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) - vd[i]
 
 # FP widening multiply-subtract-accumulator, overwrites addend
-vfwmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs2[i] * vs1[i]) - vd[i]
-vfwmsac.vf vd, rs1, vs2, vm    # vd[i] = +(vs2[i] * x[rs1]) - vd[i]
+vfwmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) - vd[i]
+vfwmsac.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) - vd[i]
 
 # FP widening negate-(multiply-subtract-accumulator), overwrites addend
-vfwnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs2[i] * vs1[i]) + vd[i]
-vfwnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(vs2[i] * x[rs1]) + vd[i]
+vfwnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
+vfwnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
 ----
 
 === Vector Floating-Point Square-Root Instruction
@@ -4128,11 +4154,11 @@ that is max(8,min(SEW,4*SEW/EDIV)) bits wide, sign- or zero-extended
 to full SEW if necessary.
 
 ----
-# Signed dot-product
-vdot.vv vd, vs2, vs1, vm   # Vector-vector
-
 # Unsigned dot-product
 vdotu.vv vd, vs2, vs1, vm  # Vector-vector
+
+# Signed dot-product
+vdot.vv vd, vs2, vs1, vm   # Vector-vector
 ----
 
 ----
@@ -4142,7 +4168,6 @@ vdotu.vv vd, vs2, vs1, vm  # Vector-vector
   # Dot product, SEW=32, EDIV=2
   vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
                                             + vs2[i][15:0] * vs1[i][15:0]
-
 ----
 
 === Vector Floating-Point Dot Product Instruction
