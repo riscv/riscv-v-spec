@@ -343,7 +343,7 @@ least-significant byte in the lowest-numbered bits.
 
 NOTE: Previous RISC-V vector proposals (< 0.6) hid this mapping from
 software, whereas this proposal has a specific mapping for all
-configurations, which reduces implementation flexibilty but removes
+configurations, which reduces implementation flexibility but removes
 need for zeroing on config changes.  Making the mapping explicit also
 has the advantage of simplifying oblivious context save-restore code,
 as the code can save the configuration in `vl` and `vtype`,
@@ -3041,7 +3041,7 @@ A vector-scalar floating-point merge instruction is provided, which
 operates on all body elements, from `vstart` up to the current vector
 length in `vl` regardless of mask value.
 
-When the floating-point merge instruction is unmasked (`vm=0`), at
+When the floating-point merge instruction is masked (`vm=0`), at
 elements where the mask value is zero, the first vector operand is
 copied to the destination element, otherwise a scalar floating-point
 register value is copied to the destination element.
