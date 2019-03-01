@@ -3171,7 +3171,7 @@ the same SEW width.  Overflows wraparound on arithmetic sums.
 
 [source]
 ----
-    # Simple reductions, where [*] denoters all active elements:
+    # Simple reductions, where [*] denotes all active elements:
     vredsum.vs  vd, vs2, vs1, vm   # vd[0] =  sum( vs2[*] , vs1[0] )
     vredmaxu.vs vd, vs2, vs1, vm   # vd[0] = maxu( vs2[*] , vs1[0] )
     vredmax.vs  vd, vs2, vs1, vm   # vd[0] =  max( vs2[*] , vs1[0] )
