@@ -4167,6 +4167,12 @@ vdot.vv vd, vs2, vs1, vm   # Vector-vector
   # Dot product, SEW=32, EDIV=2
   vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
                                             + vs2[i][15:0] * vs1[i][15:0]
+
+  # Dot product, SEW=32, EDIV=4
+  vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:24] * vs1[i][31:24]
+                                            + vs2[i][23:16] * vs1[i][23:16]
+                                            + vs2[i][15:8] * vs1[i][15:8]
+                                            + vs2[i][7:0] * vs1[i][7:0]
 ----
 
 === Vector Floating-Point Dot Product Instruction
