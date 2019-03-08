@@ -198,13 +198,13 @@ c_row_loop: # Loop across rows of C blocks
 
     mv nt, n  # Initialize n counter for next row of C blocks
 
-    mv bnp, b # Initialize B n-loop pointer to start
-    mv cnp, c # Initialize C n-loop pointer
+    mv bnp, bp # Initialize B n-loop pointer to start
+    mv cnp, cp # Initialize C n-loop pointer
 
 c_col_loop: # Loop across one row of C blocks
     vsetvli nvl, nt, e32  # 32-bit vectors, LMUL=1
 
-    mv akp, a   # reset pointer into A to beginning
+    mv akp, ap   # reset pointer into A to beginning
     mv bkp, bnp # step to next column in B matrix
 
     # Initalize current C submatrix block from memory.
@@ -330,9 +330,9 @@ c_col_loop: # Loop across one row of C blocks
     # Move to next set of rows
     addi m, m, -16  # Did 16 rows above
     slli t6, astride, 4  # Multiply astride by 16
-    add a, a, t6         # Move A matrix pointer down 16 rows
+    add ap, ap, t6         # Move A matrix pointer down 16 rows
     slli t6, cstride, 4  # Multiply cstride by 16
-    add c, c, t6         # Move C matrix pointer down 16 rows
+    add cp, cp, t6         # Move C matrix pointer down 16 rows
     
     slti t6, m, 16
     beqz t6, c_row_loop
