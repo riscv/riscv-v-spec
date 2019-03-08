@@ -34,13 +34,13 @@ funct6                funct6                funct6
 010110                010110 V  VMUNARY0    010110
 010111 VXI vmerge     010111 V  vcompress   010111  F vfmerge.vf
 011000 VXI vseq       011000 V  vmandnot    011000 VF vfeq
-011001 VXI vsne       011001 V  vmand       011001 VF vflte
+011001 VXI vsne       011001 V  vmand       011001 VF vfle
 011010 VX  vsltu      011010 V  vmor        011010 VF vford
 011011 VX  vslt       011011 V  vmxor       011011 VF vflt
 011100 VXI vsleu      011100 V  vmornot     011100 VF vfne
 011101 VXI vsle       011101 V  vmnand      011101  F vfgt
 011110  XI vsgtu      011110 V  vmnor       011110
-011111  XI vsgt       011111 V  vmxnor      011111  F vfgte
+011111  XI vsgt       011111 V  vmxnor      011111  F vfge
 
 100000 VXI vsaddu     100000 VX vdivu       100000 VF vfdiv   
 100001 VXI vsadd      100001 VX vdiv        100001  F vfrdiv  
@@ -202,8 +202,8 @@ VMUNARY0 encoding space
 
 ////
 
-X  vsgteu
-  X  vsgte
+X  vsgeu
+  X  vsge
 
 
 vx4muladd
