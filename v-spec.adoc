@@ -2924,28 +2924,28 @@ floating-point compare instructions.
     vflt.vf vd, vs2, rs1, vm   # vector-scalar
 
     # Compare less than or equal
-    vflte.vv vd, vs2, vs1, vm   # Vector-vector
-    vflte.vf vd, vs2, rs1, vm   # vector-scalar
+    vfle.vv vd, vs2, vs1, vm   # Vector-vector
+    vfle.vf vd, vs2, rs1, vm   # vector-scalar
 
     # Compare greater than
     vfgt.vf vd, vs2, rs1, vm   # vector-scalar
 
     # Compare greater than or equal
-    vfgte.vf vd, vs2, rs1, vm   # vector-scalar
+    vfge.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
 ----
 Comparison      Assembler Mapping             Assembler pseudoinstruction
 
 va < vb         vflt.vv vd, va, vb, vm
-va <= vb        vflte.vv vd, va, vb, vm
+va <= vb        vfle.vv vd, va, vb, vm
 va > vb         vflt.vv vd, vb, va, vm     vfgt.vv vd, va, vb, vm
-va >= vb        vflte.vv vd, vb, va, vm    vfgte.vv vd, va, vb, vm
+va >= vb        vfle.vv vd, vb, va, vm    vfge.vv vd, va, vb, vm
 
 va < f          vflt.vf vd, va, f, vm
-va <= f         vflte.vf vd, va, f, vm
+va <= f         vfle.vf vd, va, f, vm
 va > f          vfgt.vf vd, va, f, vm
-va >= f         vfgte.vf vd, va, f, vm
+va >= f         vfge.vf vd, va, f, vm
 
 va, vb vector register groups
 f      scalar floating-point register
