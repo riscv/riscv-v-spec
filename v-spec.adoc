@@ -1014,11 +1014,12 @@ values in `vl` and `vtype` to match application needs.
 
 === `vsetvli`/`vsetvl` instructions
 
+[source,riscvasm]
 ----
- vsetvli rd, rs1, vtypei # rd = new vl, rs1 = AVL, vtypei = new vtype setting
-                         # if rs1 = x0, then use maximum vector length
- vsetvl  rd, rs1, rs2    # rd = new vl, rs1 = AVL, rs2 = new vtype value
-                         # if rs1 = x0, then use maximum vector length
+vsetvli rd, rs1, vtypei # rd = new vl, rs1 = AVL, vtypei = new vtype setting
+                        # if rs1 = x0, then use maximum vector length
+vsetvl  rd, rs1, rs2    # rd = new vl, rs1 = AVL, rs2 = new vtype value
+                        # if rs1 = x0, then use maximum vector length
 ----
 
 The `vsetvli` instruction sets the `vtype` and `vl` CSRs based on its
@@ -1151,10 +1152,9 @@ registers and swapped in as needed using `vsetvl`.
 The SEW and LMUL settings can be changed dynamically to provide high
 throughput on mixed-width operations in a single loop.
 
+.Example: Load 16-bit values, widen multiply to 32b, shift 32b result right by 3, store 32b values.
+[source,riscvasm]
 ----
-# Example: Load 16-bit values, widen multiply to 32b, shift 32b result
-# right by 3, store 32b values.
-
 # Loop using only widest elements:
 
 loop:
@@ -1333,7 +1333,7 @@ the fourth encoding moves SEW-bit memory elements.
 
 ----
                      Width   Mem     Reg       Opcode
-                     [2:0]   bits    bits      
+                     [2:0]   bits    bits
 
 Standard scalar FP    001     16     FLEN      FLH/FSH
 Standard scalar FP    010     32     FLEN      FLW/FSW
@@ -1364,78 +1364,78 @@ element.
 
 === Vector Unit-Stride Instructions
 
+.Vector unit-stride loads and stores
+[source,riscvasm]
 ----
-    # Vector unit-stride loads and stores
+# vd destination, rs1 base address, vm is mask encoding (v0.t or <missing>)
+vlb.v  vd, (rs1), vm # 8b signed
+vlh.v  vd, (rs1), vm # 16b signed
+vlw.v  vd, (rs1), vm # 32b signed
 
-    # vd destination, rs1 base address, vm is mask encoding (v0.t or <missing>)
-    vlb.v  vd, (rs1), vm # 8b signed
-    vlh.v  vd, (rs1), vm # 16b signed
-    vlw.v  vd, (rs1), vm # 32b signed
+vlbu.v vd, (rs1), vm # 8b unsigned
+vlhu.v vd, (rs1), vm # 16b unsigned
+vlwu.v vd, (rs1), vm # 32b unsigned
 
-    vlbu.v vd, (rs1), vm # 8b unsigned
-    vlhu.v vd, (rs1), vm # 16b unsigned
-    vlwu.v vd, (rs1), vm # 32b unsigned
+vle.v  vd, (rs1), vm # SEW
 
-    vle.v  vd, (rs1), vm # SEW
-
-    # vs3 store data, rs1 base address, vm is mask encoding (v0.t or <missing>)
-    vsb.v  vs3, (rs1), vm  # 8b store
-    vsh.v  vs3, (rs1), vm  # 16b store
-    vsw.v  vs3, (rs1), vm  # 32b store
-    vse.v  vs3, (rs1), vm  # SEW store
+# vs3 store data, rs1 base address, vm is mask encoding (v0.t or <missing>)
+vsb.v  vs3, (rs1), vm  # 8b store
+vsh.v  vs3, (rs1), vm  # 16b store
+vsw.v  vs3, (rs1), vm  # 32b store
+vse.v  vs3, (rs1), vm  # SEW store
 ----
 
 === Vector Strided Instructions
 
+.Vector strided loads and stores
+[source,riscvasm]
 ----
-    # Vector strided loads and stores
+# vd destination, rs1 base address, rs2 byte stride
+vlsb.v  vd, (rs1), rs2, vm # 8b
+vlsh.v  vd, (rs1), rs2, vm # 16b
+vlsw.v  vd, (rs1), rs2, vm # 32b
 
-    # vd destination, rs1 base address, rs2 byte stride
-    vlsb.v  vd, (rs1), rs2, vm # 8b
-    vlsh.v  vd, (rs1), rs2, vm # 16b
-    vlsw.v  vd, (rs1), rs2, vm # 32b
+vlsbu.v vd, (rs1), rs2, vm # unsigned 8b
+vlshu.v vd, (rs1), rs2, vm # unsigned 16b
+vlswu.v vd, (rs1), rs2, vm # unsigned 32b
 
-    vlsbu.v vd, (rs1), rs2, vm # unsigned 8b
-    vlshu.v vd, (rs1), rs2, vm # unsigned 16b
-    vlswu.v vd, (rs1), rs2, vm # unsigned 32b
+vlse.v  vd, (rs1), rs2, vm  # SEW
 
-    vlse.v  vd, (rs1), rs2, vm  # SEW
-
-    # vs3 store data, rs1 base address, rs2 byte stride
-    vssb.v vs3, (rs1), rs2, vm  # 8b
-    vssh.v vs3, (rs1), rs2, vm  # 16b
-    vssw.v vs3, (rs1), rs2, vm  # 32b
-    vsse.v vs3, (rs1), rs2, vm  # SEW
+# vs3 store data, rs1 base address, rs2 byte stride
+vssb.v vs3, (rs1), rs2, vm  # 8b
+vssh.v vs3, (rs1), rs2, vm  # 16b
+vssw.v vs3, (rs1), rs2, vm  # 32b
+vsse.v vs3, (rs1), rs2, vm  # SEW
 ----
 
 === Vector Indexed Instructions
 
+.Vector indexed loads and stores
+[source,riscvasm]
 ----
-    # Vector indexed loads and stores
+# vd destination, rs1 base address, vs2 indices
+vlxb.v  vd, (rs1), vs2, vm  # 8b
+vlxh.v  vd, (rs1), vs2, vm  # 16b
+vlxw.v  vd, (rs1), vs2, vm  # 32b
 
-    # vd destination, rs1 base address, vs2 indices
-    vlxb.v  vd, (rs1), vs2, vm  # 8b
-    vlxh.v  vd, (rs1), vs2, vm  # 16b
-    vlxw.v  vd, (rs1), vs2, vm  # 32b
+vlxbu.v vd, (rs1), vs2, vm  # 8b unsigned
+vlxhu.v vd, (rs1), vs2, vm  # 16b unsigned
+vlxwu.v vd, (rs1), vs2, vm  # 32b unsigned
 
-    vlxbu.v vd, (rs1), vs2, vm  # 8b unsigned
-    vlxhu.v vd, (rs1), vs2, vm  # 16b unsigned
-    vlxwu.v vd, (rs1), vs2, vm  # 32b unsigned
+vlxe.v  vd, (rs1), vs2, vm  # SEW
 
-    vlxe.v  vd, (rs1), vs2, vm  # SEW
+# Vector ordered-indexed store instructions
+# vs3 store data, rs1 base address, vs2 indices
+vsxb.v vs3, (rs1), vs2, vm  # 8b
+vsxh.v vs3, (rs1), vs2, vm  # 16b
+vsxw.v vs3, (rs1), vs2, vm  # 32b
+vsxe.v vs3, (rs1), vs2, vm  # SEW
 
-    # Vector ordered-indexed store instructions
-    # vs3 store data, rs1 base address, vs2 indices
-    vsxb.v vs3, (rs1), vs2, vm  # 8b
-    vsxh.v vs3, (rs1), vs2, vm  # 16b
-    vsxw.v vs3, (rs1), vs2, vm  # 32b
-    vsxe.v vs3, (rs1), vs2, vm  # SEW
-
-    # Vector unordered-indexed store instructions
-    vsuxb.v vs3, (rs1), vs2, vm  # 8b
-    vsuxh.v vs3, (rs1), vs2, vm  # 16b
-    vsuxw.v vs3, (rs1), vs2, vm  # 32b
-    vsuxe.v vs3, (rs1), vs2, vm  # SEW
+# Vector unordered-indexed store instructions
+vsuxb.v vs3, (rs1), vs2, vm  # 8b
+vsuxh.v vs3, (rs1), vs2, vm  # 16b
+vsuxw.v vs3, (rs1), vs2, vm  # 32b
+vsuxe.v vs3, (rs1), vs2, vm  # SEW
 ----
 
 === Unit-stride Fault-Only-First Loads
@@ -1448,21 +1448,22 @@ element and all following elements in the destination vector
 register are not modified, and the vector length `vl` is reduced to the
 number of elements processed without a trap.
 
+[source,riscvasm]
 ----
-    vlbff.v  vd, (rs1), vm # 8b
-    vlhff.v  vd, (rs1), vm # 16b
-    vlwff.v  vd, (rs1), vm # 32b
+vlbff.v  vd, (rs1), vm # 8b
+vlhff.v  vd, (rs1), vm # 16b
+vlwff.v  vd, (rs1), vm # 32b
 
-    vlbuff.v vd, (rs1), vm # unsigned 8b
-    vlhuff.v vd, (rs1), vm # unsigned 16b
-    vlwuff.v vd, (rs1), vm # unsigned 32b
+vlbuff.v vd, (rs1), vm # unsigned 8b
+vlhuff.v vd, (rs1), vm # unsigned 16b
+vlwuff.v vd, (rs1), vm # unsigned 32b
 
-    vleff.v  vd, (rs1), vm # SEW
+vleff.v  vd, (rs1), vm # SEW
 ----
 
+.strlen example using unit-stride fault-only-first instruction
+[source,riscvasm]
 ----
-strlen example using unit-stride fault-only-first instruction
-
 # size_t strlen(const char *str)
 # a0 holds *str
 
@@ -1497,7 +1498,7 @@ in future vector extensions.
 === Vector Load/Store Segment Instructions (`Zvlsseg`)
 
 NOTE: This is being written as an extension but could be mandated in
-some profiles. 
+some profiles.
 
 The vector load/store segment instructions move multiple contiguous
 fields in memory to and from consecutively numbered vector registers.
@@ -1515,15 +1516,15 @@ unsigned integer that contains one less than the number of fields per
 segment, _NFIELDS_.
 
 ----
-nf[2:0] NFIELDS 
- 000      1     
- 001      2     
- 010      3     
- 011      4     
- 100      5     
- 101      6     
- 110      7     
- 111      8     
+nf[2:0] NFIELDS
+ 000      1
+ 001      2
+ 010      3
+ 011      4
+ 100      5
+ 101      6
+ 110      7
+ 111      8
 ----
 ////
 ----
@@ -1531,7 +1532,7 @@ nf[2:0] NFIELDS  vector reg alignment
  000      1       1 (v0, v1, ..., v31)
  001      2       2 (v0, v2, ..., v30)
  010      3       4 (v0, v4, ..., v28)
- 011      4       4 
+ 011      4       4
  100      5       8 (v0, v8, v16, v24)
  101      6       8
  110      7       8
@@ -1576,47 +1577,48 @@ The assembler prefixes `vlseg`/`vsseg` are used for unit-stride
 segment loads and stores respectively.
 
 ----
-    # Format
-    vlseg<nf>{b,h,w}.v vd, (rs1),  vm    # Unit-stride signed segment load template
-    vlseg<nf>e.v vd, (rs1), vm           # Unit-stride segment load template
-    vlseg<nf>{b,h,w}u.v vd, (rs1), vm    # Unit-stride unsigned segment load template
-    vsseg<nf>{b,h,w,e}.v vs3, (rs1), vm  # Unit-stride segment store template
+# Format
+vlseg<nf>{b,h,w}.v vd, (rs1),  vm    # Unit-stride signed segment load template
+vlseg<nf>e.v vd, (rs1), vm           # Unit-stride segment load template
+vlseg<nf>{b,h,w}u.v vd, (rs1), vm    # Unit-stride unsigned segment load template
+vsseg<nf>{b,h,w,e}.v vs3, (rs1), vm  # Unit-stride segment store template
 
-    # Examples
-    vlseg2b.v vd, (rs1), vm   # Load vector of signed 2*1-byte segments into vd, vd+1
-    vlseg3bu.v vd, (rs1), vm  # Load vector of unsigned 3*1-byte segments into vd, vd+1, vd+2
-    vlseg7w.v vd, (rs1), vm   # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
-    vlseg8e.v vd, (rs1), vm   # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
+# Examples
+vlseg2b.v vd, (rs1), vm   # Load vector of signed 2*1-byte segments into vd, vd+1
+vlseg3bu.v vd, (rs1), vm  # Load vector of unsigned 3*1-byte segments into vd, vd+1, vd+2
+vlseg7w.v vd, (rs1), vm   # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
+vlseg8e.v vd, (rs1), vm   # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
 
-    vsseg3b.v vs3, (rs1), vm  # Store packed vector of 3*1-byte segments from vs3,vs3+1,vs3+2 to memory
+vsseg3b.v vs3, (rs1), vm  # Store packed vector of 3*1-byte segments from vs3,vs3+1,vs3+2 to memory
 ----
 
 For loads, the `vd` register will hold the first field loaded from the
 segment.  For stores, the `vs3` register is read to provide the first
 field to be stored in each segment.
 
+[source,riscvasm]
 ----
-    # Example 1
-    # Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
-    vlseg3bu.v v8, (a0), vm
-    # v8 holds the red pixels
-    # v9 holds the green pixels
-    # v10 holds the blue pixels
+# Example 1
+# Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
+vlseg3bu.v v8, (a0), vm
+# v8 holds the red pixels
+# v9 holds the green pixels
+# v10 holds the blue pixels
 
-    # Example 2
-    # Memory structure holds complex values, 32b for real and 32b for imaginary
-    vlseg2w.v v8, (a0), vm
-    # v8 holds real
-    # v9 holds imaginary
+# Example 2
+# Memory structure holds complex values, 32b for real and 32b for imaginary
+vlseg2w.v v8, (a0), vm
+# v8 holds real
+# v9 holds imaginary
 ----
 
-There are also fault-only-first versions of the unit-stride instructions. 
+There are also fault-only-first versions of the unit-stride instructions.
 
 ----
-    # Template for vector fault-only-first unit-stride segment loads and stores.
-    vlseg<nf>{b,h,w}ff.v vd, (rs1),  vm    # Unit-stride signed fault-only-first segment loads
-    vlseg<nf>eff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
-    vlseg<nf>{b,h,w}uff.v vd, (rs1),   vm  # Unit-stride unsigned fault-only-first segment loads
+# Template for vector fault-only-first unit-stride segment loads and stores.
+vlseg<nf>{b,h,w}ff.v vd, (rs1),  vm    # Unit-stride signed fault-only-first segment loads
+vlseg<nf>eff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
+vlseg<nf>{b,h,w}uff.v vd, (rs1),   vm  # Unit-stride unsigned fault-only-first segment loads
 ----
 
 ==== Vector Strided Segment Loads and Stores
@@ -1625,21 +1627,22 @@ Vector strided segment loads and stores move contiguous segments where
 each segment is separated by the byte stride offset given in the `rs2`
 GPR argument.
 
+[source,riscvasm]
 ----
-    # Format
-    vlsseg<nf>{b,h,w}.v vd, (rs1), rs2, vm    # Strided signed segment loads
-    vlsseg<nf>e.v vd, (rs1), rs2, vm          # Strided segment loads
-    vlsseg<nf>{b,h,w}u.v vd, (rs1), rs2, vm   # Strided unsigned segment loads
-    vssseg<nf>{b,h,w,e}.v vs3, (rs1), rs2, vm # Strided segment stores
+# Format
+vlsseg<nf>{b,h,w}.v vd, (rs1), rs2, vm    # Strided signed segment loads
+vlsseg<nf>e.v vd, (rs1), rs2, vm          # Strided segment loads
+vlsseg<nf>{b,h,w}u.v vd, (rs1), rs2, vm   # Strided unsigned segment loads
+vssseg<nf>{b,h,w,e}.v vs3, (rs1), rs2, vm # Strided segment stores
 
-    # Examples
-    vlsseg3b.v v4, (x5), x6   # Load bytes at addresses x5+i*x6   into v4[i],
-                              #  and bytes at addresses x5+i*x6+1 into v5[i],
-                              #  and bytes at addresses x5+i*x6+2 into v6[i].
+# Examples
+vlsseg3b.v v4, (x5), x6   # Load bytes at addresses x5+i*x6   into v4[i],
+                          #  and bytes at addresses x5+i*x6+1 into v5[i],
+                          #  and bytes at addresses x5+i*x6+2 into v6[i].
 
-    # Examples
-    vssseg2w.v v2, (x5), x6   # Store words from v2[i] to address x5+i*x6
-                              #   and words from v3[i] to address x5+i*x6+4
+# Examples
+vssseg2w.v v2, (x5), x6   # Store words from v2[i] to address x5+i*x6
+                          #   and words from v3[i] to address x5+i*x6+4
 ----
 
 ==== Vector Indexed Segment Loads and Stores
@@ -1648,21 +1651,22 @@ Vector indexed segment loads and stores move contiguous segments where
 each segment is located at an address given by adding the scalar base
 address in the `rs1` field to byte offsets in vector register `vs2`.
 
+[source,riscvasm]
 ----
-    # Format
-    vlxseg<nf>{b,h,w}.v vd, (rs1), vs2, vm    # Indexed signed segment loads
-    vlxseg<nf>e.v vd, (rs1), vs2, vm          # Indexed segment loads
-    vlxseg<nf>{b,h,w}u.v vd, (rs1), vs2, vm   # Indexed unsigned segment loads
-    vsxseg<nf>{b,h,w,e}.v vs3, (rs1), vs2, vm # Indexed segment stores
+# Format
+vlxseg<nf>{b,h,w}.v vd, (rs1), vs2, vm    # Indexed signed segment loads
+vlxseg<nf>e.v vd, (rs1), vs2, vm          # Indexed segment loads
+vlxseg<nf>{b,h,w}u.v vd, (rs1), vs2, vm   # Indexed unsigned segment loads
+vsxseg<nf>{b,h,w,e}.v vs3, (rs1), vs2, vm # Indexed segment stores
 
-    # Examples
-    vlxseg3bu.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
-                              #  and bytes at addresses x5+v3[i]+1 into v5[i],
-                              #  and bytes at addresses x5+v3[i]+2 into v6[i].
+# Examples
+vlxseg3bu.v v4, (x5), v3  # Load bytes at addresses x5+v3[i]   into v4[i],
+                          #  and bytes at addresses x5+v3[i]+1 into v5[i],
+                          #  and bytes at addresses x5+v3[i]+2 into v6[i].
 
-    # Examples
-    vsxseg2w.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]  
-                              #   and words from v3[i] to address x5+v5[i]+4
+# Examples
+vsxseg2w.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
+                          #   and words from v3[i] to address x5+v5[i]+4
 ----
 
 == Vector AMO Operations (`Zvamo`)
@@ -1847,9 +1851,9 @@ argument from the `x` registers.
 Vector arithmetic instructions are masked under control of the `vm`
 field.
 
+.Assembly syntax pattern for vector binary arithmetic instructions
+[source,riscvasm]
 ----
-# Assembly syntax pattern for vector binary arithmetic instructions
-
 # Operations returning vector results, masked by vm (v0.t, <nothing>)
 vop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
 vop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
@@ -1865,9 +1869,9 @@ ordering.  This arrangement retains the existing encoding conventions
 that instructions that read only one scalar register, read it from
 `rs1`, and that 5-bit immediates are sourced from the `rs1` field.
 
+.Assembly syntax pattern for vector ternary arithmetic instructions (multiply-add)
+[source,riscvasm]
 ----
-# Assembly syntax pattern for vector ternary arithmetic instructions (multiply-add)
-
 # Integer operations overwriting third source
 vop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i]*vs2[i] + vd[i]
 vop.vx vd, rs1, vs2, vm  # vd[i] = x[rs1]*vs2[i] + vd[i]
@@ -1881,7 +1885,7 @@ vfop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i]*vs2[i] + vd[i]
 vfop.vf vd, rs1, vs2, vm  # vd[i] = f[rs1]*vs2[i] + vd[i]
 
 # Floating-point operations overwriting first source
-vfop.vv vd, vs1, vs2, vm  # vd[i] = vd[i]*vs1[i] + vs2[i] 
+vfop.vv vd, vs1, vs2, vm  # vd[i] = vd[i]*vs1[i] + vs2[i]
 vfop.vf vd, rs1, vs2, vm  # vd[i] = vd[i]*f[rs1] + vs2[i]
 ----
 
@@ -1937,9 +1941,9 @@ illegal instruction exception is raised.
 NOTE: This constraint is necessary to support restart with non-zero
 `vstart`.
 
+.Assembly syntax pattern for vector widening arithmetic instructions
+[source,riscvasm]
 ----
-Assembly syntax pattern for vector widening arithmetic instructions
-
 # Double-width result, two single-width sources: 2*SEW = SEW op SEW
 vwop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
 vwop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
@@ -1989,6 +1993,7 @@ A set of vector integer arithmetic instructions are provided.
 Vector integer add and subtract are provided.  Reverse-subtract
 instructions are also provided for the vector-scalar forms.
 
+[source,riscvasm]
 ----
 # Integer adds.
 vadd.vv vd, vs2, vs1, vm   # Vector-vector
@@ -2010,6 +2015,7 @@ The widening add/subtract instructions are provided in both signed and
 unsigned variants, depending on whether the narrower source operands
 are first sign- or zero-extended before forming the double-width sum.
 
+[source,riscvasm]
 ----
 # Widening unsigned integer add/subtract, 2*SEW = SEW +/- SEW
 vwaddu.vv  vd, vs2, vs1, vm  # vector-vector
@@ -2045,13 +2051,14 @@ pseudoinstructions `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and
 
 To support multi-word arithmetic:
 
+[source,riscvasm]
 ----
- # vd[i] = vs1[i] + vs2[i] + v0[i].LSB
- # v0[i] = carry(vs1[i] + vs2[i] + v0[i].LSB)
+# vd[i] = vs1[i] + vs2[i] + v0[i].LSB
+# v0[i] = carry(vs1[i] + vs2[i] + v0[i].LSB)
 
- vadc.vv   vd, vs2, vs1  # Vector-vector
- vadc.vx   vd, vs2, rs1  # Vector-scalar
- vadc.vi   vd, vs2, imm  # Vector-scalar
+vadc.vv   vd, vs2, vs1  # Vector-vector
+vadc.vx   vd, vs2, rs1  # Vector-scalar
+vadc.vi   vd, vs2, imm  # Vector-scalar
 ----
 
 This instruction is encoded as an unmasked instruction (vm=1) and
@@ -2065,12 +2072,13 @@ to 0.
 The subtract with carry instruction `vsbc` performs the equivalent
 function to support long word arithmetic for subtraction.
 
+[source,riscvasm]
 ----
- # vd[i] = vs1[i] - vs2[i] - v0[i].LSB
- # v0[i] = carry(vs1[i] - vs2[i] - v0[i].LSB)
+# vd[i] = vs1[i] - vs2[i] - v0[i].LSB
+# v0[i] = carry(vs1[i] - vs2[i] - v0[i].LSB)
 
- vsbc.vv   vd, vs2, vs1  # Vector-vector
- vsbc.vx   vd, vs2, rs1  # Vector-scalar
+vsbc.vv   vd, vs2, vs1  # Vector-vector
+vsbc.vx   vd, vs2, rs1  # Vector-scalar
 ----
 
 The encodings corresponding to the masked versions (vm=0) of `vadc`
@@ -2078,8 +2086,9 @@ and `vsbc` are reserved.
 
 === Vector Bitwise Logical Instructions
 
+.Bitwise logical operations.
+[source,riscvasm]
 ----
-# Bitwise logical operations.
 vand.vv vd, vs2, vs1, vm   # Vector-vector
 vand.vx vd, vs2, rs1, vm   # vector-scalar
 vand.vi vd, vs2, imm, vm   # vector-immediate
@@ -2103,8 +2112,9 @@ A full complement of vector shift instructions are provided, including
 logical shift left, and logical (zero-extending) and arithmetic
 (sign-extending) shift right.
 
+.Bit shift operations
+[source,riscvasm]
 ----
-# Bit shift operations
 vsll.vv vd, vs2, vs1, vm   # Vector-vector
 vsll.vx vd, vs2, rs1, vm   # vector-scalar
 vsll.vi vd, vs2, imm, vm   # vector-immediate
@@ -2134,16 +2144,17 @@ a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate form
 supports shift amounts up to 31 only and is effectively zero-extended
 for SEW of > 32.
 
+[source,riscvasm]
 ----
- # Narrowing shift right logical, SEW = (2*SEW) >> SEW
- vnsrl.vv vd, vs2, vs1, vm   # vector-vector
- vnsrl.vx vd, vs2, rs1, vm   # vector-scalar
- vnsrl.vi vd, vs2, imm, vm   # vector-immediate
+# Narrowing shift right logical, SEW = (2*SEW) >> SEW
+vnsrl.vv vd, vs2, vs1, vm   # vector-vector
+vnsrl.vx vd, vs2, rs1, vm   # vector-scalar
+vnsrl.vi vd, vs2, imm, vm   # vector-immediate
 
- # Narrowing shift right arithmetic, SEW = (2*SEW) >> SEW
- vnsra.vv vd, vs2, vs1, vm   # vector-vector
- vnsra.vx vd, vs2, rs1, vm   # vector-scalar
- vnsra.vi vd, vs2, imm, vm   # vector-immediate
+# Narrowing shift right arithmetic, SEW = (2*SEW) >> SEW
+vnsra.vv vd, vs2, vs1, vm   # vector-vector
+vnsra.vx vd, vs2, rs1, vm   # vector-scalar
+vnsra.vi vd, vs2, imm, vm   # vector-immediate
 ----
 
 NOTE: It could be useful to add support for `n4` variants, where the
@@ -2157,6 +2168,7 @@ and 0 otherwise.  The destination mask vector is always held in a
 single vector register, with a layout of elements as described in
 Section <<sec-mask-register-layout>>.
 
+[source,riscvasm]
 ----
 # Set if equal
 vseq.vv vd, vs2, vs1, vm   # Vector-vector
@@ -2294,10 +2306,11 @@ masked va >= x, any vd
 
 Comparisons effectively AND in the mask, e.g,
 
+[source,riscvasm]
 ----
-    # (a < b) && (b < c) in two instructions
-    vslt.vv    v0, va, vb        # All body elements written
-    vslt.vv    v0, vb, vc, v0.t  # Only update at set mask
+# (a < b) && (b < c) in two instructions
+vslt.vv    v0, va, vb        # All body elements written
+vslt.vv    v0, vb, vc, v0.t  # Only update at set mask
 ----
 
 === Vector Integer Min/Max Instructions
@@ -2305,6 +2318,7 @@ Comparisons effectively AND in the mask, e.g,
 Signed and unsigned integer mininum and maximum instructions are
 supported.
 
+[source,riscvasm]
 ----
 # Unsigned minimum
 vminu.vv vd, vs2, vs1, vm   # Vector-vector
@@ -2329,6 +2343,7 @@ The single-width multiply instructions perform a SEW-bit*SEW-bit
 multiply and return an SEW-bit-wide result.  The `*mulh*` versions
 write the high word of the product to the destination register.
 
+[source,riscvasm]
 ----
 # Signed multiply, returning low bits of product
 vmul.vv vd, vs2, vs1, vm   # Vector-vector
@@ -2361,6 +2376,7 @@ product.  There is no possibility of overflow in this case.
 The widening integer multiply instructions return the full 2*SEW-bit
 product from an SEW-bit*SEW-bit multiply.
 
+[source,riscvasm]
 ----
 # Widening signed-integer multiply
 vwmul.vv  vd, vs2, vs1, vm# vector-vector
@@ -2386,13 +2402,14 @@ The low half of the product is added or subtracted from the third operand.
 
 NOTE: "sac" is intended to be read as "subtract from accumulator".
 
+[source,riscvasm]
 ----
 # Integer multiply-add, overwrite addend
 vmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
 vmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
 # Integer multiply-sub, overwrite minuend
-vmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i] 
+vmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
 vmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 
 # Integer multiply-add, overwrite multiplicand
@@ -2410,6 +2427,7 @@ The widening integer multiply-add instructions add (subtract) a
 SEW-bit*SEW-bit multiply result to (from) a 2*SEW-bit value and
 produce a 2*SEW-bit result.
 
+[source,riscvasm]
 ----
 # Widening unsigned-integer multiply-add, overwrite addend
 vwmaccu.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
@@ -2420,11 +2438,11 @@ vwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
 vwmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
 # Widening unsigned-integer multiply-sub, overwrite minuend
-vwmsacu.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i] 
+vwmsacu.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
 vwmsacu.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 
 # Widening signed-integer multiply-sub, overwrite minuend
-vwmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i] 
+vwmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
 vwmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 ----
 
@@ -2436,22 +2454,23 @@ The divide and remainder instructions are equivalent to the RISC-V
 standard scalar integer multiply/divides, with the same results for
 extreme inputs.
 
+[source,riscvasm]
 ----
-    # Unsigned divide.
-    vdivu.vv vd, vs2, vs1, vm   # Vector-vector
-    vdivu.vx vd, vs2, rs1, vm   # vector-scalar
+# Unsigned divide.
+vdivu.vv vd, vs2, vs1, vm   # Vector-vector
+vdivu.vx vd, vs2, rs1, vm   # vector-scalar
 
-    # Signed divide
-    vdiv.vv vd, vs2, vs1, vm   # Vector-vector
-    vdiv.vx vd, vs2, rs1, vm   # vector-scalar
+# Signed divide
+vdiv.vv vd, vs2, vs1, vm   # Vector-vector
+vdiv.vx vd, vs2, rs1, vm   # vector-scalar
 
-    # Unsigned remainder
-    vremu.vv vd, vs2, vs1, vm   # Vector-vector
-    vremu.vx vd, vs2, rs1, vm   # vector-scalar
+# Unsigned remainder
+vremu.vv vd, vs2, vs1, vm   # Vector-vector
+vremu.vx vd, vs2, rs1, vm   # vector-scalar
 
-    # Signed remainder
-    vrem.vv vd, vs2, vs1, vm   # Vector-vector
-    vrem.vx vd, vs2, rs1, vm   # vector-scalar
+# Signed remainder
+vrem.vv vd, vs2, vs1, vm   # Vector-vector
+vrem.vx vd, vs2, rs1, vm   # vector-scalar
 ----
 
 NOTE: The decision to include integer divide and remainder was
@@ -2479,6 +2498,7 @@ second operand is a vector register group specified by `vs1` or a
 scalar `x` register specified by `rs1` or a 5-bit sign-extended
 immediate.
 
+[source,riscvasm]
 ----
 # Masked  operations, where vm=0
 vmerge.vv vd, vs2, vs1, v0.t  # vd[i] = v0[i].LSB ? vs1[i] : vs2[i]
@@ -2495,6 +2515,7 @@ _reserved_.
 NOTE: Microarchitectures can recognize this form to avoid unnecessary
 vector register file accesses from the first vector operand.
 
+[source,riscvasm]
 ----
 # Unmasked  operations, where vm=1
 vmerge.vv vd, v0, vs1  # vd[i] = vs1[i], pseudoinstruction vmv.v.v vd, vs1
@@ -2539,6 +2560,7 @@ signed and unsigned integers.  If the result would overflow the
 destination, the result is replaced with the closest representable
 value, and the `vxsat` bit is set.
 
+[source,riscvasm]
 ----
 # Saturating adds of unsigned integers.
 vsaddu.vv vd, vs2, vs1, vm   # Vector-vector
@@ -2565,6 +2587,7 @@ The averaging add and subtract instructions right shift the result by
 one bit and round off the result according to the setting in `vxrm`.
 There can be no overflow in the result.
 
+[source,riscvasm]
 ----
 # For vrxm=rnu, round = 1
 
@@ -2592,8 +2615,9 @@ rounding these bits according to `vxrm`, then saturates the result to
 fit into SEW bits.  If the result causes saturation, the `vxsat` bit
 is set.
 
+.Signed saturating and rounding fractional multiply
+[source,riscvasm]
 ----
-# Signed saturating and rounding fractional multiply
 vsmul.vv vd, vs2, vs1, vm  # vd[i] = clip((vs2[i]*vs1[i]+round)>>(SEW-1))
 vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip((vs2[i]*x[rs1]+round)>>(SEW-1))
 ----
@@ -2628,6 +2652,7 @@ occurs.
   32       64       48         64        16
 ----
 
+[source,riscvasm]
 ----
 # Widening unsigned-integer scaled multiply-accumulate
 vwsmaccu.vv vd, vs1, vs2, vm # vd[i] = clipu((+(vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
@@ -2663,17 +2688,18 @@ SEW=32-bit narrowing operation).  The immediate form supports shift
 amounts up to 31 only and is effectively zero-extended for SEW of >
 32.
 
+[source,riscvasm]
 ----
- # For vxrm=rnu, round = 1 << (src2-1)
- # Scaling shift right logical
- vssrl.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
- vssrl.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
- vssrl.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)   
+# For vxrm=rnu, round = 1 << (src2-1)
+# Scaling shift right logical
+vssrl.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
+vssrl.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
+vssrl.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)
 
- # Scaling shift right arithmetic
- vssra.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
- vssra.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
- vssra.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)   
+# Scaling shift right arithmetic
+vssra.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
+vssra.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
+vssra.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)
 ----
 
 === Vector Narrowing Fixed-Point Clip Instructions
@@ -2682,17 +2708,18 @@ The `vnclip` instructions are used to pack a fixed-point value into a
 narrower destination.  The instructions support rounding, scaling, and
 saturation into the final destination format.
 
+[source,riscvasm]
 ----
- # Narrowing unsigned clip
- vnclipu.vv vd, vs2, vs1, vm   # vector-vector
- vnclipu.vx vd, vs2, rs1, vm   # vector-scalar
- vnclipu.vi vd, vs2, imm, vm   # vector-immediate
+# Narrowing unsigned clip
+vnclipu.vv vd, vs2, vs1, vm   # vector-vector
+vnclipu.vx vd, vs2, rs1, vm   # vector-scalar
+vnclipu.vi vd, vs2, imm, vm   # vector-immediate
 
 # Narrowing signed clip,  vd[i] = clip(round(vs2[i] + rnd) >> vs1[i])
 #                          SEW           2*SEW                 SEW
- vnclip.vv vd, vs2, vs1, vm   # vector-vector
- vnclip.vx vd, vs2, rs1, vm   # vector-scalar
- vnclip.vi vd, vs2, imm, vm   # vector-immediate
+vnclip.vv vd, vs2, vs1, vm   # vector-vector
+vnclip.vx vd, vs2, rs1, vm   # vector-scalar
+vnclip.vi vd, vs2, imm, vm   # vector-immediate
 ----
 
 For `vnclipu`/`vnclip`, the rounding mode is specified in the `vxrm`
@@ -2741,18 +2768,20 @@ elements do not set FP exception flags.
 
 === Vector Single-Width Floating-Point Add/Subtract Instructions
 
+[source,riscvasm]
 ----
-    # Floating-point add
-    vfadd.vv vd, vs2, vs1, vm   # Vector-vector
-    vfadd.vf vd, vs2, rs1, vm   # vector-scalar
+# Floating-point add
+vfadd.vv vd, vs2, vs1, vm   # Vector-vector
+vfadd.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Floating-point subtract
-    vfsub.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsub.vf vd, vs2, rs1, vm   # vector-scalar
+# Floating-point subtract
+vfsub.vv vd, vs2, vs1, vm   # Vector-vector
+vfsub.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
 === Vector Widening Floating-Point Add/Subtract Instructions
 
+[source,riscvasm]
 ----
 # Widening FP add/subtract, 2*SEW = SEW +/- SEW
 vfwadd.vv vd, vs2, vs1, vm  # vector-vector
@@ -2769,23 +2798,25 @@ vfwsub.wf  vd, vs2, rs1, vm  # vector-scalar
 
 === Vector Single-Width Floating-Point Multiply/Divide Instructions
 
+[source,riscvasm]
 ----
-    # Floating-point multiply
-    vfmul.vv vd, vs2, vs1, vm   # Vector-vector
-    vfmul.vf vd, vs2, rs1, vm   # vector-scalar
+# Floating-point multiply
+vfmul.vv vd, vs2, vs1, vm   # Vector-vector
+vfmul.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Floating-point divide
-    vfdiv.vv vd, vs2, vs1, vm   # Vector-vector
-    vfdiv.vf vd, vs2, rs1, vm   # vector-scalar
+# Floating-point divide
+vfdiv.vv vd, vs2, vs1, vm   # Vector-vector
+vfdiv.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Reverse floating-point divide vector = scalar / vector
-    vfrdiv.vf vd, vs2, rs1, vm  # scalar-vector, vd[i] = f[rs1]/vs2[i]
+# Reverse floating-point divide vector = scalar / vector
+vfrdiv.vf vd, vs2, rs1, vm  # scalar-vector, vd[i] = f[rs1]/vs2[i]
 ----
 
 === Vector Widening Floating-Point Multiply
 
+.Widening floating-point multiply
+[source,riscvasm]
 ----
-# Widening floating-point multiply
 vfwmul.vv    vd, vs2, vs1, vm # vector-vector
 vfwmul.vf    vd, vs2, rs1, vm # vector-scalar
 ----
@@ -2796,6 +2827,7 @@ All four varieties of fused multiply-add are provided, and in two
 destructive forms that overwrite one of the operands, either the
 addend or the first multiplicand.
 
+[source,riscvasm]
 ----
 # FP multiply-accumulate, overwrites addend
 vfmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
@@ -2841,6 +2873,7 @@ The widening floating-point fused multiply-add instructions all
 overwrite the wide addend with the result.  The multiplier inputs are
 all SEW wide, while the addend and destination is 2*SEW bits wide.
 
+[source,riscvasm]
 ----
 # FP widening multiply-accumulate, overwrites addend
 vfwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
@@ -2863,9 +2896,10 @@ vfwnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
 
 This is a unary vector-vector instruction.
 
+.Floating-point square root
+[source,riscvasm]
 ----
-    # Floating-point square root
-    vfsqrt.v vd, vs2, vm   # Vector-vector square root
+vfsqrt.v vd, vs2, vm   # Vector-vector square root
 ----
 
 === Vector Floating-Point MIN/MAX Instructions
@@ -2874,14 +2908,15 @@ The vector floating-point `vfmin` and `vfmax` instructions have the
 same behavior as the corresponding scalar floating-point instructions
 in version 2.2 of the RISC-V F/D/Q extension.
 
+[source,riscvasm]
 ----
-    # Floating-point minimum
-    vfmin.vv vd, vs2, vs1, vm   # Vector-vector
-    vfmin.vf vd, vs2, rs1, vm   # vector-scalar
+# Floating-point minimum
+vfmin.vv vd, vs2, vs1, vm   # Vector-vector
+vfmin.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Floating-point maximum
-    vfmax.vv vd, vs2, vs1, vm   # Vector-vector
-    vfmax.vf vd, vs2, rs1, vm   # vector-scalar
+# Floating-point maximum
+vfmax.vv vd, vs2, vs1, vm   # Vector-vector
+vfmax.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
 === Vector Floating-Point Sign-Injection Instructions
@@ -2889,15 +2924,16 @@ in version 2.2 of the RISC-V F/D/Q extension.
 Vector versions of the scalar sign-injection instructions.  The result
 takes all bits except the sign bit from the vector `vs2` operands.
 
+[source,riscvasm]
 ----
-    vfsgnj.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsgnj.vf vd, vs2, rs1, vm   # vector-scalar
+vfsgnj.vv vd, vs2, vs1, vm   # Vector-vector
+vfsgnj.vf vd, vs2, rs1, vm   # vector-scalar
 
-    vfsgnjn.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsgnjn.vf vd, vs2, rs1, vm   # vector-scalar
+vfsgnjn.vv vd, vs2, vs1, vm   # Vector-vector
+vfsgnjn.vf vd, vs2, rs1, vm   # vector-scalar
 
-    vfsgnjx.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsgnjx.vf vd, vs2, rs1, vm   # vector-scalar
+vfsgnjx.vv vd, vs2, vs1, vm   # Vector-vector
+vfsgnjx.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
 === Vector Floating-Point Compare Instructions
@@ -2910,28 +2946,29 @@ elements as described in Section <<sec-mask-register-layout>>.
 The compare instructions follow the semantics of the scalar
 floating-point compare instructions.
 
+[source,riscvasm]
 ----
-    # Compare equal
-    vfeq.vv vd, vs2, vs1, vm   # Vector-vector
-    vfeq.vf vd, vs2, rs1, vm   # vector-scalar
+# Compare equal
+vfeq.vv vd, vs2, vs1, vm   # Vector-vector
+vfeq.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Compare not equal
-    vfne.vv vd, vs2, vs1, vm   # Vector-vector
-    vfne.vf vd, vs2, rs1, vm   # vector-scalar
+# Compare not equal
+vfne.vv vd, vs2, vs1, vm   # Vector-vector
+vfne.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Compare less than
-    vflt.vv vd, vs2, vs1, vm   # Vector-vector
-    vflt.vf vd, vs2, rs1, vm   # vector-scalar
+# Compare less than
+vflt.vv vd, vs2, vs1, vm   # Vector-vector
+vflt.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Compare less than or equal
-    vfle.vv vd, vs2, vs1, vm   # Vector-vector
-    vfle.vf vd, vs2, rs1, vm   # vector-scalar
+# Compare less than or equal
+vfle.vv vd, vs2, vs1, vm   # Vector-vector
+vfle.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Compare greater than
-    vfgt.vf vd, vs2, rs1, vm   # vector-scalar
+# Compare greater than
+vfgt.vf vd, vs2, rs1, vm   # vector-scalar
 
-    # Compare greater than or equal
-    vfge.vf vd, vs2, rs1, vm   # vector-scalar
+# Compare greater than or equal
+vfge.vf vd, vs2, rs1, vm   # vector-scalar
 ----
 
 ----
@@ -2958,16 +2995,18 @@ To help implement the C99 floating-point comparison functions, a
 `vford` instruction is added that sets a mask register if the
 arguments are ordered (i.e., neither argument is NaN).
 
+[source,riscvasm]
 ----
-    # Are args ordered?
-    vford.vv  vd, vs2, vs1, vm   # Vector-vector
-    vford.vf  vd, vs2, rs1, vm   # Vector-scalar
+# Are args ordered?
+vford.vv  vd, vs2, vs1, vm   # Vector-vector
+vford.vf  vd, vs2, rs1, vm   # Vector-scalar
 ----
 
+[source,riscvasm]
 ----
-    # Example of implementing isgreater()
-    vford.vv v0, va, vb       # Only set where args are ordered,
-    vfgt.vv v0, va, vb, v0.t   # so only set flags on ordered values.
+# Example of implementing isgreater()
+vford.vv v0, va, vb       # Only set where args are ordered,
+vfgt.vv v0, va, vb, v0.t   # so only set flags on ordered values.
 ----
 
 NOTE: Detailed NaN signaling conventions to be added.
@@ -2977,8 +3016,9 @@ NOTE: Detailed NaN signaling conventions to be added.
 This is a unary vector-vector instruction that operates in the same
 way as the scalar classify instruction.
 
+[source,riscvasm]
 ----
-    vfclass.v vd, vs2, vm   # Vector-vector
+vfclass.v vd, vs2, vm   # Vector-vector
 ----
 
 The 10-bit mask produced by this instruction is placed in the
@@ -2997,6 +3037,7 @@ elements where the mask value is zero, the first vector operand is
 copied to the destination element, otherwise a scalar floating-point
 register value is copied to the destination element.
 
+[source,riscvasm]
 ----
 vfmerge.vf vd, vs2, rs1, v0.t  # vd[i] = v0[i].LSB ? f[rs1] : vs2[i]
 ----
@@ -3006,6 +3047,7 @@ register value into all active elements of a vector.  The instruction
 must have the `vs2` field set to `v0`, with all other values for `vs2`
 reserved.
 
+[source,riscvasm]
 ----
 vfmerge.vf vd, v0, rs1  # vd[i] = f[rs1];
 ----
@@ -3021,6 +3063,7 @@ Conversion operations are provided to convert to and from
 floating-point values and unsigned and signed integers, where both
 source and destination are SEW wide.
 
+[source,riscvasm]
 ----
 vfcvt.xu.f.v vd, vs2, vm   # Convert float to unsigned integer.
 vfcvt.x.f.v  vd, vs2, vm   # Convert float to signed integer.
@@ -3039,6 +3082,7 @@ A set of conversion instructions are provided to convert between
 narrower integer and floating-point datatypes to a type of twice the
 width.
 
+[source,riscvasm]
 ----
 vfwcvt.xu.f.v vd, vs2, vm   # Convert float to double-width unsigned integer.
 vfwcvt.x.f.v  vd, vs2, vm   # Convert float to double-width signed integer.
@@ -3065,6 +3109,7 @@ additional exception flags raised.
 A set of conversion instructions are provided to convert wider integer
 and floating-point datatypes to a type of half the width.
 
+[source,riscvasm]
 ----
 vfncvt.xu.f.v vd, vs2, vm   # Convert double-width float to unsigned integer.
 vfncvt.x.f.v  vd, vs2, vm   # Convert double-width float to signed integer.
@@ -3121,16 +3166,17 @@ register.
 All operands and results of single-width reduction instructions have
 the same SEW width.  Overflows wrap around on arithmetic sums.
 
+[source,riscvasm]
 ----
-    # Simple reductions, where [*] denotes all active elements:
-    vredsum.vs  vd, vs2, vs1, vm   # vd[0] =  sum( vs2[*] , vs1[0] )
-    vredmaxu.vs vd, vs2, vs1, vm   # vd[0] = maxu( vs2[*] , vs1[0] )
-    vredmax.vs  vd, vs2, vs1, vm   # vd[0] =  max( vs2[*] , vs1[0] )
-    vredminu.vs vd, vs2, vs1, vm   # vd[0] = minu( vs2[*] , vs1[0] )
-    vredmin.vs  vd, vs2, vs1, vm   # vd[0] =  min( vs2[*] , vs1[0] )
-    vredand.vs  vd, vs2, vs1, vm   # vd[0] =  and( vs2[*] , vs1[0] )
-    vredor.vs   vd, vs2, vs1, vm   # vd[0] =   or( vs2[*] , vs1[0] )
-    vredxor.vs  vd, vs2, vs1, vm   # vd[0] =  xor( vs2[*] , vs1[0] )
+# Simple reductions, where [*] denotes all active elements:
+vredsum.vs  vd, vs2, vs1, vm   # vd[0] =  sum( vs2[*] , vs1[0] )
+vredmaxu.vs vd, vs2, vs1, vm   # vd[0] = maxu( vs2[*] , vs1[0] )
+vredmax.vs  vd, vs2, vs1, vm   # vd[0] =  max( vs2[*] , vs1[0] )
+vredminu.vs vd, vs2, vs1, vm   # vd[0] = minu( vs2[*] , vs1[0] )
+vredmin.vs  vd, vs2, vs1, vm   # vd[0] =  min( vs2[*] , vs1[0] )
+vredand.vs  vd, vs2, vs1, vm   # vd[0] =  and( vs2[*] , vs1[0] )
+vredor.vs   vd, vs2, vs1, vm   # vd[0] =   or( vs2[*] , vs1[0] )
+vredxor.vs  vd, vs2, vs1, vm   # vd[0] =  xor( vs2[*] , vs1[0] )
 ----
 
 === Vector Widening Integer Reduction Instructions
@@ -3142,23 +3188,24 @@ element, and stores the result in a 2*SEW-width scalar element.
 The `vwredsum.vs` instruction sign-extends the SEW-wide vector
 elements before summing them.
 
+[source,riscvasm]
 ----
-    # Unsigned sum reduction into double-width accumulator
-    vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = sum(SEW) + 2*SEW
+# Unsigned sum reduction into double-width accumulator
+vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = sum(SEW) + 2*SEW
 
-    # Signed sum reduction into double-width accumulator
-    vwredsum.vs  vd, vs2, vs1, vm   # 2*SEW = sum(SEW) + 2*SEW
+# Signed sum reduction into double-width accumulator
+vwredsum.vs  vd, vs2, vs1, vm   # 2*SEW = sum(SEW) + 2*SEW
 ----
 
 === Vector Single-Width Floating-Point Reduction Instructions
 
+.Simple reductions.
+[source,riscvasm]
 ----
-    # Simple reductions.
-    vfredosum.vs vd, vs2, vs1, vm # Ordered sum
-    vfredsum.vs  vd, vs2, vs1, vm # Unordered sum
-    vfredmax.vs  vd, vs2, vs1, vm # Maximum value
-    vfredmin.vs  vd, vs2, vs1, vm # Minimum value
-
+vfredosum.vs vd, vs2, vs1, vm # Ordered sum
+vfredsum.vs  vd, vs2, vs1, vm # Unordered sum
+vfredmax.vs  vd, vs2, vs1, vm # Maximum value
+vfredmin.vs  vd, vs2, vs1, vm # Minimum value
 ----
 
 The `vfredosum` instruction must sum the floating-point values in
@@ -3177,10 +3224,11 @@ final value and exception flags regardless of operation order.
 Widening forms of the sum reductions are provided that
 read and write a double-width reduction result.
 
+.Simple reductions.
+[source,riscvasm]
 ----
- # Simple reductions.
- vfwredosum.vs vd, vs2, vs1, vm # Ordered reduce 2*SEW = sum(SEW) + 2*SEW
- vfwredsum.vs vd, vs2, vs1, vm  # Unordered reduce  2*SEW = sum(SEW) + 2*SEW
+vfwredosum.vs vd, vs2, vs1, vm # Ordered reduce 2*SEW = sum(SEW) + 2*SEW
+vfwredsum.vs vd, vs2, vs1, vm  # Unordered reduce  2*SEW = sum(SEW) + 2*SEW
 ----
 
 The reduction of the SEW-width elements is performed as in the
@@ -3214,24 +3262,26 @@ Vector mask logical instructions are always unmasked so there are no
 inactive elements.  Mask elements past `vl`, the tail elements, are
 zeroed.
 
+[source,riscvasm]
 ----
-    vmand.mm vd, vs2, vs1     # vd =   vs2 &  vs1
-    vmnand.mm vd, vs2, vs1    # vd = ~(vs2 &  vs1)
-    vmandnot.mm vd, vs2, vs1  # vd =   vs2 & ~vs1
-    vmxor.mm  vd, vs2, vs1    # vd =   vs2 ^  vs1
-    vmor.mm  vd, vs2, vs1     # vd =   vs2 |  vs1
-    vmnor.mm  vd, vs2, vs1    # vd = ~(vs2 |  vs1)
-    vmornot.mm  vd, vs2, vs1  # vd =   vs2 | ~vs1
-    vmxnor.mm vd, vs2, vs1   # vd = ~(vs2 ^  vs1)
+vmand.mm vd, vs2, vs1     # vd =   vs2 &  vs1
+vmnand.mm vd, vs2, vs1    # vd = ~(vs2 &  vs1)
+vmandnot.mm vd, vs2, vs1  # vd =   vs2 & ~vs1
+vmxor.mm  vd, vs2, vs1    # vd =   vs2 ^  vs1
+vmor.mm  vd, vs2, vs1     # vd =   vs2 |  vs1
+vmnor.mm  vd, vs2, vs1    # vd = ~(vs2 |  vs1)
+vmornot.mm  vd, vs2, vs1  # vd =   vs2 | ~vs1
+vmxnor.mm vd, vs2, vs1   # vd = ~(vs2 ^  vs1)
 ----
 
 Several assembler pseudoinstructions are defined as shorthand for
 common uses of mask logical operations:
+
 ----
-    vmmv.m vd, vs  => vmand.mm vd, vs, vs   # Move mask register
-    vmclr.m vd     => vmxor.mm vd, vd, vd   # Clear mask register
-    vmset.m vd     => vmxnor.mm vd, vd, vd  # Set mask register
-    vmnot.m vd, vs => vmnand.mm vd, vs, vs  # Invert bits
+vmmv.m vd, vs  => vmand.mm vd, vs, vs   # Move mask register
+vmclr.m vd     => vmxor.mm vd, vd, vd   # Clear mask register
+vmset.m vd     => vmxnor.mm vd, vd, vd  # Set mask register
+vmnot.m vd, vs => vmnand.mm vd, vs, vs  # Invert bits
 ----
 
 The set of eight mask logical instructions can generate any of the 16
@@ -3267,8 +3317,9 @@ use.
 
 === Vector mask population count `vmpopc`
 
+[source,riscvasm]
 ----
-    vmpopc.m rd, vs2, vm
+vmpopc.m rd, vs2, vm
 ----
 
 The source operand is a single vector register holding mask register
@@ -3282,8 +3333,9 @@ register.
 The operation can be performed under a mask, in which case only the
 masked elements are counted.
 
+[source,riscvasm]
 ----
- vmpopc.m rd, vs2, v0.t # x[rd] = sum_i ( vs2[i].LSB && v0[i].LSB )
+vmpopc.m rd, vs2, v0.t # x[rd] = sum_i ( vs2[i].LSB && v0[i].LSB )
 ----
 
 Traps on `vmpopc.m` are always reported with a `vstart` of 0.  The
@@ -3292,8 +3344,9 @@ Traps on `vmpopc.m` are always reported with a `vstart` of 0.  The
 
 === `vmfirst` find-first-set mask bit
 
+[source,riscvasm]
 ----
-    vmfirst.m rd, vs2, vm
+vmfirst.m rd, vs2, vm
 ----
 
 The `vmfirst` instruction finds the lowest-numbered active element of
@@ -3406,8 +3459,9 @@ The tail elements in the destination mask register are cleared.
 
 The following is an example of vectorizing a data-dependent exit loop.
 
+[source,riscvasm]
 ----
-  # char* strcpy(char *dst, const char* src)
+# char* strcpy(char *dst, const char* src)
 strcpy:
       mv a2, a0             # Copy dst
 loop:
@@ -3443,7 +3497,6 @@ loop:
 
 exit:
       ret
-
 ----
 
 === Vector Iota Instruction
@@ -3498,28 +3551,29 @@ execution after a trap simpler.
 The `vmiota.m` instruction can be combined with memory scatter
 instructions (indexed stores) to perform vector compress functions.
 
+[source,riscvasm]
 ----
-    # Compact non-zero elements from input memory array to output memory array
-    #
-    # size_t compact_non_zero(size_t n, const int* in, int* out)
-    # {
-    #   size_t i;
-    #   size_t count = 0;
-    #   int *p = out;
-    #
-    #   for (i=0; i<n; i++)
-    #   {
-    #       const int v = *in++;
-    #       if (v != 0)
-    #           *p++ = v;
-    #   }
-    #
-    #   return (size_t) (p - out);
-    # }
-    #
-    # a0 = n
-    # a1 = &in
-    # a2 = &out
+# Compact non-zero elements from input memory array to output memory array
+#
+# size_t compact_non_zero(size_t n, const int* in, int* out)
+# {
+#   size_t i;
+#   size_t count = 0;
+#   int *p = out;
+#
+#   for (i=0; i<n; i++)
+#   {
+#       const int v = *in++;
+#       if (v != 0)
+#           *p++ = v;
+#   }
+#
+#   return (size_t) (p - out);
+# }
+#
+# a0 = n
+# a1 = &in
+# a2 = &out
 
 compact_non_zero:
     li a6, 0                      # Clear count of non-zero elements
@@ -3548,8 +3602,9 @@ loop:
 The `vid.v` instruction writes each element's index to the
 destination vector register group, from 0 to `vl`-1.
 
+[source,riscvasm]
 ----
-    vid.v vd, vm  # Write element ID to destination.
+vid.v vd, vm  # Write element ID to destination.
 ----
 
 The instruction can be masked.
@@ -3574,6 +3629,7 @@ The integer extract operation transfers a single value between one
 element of a vector register and a GPR.  This instruction ignores
 LMUL and vector register groups.
 
+[source,riscvasm]
 ----
 vext.x.v rd, vs2, rs1  # rd = vs2[rs1]
 ----
@@ -3605,6 +3661,7 @@ the base register in a vector register group can expose differences in
 element layout between different RISC-V vector extension
 implementations.
 
+[source,riscvasm]
 ----
 vmv.s.x vd, rs1  # vd[0] = rs1
 ----
@@ -3636,6 +3693,7 @@ The floating-point scalar read/write instructions transfer a single
 value between a scalar `f` register and element 0 of a vector
 register.  The instructions ignore LMUL and vector register groups.
 
+[source,riscvasm]
 ----
 vfmv.f.s rd, vs2  # rd = vs2[0] (rs1=0)
 vfmv.s.f vd, rs1  # vd[0] = rs1 (vs2=0)
@@ -3672,9 +3730,10 @@ operation and leaves the destination vector register unchanged.
 
 ==== Vector Slideup Instructions
 
+[source,riscvasm]
 ----
- vslideup.vx vd, vs2, rs1, vm        # vd[i+rs1] = vs2[i]
- vslideup.vi vd, vs2, uimm[4:0], vm  # vd[i+imm] = vs2[i]
+vslideup.vx vd, vs2, rs1, vm        # vd[i+rs1] = vs2[i]
+vslideup.vi vd, vs2, uimm[4:0], vm  # vd[i+imm] = vs2[i]
 ----
 
 For `vslideup`, the value in `vl` specifies the number of destination
@@ -3705,9 +3764,10 @@ input vectors during execution, and to enable restart with non-zero
 
 ==== Vector Slidedown Instructions
 
+[source,riscvasm]
 ----
- vslidedown.vx vd, vs2, rs1, vm       # vd[i] = vs2[i+rs1]
- vslidedown.vi vd, vs2, uimm[4:0], vm # vd[i] = vs2[i+imm]
+vslidedown.vx vd, vs2, rs1, vm       # vd[i] = vs2[i+rs1]
+vslidedown.vi vd, vs2, uimm[4:0], vm # vd[i] = vs2[i+imm]
 ----
 
 For `vslidedown`, the value in `vl` specifies the number of
@@ -3744,8 +3804,9 @@ Variants of slide are provided that only move by one element but which
 also allow a scalar integer value to be inserted at the vacated
 element position.
 
+[source,riscvasm]
 ----
- vslide1up.vx vd, vs2, rs1, vm        # vd[0]=x[rs1], vd[i+1] = vs2[i]
+vslide1up.vx vd, vs2, rs1, vm        # vd[0]=x[rs1], vd[i+1] = vs2[i]
 ----
 
 The `vslide1up` instruction places the `x` register argument at
@@ -3788,8 +3849,9 @@ The `vl` register specifies how many of the destination vector
 register elements are written with source values, and all tail
 elements are zeroed.
 
+[source,riscvasm]
 ----
- vslide1down.vx vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
+vslide1down.vx vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
 ----
 
 The `vslide1down` instruction places the `x` register argument at
@@ -3828,6 +3890,7 @@ index < VLMAX regardless of `vl`.  The number of elements to write to
 the destination register is given by `vl`, and elements past `vl` in
 the destination are zeroed.  The operation can be masked.
 
+[source,riscvasm]
 ----
 vrgather.vv vd, vs2, vs1, vm # vd[i] = (vs1[i] >= VLMAX) ? 0 : vs2[vs1[i]];
 ----
@@ -3842,6 +3905,7 @@ the destination vector register.
 
 NOTE: These forms allow any vector element to be "splatted" to an entire vector.
 
+[source,riscvasm]
 ----
 vrgather.vx vd, vs2, rs1, vm # vd[i] = vs2[rs1]
 vrgather.vi vd, vs2, imm, vm # vd[i] = vs2[imm]
@@ -3859,8 +3923,9 @@ mask register from a source vector register group to be packed into
 contiguous elements at the start of the destination vector register
 group.
 
+[source,riscvasm]
 ----
-  vcompress.vm vd, vs2, vs1  # Compress into vd elements of vs2 where vs1 is enabled
+vcompress.vm vd, vs2, vs1  # Compress into vd elements of vs2 where vs1 is enabled
 ----
 
 The vector mask register specified by `vs1` indicates which of the
@@ -3973,7 +4038,7 @@ support for some forms of narrow-width and mixed-width arithmetic, and
 also to allow outer-loop vectorization of short vector and matrix
 operations.  In addition to modifying the behavior of some existing
 instructions, a few new instructions are provided to operate on
-vectors when EDIV > 1. 
+vectors when EDIV > 1.
 
 NOTE: This is written as an extension for now, but could become
 part of mandatory base in Unix vector profile.
@@ -4074,6 +4139,7 @@ vector length is `vl` * EDIV.  For example, a vector add of 32-bit
 elements with a `vl` of 5 and EDIV of 4, operates identically to a
 vector add of 8-bit elements with a vector length of 20.
 
+[source,riscvasm]
 ----
 vsetvli t0, a0, e32,m1,d4  # Vectors of 32-bit elements, divided into byte sub-elements
 vadd.vv v1,v2,v3                     # Performs a vector of 4*vl 8-bit additions.
@@ -4086,6 +4152,7 @@ Vector reduction instructions now operate independently on all
 elements in a vector, reducing sub-element values within an element to
 an element-wide result.
 
+[source,riscvasm]
 ----
 # Sum each sub-vector of four bytes into a 16-bit result.
 vsetvli t0, a0, e32,d4  # Vectors of 32-bit elements, divided into byte sub-elements
@@ -4152,6 +4219,7 @@ Sub-element integer dot reductions produce a final result
 that is max(8,min(SEW,4*SEW/EDIV)) bits wide, sign- or zero-extended
 to full SEW if necessary.
 
+[source,riscvasm]
 ----
 # Unsigned dot-product
 vdotu.vv vd, vs2, vs1, vm  # Vector-vector
@@ -4160,19 +4228,20 @@ vdotu.vv vd, vs2, vs1, vm  # Vector-vector
 vdot.vv vd, vs2, vs1, vm   # Vector-vector
 ----
 
+[source,riscvasm]
 ----
-  # Dot product, SEW=32, EDIV=1
-  vdot.vv  vd, vs2, vs1, vm   # vd[i][31:0] += vs2[i][31:0] * vs1[i][31:0]
+# Dot product, SEW=32, EDIV=1
+vdot.vv  vd, vs2, vs1, vm   # vd[i][31:0] += vs2[i][31:0] * vs1[i][31:0]
 
-  # Dot product, SEW=32, EDIV=2
-  vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
-                                            + vs2[i][15:0] * vs1[i][15:0]
+# Dot product, SEW=32, EDIV=2
+vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
+                                          + vs2[i][15:0] * vs1[i][15:0]
 
-  # Dot product, SEW=32, EDIV=4
-  vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:24] * vs1[i][31:24]
-                                            + vs2[i][23:16] * vs1[i][23:16]
-                                            + vs2[i][15:8] * vs1[i][15:8]
-                                            + vs2[i][7:0] * vs1[i][7:0]
+# Dot product, SEW=32, EDIV=4
+vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:24] * vs1[i][31:24]
+                                          + vs2[i][23:16] * vs1[i][23:16]
+                                          + vs2[i][15:8] * vs1[i][15:8]
+                                          + vs2[i][7:0] * vs1[i][7:0]
 ----
 
 === Vector Floating-Point Dot Product Instruction
@@ -4182,11 +4251,13 @@ multiplication between the source sub-elements then accumulates the
 results into the destination vector element.  Note the assembler syntax
 uses a `.vv` suffix since both inputs are vectors of elements.
 
+.Signed dot-product
+[source,riscvasm]
 ----
-# Signed dot-product
 vfdot.vv vd, vs2, vs1, vm   # Vector-vector
 ----
 
+[source,riscvasm]
 ----
 # Dot product. SEW=32, EDIV=2
 vfdot.v  vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
@@ -4206,7 +4277,6 @@ vfdot.vv v1, v2, v3
                  # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0] +
                  #                 v2[i][63:48]*v3[i][63:48] + v2[i][47:32]*v3[i][47:32];
                  # v1[i][63:32] = ~0 (NaN boxing)
-
 ----
 
 == Vector Instruction Listing
