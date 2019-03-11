@@ -797,11 +797,227 @@ floating-point load/store 12-bit immediate field to provide further
 vector instruction encoding, with bit 25 holding the standard vector
 mask bit (see <<sec-vector-mask-encoding>>).
 
+=== Format for Vector Load Instructions under LOAD-FP major opcode
+
+.unit-stride
+[source,datasheet]
+----
+{isa: [
+  {bits: 7, name: 0b0000111, attr: [
+    'VLxU, VLE zero-extended',
+    'VLxU, VLE zero-extended, fault-only-first',
+    'VLxU sign-extended',
+    'VLxU sign-extended, fault-only-first',
+  ]},
+  {bits: 5, name: 'vd', attr: 'destination of load', type: 2},
+  {bits: 3, name: 'width'},
+  {bits: 5, name: 'rs1', attr: 'base address', type: 4},
+  {bits: 5, name: 'lumop', attr: [0, 16, 0, 16]},
+  {bits: 1, name: 'vm'},
+  {bits: 3, name: 'mop', attr: [0, 0, 4, 4]},
+  {bits: 3, name: 'nf'},
+]}
+----
+
+.strided
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b0000111, attr: [
+    'VLSxU, VLSE zero-extended',
+    'VLSxU sign-extended'
+  ]},
+  {bits: 5,  name: 'vd', attr: 'destination of load', type: 2},
+  {bits: 3,  name: 'width'},
+  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
+  {bits: 5,  name: 'rs2', attr: 'stride', type: 4},
+  {bits: 1,  name: 'vm'},
+  {bits: 3,  name: 'mop', attr: [2, 6]},
+  {bits: 3,  name: 'nf'},
+]}
+----
+
+.indexed
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b0000111, attr: [
+    'VLXxU, VLXE zero-extended',
+    'VLXxU sign-extended'
+  ]},
+  {bits: 5,  name: 'vd', attr: 'destination of load', type: 2},
+  {bits: 3,  name: 'width'},
+  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
+  {bits: 5,  name: 'vs2', attr: 'address offsets', type: 2},
+  {bits: 1,  name: 'vm'},
+  {bits: 3,  name: 'mop', attr: [3, 7]},
+  {bits: 3,  name: 'nf'},
+]}
+----
+
+=== Format for Vector Store Instructions under STORE-FP major opcode
+
+.unit-stride
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b0100111, attr: 'VSx'},
+  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
+  {bits: 3,  name: 'width'},
+  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
+  {bits: 5,  name: 0x100, attr: 'sumop'},
+  {bits: 1,  name: 'vm'},
+  {bits: 3,  name: 0x100, attr: 'mop'},
+  {bits: 3,  name: 'nf'},
+]}
+----
+
+.strided
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b0100111, attr: 'VSSx'},
+  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
+  {bits: 3,  name: 'width'},
+  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
+  {bits: 5,  name: 'rs2', attr: 'stride', type: 4},
+  {bits: 1,  name: 'vm'},
+  {bits: 3,  name: 2, attr: 'mop'},
+  {bits: 3,  name: 'nf'},
+]}
+----
+
+.indexed
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b0100111, attr: ['VSXx ordered', 'VSUXx unordered']},
+  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
+  {bits: 3,  name: 'width'},
+  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
+  {bits: 5,  name: 'vs2', attr: 'address offsets', type: 2},
+  {bits: 1,  name: 'vm'},
+  {bits: 3,  name: 'mop', attr: [3, 7]},
+  {bits: 3,  name: 'nf'},
+]}
+----
+
 include::vmem-format.adoc[]
+
+=== Format for Vector AMO Instructions under AMO major opcode
+
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b0101111, attr: [
+    'vamoSWAP', 'vamoADD', 'vamoXOR', 'vamoAND', 'vamoOR', 'vamoMIN', 'vamoMAX', 'vamoMINU', 'vamoMAXU'
+  ]},
+  {bits: 5,  name: 'vs3 / vvd', attr: 'source / destination', type: 2},
+  {bits: 3,  name: 'width'},
+  {bits: 5,  name: 'rs1', attr: 'base', type: 4},
+  {bits: 5,  name: 'vs2', attr: 'address', type: 2},
+  {bits: 1,  name: 'vm'},
+  {bits: 1,  name: 'wd'},
+  {bits: 5,  name: 'amoop', attr: [1, 0, 4, 12, 8, 16, 20, 24, 28]},
+]}
+----
 
 include::vamo-format.adoc[]
 
+=== Formats for Vector Arithmetic Instructions under OP-V major opcode
+
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b1010111, attr: ['OPIVV', 'OPFVV']},
+  {bits: 5,  name: 'vd', type: 2},
+  {bits: 3,  name: 'funct3', attr: [0, 1]},
+  {bits: 5,  name: 'vs1', type: 2},
+  {bits: 5,  name: 'vs2', type: 2},
+  {bits: 1,  name: 'vm'},
+  {bits: 6,  name: 'funct6'},
+]}
+----
+
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b1010111, attr: ['OPMVV']},
+  {bits: 5,  name: 'vd / rd', type: 7},
+  {bits: 3,  name: 2},
+  {bits: 5,  name: 'vs1', type: 2},
+  {bits: 5,  name: 'vs2', type: 2},
+  {bits: 1,  name: 'vm'},
+  {bits: 6,  name: 'funct6'},
+]}
+----
+
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b1010111, attr: ['OPIVI']},
+  {bits: 5,  name: 'vd', type: 2},
+  {bits: 3,  name: 3},
+  {bits: 5,  name: 'simm5', type: 5},
+  {bits: 5,  name: 'vs2', type: 2},
+  {bits: 1,  name: 'vm'},
+  {bits: 6,  name: 'funct6'},
+]}
+----
+
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b1010111, attr: ['OPIVX', 'OPFVF']},
+  {bits: 5,  name: 'vd', type: 2},
+  {bits: 3,  name: 'funct3', attr: [4, 5]},
+  {bits: 5,  name: 'rs1', type: 4},
+  {bits: 5,  name: 'vs2', type: 2},
+  {bits: 1,  name: 'vm'},
+  {bits: 6,  name: 'funct6'},
+]}
+----
+
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b1010111, attr: 'OPMVX'},
+  {bits: 5,  name: 'vd / rd', type: 7},
+  {bits: 3,  name: 6},
+  {bits: 5,  name: 'rs1', type: 4},
+  {bits: 5,  name: 'vs2', type: 2},
+  {bits: 1,  name: 'vm'},
+  {bits: 6,  name: 'funct6'},
+]}
+----
+
 include::valu-format.adoc[]
+
+=== Formats for Vector Configuration Instructions under OP-V major opcode
+
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b1010111, attr: 'vsetvli'},
+  {bits: 5,  name: 'rd', type: 4},
+  {bits: 3,  name: 7},
+  {bits: 5,  name: 'rs1', type: 4},
+  {bits: 11, name: 'zimm[1:0]', type: 5},
+  {bits: 1,  name: '0'},
+]}
+----
+
+[source,datasheet]
+----
+{isa: [
+  {bits: 7,  name: 0b1010111, attr: 'vsetvl'},
+  {bits: 5,  name: 'rd', type: 4},
+  {bits: 3,  name: 7},
+  {bits: 5,  name: 'rs1', type: 4},
+  {bits: 5,  name: 'rs2', type: 4},
+  {bits: 7,  name: 0b1000000},
+]}
+----
 
 include::vcfg-format.adoc[]
 
