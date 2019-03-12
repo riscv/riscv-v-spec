@@ -1860,9 +1860,9 @@ There are also fault-only-first versions of the unit-stride instructions.
 [source,riscvasm]
 ----
 # Template for vector fault-only-first unit-stride segment loads and stores.
-vlseg<nf>{b,h,w}ff.v vd, (rs1), vm   # Unit-stride signed fault-only-first segment loads
-vlseg<nf>eff.v vd, (rs1),  vm        # Unit-stride fault-only-first segment loads
-vlseg<nf>{b,h,w}uff.v vd, (rs1), vm  # Unit-stride unsigned fault-only-first segment loads
+vlseg<nf>{b,h,w}ff.v vd, (rs1), vm # Unit-stride signed fault-only-first segment loads
+vlseg<nf>eff.v vd, (rs1),  vm      # Unit-stride fault-only-first segment loads
+vlseg<nf>{b,h,w}uff.v vd,(rs1),vm # Unit-stride unsigned fault-only-first segment loads
 ----
 
 ==== Vector Strided Segment Loads and Stores
