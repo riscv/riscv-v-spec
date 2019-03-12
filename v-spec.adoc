@@ -747,7 +747,9 @@ elements.
  SEW=8b, LMUL=1, VLMAX=32
 
  v1       1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
-        [248]          ...            [128] ...[96] ...[64] ...[32] ... [0] Mask bit positions in decimal
+        [248]          ...            [128] ...[96] ...[64] ...[32] ... [0]
+
+ Mask bit positions in decimal
 
  SEW=16b, LMUL=2, VLMAX=32
 
@@ -1824,12 +1826,13 @@ vlseg<nf>{b,h,w}u.v vd, (rs1), vm    # Unit-stride unsigned segment load templat
 vsseg<nf>{b,h,w,e}.v vs3, (rs1), vm  # Unit-stride segment store template
 
 # Examples
-vlseg2b.v vd, (rs1), vm   # Load vector of signed 2*1-byte segments into vd, vd+1
-vlseg3bu.v vd, (rs1), vm  # Load vector of unsigned 3*1-byte segments into vd, vd+1, vd+2
-vlseg7w.v vd, (rs1), vm   # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
-vlseg8e.v vd, (rs1), vm   # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
+vlseg2b.v  vd, (rs1), vm # Load vector of signed 2*1-byte segments into vd, vd+1
+vlseg3bu.v vd, (rs1), vm # Load vector of unsigned 3*1-byte segments into vd,vd+1,vd+2
+vlseg7w.v  vd, (rs1), vm # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
+vlseg8e.v  vd, (rs1), vm # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
 
-vsseg3b.v vs3, (rs1), vm  # Store packed vector of 3*1-byte segments from vs3,vs3+1,vs3+2 to memory
+vsseg3b.v vs3, (rs1), vm # Store packed vector of 3*1-byte segments
+                         # from vs3,vs3+1,vs3+2 to memory
 ----
 
 For loads, the `vd` register will hold the first field loaded from the
@@ -1857,9 +1860,9 @@ There are also fault-only-first versions of the unit-stride instructions.
 [source,riscvasm]
 ----
 # Template for vector fault-only-first unit-stride segment loads and stores.
-vlseg<nf>{b,h,w}ff.v vd, (rs1),  vm    # Unit-stride signed fault-only-first segment loads
-vlseg<nf>eff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
-vlseg<nf>{b,h,w}uff.v vd, (rs1),   vm  # Unit-stride unsigned fault-only-first segment loads
+vlseg<nf>{b,h,w}ff.v vd, (rs1), vm   # Unit-stride signed fault-only-first segment loads
+vlseg<nf>eff.v vd, (rs1),  vm        # Unit-stride fault-only-first segment loads
+vlseg<nf>{b,h,w}uff.v vd, (rs1), vm  # Unit-stride unsigned fault-only-first segment loads
 ----
 
 ==== Vector Strided Segment Loads and Stores
@@ -2195,7 +2198,8 @@ NOTE: This constraint is necessary to support restart with non-zero
 vwop.vv       vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
 vwop.vx       vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 
-# Double-width result, first source double-width, second source single-width: 2*SEW = 2*SEW op SEW
+# Double-width result, first source double-width,
+# second source single-width: 2*SEW = 2*SEW op SEW
 vwop.wv       vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
 vwop.wx       vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 ----
@@ -3835,24 +3839,24 @@ size_t compact_non_zero(size_t n, const int* in, int* out)
 # a2 = &out
 
 compact_non_zero:
-    li        a6, 0                 # Clear count of non-zero elements
+    li        a6, 0               # Clear count of non-zero elements
 loop:
-    vsetvli   a5, a0, e32,m8  # 32-bit integers
-    vlw.v     v8, (a1)              # Load input vector
-      sub     a0, a0, a5            # Decrement number done
-      slli    a5, a5, 2             # Multiply by four bytes
-    vsne.vi   v0, v8, 0             # Locate non-zero values
-      add     a1, a1, a5            # Bump input pointer
-    vmpopc.m  a5, v0                # Count number of elements set in v0
-    vmiota.m  v16, v0               # Get destination offsets of active elements
-      add     a6, a6, a5            # Accumulate number of elements
-    vsll.vi   v16, v16, 2, v0.t     # Multiply offsets by four bytes
-      slli    a5, a5, 2             # Multiply number of non-zero elements by four bytes
-    vsuxw.v   v8, (a2), v16, v0.t   # Scatter using scaled vmiota results under mask
-      add     a2, a2, a5            # Bump output pointer
-      bnez    a0, loop              # Any more?
+    vsetvli   a5, a0, e32,m8      # 32-bit integers
+    vlw.v     v8, (a1)            # Load input vector
+      sub     a0, a0, a5          # Decrement number done
+      slli    a5, a5, 2           # Multiply by four bytes
+    vsne.vi   v0, v8, 0           # Locate non-zero values
+      add     a1, a1, a5          # Bump input pointer
+    vmpopc.m  a5, v0              # Count number of elements set in v0
+    vmiota.m  v16, v0             # Get destination offsets of active elements
+      add     a6, a6, a5          # Accumulate number of elements
+    vsll.vi   v16, v16, 2, v0.t   # Multiply offsets by four bytes
+      slli    a5, a5, 2           # Multiply number of non-zero elements by four bytes
+    vsuxw.v   v8, (a2), v16, v0.t # Scatter using scaled vmiota results under mask
+      add     a2, a2, a5          # Bump output pointer
+      bnez    a0, loop            # Any more?
 
-      mv      a0, a6                # Return count
+      mv      a0, a6              # Return count
       ret
 ----
 
@@ -4400,9 +4404,9 @@ vector add of 8-bit elements with a vector length of 20.
 
 [source,riscvasm]
 ----
-vsetvli   t0, a0, e32,m1,d4  # Vectors of 32-bit elements, divided into byte sub-elements
-vadd.vv   v1,v2,v3           # Performs a vector of 4*vl 8-bit additions.
-vsll.vx   v1,v2,x1           # Performs a vector of 4*vl 8-bit shifts.
+vsetvli t0, a0, e32,m1,d4  # Vectors of 32-bit elements, divided into byte sub-elements
+vadd.vv v1,v2,v3           # Performs a vector of 4*vl 8-bit additions.
+vsll.vx v1,v2,x1           # Performs a vector of 4*vl 8-bit shifts.
 ----
 
 ==== Vector Reduction Instructions under EDIV
@@ -4414,12 +4418,12 @@ an element-wide result.
 [source,riscvasm]
 ----
 # Sum each sub-vector of four bytes into a 16-bit result.
-vsetvli     t0, a0, e32,d4  # Vectors of 32-bit elements, divided into byte sub-elements
-vredsum.vv  v1, v2, v3      # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
-                            #             + v2[i][15:8] + v2[i][7:0] + v3[i][31:0]
+vsetvli    t0, a0, e32,d4  # Vectors of 32-bit elements, divided into byte sub-elements
+vredsum.vv v1, v2, v3      # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
+                           #             + v2[i][15:8] + v2[i][7:0] + v3[i][31:0]
 
-vredmax.vv  v5, v6, v7      # v5[i][31:0] = max(v6[i][31:24], v6[i][23:16],
-                            #             v6[i][15:8], v6[i][7:0], v7[i][31:0])
+vredmax.vv v5, v6, v7      # v5[i][31:0] = max(v6[i][31:24], v6[i][23:16],
+                           #             v6[i][15:8], v6[i][7:0], v7[i][31:0])
 ----
 
 Integer sub-element non-sum reductions produce a final result that is
@@ -4519,25 +4523,25 @@ vfdot.vv      vd, vs2, vs1, vm  # Vector-vector
 [source,riscvasm]
 ----
 # Dot product. SEW=32, EDIV=2
-vfdot.v     vd, vs2, vs1, vm  # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
-                              #             +  vs2[i][15:0] * vs1[i][15:0]
+vfdot.v   vd, vs2, vs1, vm  # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
+                            #             +  vs2[i][15:0] * vs1[i][15:0]
 
 # Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
-vsetvli     t0, a0, e32,m1,d2 # Vectors of 32-bit elements, divided into 16b sub-elements
-vfdot.vv    v1, v2, v3        # v1[i][31:0] += v2[i][31:16]*v3[i][31:16]
-                              #             +  v2[i][16:0]*v3[i][16:0]
+vsetvli   t0, a0, e32,m1,d2 # Vectors of 32-bit elements, divided into 16b sub-elements
+vfdot.vv  v1, v2, v3        # v1[i][31:0] += v2[i][31:16]*v3[i][31:16]
+                            #             +  v2[i][16:0]*v3[i][16:0]
 
 # Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
-vsetvli     t0, a0, e32,m1,d2 # Vectors of 32-bit elements, divided into 16b sub-elements
-vfdot.vv    v1, v2, v3        # v1[i][31:0] += v2[i][31:16]*v3[i][31:16]
-                              #             +  v2[i][16:0]*v3[i][16:0]
+vsetvli   t0, a0, e32,m1,d2 # Vectors of 32-bit elements, divided into 16b sub-elements
+vfdot.vv  v1, v2, v3        # v1[i][31:0] += v2[i][31:16]*v3[i][31:16]
+                            #             +  v2[i][16:0]*v3[i][16:0]
 
 # Floating-point sub-vectors of four half-precision floats packed into 64-bit elements.
-vsetvli     t0, a0, e64,m1,d4 # Vectors of 64-bit elements, divided into 16b sub-elements
-vfdot.vv    v1, v2, v3
-                # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0] +
-                #                 v2[i][63:48]*v3[i][63:48] + v2[i][47:32]*v3[i][47:32];
-                # v1[i][63:32] = ~0 (NaN boxing)
+vsetvli   t0, a0, e64,m1,d4 # Vectors of 64-bit elements, divided into 16b sub-elements
+vfdot.vv  v1, v2, v3
+              # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0] +
+              #                 v2[i][63:48]*v3[i][63:48] + v2[i][47:32]*v3[i][47:32];
+              # v1[i][63:32] = ~0 (NaN boxing)
 ----
 
 == Vector Instruction Listing
