@@ -4519,25 +4519,25 @@ vfdot.vv      vd, vs2, vs1, vm  # Vector-vector
 [source,riscvasm]
 ----
 # Dot product. SEW=32, EDIV=2
-vfdot.v       vd, vs2, vs1, vm  # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
-                                #             +  vs2[i][15:0] * vs1[i][15:0]
+vfdot.v     vd, vs2, vs1, vm  # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
+                              #             +  vs2[i][15:0] * vs1[i][15:0]
 
 # Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
-vsetvli       t0, a0, e32,m1,d2 # Vectors of 32-bit elements, divided into 16b sub-elements
-vfdot.vv      v1, v2, v3        # v1[i][31:0] += v2[i][31:16]*v3[i][31:16]
-                                #             +  v2[i][16:0]*v3[i][16:0]
+vsetvli     t0, a0, e32,m1,d2 # Vectors of 32-bit elements, divided into 16b sub-elements
+vfdot.vv    v1, v2, v3        # v1[i][31:0] += v2[i][31:16]*v3[i][31:16]
+                              #             +  v2[i][16:0]*v3[i][16:0]
 
 # Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
-vsetvli       t0, a0, e32,m1,d2 # Vectors of 32-bit elements, divided into 16b sub-elements
-vfdot.vv      v1, v2, v3        # v1[i][31:0] += v2[i][31:16]*v3[i][31:16]
-                                #             +  v2[i][16:0]*v3[i][16:0]
+vsetvli     t0, a0, e32,m1,d2 # Vectors of 32-bit elements, divided into 16b sub-elements
+vfdot.vv    v1, v2, v3        # v1[i][31:0] += v2[i][31:16]*v3[i][31:16]
+                              #             +  v2[i][16:0]*v3[i][16:0]
 
 # Floating-point sub-vectors of four half-precision floats packed into 64-bit elements.
-vsetvli       t0, a0, e64,m1,d4 # Vectors of 64-bit elements, divided into 16b sub-elements
-vfdot.vv      v1, v2, v3
-                 # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0] +
-                 #                 v2[i][63:48]*v3[i][63:48] + v2[i][47:32]*v3[i][47:32];
-                 # v1[i][63:32] = ~0 (NaN boxing)
+vsetvli     t0, a0, e64,m1,d4 # Vectors of 64-bit elements, divided into 16b sub-elements
+vfdot.vv    v1, v2, v3
+                # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0] +
+                #                 v2[i][63:48]*v3[i][63:48] + v2[i][47:32]*v3[i][47:32];
+                # v1[i][63:32] = ~0 (NaN boxing)
 ----
 
 == Vector Instruction Listing
