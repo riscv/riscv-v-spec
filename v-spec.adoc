@@ -3947,7 +3947,7 @@ loop:
       csrr    t1, vl          # Get number of bytes fetched
     vseq.vi   v0, v1, 0       # Flag zero bytes
     vmfirst.m a3, v0          # Zero found?
-      add a1, a1, t1          # Bump pointer
+      add     a1, a1, t1      # Bump pointer
     vmsif.m   v0, v0          # Set mask up to and including zero byte.
     vsb.v     v1, (a2), v0.t  # Write out bytes
       add     a2, a2, t1      # Bump pointer
