@@ -433,13 +433,13 @@ the group, and so on.
 .Example 1: VLEN=32b, SEW=16b, LMUL=2
 [source,datasheet]
 ----
-{vreg: {vlen: 32, slen: 128, sew: 16, lmul: 2}}
+{vreg: {vlen: 32, slen: 32, sew: 16, lmul: 2}}
 ----
 
 .Example 2: VLEN=64b, SEW=32b, LMUL=2
 [source,datasheet]
 ----
-{vreg: {vlen: 64, slen: 128, sew: 32, lmul: 2}}
+{vreg: {vlen: 64, slen: 64, sew: 32, lmul: 2}}
 ----
 
 .Example 3: VLEN=128b, SEW=32b, LMUL=2
