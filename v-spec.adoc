@@ -366,8 +366,12 @@ within an element are numbered in a little-endian format with
 increasing bit index from right to left corresponding to increasing
 magnitude.
 
-The element index is given in hexadecimal and is shown placed at the least-significant byte of the stored element. ELEN <=128 and LMUL=1 throughout.
+The element index is given in hexadecimal and is shown placed at the
+least-significant byte of the stored element. ELEN<=128 and LMUL=1 throughout.
 
+image:mapping-lmul1.svg[opts=inline]
+
+////
 ----
  VLEN=32b
 
@@ -406,6 +410,7 @@ The element index is given in hexadecimal and is shown placed at the least-signi
  SEW=64b                 3               2               1               0
  SEW=128b                                1                               0
 ----
+////
 
 === Mapping with LMUL > 1
 
@@ -425,6 +430,31 @@ registers in the group, the second LMUL*128/SEW group of elements are
 packed into the second 128b segment of each of the vector registers in
 the group, and so on.
 
+.Example 1: VLEN=32b, SEW=16b, LMUL=2
+[source,datasheet]
+----
+{vreg: {vlen: 32, slen: 128, sew: 16, lmul: 2}}
+----
+
+.Example 2: VLEN=64b, SEW=32b, LMUL=2
+[source,datasheet]
+----
+{vreg: {vlen: 64, slen: 128, sew: 32, lmul: 2}}
+----
+
+.Example 3: VLEN=128b, SEW=32b, LMUL=2
+[source,datasheet]
+----
+{vreg: {vlen: 128, slen: 128, sew: 32, lmul: 2}}
+----
+
+.Example 4: VLEN=256b, SEW=32b, LMUL=2
+[source,datasheet]
+----
+{vreg: {vlen: 256, slen: 256, sew: 32, lmul: 2}}
+----
+
+////
 ----
  Example 1: VLEN=32b, SEW=16b, LMUL=2
 
@@ -450,6 +480,7 @@ the group, and so on.
  v2*n            B       A       9       8       3       2       1       0
  v2*n+1          F       E       D       C       7       6       5       4
 ----
+////
 
 If SEW > SLEN, the striping pattern places one element in each
 vector register in the group before moving to the next vector register
@@ -459,6 +490,13 @@ vector register contains the odd-numbered elements of the vector.
 
 NOTE: In most implementations, the striping distance SLEN {ge} ELEN.
 
+.Example: VLEN=256b, SEW=256b, LMUL=2
+[source,datasheet]
+----
+{vreg: {vlen: 256, slen: 256, sew: 256, lmul: 2}}
+----
+
+////
 ----
  Example: VLEN=256b, SEW=256b, LMUL=2
 
@@ -467,9 +505,47 @@ NOTE: In most implementations, the striping distance SLEN {ge} ELEN.
  v2*n+1                                                                  1
 
 ----
+////
 
 When LMUL = 4, four vector registers hold elements as shown:
 
+.Example 1: VLEN=32b, SLEN=32b, SEW=16b, LMUL=4
+[source,datasheet]
+----
+{vreg: {vlen: 32, slen: 32, sew: 16, lmul: 4}}
+----
+
+.Example 2: VLEN=64b, SLEN=64b, SEW=32b, LMUL=4
+[source,datasheet]
+----
+{vreg: {vlen: 64, slen: 64, sew: 32, lmul: 4}}
+----
+
+.Example 3: VLEN=128b, SLEN=64b, SEW=32b, LMUL=4
+[source,datasheet]
+----
+{vreg: {vlen: 128, slen: 64, sew: 32, lmul: 4}}
+----
+
+.Example 3: VLEN=128b, SLEN=128b, SEW=32b, LMUL=4
+[source,datasheet]
+----
+{vreg: {vlen: 128, slen: 128, sew: 32, lmul: 4}}
+----
+
+.Example 4: VLEN=256b, SLEN=128b, SEW=32b, LMUL=4
+[source,datasheet]
+----
+{vreg: {vlen: 256, slen: 128, sew: 32, lmul: 4}}
+----
+
+.Example 5: VLEN=256b, SLEN=128b, SEW=256b, LMUL=4
+[source,datasheet]
+----
+{vreg: {vlen: 256, slen: 256, sew: 256, lmul: 4}}
+----
+
+////
 ----
  Example 1: VLEN=32b, SLEN=32b, SEW=16b, LMUL=4,
 
@@ -520,9 +596,17 @@ When LMUL = 4, four vector registers hold elements as shown:
  v4*n+2                                                                  2
  v4*n+3                                                                  3
 ----
+////
 
 A similar pattern is followed for LMUL = 8.
 
+.Example: VLEN=256b, SLEN=128b, SEW=32b, LMUL=8
+[source,datasheet]
+----
+{vreg: {vlen: 256, slen: 128, sew: 32, lmul: 8}}
+----
+
+////
 ----
  Example: VLEN=256b, SLEN=128b, SEW=32b, LMUL=8
 
@@ -536,6 +620,7 @@ A similar pattern is followed for LMUL = 8.
  v8*n+6       3B      3A      39      38      1B      1A      19      18
  v8*n+7       3F      3E      3D      3C      1F      1E      1D      1C
 ----
+////
 
 Different striping patterns are architecturally visible, but software
 can be written that produces the same results regardless of striping
@@ -568,6 +653,33 @@ size such that each group can hold the same number of vector elements
 between elements with the same index only touches operand bits located
 within the same 128b portion of the datapath.
 
+VLEN=256b, SLEN=128b
+
+.SEW=8b, LMUL=1, VLMAX=32
+[source,datasheet]
+----
+{vreg: {vlen: 256, slen: 128, sew: 8, lmul: 1, vlmax: 32}}
+----
+
+.SEW=16b, LMUL=2, VLMAX=32
+[source,datasheet]
+----
+{vreg: {vlen: 256, slen: 128, sew: 16, lmul: 2, vlmax: 32}}
+----
+
+.SEW=32b, LMUL=4, VLMAX=32
+[source,datasheet]
+----
+{vreg: {vlen: 256, slen: 128, sew: 32, lmul: 4, vlmax: 32}}
+----
+
+.SEW=64b, LMUL=8, VLMAX=32
+[source,datasheet]
+----
+{vreg: {vlen: 256, slen: 128, sew: 64, lmul: 8, vlmax: 32}}
+----
+
+////
 ----
  VLEN=256b, SLEN=128b
  Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
@@ -599,6 +711,7 @@ within the same 128b portion of the datapath.
  v8*n+6                 1D              1C               D               C
  v8*n+7                 1F              1E               F               E
 ----
+////
 
 Larger LMUL settings can also used to simply increase vector length to
 reduce instruction fetch and dispatch overheads, in cases where fewer
