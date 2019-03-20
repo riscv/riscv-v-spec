@@ -161,8 +161,16 @@ also reflected as a field in the upper bits of `fcsr`.  Systems
 without floating-point must add `fcsr` when adding the vector
 extension.
 
-.vxrm encoding
-[cols="1,1,4,10"]
+.`vxrm` register layout
+[source,datasheet]
+----
+{isa: [
+  {bits: 2, name: 'Rounding mode', attr: 'RW'},
+  {bits: 30},
+], config: {bits: 16}}
+----
+
+[cols="1,1,3,11"]
 |===
 2+| Bits [1:0] | Abbreviation | Rounding Mode
 
@@ -190,15 +198,26 @@ The `vxrm` and `vxsat` separate CSRs can also be accessed via fields
 in the floating-point CSR, `fcsr`.  The `fcsr` register must be added
 to systems without floating-point that add a vector extension.
 
-.fcsr layout
-[cols="2,4,10"]
+.`fcsr` register layout
+[source,datasheet]
+----
+{isa: [
+  {bits: 5,  name: 'fflags', attr: 'RW'},
+  {bits: 3,  name: 'frm', attr: 'RW'},
+  {bits: 1,  name: 'vxsat', attr: 'RW'},
+  {bits: 2,  name: 'vxrm', attr: 'RW'},
+  {bits: 21},
+], config: {bits: 16}}
+----
+
+[cols="2,3,11"]
 |===
 | Bits | Name   | Description
 
-| 10:9 | vxrm   | Fixed-point rounding mode
-|    8 | vxsat  | Fixed-point accrued saturation flag
-|  7:5 | frm    | Floating-point rounding mode
 |  4:0 | fflags | Floating-point accrued exception flags
+|  7:5 | frm    | Floating-point rounding mode
+|    8 | vxsat  | Fixed-point accrued saturation flag
+| 10:9 | vxrm   | Fixed-point rounding mode
 |===
 
 NOTE: The fields are packed into `fcsr` to make context-save/restore
@@ -214,16 +233,7 @@ register, and how multiple vector registers are grouped.
 In the base vector extension, the `type` register has two fields,
 `vsew[2:0]`, and `vlmul`.
 
-.vtype register layout
-[cols="2,14"]
-|===
-| Bits     | Contents
-
-| XLEN-1:7 | Reserved (write 0)
-|      6:5 | vediv[1:0]
-|      4:2 | vsew[2:0]
-|      1:0 | vlmul[1:0]
-|===
+include::vtype-format.adoc[]
 
 NOTE: The smallest base implementation has only four bits in `vtype`,
 two bits for `vsew[1:0]` and two bits for `vlmul[1:0]`.
@@ -923,225 +933,13 @@ floating-point load/store 12-bit immediate field to provide further
 vector instruction encoding, with bit 25 holding the standard vector
 mask bit (see <<sec-vector-mask-encoding>>).
 
-=== Format for Vector Load Instructions under LOAD-FP major opcode
+include::vmem-format.adoc[]
 
-.unit-stride
-[source,datasheet]
-----
-{isa: [
-  {bits: 7, name: 0b0000111, attr: [
-    'VLxU, VLE zero-extended',
-    'VLxU, VLE zero-extended, fault-only-first',
-    'VLxU sign-extended',
-    'VLxU sign-extended, fault-only-first',
-  ]},
-  {bits: 5, name: 'vd', attr: 'destination of load', type: 2},
-  {bits: 3, name: 'width'},
-  {bits: 5, name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5, name: 'lumop', attr: [0, 16, 0, 16]},
-  {bits: 1, name: 'vm'},
-  {bits: 3, name: 'mop', attr: [0, 0, 4, 4]},
-  {bits: 3, name: 'nf'},
-]}
-----
+include::vamo-format.adoc[]
 
-.strided
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0000111, attr: [
-    'VLSxU, VLSE zero-extended',
-    'VLSxU sign-extended'
-  ]},
-  {bits: 5,  name: 'vd', attr: 'destination of load', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 'rs2', attr: 'stride', type: 4},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 'mop', attr: [2, 6]},
-  {bits: 3,  name: 'nf'},
-]}
-----
+include::valu-format.adoc[]
 
-.indexed
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0000111, attr: [
-    'VLXxU, VLXE zero-extended',
-    'VLXxU sign-extended'
-  ]},
-  {bits: 5,  name: 'vd', attr: 'destination of load', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 'vs2', attr: 'address offsets', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 'mop', attr: [3, 7]},
-  {bits: 3,  name: 'nf'},
-]}
-----
-
-=== Format for Vector Store Instructions under STORE-FP major opcode
-
-.unit-stride
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0100111, attr: 'VSx'},
-  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 0x100, attr: 'sumop'},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 0x100, attr: 'mop'},
-  {bits: 3,  name: 'nf'},
-]}
-----
-
-.strided
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0100111, attr: 'VSSx'},
-  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 'rs2', attr: 'stride', type: 4},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 2, attr: 'mop'},
-  {bits: 3,  name: 'nf'},
-]}
-----
-
-.indexed
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0100111, attr: ['VSXx ordered', 'VSUXx unordered']},
-  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 'vs2', attr: 'address offsets', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 'mop', attr: [3, 7]},
-  {bits: 3,  name: 'nf'},
-]}
-----
-
-
-=== Format for Vector AMO Instructions under AMO major opcode
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0101111, attr: [
-    'vamoSWAP', 'vamoADD', 'vamoXOR', 'vamoAND', 'vamoOR', 'vamoMIN', 'vamoMAX', 'vamoMINU', 'vamoMAXU'
-  ]},
-  {bits: 5,  name: 'vs3 / vvd', attr: 'source / destination', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base', type: 4},
-  {bits: 5,  name: 'vs2', attr: 'address', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 1,  name: 'wd'},
-  {bits: 5,  name: 'amoop', attr: [1, 0, 4, 12, 8, 16, 20, 24, 28]},
-]}
-----
-
-
-=== Formats for Vector Arithmetic Instructions under OP-V major opcode
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: ['OPIVV', 'OPFVV']},
-  {bits: 5,  name: 'vd', type: 2},
-  {bits: 3,  name: 'funct3', attr: [0, 1]},
-  {bits: 5,  name: 'vs1', type: 2},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: ['OPMVV']},
-  {bits: 5,  name: 'vd / rd', type: 7},
-  {bits: 3,  name: 2},
-  {bits: 5,  name: 'vs1', type: 2},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: ['OPIVI']},
-  {bits: 5,  name: 'vd', type: 2},
-  {bits: 3,  name: 3},
-  {bits: 5,  name: 'simm5', type: 5},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: ['OPIVX', 'OPFVF']},
-  {bits: 5,  name: 'vd', type: 2},
-  {bits: 3,  name: 'funct3', attr: [4, 5]},
-  {bits: 5,  name: 'rs1', type: 4},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: 'OPMVX'},
-  {bits: 5,  name: 'vd / rd', type: 7},
-  {bits: 3,  name: 6},
-  {bits: 5,  name: 'rs1', type: 4},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
-
-
-=== Formats for Vector Configuration Instructions under OP-V major opcode
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: 'vsetvli'},
-  {bits: 5,  name: 'rd', type: 4},
-  {bits: 3,  name: 7},
-  {bits: 5,  name: 'rs1', type: 4},
-  {bits: 11, name: 'zimm[1:0]', type: 5},
-  {bits: 1,  name: '0'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: 'vsetvl'},
-  {bits: 5,  name: 'rd', type: 4},
-  {bits: 3,  name: 7},
-  {bits: 5,  name: 'rs1', type: 4},
-  {bits: 5,  name: 'rs2', type: 4},
-  {bits: 7,  name: 0b1000000},
-]}
-----
-
+include::vcfg-format.adoc[]
 
 Vector instructions can have scalar or vector source operands and
 produce scalar or vector results, and most vector instructions can be
@@ -1363,46 +1161,15 @@ vsetvl  rd, rs1, rs2    # rd = new vl, rs1 = AVL, rs2 = new vtype value
                         # if rs1 = x0, then use maximum vector length
 ----
 
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: 'vsetvli'},
-  {bits: 5,  name: 'rd', type: 4},
-  {bits: 3,  name: 7},
-  {bits: 5,  name: 'rs1', type: 4},
-  {bits: 11, name: 'zimm[1:0]', type: 5},
-  {bits: 1,  name: '0'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: 'vsetvl'},
-  {bits: 5,  name: 'rd', type: 4},
-  {bits: 3,  name: 7},
-  {bits: 5,  name: 'rs1', type: 4},
-  {bits: 5,  name: 'rs2', type: 4},
-  {bits: 7,  name: 0b1000000},
-]}
-----
-
 The `vsetvli` instruction sets the `vtype` and `vl` CSRs based on its
 arguments, and writes the new value of `vl` into `rd`.
 
 The new `vtype` setting is encoded in the immediate fields of
 `vsetvli` and in the `rs2` register for `vsetvl`.
 
+include::vcfg-format.adoc[]
 
-[cols="2,14"]
-|===
-| Bits     | Contents
-
-| XLEN-1:7 | Reserved (write 0)
-|      6:5 | vediv[1:0]
-|      4:2 | vsew[2:0]
-|      1:0 | vlmul[1:0]
-|===
+include::vtype-format.adoc[]
 
 .Suggested assembler names used for vtypei setting
 [source,riscvasm]
@@ -1581,106 +1348,7 @@ floating-point load/store 12-bit immediate field to provide further
 vector instruction encoding, with bit 25 holding the standard vector
 mask bit (see <<sec-vector-mask-encoding>>).
 
-.Unit-stride Vector Load
-[source,datasheet]
-----
-{isa: [
-  {bits: 7, name: 0b0000111, attr: [
-    'VLxU, VLE zero-extended',
-    'VLxU, VLE zero-extended, fault-only-first',
-    'VLxU sign-extended',
-    'VLxU sign-extended, fault-only-first',
-  ]},
-  {bits: 5, name: 'vd', attr: 'destination of load', type: 2},
-  {bits: 3, name: 'width'},
-  {bits: 5, name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5, name: 'lumop', attr: [0, 16, 0, 16]},
-  {bits: 1, name: 'vm'},
-  {bits: 3, name: 'mop', attr: [0, 0, 4, 4]},
-  {bits: 3, name: 'nf'},
-]}
-----
-
-.Strided Vector Load
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0000111, attr: [
-    'VLSxU, VLSE zero-extended',
-    'VLSxU sign-extended'
-  ]},
-  {bits: 5,  name: 'vd', attr: 'destination of load', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 'rs2', attr: 'stride', type: 4},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 'mop', attr: [2, 6]},
-  {bits: 3,  name: 'nf'},
-]}
-----
-
-.Indexed Vector Load
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0000111, attr: [
-    'VLXxU, VLXE zero-extended',
-    'VLXxU sign-extended'
-  ]},
-  {bits: 5,  name: 'vd', attr: 'destination of load', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 'vs2', attr: 'address offsets', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 'mop', attr: [3, 7]},
-  {bits: 3,  name: 'nf'},
-]}
-----
-
-.Unit-stride Vector Store
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0100111, attr: 'VSx'},
-  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 0x100, attr: 'sumop'},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 0x100, attr: 'mop'},
-  {bits: 3,  name: 'nf'},
-]}
-----
-
-.Strided Vector Store
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0100111, attr: 'VSSx'},
-  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 'rs2', attr: 'stride', type: 4},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 2, attr: 'mop'},
-  {bits: 3,  name: 'nf'},
-]}
-----
-
-.Indexed Vector Store
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0100111, attr: ['VSXx ordered', 'VSUXx unordered']},
-  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 'vs2', attr: 'address offsets', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 'mop', attr: [3, 7]},
-  {bits: 3,  name: 'nf'},
-]}
-----
+include::vmem-format.adoc[]
 
 [cols="4,12"]
 |===
@@ -2177,21 +1845,7 @@ Vector AMO operations are encoded using the unused width encodings
 under the standard AMO major opcode.  Each active element performs an
 atomic read-modify-write of a single memory location.
 
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b0101111, attr: [
-    'vamoSWAP', 'vamoADD', 'vamoXOR', 'vamoAND', 'vamoOR', 'vamoMIN', 'vamoMAX', 'vamoMINU', 'vamoMAXU'
-  ]},
-  {bits: 5,  name: 'vs3 / vvd', attr: 'source / destination', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base', type: 4},
-  {bits: 5,  name: 'vs2', attr: 'address', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 1,  name: 'wd'},
-  {bits: 5,  name: 'amoop', attr: [1, 0, 4, 12, 8, 16, 20, 24, 28]},
-]}
-----
+include::vamo-format.adoc[]
 
 [cols="4,12"]
 |===
@@ -2314,70 +1968,7 @@ The vector arithmetic instructions use a new major opcode (OP-V =
 1010111~2~) which neighbors OP-FP.  The three-bit `funct3` field is
 used to define sub-categories of vector instructions.
 
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: ['OPIVV', 'OPFVV']},
-  {bits: 5,  name: 'vd', type: 2},
-  {bits: 3,  name: 'funct3', attr: [0, 1]},
-  {bits: 5,  name: 'vs1', type: 2},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: ['OPMVV']},
-  {bits: 5,  name: 'vd / rd', type: 7},
-  {bits: 3,  name: 2},
-  {bits: 5,  name: 'vs1', type: 2},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: ['OPIVI']},
-  {bits: 5,  name: 'vd', type: 2},
-  {bits: 3,  name: 3},
-  {bits: 5,  name: 'simm5', type: 5},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: ['OPIVX', 'OPFVF']},
-  {bits: 5,  name: 'vd', type: 2},
-  {bits: 3,  name: 'funct3', attr: [4, 5]},
-  {bits: 5,  name: 'rs1', type: 4},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
-
-[source,datasheet]
-----
-{isa: [
-  {bits: 7,  name: 0b1010111, attr: 'OPMVX'},
-  {bits: 5,  name: 'vd / rd', type: 7},
-  {bits: 3,  name: 6},
-  {bits: 5,  name: 'rs1', type: 4},
-  {bits: 5,  name: 'vs2', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 6,  name: 'funct6'},
-]}
-----
+include::valu-format.adoc[]
 
 === Vector Arithmetic Instruction encoding
 
@@ -4638,15 +4229,7 @@ part of mandatory base in Unix vector profile.
 The divided element extension adds a two-bit field, `vediv[1:0]` to
 the `vtype` register.
 
-[cols="2,14"]
-|===
-| Bits     | Contents
-
-| XLEN-1:7 | Reserved (write 0)
-|      6:5 | vediv[1:0]
-|      4:2 | vsew[2:0]
-|      1:0 | vlmul[1:0]
-|===
+include::vtype-format.adoc[]
 
 The `vediv` field encodes the number of ways, _EDIV_, into which each
 SEW-bit element is subdivided into equal sub-elements.  A vector

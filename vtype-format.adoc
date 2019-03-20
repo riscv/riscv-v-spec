@@ -1,3 +1,26 @@
+
+.`vtype` register layout
+[source,datasheet]
+----
+{isa: [
+  {bits: 2,  name: 'vlmul', attr: 'RW'},
+  {bits: 3,  name: 'vsew', attr: 'RW'},
+  {bits: 2,  name: 'vediv', attr: 'RW'},
+  {bits: 26},
+], config: {bits: 16}}
+----
+
+[cols="2,14"]
+|===
+| Bits     | Contents
+
+|      1:0 | vlmul[1:0]
+|      4:2 | vsew[2:0]
+|      6:5 | vediv[1:0]
+| XLEN-1:7 | Reserved (write 0)
+|===
+
+////
 ----
 vtype register layout
 
@@ -7,3 +30,4 @@ XLEN-1:7    Reserved (write 0)
      4:2    vsew[2:0]
      1:0    vlmul[1:0]
 ----
+////
