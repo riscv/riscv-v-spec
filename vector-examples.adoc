@@ -5,7 +5,6 @@ The following are provided as non-normative text to help explain the vector ISA.
 
 === Vector-vector add example
 
-[source,riscvasm]
 ----
     # vector-vector add routine of 32-bit integers
     # void vvaddint32(size_t n, const int*x, const int*y, int*z)
@@ -30,7 +29,6 @@ vvaddint32:
 
 === Example with mixed-width mask and compute.
 
-[source,riscvasm]
 ----
 # Code using one width for predicate and different width for masked
 # compute.
@@ -57,7 +55,6 @@ vvaddint32:
 
 === Memcpy example
 
-[source,riscvasm]
 ----
     # void *memcpy(void* dest, const void* src, size_t n)
     # a0=dest, a1=src, a2=n
@@ -75,10 +72,8 @@ vvaddint32:
       ret                         # Return
 ----
 
-
 === Conditional example
 
-[source,riscvasm]
 ----
 # (int16) z[i] = ((int8) x[i] < 5) ? (int16) a[i] : (int16) b[i];
 #
@@ -103,7 +98,6 @@ loop:
 
 === SAXPY example
 
-[source,riscvasm]
 ----
 # void
 # saxpy(size_t n, const float a, const float *x, float *y)
@@ -135,7 +129,6 @@ saxpy:
 
 === SGEMM example
 
-[source,riscvasm]
 ----
 # RV64IDV system
 #
@@ -187,7 +180,7 @@ sgemm_nn:
     sd s1, OFFSET(sp)
     sd s2, OFFSET(sp)
 
-    # Check for zero size matrices
+    # Check for zero size matrices        
     beqz n, exit
     beqz m, exit
     beqz k, exit
@@ -305,7 +298,7 @@ c_col_loop: # Loop across one row of C blocks
     j k_loop
 
 1:  vfmacc.vf v15, ft15, v16
-
+    
     # Save C matrix block back to memory
     vsw.v  v0, (cnp); add ccp, cnp, cstride;
     vsw.v  v1, (ccp); add ccp, ccp, cstride;
@@ -340,7 +333,7 @@ c_col_loop: # Loop across one row of C blocks
     add ap, ap, t6         # Move A matrix pointer down 16 rows
     slli t6, cstride, 4  # Multiply cstride by 16
     add cp, cp, t6         # Move C matrix pointer down 16 rows
-
+    
     slti t6, m, 16
     beqz t6, c_row_loop
 
@@ -356,3 +349,4 @@ exit:
     addi sp, sp, FRAMESIZE
     ret
 ----
+
