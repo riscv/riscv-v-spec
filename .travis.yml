@@ -1,0 +1,14 @@
+os: linux
+language: node_js
+node_js:
+  - "10"
+script:
+  npm run build
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $github_access_token
+  keep-history: true
+  local-dir: public
+  on:
+    branch: master

@@ -1,0 +1,20 @@
+{
+  "name": "riscv-v-spec",
+  "version": "0.1.0",
+  "description": "RISC-V V vector extension",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Hello RISC-V\"",
+    "build": "mkdir public && echo \"<html>RISC-V</html>\" > public/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/riscv/riscv-v-spec.git"
+  },
+  "author": "",
+  "license": "CC-BY-4.0",
+  "bugs": {
+    "url": "https://github.com/riscv/riscv-v-spec/issues"
+  },
+  "homepage": "https://github.com/riscv/riscv-v-spec#readme"
+}
