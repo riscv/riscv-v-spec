@@ -10,3 +10,24 @@ For a better rendering, use "asciidoctor v-spec.adoc".
 
 This work is licensed under a Creative Commons Attribution 4.0
 International License. See the LICENSE file for details.
+
+### Documentation generator
+
+Install
+
+```
+npm i
+```
+
+Build HTML/PDF
+
+```
+npm run build
+```
+
+Resulted files
+
+```
+public/index.html
+public/v-spec.pdf
+```
