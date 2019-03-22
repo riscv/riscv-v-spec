@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Hello RISC-V\"",
-    "build": "mkdir public && echo \"<html>RISC-V</html>\" > public/index.html"
+    "build": "datasheet -i v-spec.adoc -o public/v-spec.pdf"
   },
   "repository": {
     "type": "git",
@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/riscv/riscv-v-spec/issues"
   },
-  "homepage": "https://github.com/riscv/riscv-v-spec#readme"
+  "homepage": "https://github.com/riscv/riscv-v-spec#readme",
+  "devDependencies": {
+    "datasheet": "^0.3.1"
+  }
 }
