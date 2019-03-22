@@ -11,10 +11,7 @@ For a better rendering, use "asciidoctor v-spec.adoc".
 This work is licensed under a Creative Commons Attribution 4.0
 International License. See the LICENSE file for details.
 
-Published on every push to the `master` branch here:
-
-* https://riscv.github.io/riscv-v-spec/
-* https://riscv.github.io/riscv-v-spec/v-spec.pdf
+[[HTML](https://riscv.github.io/documents/riscv-v-spec/)] [[PDF](https://riscv.github.io/documents/riscv-v-spec/riscv-v-spec.pdf)]
 
 ### Documentation generator
 
@@ -32,7 +29,4 @@ Build HTML/PDF documents
 
 Resulted files
 
-```
-public/index.html
-public/v-spec.pdf
-```
+`public/*`

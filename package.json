@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Hello RISC-V\"",
-    "build": "datasheet -i v-spec.adoc -o public/v-spec.pdf"
+    "build": "datasheet -i v-spec.adoc -o public/riscv-v-spec.pdf"
   },
   "repository": {
     "type": "git",
