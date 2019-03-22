@@ -18,17 +18,17 @@ Published on every push to the `master` branch here:
 
 ### Documentation generator
 
-Install
+Requirements
 
-```
-npm i
-```
+`node v6+` can be installed using [nvm](https://github.com/creationix/nvm)
 
-Build HTML/PDF
+Install documentation generator
 
-```
-npm run build
-```
+`npm i`
+
+Build HTML/PDF documents
+
+`npm run build`
 
 Resulted files
 
