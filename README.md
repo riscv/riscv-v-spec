@@ -17,7 +17,13 @@ International License. See the LICENSE file for details.
 
 Requirements
 
-`node v6+` can be installed using [nvm](https://github.com/creationix/nvm)
+`node v6+`
+
+**Linux**: install using [nvm](https://github.com/creationix/nvm)
+
+**OSX**: `brew install node`
+
+**Windows**: [nodejs.org](https://nodejs.org/en/download/)
 
 Install documentation generator
 
