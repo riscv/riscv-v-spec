@@ -97,8 +97,8 @@ Address  Privilege Name   Description
 0x008    URW       vstart Vector start position
 0x009    URW       vxsat  Fixed-Point Saturate Flag
 0x00A    URW       vxrm   Fixed-Point Rounding Mode
-0x00B    URW       vtype  Vector data type register
 0xC20    URO       vl     Vector length
+0xC21    URO       vtype  Vector data type register
 ----
 
 === Vector Registers
@@ -204,18 +204,26 @@ faster.
 
 === Vector type register, `vtype`
 
-The XLEN-wide _vector_ _type_ CSR, `vtype` provides the default type
+The read-only XLEN-wide _vector_ _type_ CSR, `vtype`, can only be
+updated by `vsetvl{i}` instructions, and provides the default type
 used to interpret the contents of the vector register file. The vector
 type also determines the organization of elements in each vector
 register, and how multiple vector registers are grouped.
 
-In the base vector extension, the `type` register has two fields,
-`vsew[2:0]`, and `vlmul`.
+NOTE: Earlier drafts allowed the `vtype` register to be written using
+regular CSR writes.  Allowing updates only via the `vsetvl{i}`
+instructions simplifies maintenance of the `vtype` register state.
+
+In the base vector extension, the `type` register has three fields,
+`vill`, `vsew[2:0]`, and `vlmul[1:0]`.
 
 include::vtype-format.adoc[]
 
-NOTE: The smallest base implementation has only four bits in `vtype`,
-two bits for `vsew[1:0]` and two bits for `vlmul[1:0]`.
+NOTE: The smallest base implementation requires storage for only four
+bits of storage in `vtype`, two bits for `vsew[1:0]` and two bits for
+`vlmul[1:0]`.  The illegal value can be encoded using the illegal
+64-bit combination in `vsew[1:0]` without requiring an additional
+storage bit.
 
 NOTE: The vediv[1:0] field is used by the EDIV extension described below.
 
@@ -305,6 +313,22 @@ v0.7, the floating-point registers are separate again.
 
 Mask register instructions always operate on a single vector register,
 regardless of LMUL setting.
+
+==== Vector Type Illegal `vill`
+
+The `vill` bit is used to encode that a previous `vsetvl{i}`
+instruction attempted to write an unsupported value to `vtype`.
+
+NOTE: The `vill` bit is held in bit XLEN-1 of the CSR to support
+checking for illegal values with a branch on the sign bit.
+
+If the `vill` bit is set, then any attempt to execute a vector
+instruction (other than a vector configuration instruction) will raise
+an illegal instruction exception.
+
+When `vill` bit is set, the remaining fields in `vtype` will hold
+values that are the "closest" legal value to the requested setting as
+described below in the description of `vsetvl{i}`.
 
 === Vector Length Register `vl`
 
@@ -1056,19 +1080,16 @@ Examples:
     vsetvli t0, a0, e32,m2,d4   # SEW=32, LMUL=2, EDIV=4
 ----
 
-The `vtype` setting must be supported by the implementation, and the
- `vsetvl{i}` instructions will raise an illegal instruction exception
- if the setting is not supported.
+If the `vtype` setting is not supported by the implementation, then
+the `vill` bit is set in `vtype`, and the other defined fields are set
+to the "closest" supported value as defined below:
 
-NOTE: Specifing that `vtype` is WARL is problematic as that would hide
-errors.  The current spec is problematic in that it requires a trap
-based on a data value in a CSR write. It would simplify pipelines if
-`vtype` value errors were flagged at use not write, but somehow need
-to catch errant code without requiring full XLEN bits in `vtype` when
-only a few bits are actually used. One alternative is to allow
-substitution of a fixed illegal value in `vtype`, e.g., all 1s, if an
-attempt is made to write an unsupported value.  This would then cause
-a trap on use.
+* `vsew` is set to the largest legal value smaller than the requested
+setting
+* `vlmul` is set to the requested value, as all LMUL settings must be supported
+* `vediv` is set to the largest legal value equal to or smaller than the requested subdivide for the value that is in `vsew` (this might not be the requested `vsew`)
+* unused bits in `vtype` are set to zero.
+* The `vl` CSR is set to zero if the requested `vtype` is illegal.
 
 The requested application vector length (AVL) is passed in `rs1` as an
 unsigned integer.  Using `x0` as the `rs1` register specifier, encodes
@@ -1076,6 +1097,12 @@ an infinite AVL, and so requests the maximum possible vector length.
 
 NOTE: A `vsetvl` with AVL=`x0` can be used to read current VLMAX,
 though this does overwrite `vl`.
+
+NOTE: Earlier drafts required a trap when setting `vtype` to an
+illegal value.  However, this would have added the first
+data-dependent trap on a CSR write to the ISA.  The current scheme
+also supports light-weight runtime interrogation of the supported
+vector unit configurations.
 
 === Constraints on Setting `vl`
 
