@@ -509,7 +509,7 @@ When LMUL = 4, four vector registers hold elements as shown:
  v4*n+2              D       C       5       4
  v4*n+3              F       E       7       6
 
- Example 3: VLEN=128b, SLEN=128b, SEW=32b, LMUL=4
+ Example 4: VLEN=128b, SLEN=128b, SEW=32b, LMUL=4
 
  Byte          F E D C B A 9 8 7 6 5 4 3 2 1 0
  v4*n                3       2       1       0   32b elements
@@ -517,7 +517,7 @@ When LMUL = 4, four vector registers hold elements as shown:
  v4*n+2              B       A       9       8
  v4*n+3              F       E       D       C
 
- Example 4: VLEN=256b, SLEN=128b, SEW=32b, LMUL=4
+ Example 5: VLEN=256b, SLEN=128b, SEW=32b, LMUL=4
 
  Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
  v4*n           13      12      11      10       3       2       1       0
@@ -525,7 +525,7 @@ When LMUL = 4, four vector registers hold elements as shown:
  v4*n+2         1B      1A      19      18       B       A       9       8
  v4*n+3         1F      1E      1D      1C       F       E       D       C
 
- Example 5: VLEN=256b, SLEN=128b, SEW=256b, LMUL=4
+ Example 6: VLEN=256b, SLEN=128b, SEW=256b, LMUL=4
 
  Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
  v4*n                                                                    0
