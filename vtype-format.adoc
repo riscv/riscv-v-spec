@@ -1,10 +1,12 @@
-----
-vtype register layout
 
-    Bits  Name        Description    
-  XLEN-1  vill        Illegal value if set
-XLEN-2:7              Reserved (write 0)
-     6:5  vediv[1:0]  Used by EDIV extension
-     4:2  vsew[2:0]   Standard element width (SEW) setting
-     1:0  vlmul[1:0]  Vector register group multiplier (LMUL) setting
-----
+.`vtype` register layout
+[cols="2,4,10"]
+|===
+|     Bits | Name       | Description
+
+|   XLEN-1 | vill       | Illegal value if set
+| XLEN-2:7 |            | Reserved (write 0)
+|      6:5 | vediv[1:0] | Used by EDIV extension
+|      4:2 | vsew[2:0]  | Standard element width (SEW) setting
+|      1:0 | vlmul[1:0] | Vector register group multiplier (LMUL) setting
+|===
