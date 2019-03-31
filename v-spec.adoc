@@ -4116,10 +4116,10 @@ an element-wide result.
 ----
 # Sum each sub-vector of four bytes into a 16-bit result.
 vsetvli t0, a0, e32,d4  # Vectors of 32-bit elements, divided into byte sub-elements
-vredsum.vv v1, v2, v3 # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
+vredsum.vs v1, v2, v3 # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
                       #              + v2[i][15:8] + v2[i][7:0] + v3[i][31:0]
 
-vredmax.vv v5, v6, v7 # v5[i][31:0] = max(v6[i][31:24], v6[i][23:16],
+vredmax.vs v5, v6, v7 # v5[i][31:0] = max(v6[i][31:24], v6[i][23:16],
                       #                    v6[i][15:8], v6[i][7:0], v7[i][31:0])
 ----
 
