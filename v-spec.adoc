@@ -1084,7 +1084,7 @@ If the `vtype` setting is not supported by the implementation, then
 the `vill` bit is set in `vtype`, and the other defined fields are set
 to the "closest" supported value as defined below:
 
-* `vsew` is set to the largest legal value smaller than the requested
+* `vsew` is set to the largest legal value equal to or smaller than the requested
 setting
 * `vlmul` is set to the requested value, as all LMUL settings must be supported
 * `vediv` is set to the largest legal value equal to or smaller than the requested subdivide for the value that is in `vsew` (this might not be the requested `vsew`)
