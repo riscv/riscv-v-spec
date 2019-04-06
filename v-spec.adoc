@@ -1118,7 +1118,7 @@ The resulting `vl` setting must satisfy the following constraints:
 .. `vl {le} VLMAX`
 .. `vl {le} AVL`
 .. a value read from `vl` when used as the AVL argument to `vsetvl{i}` results in the same
-value in `vl`, provided `vsetvl{i}` sets `vtype` to same value `vtype` contained at the time `vl` was read
+value in `vl`, provided the resultant VLMAX equals the value of VLMAX at the time that `vl` was read
 
 [NOTE]
 --
