@@ -13,7 +13,7 @@ Contributors include: Alon Amid, Krste Asanovic, Allen Baum, Alex
 Bradbury, Tony Brewer, Chris Celio, Silviu Chiricescu, Ken Dockser,
 Bob Dreyer, Roger Espasa, Sean Halle, John Hauser, David Horner, Bruce
 Hoult, Bill Huffman, Constantine Korikov, Ben Korpan, Robin Kruppe,
-Yunsup Lee, Guy Lemieux, Rich Newell, Albert Ou, David Patterson,
+Yunsup Lee, Guy Lemieux, Filip Moc, Rich Newell, Albert Ou, David Patterson,
 Colin Schmidt, Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim
 Wilson.
 
@@ -1117,7 +1117,8 @@ The resulting `vl` setting must satisfy the following constraints:
 .. `vl > 0` if `AVL > 0`
 .. `vl {le} VLMAX`
 .. `vl {le} AVL`
-.. a value read from `vl` when used as AVL arg to `vsetvl{i}` results in same value in `vl`
+.. a value read from `vl` when used as the AVL argument to `vsetvl{i}` results in the same
+value in `vl`, provided `vsetvl{i}` sets `vtype` to same value `vtype` contained at the time `vl` was read
 
 [NOTE]
 --
