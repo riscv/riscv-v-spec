@@ -2105,6 +2105,9 @@ function to support long word arithmetic for subtraction.
 The encodings corresponding to the masked versions (vm=0) of `vadc`
 and `vsbc` are reserved.
 
+For both `vadc` and `vsbc`, an illegal instruction exception is raised if the
+destination vector register is `v0`.
+
 === Vector Bitwise Logical Instructions
 
 ----
