@@ -133,9 +133,9 @@ NOTE: All vector instructions, including `vsetvl{i}`, reset the `vstart`
 CSR to zero.
 
 If the value in the `vstart` register is greater than or equal to the
-vector length `vl` then no element operations are performed, though
-elements at the end of the destination vector past `vl` are zeroed,
-and the `vstart` register is reset to zero.
+vector length `vl` then no element operations are performed, nor are the
+elements at the end of the destination vector past `vl` are zeroed.  The
+`vstart` register is then reset to zero.
 
 The `vstart` CSR is defined to have only enough writeable bits to hold
 the largest element index (one less than the maximum VLMAX) or
@@ -342,8 +342,11 @@ instruction variants.
 The `vl` register holds an unsigned integer specifying the number of
 elements to be updated by a vector instruction.  Elements in the
 destination vector with indices {ge} `vl` are zeroed during
-execution of a vector instruction.  As a special case, when `vl`=0,
+execution of a vector instruction.  When `vstart` {ge} `vl`,
 no elements are updated in the destination vector.
+
+NOTE: As a consequence, when `vl`=0, no elements are
+updated inthe destination vector, regardless of `vstart`.
 
 NOTE: The number of bits implemented in `vl` depends on the
 implementation's maximum vector length of the smallest supported
