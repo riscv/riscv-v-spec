@@ -138,7 +138,7 @@ vector length `vl` then no element operations are performed, nor are the
 elements at the end of the destination vector past `vl` zeroed.  The
 `vstart` register is then reset to zero.
 
-The `vstart` CSR is defined to have only enough writeable bits to hold
+The `vstart` CSR is defined to have only enough writable bits to hold
 the largest element index (one less than the maximum VLMAX) or
 lg2(VLEN) bits.  The upper bits of the `vstart` CSR are hardwired to
 zero (reads zero, writes ignored).
@@ -350,7 +350,7 @@ execution of a vector instruction.  When `vstart` {ge} `vl`,
 no elements are updated in the destination vector.
 
 NOTE: As a consequence, when `vl`=0, no elements are
-updated inthe destination vector, regardless of `vstart`.
+updated in the destination vector, regardless of `vstart`.
 
 NOTE: The number of bits implemented in `vl` depends on the
 implementation's maximum vector length of the smallest supported
@@ -1155,7 +1155,7 @@ maximum of vector lengths observed during a stripmined loop.
 Due to the striping of elements across multiple vector registers,
 shorter AVLs can give low datapath utilization with large LMUL.
 Ideally, LMUL should be chosen to be no longer than necessary to
-accomodate the desired AVL.  The `vlmul` parameter can optionally be
+accommodate the desired AVL.  The `vlmul` parameter can optionally be
 supplied as a maximum value `vlmulmax`, in which case the following
 rules are used to set `vlmul`.
 
@@ -2369,7 +2369,7 @@ Comparisons effectively AND in the mask, e.g,
 
 === Vector Integer Min/Max Instructions
 
-Signed and unsigned integer mininum and maximum instructions are
+Signed and unsigned integer minimum and maximum instructions are
 supported.
 
 ----
@@ -3554,7 +3554,7 @@ SEW is wider than the result.  If the result value would overflow the
 destination SEW, the least-significant SEW bits are retained.
 
 Traps on `vmiota.m` are always reported with a `vstart` of 0, and
-execution is always restarted from the begininng when resuming after a
+execution is always restarted from the beginning when resuming after a
 trap handler.  An illegal instruction exception is raised if `vstart`
 is non-zero.
 
@@ -3564,7 +3564,7 @@ instruction is masked, an illegal instruction exception is issued if
 the destination vector register group overlaps `v0`.
 
 NOTE: These constraints exist for two reasons.  First, to simplify
-avoidance of WAR hazards in implementatons with temporally long vector
+avoidance of WAR hazards in implementations with temporally long vector
 registers and no vector register renaming.  Second, to enable resuming
 execution after a trap simpler.
 
