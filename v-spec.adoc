@@ -90,16 +90,17 @@ RISC-V ISA.  If the base scalar ISA does not include floating-point,
 then a `fcsr` register is also added to hold mirrors of the `vxsat`
 and `vxrm` CSRs as explained below.
 
-----
-New vector CSRs
+.New vector CSRs
+[cols="2,2,2,10"]
+|===
+| Address | Privilege | Name   | Description
 
-Address  Privilege Name   Description
-0x008    URW       vstart Vector start position
-0x009    URW       vxsat  Fixed-Point Saturate Flag
-0x00A    URW       vxrm   Fixed-Point Rounding Mode
-0xC20    URO       vl     Vector length
-0xC21    URO       vtype  Vector data type register
-----
+| 0x008 | URW | vstart | Vector start position
+| 0x009 | URW | vxsat  | Fixed-Point Saturate Flag
+| 0x00A | URW | vxrm   | Fixed-Point Rounding Mode
+| 0xC20 | URO | vl     | Vector length
+| 0xC21 | URO | vtype  | Vector data type register
+|===
 
 === Vector Registers
 
@@ -163,18 +164,18 @@ also reflected as a field in the upper bits of `fcsr`.  Systems
 without floating-point must add `fcsr` when adding the vector
 extension.
 
-----
-vxrm encoding
+.vxrm encoding
+[cols="1,1,4,10"]
+|===
+2+| Bits [1:0] | Abbreviation | Rounding Mode
 
-Bits   Abbreviation  Rounding Mode
-[1:0]
- 00    rnu           round-to-nearest-up (add +0.5 LSB)
- 01    rne           round-to-nearest-even
- 10    rdn           round-down (truncate)
- 11    rod           round-to-odd (OR bits into LSB, aka "jam")
+| 0 | 0 | rnu | round-to-nearest-up (add +0.5 LSB)
+| 0 | 1 | rne | round-to-nearest-even
+| 1 | 0 | rdn | round-down (truncate)
+| 1 | 1 | rod | round-to-odd (OR bits into LSB, aka "jam")
+|===
 
 Bits[XLEN-1:2] should be written as zeros.
-----
 
 NOTE: The rounding mode can be set with a single `csrwi` instruction.
 
@@ -192,15 +193,17 @@ The `vxrm` and `vxsat` separate CSRs can also be accessed via fields
 in the floating-point CSR, `fcsr`.  The `fcsr` register must be added
 to systems without floating-point that add a vector extension.
 
-----
-fcsr layout
+.fcsr layout
+[cols="2,4,10"]
+|===
+| Bits | Name   | Description
 
-Bits    Name    Description
-10:9    vxrm    Fixed-point rounding mode
-   8    vxsat   Fixed-point accrued saturation flag
- 7:5    frm     Floating-point rounding mode
- 4:0    fflags  Floating-point accrued exception flags
-----
+
+| 10:9 | vxrm   | Fixed-point rounding mode
+|    8 | vxsat  | Fixed-point accrued saturation flag
+|  7:5 | frm    | Floating-point rounding mode
+|  4:0 | fflags | Floating-point accrued exception flags
+|===
 
 NOTE: The fields are packed into `fcsr` to make context-save/restore
 faster.
@@ -244,30 +247,30 @@ The value in `vsew` sets the dynamic _standard_ _element_ _width_
 VLEN / SEW standard-width elements.  In the base vector extension,
 only SEW up to max(XLEN,FLEN) are required to be supported.
 
-----
-  vsew[2:0] (standard element width) encoding
+.vsew[2:0] (standard element width) encoding
+[cols="1,1,1,13"]
+|===
+3+| vsew[2:0] | SEW
 
- vsew[2:0]    SEW
-  ---        ----
-  000           8
-  001          16
-  010          32
-  011          64
-  100         128
-  101         256
-  110         512
-  111        1024
-----
+| 0 | 0 | 0 |    8
+| 0 | 0 | 1 |   16
+| 0 | 1 | 0 |   32
+| 0 | 1 | 1 |   64
+| 1 | 0 | 0 |  128
+| 1 | 0 | 1 |  256
+| 1 | 1 | 0 |  512
+| 1 | 1 | 1 | 1024
+|===
 
-----
-  Example VLEN = 128 bits
+.Example VLEN = 128 bits
+|===
+| SEW | Elements per vector register
 
-  SEW  Elements per vector register
-   64     2
-   32     4
-   16     8
-    8    16
-----
+| 64 |  2
+| 32 |  4
+| 16 |  8
+|  8 | 16
+|===
 
 ==== Vector Register Grouping (`vlmul`)
 
@@ -283,14 +286,15 @@ of two set by the `vlmul` field in `vtype` (LMUL = 2^`vlmul[1:0]`^).
 The maximum vector length possible in a single vector instruction,
 VLMAX, is then increased by a factor of LMUL.
 
+[cols="1,1,2,2,5,5"]
+|===
+2+| vlmul | LMUL | #groups | VLMAX      | Grouped registers
 
-----
- vlmul  LMUL  #groups   VLMAX        Grouped registers
- 00       1       32      VLEN/SEW   vn (no group)
- 01       2       16    2*VLEN/SEW   vn, vn+1
- 10       4        8    4*VLEN/SEW   vn, ..., vn+3
- 11       8        4    8*VLEN/SEW   vn, ..., vn+7
-----
+| 0 | 0 |   1  |     32  |   VLEN/SEW | vn (no group)
+| 0 | 1 |   2  |     16  | 2*VLEN/SEW | vn, vn+1
+| 1 | 0 |   4  |      8  | 4*VLEN/SEW | vn, ..., vn+3
+| 1 | 1 |   8  |      4  | 8*VLEN/SEW | vn, ..., vn+7
+|===
 
 When `vlmul=01`, then vector operations on register `v` __n__ also
 operate on vector register `v` __n__+1, giving twice the vector length
@@ -908,12 +912,13 @@ calculations. [[sec-mask-vector-logical]]
 Where available, masking is encoded in a single-bit `vm` field in the
  instruction (`inst[25]`).
 
-----
-vm
+[cols="1,15"]
+|===
+| vm | Description
 
-  0    vector result, only where v0[i].LSB = 1
-  1    unmasked
-----
+| 0 | vector result, only where v0[i].LSB = 1
+| 1 | unmasked
+|===
 
 NOTE: In earlier proposals, `vm` was a two-bit field `vm[1:0]` that
 provided both true and complement masking using `v0` as well as
@@ -1247,20 +1252,21 @@ mask bit (see <<sec-vector-mask-encoding>>).
 
 include::vmem-format.adoc[]
 
-----
-rs1[4:0] specifies x register holding base address
-rs2[4:0] specifies x register holding stride
-vs2[4:0] specifies v register holding address offsets
-vs3[4:0] specifies v register holding store data
-vd[4:0]  specifies v register destination of load
+[cols="4,12"]
+|===
+| Field      | Description
 
-vm specifies vector mask
-width[2:0] specifies size of memory elements, and distinguishes from FP scalar
-mop[2:0] specifies memory addressing mode
-nf[2:0] specifies the number of fields in each segment, for segment load/stores
-
-lumop[4:0]/sumop[4:0] are additional fields encoding variants of unit-stride instructions
-----
+| rs1[4:0]   | specifies x register holding base address
+| rs2[4:0]   | specifies x register holding stride
+| vs2[4:0]   | specifies v register holding address offsets
+| vs3[4:0]   | specifies v register holding store data
+| vd[4:0]    | specifies v register destination of load
+| vm         | specifies vector mask
+| width[2:0] | specifies size of memory elements, and distinguishes from FP scalar
+| mop[2:0]   | specifies memory addressing mode
+| nf[2:0]    | specifies the number of fields in each segment, for segment load/stores
+| lumop[4:0]/sumop[4:0] | are additional fields encoding variants of unit-stride instructions
+|===
 
 === Vector Load/Store Addressing Modes
 
@@ -1298,27 +1304,35 @@ requiring bytes use 64b of space in a vector register.
 The vector addressing modes are encoded using the 3-bit `mop[2:0]`
 field.
 
-----
-mop [2:0] encoding for loads
-   0 0 0  zero-extended unit-stride         VLxU,VLE
-   0 0 1  reserved
-   0 1 0  zero-extended strided             VLSxU, VLSE
-   0 1 1  zero-extended indexed             VLXxU, VLXE
-   1 0 0  sign-extended unit-stride         VLx  (x!=E)
-   1 0 1  reserved
-   1 1 0  sign-extended strided             VLSx (x!=E)
-   1 1 1  sign-extended indexed             VLXx (x!=E)
+.encoding for loads
+[cols="1,1,1,7,6"]
+|===
+3+| mop [2:0] | Description | Opcodes
 
-mop [2:0] encoding for stores
-   0 0 0  unit-stride                       VSx
-   0 0 1  reserved
-   0 1 0  strided                           VSSx
-   0 1 1  indexed-ordered                   VSXx
-   1 0 0  reserved
-   1 0 1  reserved
-   1 1 0  reserved
-   1 1 1  indexed-unordered                 VSUXx
-----
+| 0 | 0 | 0 | zero-extended unit-stride | VLxU,VLE
+| 0 | 0 | 1 | reserved                  |
+| 0 | 1 | 0 | zero-extended strided     | VLSxU, VLSE
+| 0 | 1 | 1 | zero-extended indexed     | VLXxU, VLXE
+| 1 | 0 | 0 | sign-extended unit-stride | VLx  (x!=E)
+| 1 | 0 | 1 | reserved                  |
+| 1 | 1 | 0 | sign-extended strided     | VLSx (x!=E)
+| 1 | 1 | 1 | sign-extended indexed     | VLXx (x!=E)
+|===
+
+.encoding for stores
+[cols="1,1,1,7,6"]
+|===
+3+| mop [2:0] | Description | Opcodes
+
+| 0 | 0 | 0 | unit-stride       | VSx
+| 0 | 0 | 1 | reserved          |
+| 0 | 1 | 0 | strided           | VSSx
+| 0 | 1 | 1 | indexed-ordered   | VSXx
+| 1 | 0 | 0 | reserved          |
+| 1 | 0 | 1 | reserved          |
+| 1 | 1 | 0 | reserved          |
+| 1 | 1 | 1 | indexed-unordered | VSUXx
+|===
 
 The vector indexed memory operations have two forms, ordered and
 unordered.  The indexed-unordered stores do not preserve element
@@ -1333,18 +1347,26 @@ Additional unit-stride vector addressing modes are encoded using the
 5-bit `lumop` and `sumop` fields in the unit-stride load and store
 instruction encodings respectively.
 
-----
-lumop[4:0]
-   00000  unit-stride
-   0xxxx  reserved, x!=0
-   10000  unit-stride fault-only-first
-   1xxxx  reserved, x!=0
+.lumop
+[cols="1,1,1,1,1,11"]
+|===
+5+| lumop[4:0] | Description
 
-sumop[4:0]
-   00000  unit-stride
-   0xxxx  reserved, x!=0
-   1xxxx  reserved
-----
+| 0 | 0 | 0 | 0 | 0 | unit-stride
+| 0 | x | x | x | x | reserved, x!=0
+| 1 | 0 | 0 | 0 | 0 | unit-stride fault-only-first
+| 1 | x | x | x | x | reserved, x!=0
+|===
+
+.sumop
+[cols="1,1,1,1,1,11"]
+|===
+5+| sumop[4:0] | Description
+
+| 0 | 0 | 0 | 0 | 0 | unit-stride
+| 0 | x | x | x | x | reserved, x!=0
+| 1 | x | x | x | x | reserved
+|===
 
 The `nf[2:0]` field encodes the number of fields in each segment.  For
 regular vector loads and stores, `nf`=0, indicating that a single
@@ -1366,22 +1388,23 @@ stores.  Three of the width types encode vector loads and stores that
 move fixed-size memory elements of 8 bits, 16 bits, or 32 bits, while
 the fourth encoding moves SEW-bit memory elements.
 
-----
-                     Width   Mem     Reg       Opcode
-                     [2:0]   bits    bits      
+[cols="4,1,1,1,3,3,3"]
+|===
+|                  3+| Width [2:0] | Mem bits | Reg bits | Opcode
 
-Standard scalar FP    001     16     FLEN      FLH/FSH
-Standard scalar FP    010     32     FLEN      FLW/FSW
-Standard scalar FP    011     64     FLEN      FLD/FSD
-Standard scalar FP    100    128     FLEN      FLQ/FSQ
-Vector byte           000   vl*8     vl*SEW    VxB
-Vector halfword       101   vl*16    vl*SEW    VxH
-Vector word           110   vl*32    vl*SEW    VxW
-Vector element        111   vl*SEW   vl*SEW    VxE
+| Standard scalar FP | 0 | 0 | 1 |   16   | FLEN   | FLH/FSH
+| Standard scalar FP | 0 | 1 | 0 |   32   | FLEN   | FLW/FSW
+| Standard scalar FP | 0 | 1 | 1 |   64   | FLEN   | FLD/FSD
+| Standard scalar FP | 1 | 0 | 0 |  128   | FLEN   | FLQ/FSQ
+| Vector byte        | 0 | 0 | 0 | vl*8   | vl*SEW | VxB
+| Vector halfword    | 1 | 0 | 1 | vl*16  | vl*SEW | VxH
+| Vector word        | 1 | 1 | 0 | vl*32  | vl*SEW | VxW
+| Vector element     | 1 | 1 | 1 | vl*SEW | vl*SEW | VxE
+|===
 
 Mem bits is the size of element accessed in memory
+
 Reg bits is the size of element accessed in register
-----
 
 Fixed-sized vector loads can optionally sign or zero-extend their
 memory element into the destination register element if the register
@@ -1532,7 +1555,7 @@ in future vector extensions.
 === Vector Load/Store Segment Instructions (`Zvlsseg`)
 
 NOTE: This is being written as an extension but could be mandated in
-some profiles. 
+some profiles.
 
 The vector load/store segment instructions move multiple contiguous
 fields in memory to and from consecutively numbered vector registers.
@@ -1549,24 +1572,27 @@ The three-bit `nf` field in the vector instruction encoding is an
 unsigned integer that contains one less than the number of fields per
 segment, _NFIELDS_.
 
-----
-nf[2:0] NFIELDS 
- 000      1     
- 001      2     
- 010      3     
- 011      4     
- 100      5     
- 101      6     
- 110      7     
- 111      8     
-----
+[cols="1,1,1,13"]
+|===
+3+| nf[2:0] | NFIELDS
+
+| 0 | 0 | 0 | 1
+| 0 | 0 | 1 | 2
+| 0 | 1 | 0 | 3
+| 0 | 1 | 1 | 4
+| 1 | 0 | 0 | 5
+| 1 | 0 | 1 | 6
+| 1 | 1 | 0 | 7
+| 1 | 1 | 1 | 8
+|===
+
 ////
 ----
 nf[2:0] NFIELDS  vector reg alignment
  000      1       1 (v0, v1, ..., v31)
  001      2       2 (v0, v2, ..., v30)
  010      3       4 (v0, v4, ..., v28)
- 011      4       4 
+ 011      4       4
  100      5       8 (v0, v8, v16, v24)
  101      6       8
  110      7       8
@@ -1645,7 +1671,7 @@ field to be stored in each segment.
     # v9 holds imaginary
 ----
 
-There are also fault-only-first versions of the unit-stride instructions. 
+There are also fault-only-first versions of the unit-stride instructions.
 
 ----
     # Template for vector fault-only-first unit-stride segment loads and stores.
@@ -1696,7 +1722,7 @@ address in the `rs1` field to byte offsets in vector register `vs2`.
                               #  and bytes at addresses x5+v3[i]+2 into v6[i].
 
     # Examples
-    vsxseg2w.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]  
+    vsxseg2w.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
                               #   and words from v3[i] to address x5+v5[i]+4
 ----
 
@@ -1756,21 +1782,22 @@ hart.
 Vector AMOs provide no ordering guarantee between element operations
 in the same vector AMO instruction.
 
-----
-Vector AMO width encoding
-                     Width   Mem     Reg      Opcode
-                     [2:0]   bits    bits
+.Vector AMO width encoding
+[cols="4,1,1,1,3,3,3"]
+|===
+|                  3+| Width [2:0] | Mem bits | Reg bits | Opcode
 
-Standard scalar AMO   010     32     XLEN     AMO*.W
-Standard scalar AMO   011     64     XLEN     AMO*.D
-Standard scalar AMO   100    128     XLEN     AMO*.Q
-Vector AMO            110     32    vl*SEW    VAMO*W.V
-Vector AMO            111     64    vl*SEW    VAMO*D.V
-Vector AMO            000    128    vl*SEW    VAMO*Q.V
+| Standard scalar AMO | 0 | 1 | 0 |  32 |  XLEN  | AMO*.W
+| Standard scalar AMO | 0 | 1 | 1 |  64 |  XLEN  | AMO*.D
+| Standard scalar AMO | 1 | 0 | 0 | 128 |  XLEN  | AMO*.Q
+| Vector AMO          | 1 | 1 | 0 |  32 | vl*SEW | VAMO*W.V
+| Vector AMO          | 1 | 1 | 1 |  64 | vl*SEW | VAMO*D.V
+| Vector AMO          | 0 | 0 | 0 | 128 | vl*SEW | VAMO*Q.V
+|===
 
 Mem bits is the size of element accessed in memory
+
 Reg bits is the size of element accessed in register
-----
 
 The vector AMO width encoding flips the high bit of the corresponding
 scalar AMO width encoding.  SEW must be at least as wide as the AMO
@@ -1789,18 +1816,21 @@ required by the standard scalar base architecture.
 The vector `amoop[4:0]` field uses the same encoding as the scalar
 5-bit AMO instruction field, except that LR and SC are not supported.
 
-----
-amoop   opcode
-00001   vamoswap
-00000   vamoadd
-00100   vamoxor
-01100   vamoand
-01000   vamoor
-10000   vamomin
-10100   vamomax
-11000   vamominu
-11100   vamomaxu
-----
+.amoop
+[cols="1,1,1,1,1,11"]
+|===
+5+| amoop           | opcode
+
+| 0 | 0 | 0 | 0 | 1 | vamoswap
+| 0 | 0 | 0 | 0 | 0 | vamoadd
+| 0 | 0 | 1 | 0 | 0 | vamoxor
+| 0 | 1 | 1 | 0 | 0 | vamoand
+| 0 | 1 | 0 | 0 | 0 | vamoor
+| 1 | 0 | 0 | 0 | 0 | vamomin
+| 1 | 0 | 1 | 0 | 0 | vamomax
+| 1 | 1 | 0 | 0 | 0 | vamominu
+| 1 | 1 | 1 | 0 | 0 | vamomaxu
+|===
 
 == Vector Memory Alignment Constraints
 
@@ -1837,18 +1867,20 @@ include::valu-format.adoc[]
 
 The `funct3` field encodes the operand type and source locations.
 
-----
- funct3[2:0]    Operands          Source of scalar(s)
+.funct3
+[cols="1,1,1,3,5,5"]
+|===
+3+| funct3[2:0] | Operands | Source of scalar(s) |
 
-0 0 0   OPIVV   vector-vector           -
-0 0 1   OPFVV   vector-vector           -
-0 1 0   OPMVV   vector-vector           -
-0 1 1   OPIVI   vector-immediate  imm[4:0]
-1 0 0   OPIVX   vector-scalar     GPR x register rs1
-1 0 1   OPFVF   vector-scalar     FP f register rs1
-1 1 0   OPMVX   vector-scalar     GPR x register rs1
-1 1 1   OPCFG   scalars-imms      GPR x register rs1 & rs2/imm
-----
+| 0 | 0 | 0 | OPIVV | vector-vector    |       -
+| 0 | 0 | 1 | OPFVV | vector-vector    |       -
+| 0 | 1 | 0 | OPMVV | vector-vector    |       -
+| 0 | 1 | 1 | OPIVI | vector-immediate | imm[4:0]
+| 1 | 0 | 0 | OPIVX | vector-scalar    | GPR x register rs1
+| 1 | 0 | 1 | OPFVF | vector-scalar    | FP f register rs1
+| 1 | 1 | 0 | OPMVX | vector-scalar    | GPR x register rs1
+| 1 | 1 | 1 | OPCFG | scalars-imms     | GPR x register rs1 & rs2/imm
+|===
 
 Integer operations are performed using unsigned or two's-complement
 signed integer arithmetic depending on the opcode.
@@ -1916,7 +1948,7 @@ vfop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i]*vs2[i] + vd[i]
 vfop.vf vd, rs1, vs2, vm  # vd[i] = f[rs1]*vs2[i] + vd[i]
 
 # Floating-point operations overwriting first source
-vfop.vv vd, vs1, vs2, vm  # vd[i] = vd[i]*vs1[i] + vs2[i] 
+vfop.vv vd, vs1, vs2, vm  # vd[i] = vd[i]*vs1[i] + vs2[i]
 vfop.vf vd, rs1, vs2, vm  # vd[i] = vd[i]*f[rs1] + vs2[i]
 ----
 
@@ -2427,7 +2459,7 @@ vmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
 vmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
 # Integer multiply-sub, overwrite minuend
-vmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i] 
+vmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
 vmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 
 # Integer multiply-add, overwrite multiplicand
@@ -2455,11 +2487,11 @@ vwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
 vwmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
 # Widening unsigned-integer multiply-sub, overwrite minuend
-vwmsacu.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i] 
+vwmsacu.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
 vwmsacu.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 
 # Widening signed-integer multiply-sub, overwrite minuend
-vwmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i] 
+vwmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
 vwmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 ----
 
@@ -2655,13 +2687,13 @@ destination accumulator, with saturation if the result would overflow
 the destination accumulator. The `vxsat` bit is set if any overflow
 occurs.
 
-----
-        Product  Rounded                Guard
- SEW     Width   Product   Accumulator   Bits
-   8       16       12         16         4
-  16       32       24         32         8
-  32       64       48         64        16
-----
+|===
+| SEW | Product Width | Rounded Product | Guard Accumulator |  Bits
+
+|   8 | 16 | 12 | 16 |   4
+|  16 | 32 | 24 | 32 |   8
+|  32 | 64 | 48 | 64 |  16
+|===
 
 ----
 # Widening unsigned-integer scaled multiply-accumulate
@@ -2703,12 +2735,12 @@ amounts up to 31 only and is effectively zero-extended for SEW of >
  # Scaling shift right logical
  vssrl.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
  vssrl.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
- vssrl.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)   
+ vssrl.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)
 
  # Scaling shift right arithmetic
  vssra.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
  vssra.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
- vssra.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)   
+ vssra.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)
 ----
 
 === Vector Narrowing Fixed-Point Clip Instructions
@@ -3272,28 +3304,34 @@ common uses of mask logical operations:
 The set of eight mask logical instructions can generate any of the 16
 possibly binary logical functions of the two input masks:
 
-----
-inputs
-0 0 1 1 src1
-0 1 0 1 src2
+[cols="1,1,1,1,12"]
+|===
+4+| inputs |
 
-output  instruction                 pseudoinstruction
-0 0 0 0 vmxor.mm vd, vd, vd         vmclr.m vd
-1 0 0 0 vmnor.mm vd, src1, src2
-0 1 0 0 vmandnot.mm vd, src2, src1
-1 1 0 0 vmnand.mm vd, src1, src1    vmnot.m vd, src1
-0 0 1 0 vmandnot.mm vd, src1, src2
-1 0 1 0 vmnand.mm vd, src2, src2    vmnot.m vd, src2
-0 1 1 0 vmxor.mm vd, src1, src2
-1 1 1 0 vmnand.mm vd, src1, src2
-0 0 0 1 vmand.mm vd, src1, src2
-1 0 0 1 vmxnor.mm vd, src1, src2
-0 1 0 1 vmand.mm vd, src2, src2     vmmv.m vd, src2
-1 1 0 1 vmornot.mm vd, src2, src1
-0 0 1 1 vmand.mm vd, src1, src1     vmmv.m vd, src1
-1 0 1 1 vmornot.mm vd, src1, src2
-1 1 1 1 vmxnor.mm vd, vd, vd        vmset.m vd
-----
+| 0 | 0 | 1 | 1 | src1
+| 0 | 1 | 0 | 1 | src2
+|===
+
+[cols="1,1,1,1,6,6"]
+|===
+4+| output  | instruction | pseudoinstruction
+
+| 0 | 0 | 0 | 0 | vmxor.mm vd, vd, vd         | vmclr.m vd
+| 1 | 0 | 0 | 0 | vmnor.mm vd, src1, src2     |
+| 0 | 1 | 0 | 0 | vmandnot.mm vd, src2, src1  |
+| 1 | 1 | 0 | 0 | vmnand.mm vd, src1, src1    | vmnot.m vd, src1
+| 0 | 0 | 1 | 0 | vmandnot.mm vd, src1, src2  |
+| 1 | 0 | 1 | 0 | vmnand.mm vd, src2, src2    | vmnot.m vd, src2
+| 0 | 1 | 1 | 0 | vmxor.mm vd, src1, src2     |
+| 1 | 1 | 1 | 0 | vmnand.mm vd, src1, src2    |
+| 0 | 0 | 0 | 1 | vmand.mm vd, src1, src2     |
+| 1 | 0 | 0 | 1 | vmxnor.mm vd, src1, src2    |
+| 0 | 1 | 0 | 1 | vmand.mm vd, src2, src2     | vmmv.m vd, src2
+| 1 | 1 | 0 | 1 | vmornot.mm vd, src2, src1   |
+| 0 | 0 | 1 | 1 | vmand.mm vd, src1, src1     | vmmv.m vd, src1
+| 1 | 0 | 1 | 1 | vmornot.mm vd, src1, src2   |
+| 1 | 1 | 1 | 1 | vmxnor.mm vd, vd, vd        | vmset.m vd
+|===
 
 NOTE: The vector mask logical instructions are designed to be easily
 fused with a following masked vector operation to effectively expand
@@ -4008,7 +4046,7 @@ support for some forms of narrow-width and mixed-width arithmetic, and
 also to allow outer-loop vectorization of short vector and matrix
 operations.  In addition to modifying the behavior of some existing
 instructions, a few new instructions are provided to operate on
-vectors when EDIV > 1. 
+vectors when EDIV > 1.
 
 NOTE: This is written as an extension for now, but could become
 part of mandatory base in Unix vector profile.
@@ -4022,45 +4060,39 @@ The `vediv` field encodes the number of ways, _EDIV_, into which each
 SEW-bit element is subdivided into equal sub-elements.  A vector
 register group is now considered to hold a vector of sub-vectors.
 
-----
-vediv Division
-[1:0] EDIV
+[cols="1,1,1,13"]
+|===
+3+| vediv [1:0] | Division EDIV
 
- 0 0  1     (undivided, as in base)
- 0 1  2     two equal sub-elements
- 1 0  4     four equal sub-elements
- 1 1  8     eight equal sub-elements
-----
+| 0 | 0 | 1 | (undivided, as in base)
+| 0 | 1 | 2 | two equal sub-elements
+| 1 | 0 | 4 | four equal sub-elements
+| 1 | 1 | 8 | eight equal sub-elements
+|===
 
-----
+|===
+.2+| SEW .2+| EDIV .2+| Sub-element 2+| Integer accumulator 3+| FP sum/dot accumulator
+| sum | dot | FLEN=32 | FLEN=64 | FLEN=128
 
-                        Integer     Integer       FP sum/dot   FP sum/dot   FP sum/dot
-                        sum         dot           accumulator  accumulator  accumulator
-SEW  EDIV  Sub-element  accumulator accumulator    FLEN=32      FLEN=64      FLEN=128
-  8b   2      4b          8b            8b          -            -            -
-  8b   4      2b          8b            8b          -            -            -
-  8b   8      1b          8b            8b          -            -            -
-
- 16b   2      8b         16b           16b          -            -            -
- 16b   4      4b          8b           16b          -            -            -
- 16b   8      2b          8b            8b          -            -            -
-
- 32b   2     16b         32b           32b          32b          32b          32b
- 32b   4      8b         16b           32b           -            -            -
- 32b   8      4b          8b           16b           -            -            -
-
- 64b   2     32b         64b           64b          32b          64b          64b
- 64b   4     16b         32b           64b          32b          32b          32b
- 64b   8      8b         16b           32b           -            -            -
-
-128b   2     64b        128b          128b          32b          64b         128b
-128b   4     32b         64b          128b          32b          64b          64b
-128b   8     16b         32b           64b          32b          32b          32b
-
-256b   2    128b        256b          256b          32b          64b         128b
-256b   4     64b        128b          256b          32b          64b         128b
-256b   8     32b         64b          128b          32b          64b          64b
-----
+|   8b | 2 |   4b |   8b |   8b | -   | -   |  -
+|   8b | 4 |   2b |   8b |   8b | -   | -   |  -
+|   8b | 8 |   1b |   8b |   8b | -   | -   |  -
+|  16b | 2 |   8b |  16b |  16b | -   | -   |  -
+|  16b | 4 |   4b |   8b |  16b | -   | -   |  -
+|  16b | 8 |   2b |   8b |   8b | -   | -   |  -
+|  32b | 2 |  16b |  32b |  32b | 32b | 32b |  32b
+|  32b | 4 |   8b |  16b |  32b |  -  |  -  |   -
+|  32b | 8 |   4b |   8b |  16b |  -  |  -  |   -
+|  64b | 2 |  32b |  64b |  64b | 32b | 64b |  64b
+|  64b | 4 |  16b |  32b |  64b | 32b | 32b |  32b
+|  64b | 8 |   8b |  16b |  32b |  -  |  -  |   -
+| 128b | 2 |  64b | 128b | 128b | 32b | 64b | 128b
+| 128b | 4 |  32b |  64b | 128b | 32b | 64b |  64b
+| 128b | 8 |  16b |  32b |  64b | 32b | 32b |  32b
+| 256b | 2 | 128b | 256b | 256b | 32b | 64b | 128b
+| 256b | 4 |  64b | 128b | 256b | 32b | 64b | 128b
+| 256b | 8 |  32b |  64b | 128b | 32b | 64b |  64b
+|===
 
 Each implementation defines a minimum size for a sub-element, _SELEN_,
 which must be at most 8 bits.
