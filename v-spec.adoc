@@ -134,7 +134,7 @@ CSR to zero.
 
 If the value in the `vstart` register is greater than or equal to the
 vector length `vl` then no element operations are performed, nor are the
-elements at the end of the destination vector past `vl` are zeroed.  The
+elements at the end of the destination vector past `vl` zeroed.  The
 `vstart` register is then reset to zero.
 
 The `vstart` CSR is defined to have only enough writeable bits to hold
