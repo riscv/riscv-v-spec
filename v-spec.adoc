@@ -129,6 +129,9 @@ element number given in the `vstart` CSR, leaving earlier elements in
 the destination vector undisturbed, and to reset the `vstart` CSR to
 zero at the end of execution.
 
+NOTE: All vector instructions, including `vsetvl{i}`, reset the `vstart`
+CSR to zero.
+
 If the value in the `vstart` register is greater than or equal to the
 vector length `vl` then no element operations are performed, though
 elements at the end of the destination vector past `vl` are zeroed,
