@@ -333,9 +333,8 @@ If the `vill` bit is set, then any attempt to execute a vector
 instruction (other than a vector configuration instruction) will raise
 an illegal instruction exception.
 
-When `vill` bit is set, the remaining fields in `vtype` will hold
-values that are the "closest" legal value to the requested setting as
-described below in the description of `vsetvl{i}`.
+When the `vill` bit is set, the other XLEN-1 bits in `vtype` shall be
+zero.
 
 === Vector Length Register `vl`
 
@@ -1092,15 +1091,8 @@ Examples:
 ----
 
 If the `vtype` setting is not supported by the implementation, then
-the `vill` bit is set in `vtype`, and the other defined fields are set
-to the "closest" supported value as defined below:
-
-* `vsew` is set to the largest legal value equal to or smaller than the requested
-setting
-* `vlmul` is set to the requested value, as all LMUL settings must be supported
-* `vediv` is set to the largest legal value equal to or smaller than the requested subdivide for the value that is in `vsew` (this might not be the requested `vsew`)
-* unused bits in `vtype` are set to zero.
-* The `vl` CSR is set to zero if the requested `vtype` is illegal.
+the `vill` bit is set in `vtype`, the remaining bits in `vtype` are
+set to zero, and the `vl` register is also set to zero.
 
 The requested application vector length (AVL) is passed in `rs1` as an
 unsigned integer.  Using `x0` as the `rs1` register specifier, encodes
@@ -1113,7 +1105,8 @@ NOTE: Earlier drafts required a trap when setting `vtype` to an
 illegal value.  However, this would have added the first
 data-dependent trap on a CSR write to the ISA.  The current scheme
 also supports light-weight runtime interrogation of the supported
-vector unit configurations.
+vector unit configurations by checking if `vill` is clear for a given
+setting.
 
 === Constraints on Setting `vl`
 
