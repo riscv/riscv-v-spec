@@ -3190,14 +3190,14 @@ the same SEW width.  Overflows wrap around on arithmetic sums.
 
 ----
     # Simple reductions, where [*] denotes all active elements:
-    vredsum.vs  vd, vs2, vs1, vm   # vd[0] =  sum( vs2[*] , vs1[0] )
-    vredmaxu.vs vd, vs2, vs1, vm   # vd[0] = maxu( vs2[*] , vs1[0] )
-    vredmax.vs  vd, vs2, vs1, vm   # vd[0] =  max( vs2[*] , vs1[0] )
-    vredminu.vs vd, vs2, vs1, vm   # vd[0] = minu( vs2[*] , vs1[0] )
-    vredmin.vs  vd, vs2, vs1, vm   # vd[0] =  min( vs2[*] , vs1[0] )
-    vredand.vs  vd, vs2, vs1, vm   # vd[0] =  and( vs2[*] , vs1[0] )
-    vredor.vs   vd, vs2, vs1, vm   # vd[0] =   or( vs2[*] , vs1[0] )
-    vredxor.vs  vd, vs2, vs1, vm   # vd[0] =  xor( vs2[*] , vs1[0] )
+    vredsum.vs  vd, vs2, vs1, vm   # vd[0] =  sum( vs1[0] , vs2[*] )
+    vredmaxu.vs vd, vs2, vs1, vm   # vd[0] = maxu( vs1[0] , vs2[*] )
+    vredmax.vs  vd, vs2, vs1, vm   # vd[0] =  max( vs1[0] , vs2[*] )
+    vredminu.vs vd, vs2, vs1, vm   # vd[0] = minu( vs1[0] , vs2[*] )
+    vredmin.vs  vd, vs2, vs1, vm   # vd[0] =  min( vs1[0] , vs2[*] )
+    vredand.vs  vd, vs2, vs1, vm   # vd[0] =  and( vs1[0] , vs2[*] )
+    vredor.vs   vd, vs2, vs1, vm   # vd[0] =   or( vs1[0] , vs2[*] )
+    vredxor.vs  vd, vs2, vs1, vm   # vd[0] =  xor( vs1[0] , vs2[*] )
 ----
 
 === Vector Widening Integer Reduction Instructions
@@ -3229,9 +3229,12 @@ elements before summing them.
 ----
 
 The `vfredosum` instruction must sum the floating-point values in
-element order, while the `vfredsum` is allowed to perform the
+element order, starting with the scalar in `vs1[0]`--that is, it
+performs the computation
+`(((vs1[0] + vs2[0]) + vs2[1]) + ...) + vs2[vl-1]`.
+By contrast, `vfredsum` is allowed to perform the
 reduction in any order, provided the final result corresponds to some
-sequential ordering of `vl`-1 floating-point add operations.
+sequential ordering of `vl` floating-point add operations.
 
 NOTE: The ordered reduction supports compiler autovectorization, while
 the unordered FP sum allows for faster implementations.
