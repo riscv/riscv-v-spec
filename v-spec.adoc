@@ -3224,10 +3224,10 @@ elements before summing them.
 
 ----
     # Unsigned sum reduction into double-width accumulator
-    vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = sum(SEW) + 2*SEW
+    vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(zero-extend(SEW)) 
 
     # Signed sum reduction into double-width accumulator
-    vwredsum.vs  vd, vs2, vs1, vm   # 2*SEW = sum(SEW) + 2*SEW
+    vwredsum.vs  vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(sign-extend(SEW))
 ----
 
 === Vector Single-Width Floating-Point Reduction Instructions
@@ -3262,8 +3262,8 @@ read and write a double-width reduction result.
 
 ----
  # Simple reductions.
- vfwredosum.vs vd, vs2, vs1, vm # Ordered reduce 2*SEW = sum(SEW) + 2*SEW
- vfwredsum.vs vd, vs2, vs1, vm  # Unordered reduce  2*SEW = sum(SEW) + 2*SEW
+ vfwredosum.vs vd, vs2, vs1, vm # Ordered reduce 2*SEW =  2*SEW + sum(promote(SEW))
+ vfwredsum.vs vd, vs2, vs1, vm  # Unordered reduce  2*SEW = 2*SEW + sum(promote(SEW))
 ----
 
 The reduction of the SEW-width elements is performed as in the
