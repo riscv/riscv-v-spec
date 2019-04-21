@@ -3254,15 +3254,8 @@ read and write a double-width reduction result.
 ----
 
 The reduction of the SEW-width elements is performed as in the
-single-width reduction case, with the final SEW-width result promoted
-to 2*SEW bits before adding to the 2*SEW-width accumulator.
-
-For the `vfwredsum.vs` instruction, implementations may optionally
-perform the reduction by first promoting elements to the wider (2*SEW)
-format.
-
-NOTE: The `vfwredosum.vs` instruction must round as if performed
-sequentially in the original format.
+single-width reduction case, with the elements in `vs2` promoted
+to 2*SEW bits before adding to the 2*SEW-bit accumulator.
 
 == Vector Mask Instructions
 
