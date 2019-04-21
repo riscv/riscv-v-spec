@@ -357,6 +357,23 @@ type. The smallest vector implementation, RV32IV, would need at least
 six bits in `vl` to hold the values 0-32 (with VLEN=32, LMUL=8 and
 SEW=8 results in VLMAX of 32).
 
+=== State of Vector Extension at Reset
+
+The vector extension must have a consistent state at reset.  In
+particular, `vtype` and `vl` must have values that can be read and
+then restored with a single `vsetvl` instruction.
+
+NOTE: It is recommended that at reset, `vtype.vill` is set, the
+remaining bits in `vtype` are zero, and `vl` is set to zero.
+
+The `vstart`, `vxrm`, `vxsat` CSRs can have arbitrary values at reset.
+
+NOTE: Any use of the vector unit will require an initial `vsetvl{i}`,
+which will reset `vstart.  The `vxrm` and `vxsat` fields should be
+reset explicitly in software before use.
+
+The vector registers can have arbitrary values at reset.
+
 == Mapping of Vector Elements to Vector Register State
 
 The following diagrams illustrate how different width elements are
