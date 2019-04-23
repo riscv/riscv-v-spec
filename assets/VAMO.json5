@@ -1,10 +1,10 @@
 {reg: [
-  {bits: 7,  name: 0b0101111, attr: 'VAMO'},
-  {bits: 5,  name: 'vs3 / vvd', attr: 'source / destination', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base', type: 4},
-  {bits: 5,  name: 'vs2', attr: 'address', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 1,  name: 'wd'},
-  {bits: 5,  name: 'amoop'},
+  {bits: 7, name: 0x2f, attr: 'VAMO'},
+  {bits: 5, name: 'vs3 / vvd', attr: 'source / destination', type: 2},
+  {bits: 3, name: 'width'},
+  {bits: 5, name: 'rs1', attr: 'base', type: 4},
+  {bits: 5, name: 'vs2', attr: 'address', type: 2},
+  {bits: 1, name: 'vm'},
+  {bits: 1, name: 'wd'},
+  {bits: 5, name: 'amoop'},
 ]}

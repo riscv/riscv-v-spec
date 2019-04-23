@@ -1,13 +1,13 @@
 {reg: [
-  {bits: 7,  name: 0b0000111, attr: [
+  {bits: 7, name: 0x07, attr: [
     'VLXxU, VLXE zero-extended',
     'VLXxU sign-extended'
   ]},
-  {bits: 5,  name: 'vd', attr: 'destination of load', type: 2},
-  {bits: 3,  name: 'width'},
-  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
-  {bits: 5,  name: 'vs2', attr: 'address offsets', type: 2},
-  {bits: 1,  name: 'vm'},
-  {bits: 3,  name: 'mop', attr: [3, 7]},
-  {bits: 3,  name: 'nf'},
+  {bits: 5, name: 'vd', attr: 'destination of load', type: 2},
+  {bits: 3, name: 'width'},
+  {bits: 5, name: 'rs1', attr: 'base address', type: 4},
+  {bits: 5, name: 'vs2', attr: 'address offsets', type: 2},
+  {bits: 1, name: 'vm'},
+  {bits: 3, name: 'mop', attr: [3, 7]},
+  {bits: 3, name: 'nf'},
 ]}
