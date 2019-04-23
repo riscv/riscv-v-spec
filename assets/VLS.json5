@@ -1,0 +1,13 @@
+{reg: [
+  {bits: 7,  name: 0b0000111, attr: [
+    'VLSxU, VLSE zero-extended',
+    'VLSxU sign-extended'
+  ]},
+  {bits: 5,  name: 'vd', attr: 'destination of load', type: 2},
+  {bits: 3,  name: 'width'},
+  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
+  {bits: 5,  name: 'rs2', attr: 'stride', type: 4},
+  {bits: 1,  name: 'vm'},
+  {bits: 3,  name: 'mop', attr: [2, 6]},
+  {bits: 3,  name: 'nf'},
+]}

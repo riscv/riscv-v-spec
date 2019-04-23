@@ -1,0 +1,10 @@
+{reg: [
+  {bits: 7,  name: 0b0100111, attr: 'VSx'},
+  {bits: 5,  name: 'vs3', attr: 'store data', type: 2},
+  {bits: 3,  name: 'width'},
+  {bits: 5,  name: 'rs1', attr: 'base address', type: 4},
+  {bits: 5,  name: 0x100, attr: 'sumop'},
+  {bits: 1,  name: 'vm'},
+  {bits: 3,  name: 0x100, attr: 'mop'},
+  {bits: 3,  name: 'nf'},
+]}

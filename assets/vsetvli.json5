@@ -1,0 +1,8 @@
+{reg: [
+  {bits: 7,  name: 0b1010111, attr: 'vsetvli'},
+  {bits: 5,  name: 'rd', type: 4},
+  {bits: 3,  name: 7},
+  {bits: 5,  name: 'rs1', type: 4},
+  {bits: 11, name: 'zimm[1:0]', type: 5},
+  {bits: 1,  name: '0'},
+]}

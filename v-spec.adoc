@@ -847,13 +847,41 @@ floating-point load/store 12-bit immediate field to provide further
 vector instruction encoding, with bit 25 holding the standard vector
 mask bit (see <<sec-vector-mask-encoding>>).
 
-include::vmem-format.adoc[]
 
-include::vamo-format.adoc[]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLxU.json5[link="VLxU.json5"]
 
-include::valu-format.adoc[]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLS.json5[link="VLS.json5"]
 
-include::vcfg-format.adoc[]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLX.json5[link="VLX.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSx.json5[link="VSx.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSSx.json5[link="VSSx.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSXx.json5[link="VSXx.json5"]
+
+
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VAMO.json5[link="VAMO.json5"]
+
+
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPxVV.json5[link="OPxVV.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPMVV.json5[link="OPMVV.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPIVI.json5[link="OPIVI.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPxVx.json5[link="OPxVx.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPMVX.json5[link="OPMVX.json5"]
+
+
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/vsetvli.json5[link="vsetvli.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/vsetvl.json5[link="vsetvl.json5"]
+
 
 Vector instructions can have scalar or vector source operands and
 produce scalar or vector results, and most vector instructions can be
@@ -1078,7 +1106,11 @@ arguments, and writes the new value of `vl` into `rd`.
 The new `vtype` setting is encoded in the immediate fields of
 `vsetvli` and in the `rs2` register for `vsetvl`.
 
-include::vcfg-format.adoc[]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/vsetvli.json5[link="vsetvli.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/vsetvl.json5[link="vsetvl.json5"]
+
 
 include::vtype-format.adoc[]
 
@@ -1260,7 +1292,17 @@ floating-point load/store 12-bit immediate field to provide further
 vector instruction encoding, with bit 25 holding the standard vector
 mask bit (see <<sec-vector-mask-encoding>>).
 
-include::vmem-format.adoc[]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLxU.json5[link="VLxU.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLS.json5[link="VLS.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLX.json5[link="VLX.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSx.json5[link="VSx.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSSx.json5[link="VSSx.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSXx.json5[link="VSXx.json5"]
 
 [cols="4,12"]
 |===
@@ -1750,7 +1792,7 @@ Vector AMO operations are encoded using the unused width encodings
 under the standard AMO major opcode.  Each active element performs an
 atomic read-modify-write of a single memory location.
 
-include::vamo-format.adoc[]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VAMO.json5[link="VAMO.json5"]
 
 ----
 vs2[4:0] specifies v register holding address
@@ -1871,7 +1913,17 @@ The vector arithmetic instructions use a new major opcode (OP-V =
 1010111~2~) which neighbors OP-FP.  The three-bit `funct3` field is
 used to define sub-categories of vector instructions.
 
-include::valu-format.adoc[]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPxVV.json5[link="OPxVV.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPMVV.json5[link="OPMVV.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPIVI.json5[link="OPIVI.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPxVx.json5[link="OPxVx.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPMVX.json5[link="OPMVX.json5"]
+
 
 === Vector Arithmetic Instruction encoding
 
@@ -3224,7 +3276,7 @@ elements before summing them.
 
 ----
     # Unsigned sum reduction into double-width accumulator
-    vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(zero-extend(SEW)) 
+    vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(zero-extend(SEW))
 
     # Signed sum reduction into double-width accumulator
     vwredsum.vs  vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(sign-extend(SEW))
