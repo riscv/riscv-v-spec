@@ -848,39 +848,39 @@ vector instruction encoding, with bit 25 holding the standard vector
 mask bit (see <<sec-vector-mask-encoding>>).
 
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLxU.json5[link="VLxU.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VLxU.json5[link="assets/VLxU.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLS.json5[link="VLS.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VLS.json5[link="assets/VLS.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLX.json5[link="VLX.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VLX.json5[link="assets/VLX.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSx.json5[link="VSx.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VSx.json5[link="assets/VSx.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSSx.json5[link="VSSx.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VSSx.json5[link="assets/VSSx.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSXx.json5[link="VSXx.json5"]
-
-
-
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VAMO.json5[link="VAMO.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VSXx.json5[link="assets/VSXx.json5"]
 
 
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPxVV.json5[link="OPxVV.json5"]
-
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPMVV.json5[link="OPMVV.json5"]
-
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPIVI.json5[link="OPIVI.json5"]
-
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPxVx.json5[link="OPxVx.json5"]
-
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPMVX.json5[link="OPMVX.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VAMO.json5[link="assets/VAMO.json5"]
 
 
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/vsetvli.json5[link="vsetvli.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPxVV.json5[link="assets/OPxVV.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/vsetvl.json5[link="vsetvl.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPMVV.json5[link="assets/OPMVV.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPIVI.json5[link="assets/OPIVI.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPxVx.json5[link="assets/OPxVx.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPMVX.json5[link="assets/OPMVX.json5"]
+
+
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvli.json5[link="assets/vsetvli.json5"]
+
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvl.json5[link="assets/vsetvl.json5"]
 
 
 Vector instructions can have scalar or vector source operands and
@@ -1107,9 +1107,9 @@ The new `vtype` setting is encoded in the immediate fields of
 `vsetvli` and in the `rs2` register for `vsetvl`.
 
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/vsetvli.json5[link="vsetvli.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvli.json5[link="assets/vsetvli.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/vsetvl.json5[link="vsetvl.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvl.json5[link="assets/vsetvl.json5"]
 
 
 include::vtype-format.adoc[]
@@ -1292,17 +1292,17 @@ floating-point load/store 12-bit immediate field to provide further
 vector instruction encoding, with bit 25 holding the standard vector
 mask bit (see <<sec-vector-mask-encoding>>).
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLxU.json5[link="VLxU.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VLxU.json5[link="assets/VLxU.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLS.json5[link="VLS.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VLS.json5[link="assets/VLS.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VLX.json5[link="VLX.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VLX.json5[link="assets/VLX.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSx.json5[link="VSx.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VSx.json5[link="assets/VSx.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSSx.json5[link="VSSx.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VSSx.json5[link="assets/VSSx.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VSXx.json5[link="VSXx.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VSXx.json5[link="assets/VSXx.json5"]
 
 [cols="4,12"]
 |===
@@ -1792,7 +1792,7 @@ Vector AMO operations are encoded using the unused width encodings
 under the standard AMO major opcode.  Each active element performs an
 atomic read-modify-write of a single memory location.
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/VAMO.json5[link="VAMO.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/VAMO.json5[link="assets/VAMO.json5"]
 
 ----
 vs2[4:0] specifies v register holding address
@@ -1914,15 +1914,15 @@ The vector arithmetic instructions use a new major opcode (OP-V =
 used to define sub-categories of vector instructions.
 
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPxVV.json5[link="OPxVV.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPxVV.json5[link="assets/OPxVV.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPMVV.json5[link="OPMVV.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPMVV.json5[link="assets/OPMVV.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPIVI.json5[link="OPIVI.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPIVI.json5[link="assets/OPIVI.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPxVx.json5[link="OPxVx.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPxVx.json5[link="assets/OPxVx.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/OPMVX.json5[link="OPMVX.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPMVX.json5[link="assets/OPMVX.json5"]
 
 
 === Vector Arithmetic Instruction encoding
