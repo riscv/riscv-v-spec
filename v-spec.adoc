@@ -880,7 +880,7 @@ image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/OPMVX
 
 image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvli.json5[link="assets/vsetvli.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvl.json5[link="assets/vsetvl.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvl.json5?[link="assets/vsetvl.json5"]
 
 
 Vector instructions can have scalar or vector source operands and
@@ -1109,7 +1109,7 @@ The new `vtype` setting is encoded in the immediate fields of
 
 image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvli.json5[link="assets/vsetvli.json5"]
 
-image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvl.json5[link="assets/vsetvl.json5"]
+image::https://svg.wavedrom.com/github/wavedrom/riscv-v-spec/master/assets/vsetvl.json5?[link="assets/vsetvl.json5"]
 
 
 include::vtype-format.adoc[]
