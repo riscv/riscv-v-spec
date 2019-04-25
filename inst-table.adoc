@@ -22,8 +22,8 @@
 | 000110 |V|X| | vmaxu      | 000110 |V| | vredmaxu    | 000110 |V|F| vfmax
 | 000111 |V|X| | vmax       | 000111 |V| | vredmax     | 000111 |V| | vfredmax
 | 001000 | | | |            | 001000 | | |             | 001000 |V|F| vfsgnj
-| 001001 |V|X|I| vand       | 001001 | | |             | 001001 |V|F| vfsgnn
-| 001010 |V|X|I| vor        | 001010 | | |             | 001010 |V|F| vfsgnx
+| 001001 |V|X|I| vand       | 001001 | | |             | 001001 |V|F| vfsgnjn
+| 001010 |V|X|I| vor        | 001010 | | |             | 001010 |V|F| vfsgnxn
 | 001011 |V|X|I| vxor       | 001011 | | |             | 001011 | | |
 | 001100 |V|X|I| vrgather   | 001100 |V| | vext.x.v    | 001100 |V| | vfmv.f.s
 | 001101 | | | |            | 001101 | |X| vmv.s.x     | 001101 | |F| vfmv.s.f
