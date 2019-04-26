@@ -974,11 +974,11 @@ can raise exceptions and update the destination vector register group.
 - The _inactive_ elements are the elements within the current vector
 length setting but where the current mask is disabled at that element
 position.  The inactive elements do not raise exceptions and do not
-update the destination vector register.
+update any destination vector register.
 
 - The _tail_ elements during a vector instruction's execution are the
 elements past the current vector length setting.  The tail elements do
-not raise exceptions, but do zero the results in the destination
+not raise exceptions, but do zero the results in any destination
 vector register group.
 
 - In addition, another term, _body_, is used for the set of elements
@@ -1249,7 +1249,7 @@ Vector loads and stores move values between vector registers and
 memory.  Vector loads and stores are masked and do not raise
 exceptions on inactive elements.  Masked vector loads do not update
 inactive elements in the destination vector register group.  Masked
-vector stores do not update inactive memory elements.
+vector stores only update active memory elements.
 
 === Vector Load/Store Instruction Encoding
 
