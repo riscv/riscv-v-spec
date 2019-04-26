@@ -343,13 +343,13 @@ The _XLEN_-bit-wide read-only `vl` CSR can only be updated by the
 instruction variants.
 
 The `vl` register holds an unsigned integer specifying the number of
-elements to be updated by a vector instruction.  Elements in the
-destination vector with indices {ge} `vl` are zeroed during
+elements to be updated by a vector instruction.  Elements in any
+destination vector register group with indices {ge} `vl` are zeroed during
 execution of a vector instruction.  When `vstart` {ge} `vl`,
-no elements are updated in the destination vector.
+no elements are updated in any destination vector register group.
 
-NOTE: As a consequence, when `vl`=0, no elements are
-updated in the destination vector, regardless of `vstart`.
+NOTE: As a consequence, when `vl`=0, no elements are updated in the
+destination vector register group, regardless of `vstart`.
 
 NOTE: The number of bits implemented in `vl` depends on the
 implementation's maximum vector length of the smallest supported
