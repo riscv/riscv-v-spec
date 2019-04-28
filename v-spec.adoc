@@ -3664,7 +3664,7 @@ vext.x.v rd, vs2, rs1  # rd = vs2[rs1]
 ----
 
 The integer extract operation, `vext.x.v` reads one SEW-width element
-from a vector register group at the element index and writes it to GPR
+from a vector register at the element index and writes it to GPR
 destination register rd.  The GPR `rs1` register gives the element
 index, treated as an unsigned integer.  If the index is out of range
 (i.e., x[rs1] {ge} VLEN/SEW), then zero is returned for the element
