@@ -3702,8 +3702,11 @@ ignored.  If SEW > XLEN, the value is zero-extended to SEW bits.
 The other elements in the destination vector register ( 0 < index <
 VLEN/SEW) are zeroed.
 
-If `vl`=0, no operation is performed and the destination register is
-not updated.
+If `vstart` {ge} `vl`, no operation is performed and the destination
+register is not updated.
+
+NOTE: As a consequence, when `vl`=0, no elements are updated in the
+destination vector register group, regardless of `vstart`.
 
 NOTE: The complementary `vins.v.x` instruction, which allows a write
 to any element in a vector register, has been removed.  This
@@ -3737,8 +3740,11 @@ the destination vector register.  If SEW < FLEN, the least-significant
 bits are copied and the upper XLEN-SEW bits are ignored.  If SEW >
 XLEN, the value is NaN-boxed (1-extended) to SEW bits.  The other
 elements in the destination vector register ( 0 < index < VLEN/SEW)
-are zeroed.  If `vl`=0, no operation is performed and the destination
-register is not updated.
+are zeroed.  If `vstart` {ge} `vl`, no operation is performed and
+the destination register is not updated.
+
+NOTE: As a consequence, when `vl`=0, no elements are updated in the
+destination vector register group, regardless of `vstart`.
 
 === Vector Slide Instructions
 
@@ -3752,8 +3758,11 @@ In particular, power-of-2 offsets may operate substantially faster
 than other offsets.
 
 For all of the `vslideup`, `vslidedown`, `vslide1up`, and
-`vslide1down` instructions, if `vl`=0, the instruction performs no
+`vslide1down` instructions, if `vstart` {ge} `vl`, the instruction performs no
 operation and leaves the destination vector register unchanged.
+
+NOTE: As a consequence, when `vl`=0, no elements are updated in the
+destination vector register group, regardless of `vstart`.
 
 ==== Vector Slideup Instructions
 
