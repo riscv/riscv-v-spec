@@ -3737,8 +3737,8 @@ the value is NaN-boxed (1-extended) to FLEN bits.
 
 The `vfmv.s.f` instruction copies the scalar register to element 0 of
 the destination vector register.  If SEW < FLEN, the least-significant
-bits are copied and the upper XLEN-SEW bits are ignored.  If SEW >
-XLEN, the value is NaN-boxed (1-extended) to SEW bits.  The other
+bits are copied and the upper FLEN-SEW bits are ignored.  If SEW >
+FLEN, the value is NaN-boxed (1-extended) to SEW bits.  The other
 elements in the destination vector register ( 0 < index < VLEN/SEW)
 are zeroed.  If `vstart` {ge} `vl`, no operation is performed and
 the destination register is not updated.
