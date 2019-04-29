@@ -3693,6 +3693,9 @@ VLEN/SEW) are zeroed.
 If `vstart` {ge} `vl`, no operation is performed and the destination
 register is not updated.
 
+NOTE: As a consequence, when `vl`=0, no elements are updated in the
+destination vector register group, regardless of `vstart`.
+
 NOTE: The complementary `vins.v.x` instruction, which allows a write
 to any element in a vector register, has been removed.  This
 instruction would be the only instruction (apart from `vsetvl`) that
@@ -3728,6 +3731,9 @@ elements in the destination vector register ( 0 < index < VLEN/SEW)
 are zeroed.  If `vstart` {ge} `vl`, no operation is performed and
 the destination register is not updated.
 
+NOTE: As a consequence, when `vl`=0, no elements are updated in the
+destination vector register group, regardless of `vstart`.
+
 === Vector Slide Instructions
 
 The slide instructions move elements up and down a vector register
@@ -3742,6 +3748,9 @@ than other offsets.
 For all of the `vslideup`, `vslidedown`, `vslide1up`, and
 `vslide1down` instructions, if `vstart` {ge} `vl`, the instruction performs no
 operation and leaves the destination vector register unchanged.
+
+NOTE: As a consequence, when `vl`=0, no elements are updated in the
+destination vector register group, regardless of `vstart`.
 
 ==== Vector Slideup Instructions
 
