@@ -2885,13 +2885,13 @@ vfmacc.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) + vd[i]
 vfnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) - vd[i]
 vfnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) - vd[i]
 
-# FP multiply-subtract-accumulator, overwrites subtrahend
-vfmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) - vd[i]
-vfmsac.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) - vd[i]
+# FP multiply-subtract-from-accumulator, overwrites minuend
+vfmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
+vfmsac.vf vd, rs1, vs2, vm    # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
 
-# FP negate-(multiply-subtract-accumulator), overwrites minuend
-vfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
-vfnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
+# FP negate-(multiply-subtract-from-accumulator), overwrites subtrahend
+vfnmsac.vv vd, vs1, vs2, vm   # vd[i] = +(vs1[i] * vs2[i]) - vd[i]
+vfnmsac.vf vd, rs1, vs2, vm   # vd[i] = +(f[rs1] * vs2[i]) - vd[i]
 
 # FP multiply-add, overwrites multiplicand
 vfmadd.vv vd, vs1, vs2, vm    # vd[i] = +(vd[i] * vs1[i]) + vs2[i]
@@ -2930,13 +2930,13 @@ vfwmacc.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) + vd[i]
 vfwnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) - vd[i]
 vfwnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) - vd[i]
 
-# FP widening multiply-subtract-accumulator, overwrites addend
-vfwmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) - vd[i]
-vfwmsac.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) - vd[i]
+# FP widening multiply-subtract-from-accumulator, overwrites minuend
+vfwmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
+vfwmsac.vf vd, rs1, vs2, vm    # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
 
-# FP widening negate-(multiply-subtract-accumulator), overwrites addend
-vfwnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
-vfwnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
+# FP widening negate-(multiply-subtract-from-accumulator), overwrites subtrahend
+vfwnmsac.vv vd, vs1, vs2, vm   # vd[i] = +(vs1[i] * vs2[i]) - vd[i]
+vfwnmsac.vf vd, rs1, vs2, vm   # vd[i] = +(f[rs1] * vs2[i]) - vd[i]
 ----
 
 === Vector Floating-Point Square-Root Instruction
