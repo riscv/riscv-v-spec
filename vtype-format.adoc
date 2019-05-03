@@ -1,6 +1,6 @@
-
 .`vtype` register layout
-[cols="2,4,10"]
+[cols=">2,4,10"]
+[%autowidth]
 |===
 |     Bits | Name       | Description
 
