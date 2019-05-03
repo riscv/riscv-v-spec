@@ -322,6 +322,7 @@ extension.
 
 .vxrm encoding
 [cols="1,1,4,10"]
+[%autowidth]
 |===
 2+| Bits [1:0] | Abbreviation | Rounding Mode
 
@@ -350,7 +351,8 @@ in the floating-point CSR, `fcsr`.  The `fcsr` register must be added
 to systems without floating-point that add a vector extension.
 
 .fcsr layout
-[cols="2,4,10"]
+[cols=">2,4,10"]
+[%autowidth]
 |===
 | Bits | Name   | Description
 
