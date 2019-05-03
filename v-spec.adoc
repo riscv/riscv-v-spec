@@ -2519,7 +2519,7 @@ vwmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 
 NOTE: There is no signed-unsigned widening multiply-add instruction.
 
-==== Vector Integer Divide Instructions
+=== Vector Integer Divide Instructions
 
 The divide and remainder instructions are equivalent to the RISC-V
 standard scalar integer multiply/divides, with the same results for
