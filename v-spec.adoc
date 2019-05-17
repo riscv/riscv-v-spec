@@ -3650,6 +3650,10 @@ destination vector register group, from 0 to `vl`-1.
 
 The instruction can be masked.
 
+The result value is zero-extended to fill the destination element if
+SEW is wider than the result.  If the result value would overflow the
+destination SEW, the least-significant SEW bits are retained.
+
 An illegal instruction exception is generated if the destination
 vector register group overlaps the mask register and LMUL > 1.
 
