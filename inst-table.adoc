@@ -143,7 +143,7 @@
 | 00001 | vmsbf
 | 00010 | vmsof
 | 00011 | vmsif
-| 10000 | vmiota
+| 10000 | viota
 | 10001 | vid
 |===
 

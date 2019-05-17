@@ -3544,7 +3544,7 @@ exit:
 
 === Vector Iota Instruction
 
-The `vmiota.m` instruction reads a source vector mask register and
+The `viota.m` instruction reads a source vector mask register and
 writes to each element of the destination vector register group the
 sum of all the least-significant bits of elements in the mask register
 whose index is less than the element, e.g., a parallel prefix sum of
@@ -3555,20 +3555,20 @@ elements contribute to the sum and only the enabled elements are
 written.
 
 ----
- vmiota.m vd, vs2, vm
+ viota.m vd, vs2, vm
 
  # Example
 
      7 6 5 4 3 2 1 0   Element number
 
      1 0 0 1 0 0 0 1   v2 contents
-                       vmiota.m v4, v2 # Unmasked
+                       viota.m v4, v2 # Unmasked
      2 2 2 1 1 1 1 0   v4 result
 
      1 1 1 0 1 0 1 1   v0 contents
      1 0 0 1 0 0 0 1   v2 contents
      2 3 4 5 6 7 8 9   v4 contents
-                       vmiota.m v4, v2, v0.t # Masked
+                       viota.m v4, v2, v0.t # Masked
      1 1 1 5 1 7 1 0   v4 results
 ----
 
@@ -3576,7 +3576,7 @@ The result value is zero-extended to fill the destination element if
 SEW is wider than the result.  If the result value would overflow the
 destination SEW, the least-significant SEW bits are retained.
 
-Traps on `vmiota.m` are always reported with a `vstart` of 0, and
+Traps on `viota.m` are always reported with a `vstart` of 0, and
 execution is always restarted from the beginning when resuming after a
 trap handler.  An illegal instruction exception is raised if `vstart`
 is non-zero.
@@ -3591,7 +3591,7 @@ avoidance of WAR hazards in implementations with temporally long vector
 registers and no vector register renaming.  Second, to enable resuming
 execution after a trap simpler.
 
-The `vmiota.m` instruction can be combined with memory scatter
+The `viota.m` instruction can be combined with memory scatter
 instructions (indexed stores) to perform vector compress functions.
 
 ----
@@ -3627,11 +3627,11 @@ loop:
     vsne.vi v0, v8, 0             # Locate non-zero values
       add a1, a1, a5              # Bump input pointer
     vmpopc.m a5, v0               # Count number of elements set in v0
-    vmiota.m v16, v0              # Get destination offsets of active elements
+    viota.m v16, v0              # Get destination offsets of active elements
       add a6, a6, a5              # Accumulate number of elements
     vsll.vi v16, v16, 2, v0.t     # Multiply offsets by four bytes
       slli a5, a5, 2              # Multiply number of non-zero elements by four bytes
-    vsuxw.v v8, (a2), v16, v0.t   # Scatter using scaled vmiota results under mask
+    vsuxw.v v8, (a2), v16, v0.t   # Scatter using scaled viota results under mask
       add a2, a2, a5              # Bump output pointer
       bnez a0, loop               # Any more?
 
@@ -3661,7 +3661,7 @@ NOTE: This constraint is to avoid WAR hazards in long vector
 implementations without register renaming, and to support restart.
 
 NOTE: Microarchitectures can implement `vid.v` instruction using the
-same datapath as `vmiota.m` but with an implicit set mask source.
+same datapath as `viota.m` but with an implicit set mask source.
 
 == Vector Permutation Instructions
 
@@ -4157,7 +4157,7 @@ Vector mask logical operations are unchanged by EDIV setting, and
 continue to operate on vector registers containing element masks.
 
 Vector mask population count (`vmpopc`), find-first and related
-instructions (`vmfirst`, `vmsbf`, `vmsif`, `vmsof`), iota (`vmiota`),
+instructions (`vmfirst`, `vmsbf`, `vmsif`, `vmsof`), iota (`viota`),
 and element index (`vid`) instructions are unaffected by EDIV.
 
 Vector integer bit insert/extract, and integer and floating-point
