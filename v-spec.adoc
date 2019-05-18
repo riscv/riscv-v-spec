@@ -1549,7 +1549,7 @@ loop:
     vsetvli a1, x0, e8  # Vector of bytes of maximum length
     vlbff.v v1, (a3)      # Load bytes
     csrr a1, vl           # Get bytes read
-    vseq.vi v0, v1, 0     # Set v0[i] where v1[i] = 0
+    vmseq.vi v0, v1, 0    # Set v0[i] where v1[i] = 0
     vmfirst.m a2, v0      # Find first set bit
     add a3, a3, a1        # Bump pointer
     bltz a2, loop         # Not found?
@@ -2250,46 +2250,46 @@ Section <<sec-mask-register-layout>>.
 
 ----
 # Set if equal
-vseq.vv vd, vs2, vs1, vm   # Vector-vector
-vseq.vx vd, vs2, rs1, vm   # vector-scalar
-vseq.vi vd, vs2, imm, vm   # vector-immediate
+vmseq.vv vd, vs2, vs1, vm  # Vector-vector
+vmseq.vx vd, vs2, rs1, vm  # vector-scalar
+vmseq.vi vd, vs2, imm, vm  # vector-immediate
 
 # Set if not equal
-vsne.vv vd, vs2, vs1, vm   # Vector-vector
-vsne.vx vd, vs2, rs1, vm   # vector-scalar
-vsne.vi vd, vs2, imm, vm   # vector-immediate
+vmsne.vv vd, vs2, vs1, vm  # Vector-vector
+vmsne.vx vd, vs2, rs1, vm  # vector-scalar
+vmsne.vi vd, vs2, imm, vm  # vector-immediate
 
 # Set if less than, unsigned
-vsltu.vv vd, vs2, vs1, vm   # Vector-vector
-vsltu.vx vd, vs2, rs1, vm   # Vector-scalar
+vmsltu.vv vd, vs2, vs1, vm  # Vector-vector
+vmsltu.vx vd, vs2, rs1, vm  # Vector-scalar
 
 # Set if less than, signed
-vslt.vv vd, vs2, vs1, vm   # Vector-vector
-vslt.vx vd, vs2, rs1, vm   # vector-scalar
+vmslt.vv vd, vs2, vs1, vm  # Vector-vector
+vmslt.vx vd, vs2, rs1, vm  # vector-scalar
 
 # Set if less than or equal, unsigned
-vsleu.vv vd, vs2, vs1, vm   # Vector-vector
-vsleu.vx vd, vs2, rs1, vm   # vector-scalar
-vsleu.vi vd, vs2, imm, vm   # Vector-immediate
+vmsleu.vv vd, vs2, vs1, vm   # Vector-vector
+vmsleu.vx vd, vs2, rs1, vm   # vector-scalar
+vmsleu.vi vd, vs2, imm, vm   # Vector-immediate
 
 # Set if less than or equal, signed
-vsle.vv vd, vs2, vs1, vm   # Vector-vector
-vsle.vx vd, vs2, rs1, vm   # vector-scalar
-vsle.vi vd, vs2, imm, vm   # vector-immediate
+vmsle.vv vd, vs2, vs1, vm  # Vector-vector
+vmsle.vx vd, vs2, rs1, vm  # vector-scalar
+vmsle.vi vd, vs2, imm, vm  # vector-immediate
 
 # Set if greater than, unsigned
-vsgtu.vx vd, vs2, rs1, vm    # Vector-scalar
-vsgtu.vi vd, vs2, imm, vm    # Vector-immediate
+vmsgtu.vx vd, vs2, rs1, vm   # Vector-scalar
+vmsgtu.vi vd, vs2, imm, vm   # Vector-immediate
 
 # Set if greater than, signed
-vsgt.vx vd, vs2, rs1, vm    # Vector-scalar
-vsgt.vi vd, vs2, imm, vm    # Vector-immediate
+vmsgt.vx vd, vs2, rs1, vm    # Vector-scalar
+vmsgt.vi vd, vs2, imm, vm    # Vector-immediate
 
 # Following two instructions are not provided directly
 # Set if greater than or equal, unsigned
-# vsgeu.vx vd, vs2, rs1, vm    # Vector-scalar
+# vmsgeu.vx vd, vs2, rs1, vm    # Vector-scalar
 # Set if greater than or equal, signed
-# vsge.vx vd, vs2, rs1, vm    # Vector-scalar
+# vmsge.vx vd, vs2, rs1, vm    # Vector-scalar
 ----
 
 The following table indicates how all comparisons are implemented in
@@ -2298,48 +2298,48 @@ native machine code.
 ----
 Comparison      Assembler Mapping             Assembler Pseudoinstruction
 
-va < vb         vslt{u}.vv vd, va, vb, vm
-va <= vb        vsle{u}.vv vd, va, vb, vm
-va > vb         vslt{u}.vv vd, vb, va, vm     vsgt{u}.vv vd, va, vb, vm
-va >= vb        vsle{u}.vv vd, vb, va, vm     vsge{u}.vv vd, va, vb, vm
+va < vb         vmslt{u}.vv vd, va, vb, vm
+va <= vb        vmsle{u}.vv vd, va, vb, vm
+va > vb         vmslt{u}.vv vd, vb, va, vm    vmsgt{u}.vv vd, va, vb, vm
+va >= vb        vmsle{u}.vv vd, vb, va, vm    vmsge{u}.vv vd, va, vb, vm
 
-va < x          vslt{u}.vx vd, va, x, vm
-va <= x         vsle{u}.vx vd, va, x, vm
-va > x          vsgt{u}.vx vd, va, x, vm
+va < x          vmslt{u}.vx vd, va, x, vm
+va <= x         vmsle{u}.vx vd, va, x, vm
+va > x          vmsgt{u}.vx vd, va, x, vm
 va >= x         see below
 
-va < i          vsle{u}.vi vd, va, i-1, vm    vslt{u}.vi vd, va, i, vm
-va <= i         vsle{u}.vi vd, va, i, vm
-va > i          vsgt{u}.vi vd, va, i, vm
-va >= i         vsgt{u}.vi vd, va, i-1, vm    vsge{u}.vi vd, va, i, vm
+va < i          vmsle{u}.vi vd, va, i-1, vm    vmslt{u}.vi vd, va, i, vm
+va <= i         vmsle{u}.vi vd, va, i, vm
+va > i          vmsgt{u}.vi vd, va, i, vm
+va >= i         vmsgt{u}.vi vd, va, i-1, vm    vmsge{u}.vi vd, va, i, vm
 
 va, vb vector register groups
 x      scalar integer register
 i      immediate
 ----
 
-NOTE: The immediate forms of `vslt{u}.vi` are not provided as the
-immediate value can be decreased by 1 and the `vsle{u}.vi` variants
-used instead.  The `vsle.vi` range is -16 to 15, resulting in an
-effective `vslt.vi` range of -15 to 16.  The `vsleu.vi` range is 0 to
-15 (and `(~0)-15` to `~0`), giving an effective `vsltu.vi` range of 1 to 16
-(Note, `vsltu.vi` with immediate 0 is not useful as it is always
-false). Similarly, `vsge{u}.vi` is not provided and the comparison is
-implemented using `vsgt{u}.vi` with the immediate decremented by one.
-The resulting effective `vsge.vi` range is -15 to 16, and the
-resulting effective `vsgeu.vi` range is 1 to 16 (Note, `vsgeu.vi` with
+NOTE: The immediate forms of `vmslt{u}.vi` are not provided as the
+immediate value can be decreased by 1 and the `vmsle{u}.vi` variants
+used instead.  The `vmsle.vi` range is -16 to 15, resulting in an
+effective `vmslt.vi` range of -15 to 16.  The `vmsleu.vi` range is 0 to
+15 (and `(~0)-15` to `~0`), giving an effective `vmsltu.vi` range of 1 to 16
+(Note, `vmsltu.vi` with immediate 0 is not useful as it is always
+false). Similarly, `vmsge{u}.vi` is not provided and the comparison is
+implemented using `vmsgt{u}.vi` with the immediate decremented by one.
+The resulting effective `vmsge.vi` range is -15 to 16, and the
+resulting effective `vmsgeu.vi` range is 1 to 16 (Note, `vmsgeu.vi` with
 immediate 0 is not useful as it is always true).
 
-NOTE: The `vsgt` forms for register scalar and immediates are provided
+NOTE: The `vmsgt` forms for register scalar and immediates are provided
 to allow a single comparison instruction to provide the correct
 polarity of mask value without using additional mask logical
 instructions.
 
-To reduce encoding space, the `vsge{u}.vx` form is not directly
+To reduce encoding space, the `vmsge{u}.vx` form is not directly
 provided, and so the `va {ge} x` case requires special treatment.
 
-NOTE: The `vsge{u}.vx` could potentially be encoded in a
-non-orthogonal way under the unused OPIVI variant of `vslt{u}`.  These
+NOTE: The `vmsge{u}.vx` could potentially be encoded in a
+non-orthogonal way under the unused OPIVI variant of `vmslt{u}`.  These
 would be the only instructions in OPIVI that use a scalar `x`register
 however.  Alternatively, a further two funct6 encodings could be used,
 but these would have a different operand format (writes to mask
@@ -2347,16 +2347,16 @@ register) than others in the same group of 8 funct6 encodings.  The
 current PoR is to omit these instructions and to synthesize where
 needed as described below.
 
-The `vsge{u}.vx` operation can be synthesized by reducing the
-value of `x` by 1 and using the `vsgt{u}.vx` instruction, when it is
+The `vmsge{u}.vx` operation can be synthesized by reducing the
+value of `x` by 1 and using the `vmsgt{u}.vx` instruction, when it is
 known that this will not underflow the representation in `x`.
 
 ----
-Sequences to synthesize `vsge{u}.vx` instruction
+Sequences to synthesize `vmsge{u}.vx` instruction
 
 va >= x,  x > minimum
 
-   addi t0, x, -1; vsgt{u}.vx vd, va, t0, vm
+   addi t0, x, -1; vmsgt{u}.vx vd, va, t0, vm
 ----
 
 The above sequence will usually be the most efficient implementation,
@@ -2366,18 +2366,18 @@ range of `x` is unknown.
 ----
 unmasked va >= x
 
-  pseudoinstruction: vsge{u}.vx vd, va, x
-  expansion: vslt{u}.vx vd, va, x; vmnand.mm vd, vd, vd
+  pseudoinstruction: vmsge{u}.vx vd, va, x
+  expansion: vmslt{u}.vx vd, va, x; vmnand.mm vd, vd, vd
 
 masked va >= x, vd != v0
 
-  pseudoinstruction: vsge{u}.vx vd, va, x, v0.t
-  expansion: vslt{u}.vx vd, va, x, v0.t; vmxor.mm vd, vd, v0
+  pseudoinstruction: vmsge{u}.vx vd, va, x, v0.t
+  expansion: vmslt{u}.vx vd, va, x, v0.t; vmxor.mm vd, vd, v0
 
 masked va >= x, any vd
 
-  pseudoinstruction: vsge{u}.vx vd, va, x, v0.t, vt
-  expansion: vslt{u}.vx vt, va, x;  vmandnot.mm vd, vd, vt
+  pseudoinstruction: vmsge{u}.vx vd, va, x, v0.t, vt
+  expansion: vmslt{u}.vx vt, va, x;  vmandnot.mm vd, vd, vt
 
   The vt argument to the pseudoinstruction must name a temporary vector register that is
   not same as vd and which will be clobbered by the pseudoinstruction
@@ -2387,8 +2387,8 @@ Comparisons effectively AND in the mask, e.g,
 
 ----
     # (a < b) && (b < c) in two instructions
-    vslt.vv    v0, va, vb        # All body elements written
-    vslt.vv    v0, vb, vc, v0.t  # Only update at set mask
+    vmslt.vv    v0, va, vb        # All body elements written
+    vmslt.vv    v0, vb, vc, v0.t  # Only update at set mask
 ----
 
 === Vector Integer Min/Max Instructions
@@ -3003,40 +3003,40 @@ floating-point compare instructions.
 
 ----
     # Compare equal
-    vfeq.vv vd, vs2, vs1, vm   # Vector-vector
-    vfeq.vf vd, vs2, rs1, vm   # vector-scalar
+    vmfeq.vv vd, vs2, vs1, vm  # Vector-vector
+    vmfeq.vf vd, vs2, rs1, vm  # vector-scalar
 
     # Compare not equal
-    vfne.vv vd, vs2, vs1, vm   # Vector-vector
-    vfne.vf vd, vs2, rs1, vm   # vector-scalar
+    vmfne.vv vd, vs2, vs1, vm  # Vector-vector
+    vmfne.vf vd, vs2, rs1, vm  # vector-scalar
 
     # Compare less than
-    vflt.vv vd, vs2, vs1, vm   # Vector-vector
-    vflt.vf vd, vs2, rs1, vm   # vector-scalar
+    vmflt.vv vd, vs2, vs1, vm  # Vector-vector
+    vmflt.vf vd, vs2, rs1, vm  # vector-scalar
 
     # Compare less than or equal
-    vfle.vv vd, vs2, vs1, vm   # Vector-vector
-    vfle.vf vd, vs2, rs1, vm   # vector-scalar
+    vmfle.vv vd, vs2, vs1, vm  # Vector-vector
+    vmfle.vf vd, vs2, rs1, vm  # vector-scalar
 
     # Compare greater than
-    vfgt.vf vd, vs2, rs1, vm   # vector-scalar
+    vmfgt.vf vd, vs2, rs1, vm  # vector-scalar
 
     # Compare greater than or equal
-    vfge.vf vd, vs2, rs1, vm   # vector-scalar
+    vmfge.vf vd, vs2, rs1, vm  # vector-scalar
 ----
 
 ----
 Comparison      Assembler Mapping             Assembler pseudoinstruction
 
-va < vb         vflt.vv vd, va, vb, vm
-va <= vb        vfle.vv vd, va, vb, vm
-va > vb         vflt.vv vd, vb, va, vm     vfgt.vv vd, va, vb, vm
-va >= vb        vfle.vv vd, vb, va, vm    vfge.vv vd, va, vb, vm
+va < vb         vmflt.vv vd, va, vb, vm
+va <= vb        vmfle.vv vd, va, vb, vm
+va > vb         vmflt.vv vd, vb, va, vm    vmfgt.vv vd, va, vb, vm
+va >= vb        vmfle.vv vd, vb, va, vm    vmfge.vv vd, va, vb, vm
 
-va < f          vflt.vf vd, va, f, vm
-va <= f         vfle.vf vd, va, f, vm
-va > f          vfgt.vf vd, va, f, vm
-va >= f         vfge.vf vd, va, f, vm
+va < f          vmflt.vf vd, va, f, vm
+va <= f         vmfle.vf vd, va, f, vm
+va > f          vmfgt.vf vd, va, f, vm
+va >= f         vmfge.vf vd, va, f, vm
 
 va, vb vector register groups
 f      scalar floating-point register
@@ -3046,19 +3046,19 @@ NOTE: Providing all forms is necessary to correctly handle unordered
 comparisons for NaNs.
 
 To help implement the C99 floating-point comparison functions, a
-`vford` instruction is added that sets a mask register if the
+`vmford` instruction is added that sets a mask register if the
 arguments are ordered (i.e., neither argument is NaN).
 
 ----
     # Are args ordered?
-    vford.vv  vd, vs2, vs1, vm   # Vector-vector
-    vford.vf  vd, vs2, rs1, vm   # Vector-scalar
+    vmford.vv  vd, vs2, vs1, vm   # Vector-vector
+    vmford.vf  vd, vs2, rs1, vm   # Vector-scalar
 ----
 
 ----
     # Example of implementing isgreater()
-    vford.vv v0, va, vb       # Only set where args are ordered,
-    vfgt.vv v0, va, vb, v0.t   # so only set flags on ordered values.
+    vmford.vv v0, va, vb       # Only set where args are ordered,
+    vmfgt.vv v0, va, vb, v0.t  # so only set flags on ordered values.
 ----
 
 NOTE: Detailed NaN signaling conventions to be added.
@@ -3510,7 +3510,7 @@ loop:
     vsetvli x0, x0, e8   # Max length vectors of bytes
     vlbuff.v v1, (a1)       # Get src bytes
       csrr t1, vl           # Get number of bytes fetched
-    vseq.vi v0, v1, 0       # Flag zero bytes
+    vmseq.vi v0, v1, 0      # Flag zero bytes
     vmfirst.m a3, v0        # Zero found?
       add a1, a1, t1        # Bump pointer
     vmsif.m v0, v0          # Set mask up to and including zero byte.
@@ -3526,7 +3526,7 @@ strncpy:
 loop:
     vsetvli x0, a2, e8   # Vectors of bytes.
     vlbuff.v v1, (a1)       # Get src bytes
-    vseq.vi v0, v1, 0       # Flag zero bytes
+    vmseq.vi v0, v1, 0      # Flag zero bytes
     vmfirst.m a4, v0        # Zero found?
     vmsif.m v0, v0          # Set mask up to and including zero byte.
     vsb.v v1, (a3), v0.t    # Write out bytes
@@ -3624,7 +3624,7 @@ loop:
     vlw.v v8, (a1)                # Load input vector
       sub a0, a0, a5              # Decrement number done
       slli a5, a5, 2              # Multiply by four bytes
-    vsne.vi v0, v8, 0             # Locate non-zero values
+    vmsne.vi v0, v8, 0            # Locate non-zero values
       add a1, a1, a5              # Bump input pointer
     vmpopc.m a5, v0               # Count number of elements set in v0
     vmiota.m v16, v0              # Get destination offsets of active elements
