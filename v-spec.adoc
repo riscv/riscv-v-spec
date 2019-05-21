@@ -2999,7 +2999,10 @@ vector is always held in a single vector register, with a layout of
 elements as described in Section <<sec-mask-register-layout>>.
 
 The compare instructions follow the semantics of the scalar
-floating-point compare instructions.
+floating-point compare instructions.  `vfeq` and `vfne` raise the invalid
+operation exception only on signaling NaN inputs.  `vflt`, `vfle`, `vfgt`,
+and `vfge` raise the invalid operation exception on both signaling and
+quiet NaN inputs.
 
 ----
     # Compare equal
@@ -3048,6 +3051,7 @@ comparisons for NaNs.
 To help implement the C99 floating-point comparison functions, a
 `vford` instruction is added that sets a mask register if the
 arguments are ordered (i.e., neither argument is NaN).
+`vford` raises the invalid operation exception on signaling NaNs only.
 
 ----
     # Are args ordered?
@@ -3060,8 +3064,6 @@ arguments are ordered (i.e., neither argument is NaN).
     vford.vv v0, va, vb       # Only set where args are ordered,
     vfgt.vv v0, va, vb, v0.t   # so only set flags on ordered values.
 ----
-
-NOTE: Detailed NaN signaling conventions to be added.
 
 === Vector Floating-Point Classify Instruction
 
