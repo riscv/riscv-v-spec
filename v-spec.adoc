@@ -3645,7 +3645,7 @@ The `vid.v` instruction writes each element's index to the
 destination vector register group, from 0 to `vl`-1.
 
 ----
-    vid.v vd, vm  # Write element ID to destination.
+    vid.v vd, vs2, vm  # Write element ID to destination.
 ----
 
 The instruction can be masked.
