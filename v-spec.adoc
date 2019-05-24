@@ -3952,8 +3952,8 @@ the destination vector register.
 NOTE: These forms allow any vector element to be "splatted" to an entire vector.
 
 ----
-vrgather.vx vd, vs2, rs1, vm # vd[i] = vs2[rs1]
-vrgather.vi vd, vs2, imm, vm # vd[i] = vs2[imm]
+vrgather.vx vd, vs2, rs1, vm # vd[i] = (x[rs1] >= VLMAX) ? 0 : vs2[rs1]
+vrgather.vi vd, vs2, imm, vm # vd[i] = (imm >= VLMAX) ? 0 : vs2[imm]
 ----
 
 For any `vrgather` instruction, the destination vector register group
