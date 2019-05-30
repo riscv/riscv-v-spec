@@ -2161,6 +2161,9 @@ function to support long word arithmetic for subtraction.
  vsbc.vx   vd, vs2, rs1  # Vector-scalar
 ----
 
+For `vsbc`, the carry is defined to be 1 iff the difference, prior to
+truncation, is negative.
+
 The encodings corresponding to the masked versions (vm=0) of `vadc`
 and `vsbc` are reserved.
 
