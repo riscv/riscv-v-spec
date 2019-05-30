@@ -3648,10 +3648,13 @@ The `vid.v` instruction writes each element's index to the
 destination vector register group, from 0 to `vl`-1.
 
 ----
-    vid.v vd, vs2, vm  # Write element ID to destination.
+    vid.v vd, vm  # Write element ID to destination.
 ----
 
 The instruction can be masked.
+
+The `vs2` field of the instruction must be set to `v0`, otherwise the
+encoding is _reserved_.
 
 The result value is zero-extended to fill the destination element if
 SEW is wider than the result.  If the result value would overflow the
