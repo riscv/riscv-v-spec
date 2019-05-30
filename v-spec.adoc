@@ -3690,6 +3690,9 @@ value.  If SEW > XLEN, the least-significant bits are copied to the
 destination and the upper SEW-XLEN bits are ignored.  If SEW < XLEN,
 the value is zero-extended to XLEN.
 
+The encodings corresponding to the masked version (vm=0) of `vext.x.v`
+are reserved.
+
 An assembler pseudoinstruction `vmv.x.s rd, vs2` expanding to
 `vext.x.v rd, vs2, x0` is provided as a complement to the `vmv.s.x`
 instruction below.
@@ -3736,6 +3739,9 @@ more generally useful `vslide1up` and `vslide1down` instructions can
 be used to update vector register state in place over a debug link
 without accessing memory.
 
+The encodings corresponding to the masked version (vm=0) of `vmv.s.x`
+are reserved.
+
 === Floating-Point Scalar Move Instructions
 
 The floating-point scalar read/write instructions transfer a single
@@ -3763,6 +3769,9 @@ the destination register is not updated.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
+
+The encodings corresponding to the masked versions (vm=0) of `vfmv.f.s`
+and `vfmv.s.f` are reserved.
 
 === Vector Slide Instructions
 
