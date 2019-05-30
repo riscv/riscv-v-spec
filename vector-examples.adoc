@@ -40,7 +40,7 @@ vvaddint32:
     vsetvli a4, a0, e8,m1  # Byte vector for predicate calc
     vlb.v v1, (a1)                # Load a[i]
       add a1, a1, a4              # Bump pointer.
-    vslt.vi v0, v1, 5             # a[i] < 5?
+    vmslt.vi v0, v1, 5            # a[i] < 5?
 
     vsetvli x0, a0, e32,m4 # Vector of 32-bit values.
       sub a0, a0, a4              # Decrement count
@@ -84,7 +84,7 @@ loop:
     vlb.v v0, (a1)          # Get x[i], sign-extended to 16b
       sub a0, a0, t0        # Decrement element count
       add a1, a1, t0        # x[i] Bump pointer
-    vslt.vi v0, v0, 5       # Set mask in v0
+    vmslt.vi v0, v0, 5      # Set mask in v0
       slli t0, t0, 1        # Multiply by 2 bytes
     vlh.v v1, (a2), v0.t    # z[i] = a[i] case
     vmnot.m v0, v0          # Invert v0
