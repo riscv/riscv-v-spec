@@ -1984,6 +1984,18 @@ The first operand can be either single or double-width. These are
 generally written with a `vw*` prefix on the opcode or `vfw*` for
 vector floating-point operations.
 
+----
+Assembly syntax pattern for vector widening arithmetic instructions
+
+# Double-width result, two single-width sources: 2*SEW = SEW op SEW
+vwop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
+vwop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
+
+# Double-width result, first source double-width, second source single-width: 2*SEW = 2*SEW op SEW
+vwop.wv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
+vwop.wx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
+----
+
 NOTE: Originally, a `w` suffix was used on opcode, but this could be
 confused with the use of a `w` suffix to mean word-sized operations in
 doubleword integers, so the `w` was moved to prefix.
@@ -2013,23 +2025,15 @@ register number that is valid for the destination's LMUL value,
 otherwise an illegal instruction exception is raised.
 
 The destination vector register group cannot overlap a source vector
-register group (including the mask register if masked), otherwise an
-illegal instruction exception is raised.
+register group of a different element width (including the mask
+register if masked), otherwise an illegal instruction exception is
+raised.
 
 NOTE: This constraint is necessary to support restart with non-zero
 `vstart`.
 
-----
-Assembly syntax pattern for vector widening arithmetic instructions
-
-# Double-width result, two single-width sources: 2*SEW = SEW op SEW
-vwop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
-vwop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
-
-# Double-width result, first source double-width, second source single-width: 2*SEW = 2*SEW op SEW
-vwop.wv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
-vwop.wx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
-----
+NOTE: For the `vw<op>.wv vd, vs2, vs1` format instructions, it is legal
+for vd to equal vs2.
 
 === Narrowing Vector Arithmetic Instructions
 
