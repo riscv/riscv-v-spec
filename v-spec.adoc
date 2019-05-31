@@ -2138,7 +2138,7 @@ the second to generate the carry output (single bit encoded as a mask
 boolean).
 
 These instructions are encoded as unmasked instructions (vm=1) and
-operates on all body elements.  Encodings corresponding to the masked
+operate on all body elements.  Encodings corresponding to the masked
 versions (vm=0) of these instructions are reserved.
 
 The carry inputs and outputs are represented using the mask register
@@ -2184,7 +2184,7 @@ require an additional move to obtain correct results.
 
 The subtract with carry instruction `vsbc` performs the equivalent
 function to support long word arithmetic for subtraction.  There are
-no subtract with immediate instruction.
+no subtract with immediate instructions.
 
 ----
  # Produce difference with carry.
