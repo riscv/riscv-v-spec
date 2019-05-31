@@ -10,3 +10,29 @@ For a better rendering, use "asciidoctor v-spec.adoc".
 
 This work is licensed under a Creative Commons Attribution 4.0
 International License. See the LICENSE file for details.
+
+[[HTML](https://riscv.github.io/documents/riscv-v-spec/)] [[PDF](https://riscv.github.io/documents/riscv-v-spec/riscv-v-spec.pdf)]
+
+### Documentation generator
+
+Requirements
+
+`node v6+`
+
+**Linux**: install using [nvm](https://github.com/creationix/nvm)
+
+**OSX**: `brew install node`
+
+**Windows**: [nodejs.org](https://nodejs.org/en/download/)
+
+Install documentation generator
+
+`npm i`
+
+Build HTML/PDF documents
+
+`npm run build`
+
+Resulted files
+
+`public/*`

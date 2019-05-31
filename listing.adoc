@@ -758,7 +758,7 @@ Semantics for m=00:
 ----
         
 
-== `vseq vd, vs1, vs2, m` 
+== `vmseq vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -784,7 +784,7 @@ Semantics for m=00:
 ----
         
 
-== `vslt vd, vs1, vs2, m` 
+== `vmslt vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -810,7 +810,7 @@ Semantics for m=00:
 ----
         
 
-== `vsltu vd, vs1, vs2, m` 
+== `vmsltu vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -1667,7 +1667,7 @@ Semantics for m=00:
 ----
         
 
-== `vfeq.h vd, vs1, vs2, m` 
+== `vmfeq.h vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -1692,7 +1692,7 @@ Semantics for m=00:
 ----
         
 
-== `vfeq.s vd, vs1, vs2, m` 
+== `vmfeq.s vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -1717,7 +1717,7 @@ Semantics for m=00:
 ----
         
 
-== `vfeq.d vd, vs1, vs2, m` 
+== `vmfeq.d vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -1742,7 +1742,7 @@ Semantics for m=00:
 ----
         
 
-== `vflt.h vd, vs1, vs2, m` 
+== `vmflt.h vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -1767,7 +1767,7 @@ Semantics for m=00:
 ----
         
 
-== `vflt.s vd, vs1, vs2, m` 
+== `vmflt.s vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -1792,7 +1792,7 @@ Semantics for m=00:
 ----
         
 
-== `vflt.d vd, vs1, vs2, m` 
+== `vmflt.d vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -1817,7 +1817,7 @@ Semantics for m=00:
 ----
         
 
-== `vfle.h vd, vs1, vs2, m` 
+== `vmfle.h vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -1842,7 +1842,7 @@ Semantics for m=00:
 ----
         
 
-== `vfle.s vd, vs1, vs2, m` 
+== `vmfle.s vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
@@ -1867,7 +1867,7 @@ Semantics for m=00:
 ----
         
 
-== `vfle.d vd, vs1, vs2, m` 
+== `vmfle.d vd, vs1, vs2, m`
 Encoding: 
 
 Semantics for m=01,10,11:
