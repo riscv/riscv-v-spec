@@ -2883,7 +2883,8 @@ elements do not set FP exception flags.
 
     # Floating-point subtract
     vfsub.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsub.vf vd, vs2, rs1, vm   # vector-scalar
+    vfsub.vf vd, vs2, rs1, vm   # Vector-scalar vd[i] = vs2[i] - f[rs1]
+    vfrsub.vf vd, vs2, rs1, vm  # Scalar-vector vd[i] = f[rs1] - vs2[i]
 ----
 
 === Vector Widening Floating-Point Add/Subtract Instructions
