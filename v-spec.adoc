@@ -2817,6 +2817,10 @@ The `vnclip` instructions are used to pack a fixed-point value into a
 narrower destination.  The instructions support rounding, scaling, and
 saturation into the final destination format.
 
+The second argument (vector element, scalar value, immediate value)
+gives the amount to right shift the source as in the narrowing shift
+instructions, which provides the scaling.
+
 ----
  # Narrowing unsigned clip
  vnclipu.vv vd, vs2, vs1, vm   # vector-vector
