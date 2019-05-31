@@ -2165,12 +2165,12 @@ require an additional move to obtain correct results.
   vmmv.m v0, v1             # Move temp carry into v0 for next word
 ----
 
-The subtract with carry instruction `vsbc` performs the equivalent
+The subtract with borrow instruction `vsbc` performs the equivalent
 function to support long word arithmetic for subtraction.  There are
 no subtract with immediate instructions.
 
 ----
- # Produce difference with carry.
+ # Produce difference with borrow.
 
 # vd[i] = vs2[i] - vs1[i] - v0[i].LSB
  vsbc.vvm   vd, vs2, vs1, v0  # Vector-vector
@@ -2178,16 +2178,16 @@ no subtract with immediate instructions.
  # vd[i] = vs2[i] - x[rs1] - v0[i].LSB
  vsbc.vxm   vd, vs2, rs1, v0  # Vector-scalar
 
- # Produce carry out in mask register format
+ # Produce borrow out in mask register format
 
- # vd[i] = carry_out(vs2[i] - vs1[i] - v0[i].LSB)
+ # vd[i] = borrow_out(vs2[i] - vs1[i] - v0[i].LSB)
  vmsbc.vvm   vd, vs2, vs1, v0  # Vector-vector
 
- # vd[i] = carry_out(vs2[i] - x[rs1] - v0[i].LSB)
+ # vd[i] = borrow_out(vs2[i] - x[rs1] - v0[i].LSB)
  vmsbc.vxm   vd, vs2, rs1, v0  # Vector-scalar
 ----
 
-For `vmsbc`, the carry is defined to be 1 iff the difference, prior to
+For `vmsbc`, the borrow is defined to be 1 iff the difference, prior to
 truncation, is negative.
 
 For `vadc` and `vsbc`, an illegal instruction exception is raised
