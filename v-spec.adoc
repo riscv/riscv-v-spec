@@ -1620,14 +1620,24 @@ LMUL must be set to 1 for a segment load or store (NFIELDS > 1), and
 each field will be held in successively numbered vector registers.  If
 LMUL > 1, an illegal instruction exception will be raised.
 
+If the vector register numbers accessed by the segment load or store
+would increment past 31, then an illegal instruction exception is
+raised.
+
+NOTE: This constraint is to help provide forward-compatibility with a
+future longer instruction encoding that has more addressable vector
+registers.
+
+NOTE: An earlier version imposed a vector register number constraint,
+but this decreased ability to make use of all registers when NFIELDS
+was not a power of 2.
+
 The `vl` register gives the number of structures to move, which is
 equal to the number of elements transferred to each vector register.
 
 If a trap is taken, `vstart` is in units of structures.
 
-NOTE: An earlier version imposed a vector register number constraint,
-but this decreased ability to make use of all registers when NFIELDS
-was not a power of 2.
+
 
 ==== Vector Unit-Stride Segment Loads and Stores
 
