@@ -1605,33 +1605,9 @@ segment, _NFIELDS_.
 | 1 | 1 | 1 | 8
 |===
 
-////
-----
-nf[2:0] NFIELDS  vector reg alignment
- 000      1       1 (v0, v1, ..., v31)
- 001      2       2 (v0, v2, ..., v30)
- 010      3       4 (v0, v4, ..., v28)
- 011      4       4
- 100      5       8 (v0, v8, v16, v24)
- 101      6       8
- 110      7       8
- 111      8       8
-----
-////
-
 LMUL must be set to 1 for a segment load or store (NFIELDS > 1), and
 each field will be held in successively numbered vector registers.  If
 LMUL > 1, an illegal instruction exception will be raised.
-
-////
-The vector register numbers used in a segment load or store are
-constrained to be aligned according to the table above.  When
-NFIELDS=2, only even-numbered vector registers can be used.  When
-NFIELDS=3 or NFIELDS=4, only multiples of 4 can be used in vector
-register numbers.  When NFIELDS > 4, only multiples of 8 can be used
-in vector register numbers.  Other vector register numbers will raise
-an illegal instruction exception.
-////
 
 The `vl` register gives the number of structures to move, which is
 equal to the number of elements transferred to each vector register.
@@ -1724,6 +1700,10 @@ Note: Negative and zero strides are supported.
                               #   and words from v3[i] to address x5+i*x6+4
 ----
 
+For strided segment stores where the byte stride is such that segments
+could overlap in memory, the segments must appear to be written in
+element order.
+
 ==== Vector Indexed Segment Loads and Stores
 
 Vector indexed segment loads and stores move contiguous segments where
@@ -1746,6 +1726,9 @@ address in the `rs1` field to byte offsets in vector register `vs2`.
     vsxseg2w.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
                               #   and words from v3[i] to address x5+v5[i]+4
 ----
+
+Only ordered indexed segment stores are provided. The segments must
+appear to be written in element order.
 
 == Vector AMO Operations (`Zvamo`)
 
