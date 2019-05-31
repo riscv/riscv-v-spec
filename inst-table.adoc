@@ -42,7 +42,7 @@
 | 010100 | | | |            | 010100 |V| | vmpopc      | 010100 | | |
 | 010101 | | | |            | 010101 |V| | vmfirst     | 010101 | | |
 | 010110 | | | |            | 010110 |V| | VMUNARY0    | 010110 | | |
-| 010111 |V|X|I| vmerge     | 010111 |V| | vcompress   | 010111 | |F| vfmerge.vf
+| 010111 |V|X|I| vmerge/vmv | 010111 |V| | vcompress   | 010111 | |F| vfmerge.vf/vfmv
 | 011000 |V|X|I| vmseq      | 011000 |V| | vmandnot    | 011000 |V|F| vmfeq
 | 011001 |V|X|I| vmsne      | 011001 |V| | vmand       | 011001 |V|F| vmfle
 | 011010 |V|X| | vmsltu     | 011010 |V| | vmor        | 011010 |V|F| vmford
