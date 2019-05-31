@@ -2131,44 +2131,88 @@ pseudoinstructions `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and
 
 === Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 
-To support multi-word arithmetic:
+To support multi-word integer arithmetic, instructions that operate on
+a carry bit are provided.  For each operation (add or subtract), two
+instructions are provided: one to provide the result (SEW width), and
+the second to generate the carry output (single bit encoded as a mask
+boolean).
+
+These instructions are encoded as unmasked instructions (vm=1) and
+operates on all body elements.  Encodings corresponding to the masked
+versions (vm=0) of these instructions are reserved.
+
+The carry inputs and outputs are represented using the mask register
+layout as described in Section <<sec-mask-register-layout>>.  Due to
+encoding constraints, the carry input must come from the implicit `v0`
+register, but carry outputs can be written to any vector register that
+respects the source/destination overlap restrictions below.
 
 ----
- # vd[i] = vs1[i] + vs2[i] + v0[i].LSB
- # v0[i] = carry(vs1[i] + vs2[i] + v0[i].LSB)
+ # Produce sum with carry.
 
- vadc.vv   vd, vs2, vs1  # Vector-vector
- vadc.vx   vd, vs2, rs1  # Vector-scalar
- vadc.vi   vd, vs2, imm  # Vector-scalar
+# vd[i] = vs2[i] + vs1[i] + v0[i].LSB
+ vadc.vvm   vd, vs2, vs1, v0  # Vector-vector
+
+ # vd[i] = vs2[i] + x[rs1] + v0[i].LSB
+ vadc.vxm   vd, vs2, rs1, v0  # Vector-scalar
+
+ # vd[i] = vs2[i] + imm + v0[i].LSB
+ vadc.vim   vd, vs2, imm v0  # Vector-immediate
+
+ # Produce carry out in mask register format
+
+# vd[i] = carry_out(vs2[i] + vs1[i] + v0[i].LSB)
+ vmadc.vvm   vd, vs2, vs1, v0  # Vector-vector
+
+ # vd[i] = carry_out(vs2[i] + x[rs1] + v0[i].LSB)
+ vmadc.vxm   vd, vs2, rs1, v0  # Vector-scalar
+
+ # vd[i] = carry_out(vs2[i] + imm + v0[i].LSB)
+ vmadc.vim   vd, vs2, imm, v0  # Vector-immediate
 ----
 
-This instruction is encoded as an unmasked instruction (vm=1) and
-operates on all body elements.  The instruction adds the two source
-operands and also adds in the LSB of the implicit mask register `v0`
-as an implicit carry input.  The sum is stored in the destination
-vector register group.  The mask element in `v0` is written with the
-carry result in the LSB and the upper bits of the mask element are set
-to 0.
+Because implementing a carry propagation requires executing two
+instructions with unchanged inputs, destructive accumulations will
+require an additional move to obtain correct results.
+
+----
+  # Example multi-word arithmetic sequence, accumulating into v4
+  vmadc.vvm v1, v4, v8, v0  # Get carry into temp register v1
+  vadc.vvm v4, v4, v8, v0   # Calc new sum
+  vmmv.m v0, v1             # Move temp carry into v0 for next word
+----
 
 The subtract with carry instruction `vsbc` performs the equivalent
-function to support long word arithmetic for subtraction.
+function to support long word arithmetic for subtraction.  There are
+no subtract with immediate instruction.
 
 ----
- # vd[i] = vs1[i] - vs2[i] - v0[i].LSB
- # v0[i] = carry(vs1[i] - vs2[i] - v0[i].LSB)
+ # Produce difference with carry.
 
- vsbc.vv   vd, vs2, vs1  # Vector-vector
- vsbc.vx   vd, vs2, rs1  # Vector-scalar
+# vd[i] = vs2[i] - vs1[i] - v0[i].LSB
+ vsbc.vvm   vd, vs2, vs1, v0  # Vector-vector
+
+ # vd[i] = vs2[i] - x[rs1] - v0[i].LSB
+ vsbc.vxm   vd, vs2, rs1, v0  # Vector-scalar
+
+ # Produce carry out in mask register format
+
+ # vd[i] = carry_out(vs2[i] - vs1[i] - v0[i].LSB)
+ vmsbc.vvm   vd, vs2, vs1, v0  # Vector-vector
+
+ # vd[i] = carry_out(vs2[i] - x[rs1] - v0[i].LSB)
+ vmsbc.vxm   vd, vs2, rs1, v0  # Vector-scalar
 ----
 
-For `vsbc`, the carry is defined to be 1 iff the difference, prior to
+For `vmsbc`, the carry is defined to be 1 iff the difference, prior to
 truncation, is negative.
 
-The encodings corresponding to the masked versions (vm=0) of `vadc`
-and `vsbc` are reserved.
+For `vadc` and `vsbc`, an illegal instruction exception is raised
+if the destination vector register is `v0`.
 
-For both `vadc` and `vsbc`, an illegal instruction exception is raised if the
-destination vector register is `v0`.
+For `vmadc` and `vmsbc`, an illegal instruction exception is raised if
+the destination vector register overlaps a source vector register
+group.
 
 === Vector Bitwise Logical Instructions
 
