@@ -2191,7 +2191,10 @@ For `vmsbc`, the carry is defined to be 1 iff the difference, prior to
 truncation, is negative.
 
 For `vadc` and `vsbc`, an illegal instruction exception is raised
-if the destination vector register is `v0`.
+if the destination vector register is `v0` and LMUL > 1.
+
+NOTE: This constraint corresponds to the constraint on masked vector
+operations that overwrite the mask register.
 
 For `vmadc` and `vmsbc`, an illegal instruction exception is raised if
 the destination vector register overlaps a source vector register
