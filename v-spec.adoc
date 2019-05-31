@@ -4238,39 +4238,43 @@ For EDIV > 1, `vadc`, `vmadc`, `vsbc`, `vmsbc` are reserved.
 
 ==== Vector Reduction Instructions under EDIV
 
-Vector reduction instructions now operate independently on all
-elements in a vector, reducing sub-element values within an element to
-an element-wide result.
+Vector single-width integer sum reduction instructions are reserved
+under EDIV>1.  Other vector single-width reductions and vector
+widening integer sum reduction instructions now operate independently
+on all elements in a vector, reducing sub-element values within an
+element to an element-wide result.
+
+The scalar input is taken from the least-significant bits of the
+second operand, with the number of bits equal to the number of
+significant result bits (i.e., for sum and dot reductions, the number
+of bits are given in table above, for non-sum and non-dot reductions,
+equal to the element size).
 
 ----
 # Sum each sub-vector of four bytes into a 16-bit result.
 vsetvli t0, a0, e32,d4  # Vectors of 32-bit elements, divided into byte sub-elements
-vredsum.vs v1, v2, v3 # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
-                      #              + v2[i][15:8] + v2[i][7:0] + v3[i][31:0]
+vwredsum.vs v1, v2, v3 # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
+                       #              + v2[i][15:8] + v2[i][7:0] + v3[i][15:0]
 
-vredmax.vs v5, v6, v7 # v5[i][31:0] = max(v6[i][31:24], v6[i][23:16],
-                      #                    v6[i][15:8], v6[i][7:0], v7[i][31:0])
+# Find maximum among sub-elements
+vredmax.vs v5, v6, v7 # v5[i][7:0] = max(v6[i][31:24], v6[i][23:16],
+                      #                    v6[i][15:8], v6[i][7:0], v7[i][7:0])
 ----
 
 Integer sub-element non-sum reductions produce a final result that is
 max(8,SEW/EDIV) bits wide, sign- or zero-extended to full SEW if
 necessary.
 
-Integer sub-element sum reductions produce a final result that is
-max(8,min(SEW,2*SEW/EDIV)) bits wide, sign- or zero-extended to full
-SEW if necessary.
+Integer sub-element widening sum reductions produce a final result
+that is max(8,min(SEW,2*SEW/EDIV)) bits wide, sign- or zero-extended
+to full SEW if necessary.
 
-Floating-point sub-element non-sum reductions produce a final result
-that is SEW/EDIV bits wide.
+Single-width floating-point reductions produce a final result that is
+SEW/EDIV bits wide.
 
-Floating-point sub-element sum reductions produce a final result that
-is min(2*SEW/EDIV,FLEN) bits wide, NaN-boxed to the full SEW width if
+Widening floating-point sum reductions produce a final result that is
+min(2*SEW/EDIV,FLEN) bits wide, NaN-boxed to the full SEW width if
 necessary.
-
-Widening vector reduction operations with non-zero EDIV are reserved.
-NOTE: While these could be defined, it is unclear they are needed and
-this reduces implementation complexity.
-
 
 ==== Vector Register Gather Instructions under EDIV
 
