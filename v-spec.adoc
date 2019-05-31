@@ -3761,6 +3761,11 @@ VLEN/SEW) are zeroed.
 If `vstart` {ge} `vl`, no operation is performed and the destination
 register is not updated.
 
+The `vs2` field must be `v0`, other values of `vs2` are reserved.
+
+The encodings corresponding to the masked version (vm=0) of `vmv.s.x`
+are reserved.
+
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
 
@@ -3773,9 +3778,6 @@ its main use to debugger modifications to state.  The alternative and
 more generally useful `vslide1up` and `vslide1down` instructions can
 be used to update vector register state in place over a debug link
 without accessing memory.
-
-The encodings corresponding to the masked version (vm=0) of `vmv.s.x`
-are reserved.
 
 === Floating-Point Scalar Move Instructions
 
