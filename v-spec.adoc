@@ -311,6 +311,17 @@ application programmers.  A few vector instructions can not be
 executed with a non-zero `vstart` value and will raise an illegal
 instruction exception as defined below.
 
+Implementations are permitted to raise illegal instruction exceptions when
+attempting to execute a vector instruction with a value of `vstart` that the
+implementation can never produce when executing that same instruction with
+the same `vtype` setting.
+
+NOTE: For example, some implementations will never take interrupts during
+execution of a vector arithmetic instruction, instead waiting until the
+instruction completes to take the interrupt.  Such implementations are
+permitted to raise an illegal instruction exception when attempting to execute
+a vector arithmetic instruction when `vstart` is nonzero.
+
 === Vector Fixed-Point Rounding Mode Register `vxrm`
 
 The vector fixed-point rounding-mode register holds a two-bit
