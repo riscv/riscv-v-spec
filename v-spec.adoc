@@ -2140,7 +2140,7 @@ respects the source/destination overlap restrictions below.
  vadc.vxm   vd, vs2, rs1, v0  # Vector-scalar
 
  # vd[i] = vs2[i] + imm + v0[i].LSB
- vadc.vim   vd, vs2, imm v0  # Vector-immediate
+ vadc.vim   vd, vs2, imm, v0  # Vector-immediate
 
  # Produce carry out in mask register format
 
