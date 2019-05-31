@@ -2491,6 +2491,39 @@ result.  Can consider changing definition of `vmulh`, `vmulhu`,
 `vmulhsu` to use `vxrm` rounding mode when discarding low half of
 product.  There is no possibility of overflow in this case.
 
+=== Vector Integer Divide Instructions
+
+The divide and remainder instructions are equivalent to the RISC-V
+standard scalar integer multiply/divides, with the same results for
+extreme inputs.
+
+----
+    # Unsigned divide.
+    vdivu.vv vd, vs2, vs1, vm   # Vector-vector
+    vdivu.vx vd, vs2, rs1, vm   # vector-scalar
+
+    # Signed divide
+    vdiv.vv vd, vs2, vs1, vm   # Vector-vector
+    vdiv.vx vd, vs2, rs1, vm   # vector-scalar
+
+    # Unsigned remainder
+    vremu.vv vd, vs2, vs1, vm   # Vector-vector
+    vremu.vx vd, vs2, rs1, vm   # vector-scalar
+
+    # Signed remainder
+    vrem.vv vd, vs2, vs1, vm   # Vector-vector
+    vrem.vx vd, vs2, rs1, vm   # vector-scalar
+----
+
+NOTE: The decision to include integer divide and remainder was
+contentious. The argument in favor is that without a standard
+instruction, software would have to pick some algorithm to perform the
+operation, which would likely perform poorly on some
+microarchitectures versus others.
+
+NOTE: There is no instruction to perform a "scalar divide by vector"
+operation.
+
 === Vector Widening Integer Multiply Instructions
 
 The widening integer multiply instructions return the full 2*SEW-bit
@@ -2564,39 +2597,6 @@ vwmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 ----
 
 NOTE: There is no signed-unsigned widening multiply-add instruction.
-
-=== Vector Integer Divide Instructions
-
-The divide and remainder instructions are equivalent to the RISC-V
-standard scalar integer multiply/divides, with the same results for
-extreme inputs.
-
-----
-    # Unsigned divide.
-    vdivu.vv vd, vs2, vs1, vm   # Vector-vector
-    vdivu.vx vd, vs2, rs1, vm   # vector-scalar
-
-    # Signed divide
-    vdiv.vv vd, vs2, vs1, vm   # Vector-vector
-    vdiv.vx vd, vs2, rs1, vm   # vector-scalar
-
-    # Unsigned remainder
-    vremu.vv vd, vs2, vs1, vm   # Vector-vector
-    vremu.vx vd, vs2, rs1, vm   # vector-scalar
-
-    # Signed remainder
-    vrem.vv vd, vs2, vs1, vm   # Vector-vector
-    vrem.vx vd, vs2, rs1, vm   # vector-scalar
-----
-
-NOTE: The decision to include integer divide and remainder was
-contentious. The argument in favor is that without a standard
-instruction, software would have to pick some algorithm to perform the
-operation, which would likely perform poorly on some
-microarchitectures versus others.
-
-NOTE: There is no instruction to perform a "scalar divide by vector"
-operation.
 
 === Vector Integer Merge Instruction
 
