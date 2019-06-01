@@ -1584,8 +1584,9 @@ in future vector extensions.
 [[sec-aos]]
 === Vector Load/Store Segment Instructions (`Zvlsseg`)
 
-NOTE: This is being written as an extension but could be mandated in
-some profiles.
+NOTE: This is being written as an extension but will likely be
+mandated in most profiles, as the operation is too generally useful to
+omit.
 
 The vector load/store segment instructions move multiple contiguous
 fields in memory to and from consecutively numbered vector registers.
@@ -1616,9 +1617,28 @@ segment, _NFIELDS_.
 | 1 | 1 | 1 | 8
 |===
 
-LMUL must be set to 1 for a segment load or store (NFIELDS > 1), and
-each field will be held in successively numbered vector registers.  If
-LMUL > 1, an illegal instruction exception will be raised.
+The LMUL setting must be such that LMUL * NFIELDS <= 8, otherwise an
+illegal instruction exception is raised.
+
+NOTE: The product LMUL * NFIELDS represents the number of underlying
+vector registers that will be touched by a segmented load or store
+instruction.  This constraint makes this total no larger than 1/4 of
+the architectural register file, and the same as for regular
+operations with LMUL=8. This constraint could be weakened in a future
+draft.
+
+Each field will be held in successively numbered vector register
+groups.  When LMUL>1, each field will occupy a vector register group
+held in multiple successively numbered vector registers, and the
+vector register group for each field must follow the usual vector
+register alignment constraints (e.g., when LMUL=2 and NFIELDS=8, each
+field's vector register group must start at an even vector register,
+but does not have to start at a multiple of 8 vector register number).
+
+NOTE: An earlier version imposed a vector register number constraint,
+but this decreased ability to make use of all registers when NFIELDS
+was not a power of 2.
+
 
 If the vector register numbers accessed by the segment load or store
 would increment past 31, then an illegal instruction exception is
@@ -1628,16 +1648,10 @@ NOTE: This constraint is to help provide forward-compatibility with a
 future longer instruction encoding that has more addressable vector
 registers.
 
-NOTE: An earlier version imposed a vector register number constraint,
-but this decreased ability to make use of all registers when NFIELDS
-was not a power of 2.
-
 The `vl` register gives the number of structures to move, which is
 equal to the number of elements transferred to each vector register.
 
 If a trap is taken, `vstart` is in units of structures.
-
-
 
 ==== Vector Unit-Stride Segment Loads and Stores
 
