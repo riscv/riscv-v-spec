@@ -1941,8 +1941,9 @@ in the `rs1` field.  The value is sign- or zero-extended to SEW bits.
 . For integer operations, the scalar can be taken from the scalar `x`
 register specified by `rs1`.  If XLEN>SEW, the least-significant bits
 of the `x` register are used.  If XLEN<SEW, the value from the `x`
-register is sign-extended to SEW bits.  . For floating-point
-operation, the scalar can be taken from a scalar `f` register.  If
+register is sign-extended to SEW bits.
+. For floating-point
+operations, the scalar can be taken from a scalar `f` register.  If
 FLEN>SEW, the value in the `f` registers is checked for a valid
 NaN-boxed value, in which case the least-significant bits of the
 `f`register are used, else the canonical NaN value is used.  If
