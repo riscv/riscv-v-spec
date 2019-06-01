@@ -2635,11 +2635,11 @@ vmerge.vxm vd, vs2, rs1, v0  # vd[i] = v0[i].LSB ? x[rs1] : vs2[i]
 vmerge.vim vd, vs2, imm, v0  # vd[i] = v0[i].LSB ? imm    : vs2[i]
 ----
 
-When the operation is unmasked (`vm=1`), the instructions copies the
-second operand to the first `vl` locations of the destination vector.
-The first operand specifier (`vs2`) in the instruction encoding must
-contain `v0`, and any other vector register number in `vs2` is
-_reserved_.
+When the operation is unmasked (`vm=1`), the first operand specifier
+(`vs2`) in the instruction encoding must contain `v0`, and any other
+vector register number in `vs2` is _reserved_.  This instruction
+copies the `vs1`, `rs1`, or immediate operand to the first `vl`
+locations of the destination vector.
 
 NOTE: Microarchitectures can recognize this form to avoid unnecessary
 vector register file accesses from the first vector operand.
