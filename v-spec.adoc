@@ -1135,7 +1135,7 @@ The requested application vector length (AVL) is passed in `rs1` as an
 unsigned integer.  Using `x0` as the `rs1` register specifier, encodes
 an infinite AVL, and so requests the maximum possible vector length.
 
-NOTE: A `vsetvli` with AVL=`x0` can be used to read current VLMAX,
+NOTE: A `vsetvl{i}` with AVL=`x0` can be used to read current VLMAX,
 though this does overwrite `vl`.
 
 NOTE: Earlier drafts required a trap when setting `vtype` to an
