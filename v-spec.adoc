@@ -2066,8 +2066,18 @@ with a vector register number that is legal for the source and
 destination LMUL value respectively, otherwise an illegal instruction
 exception is raised.
 
-Where there is a second source vector, this has the same (narrower)
-width as the result.
+Where there is a second source vector register group (specified by
+`vs1`), this has the same (narrower) width as the result.
+
+The destination vector register group cannot overlap the first source
+vector register group (specified by `vs2`).  The destination vector
+register group cannot overlap the mask register if used, unless
+LMUL=1. If either constraint is violated, an illegal instruction
+exception is raised.
+
+NOTE: It is safe to overwrite a second source vector register group
+with the same LMUL and element width as the result, or to overwrite a
+mask register when LMUL=1.
 
 A `vn*` prefix on the opcode is used to distinguish these instructions
 in the assembler, or a `vfn*` prefix for narrowing floating-point
