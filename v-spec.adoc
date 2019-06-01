@@ -1138,6 +1138,10 @@ an infinite AVL, and so requests the maximum possible vector length.
 NOTE: A `vsetvl{i}` with AVL=`x0` can be used to read current VLMAX,
 though this does overwrite `vl`.
 
+NOTE: The behavior of `vsetvl{i}` does not depend on whether `rd`=`x0`.
+Setting `rd`=`x0` can be useful when the application already knows what value
+`vl` will assume, e.g., when changing SEW under constant VLMAX and AVL.
+
 NOTE: Earlier drafts required a trap when setting `vtype` to an
 illegal value.  However, this would have added the first
 data-dependent trap on a CSR write to the ISA.  The current scheme
