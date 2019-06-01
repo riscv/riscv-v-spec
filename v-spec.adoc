@@ -2187,7 +2187,7 @@ require an additional move to obtain correct results.
   # Example multi-word arithmetic sequence, accumulating into v4
   vmadc.vvm v1, v4, v8, v0  # Get carry into temp register v1
   vadc.vvm v4, v4, v8, v0   # Calc new sum
-  vmmv.m v0, v1             # Move temp carry into v0 for next word
+  vmcpy.m v0, v1             # Move temp carry into v0 for next word
 ----
 
 The subtract with borrow instruction `vsbc` performs the equivalent
@@ -3350,28 +3350,34 @@ Vector mask logical instructions are always unmasked so there are no
 inactive elements.  Mask elements past `vl`, the tail elements, are
 zeroed.
 
-Within a mask element, these instructions perform their operations in
-a bitwise fashion.
+Within a mask element, these instructions perform their operations
+using only the least-significant bit of each operand and zero-extend
+the single-bit result to fill the destination mask element.
 
 ----
-    vmand.mm vd, vs2, vs1     # vd =   vs2 &  vs1
-    vmnand.mm vd, vs2, vs1    # vd = ~(vs2 &  vs1)
-    vmandnot.mm vd, vs2, vs1  # vd =   vs2 & ~vs1
-    vmxor.mm  vd, vs2, vs1    # vd =   vs2 ^  vs1
-    vmor.mm  vd, vs2, vs1     # vd =   vs2 |  vs1
-    vmnor.mm  vd, vs2, vs1    # vd = ~(vs2 |  vs1)
-    vmornot.mm  vd, vs2, vs1  # vd =   vs2 | ~vs1
-    vmxnor.mm vd, vs2, vs1   # vd = ~(vs2 ^  vs1)
+    vmand.mm vd, vs2, vs1     # vd[i] =   vs2[i].LSB &&  vs1[i].LSB
+    vmnand.mm vd, vs2, vs1    # vd[i] = !(vs2[i].LSB &&  vs1[i].LSB)
+    vmandnot.mm vd, vs2, vs1  # vd[i] =   vs2[i].LSB && !vs1[i].LSB
+    vmxor.mm  vd, vs2, vs1    # vd[i] =   vs2[i].LSB ^^  vs1[i].LSB
+    vmor.mm  vd, vs2, vs1     # vd[i] =   vs2[i].LSB ||  vs1[i].LSB
+    vmnor.mm  vd, vs2, vs1    # vd[i] = !(vs2[i[.LSB ||  vs1[i].LSB)
+    vmornot.mm  vd, vs2, vs1  # vd[i] =   vs2[i].LSB || !vs1[i].LSB
+    vmxnor.mm vd, vs2, vs1    # vd[i] = !(vs2[i].LSB ^^  vs1[i].LSB)
 ----
 
 Several assembler pseudoinstructions are defined as shorthand for
 common uses of mask logical operations:
 ----
-    vmmv.m vd, vs  => vmand.mm vd, vs, vs   # Move mask register
+    vmcpy.m vd, vs  => vmand.mm vd, vs, vs  # Copy mask register
     vmclr.m vd     => vmxor.mm vd, vd, vd   # Clear mask register
     vmset.m vd     => vmxnor.mm vd, vd, vd  # Set mask register
     vmnot.m vd, vs => vmnand.mm vd, vs, vs  # Invert bits
 ----
+
+NOTE: The vmcpy.m instruction is not called vmmv as elsewhere in the
+architecture mv implies a bitwise copy without interpreting the bits.
+The vmcpy.m instruction will clear upper bits of the destination mask
+register to zero regardless of source values in these bits.
 
 The set of eight mask logical instructions can generate any of the 16
 possibly binary logical functions of the two input masks:
@@ -3398,9 +3404,9 @@ possibly binary logical functions of the two input masks:
 | 1 | 1 | 1 | 0 | vmnand.mm vd, src1, src2    |
 | 0 | 0 | 0 | 1 | vmand.mm vd, src1, src2     |
 | 1 | 0 | 0 | 1 | vmxnor.mm vd, src1, src2    |
-| 0 | 1 | 0 | 1 | vmand.mm vd, src2, src2     | vmmv.m vd, src2
+| 0 | 1 | 0 | 1 | vmand.mm vd, src2, src2     | vmcpy.m vd, src2
 | 1 | 1 | 0 | 1 | vmornot.mm vd, src2, src1   |
-| 0 | 0 | 1 | 1 | vmand.mm vd, src1, src1     | vmmv.m vd, src1
+| 0 | 0 | 1 | 1 | vmand.mm vd, src1, src1     | vmcpy.m vd, src1
 | 1 | 0 | 1 | 1 | vmornot.mm vd, src1, src2   |
 | 1 | 1 | 1 | 1 | vmxnor.mm vd, vd, vd        | vmset.m vd
 |===
