@@ -2825,7 +2825,7 @@ amounts up to 31 only and is effectively zero-extended for SEW of >
 32.
 
 ----
- # For vxrm=rnu, round = 1 << (src2-1)
+ # For vxrm=rnu, round = 1 << (src2-1), where src2 is vs1[i], x[rs1], imm
  # Scaling shift right logical
  vssrl.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
  vssrl.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
