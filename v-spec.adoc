@@ -2646,9 +2646,9 @@ vector register file accesses from the first vector operand.
 
 ----
 # Unmasked  operations, where vm=1
-vmv.v.v vd, v0, vs1 # vd[i] = vs1[i]
-vmv.v.x vd, v0, rs1 # vd[i] = rs1
-vmv.v.i vd, v0, imm # vd[i] = imm
+vmv.v.v vd, vs1 # vd[i] = vs1[i]
+vmv.v.x vd, rs1 # vd[i] = rs1
+vmv.v.i vd, imm # vd[i] = imm
 ----
 
 NOTE: Mask values can be widened into SEW-width elements using a
