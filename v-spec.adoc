@@ -1980,21 +1980,21 @@ that instructions that read only one scalar register, read it from
 ----
 # Assembly syntax pattern for vector ternary arithmetic instructions (multiply-add)
 
-# Integer operations overwriting third source
-vop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i]*vs2[i] + vd[i]
-vop.vx vd, rs1, vs2, vm  # vd[i] = x[rs1]*vs2[i] + vd[i]
+# Integer operations overwriting sum input
+vop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i] * vs2[i] + vd[i]
+vop.vx vd, rs1, vs2, vm  # vd[i] = x[rs1] * vs2[i] + vd[i]
 
-# Integer operations overwriting first source
-vop.vv vd, vs1, vs2, vm  # vd[i] = vd[i]*vs1[i] + vs2[i]
-vop.vx vd, rs1, vs2, vm  # vd[i] = vd[i]*x[rs1] + vs2[i]
+# Integer operations overwriting product input
+vop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i] * vd[i] + vs2[i]
+vop.vx vd, rs1, vs2, vm  # vd[i] = x[rs1] * vd[i] + vs2[i]
 
-# Floating-point operations overwriting third source
-vfop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i]*vs2[i] + vd[i]
-vfop.vf vd, rs1, vs2, vm  # vd[i] = f[rs1]*vs2[i] + vd[i]
+# Floating-point operations overwriting sum input
+vfop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i] * vs2[i] + vd[i]
+vfop.vf vd, rs1, vs2, vm  # vd[i] = f[rs1] * vs2[i] + vd[i]
 
-# Floating-point operations overwriting first source
-vfop.vv vd, vs1, vs2, vm  # vd[i] = vd[i]*vs1[i] + vs2[i]
-vfop.vf vd, rs1, vs2, vm  # vd[i] = vd[i]*f[rs1] + vs2[i]
+# Floating-point operations overwriting product input
+vfop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i] * vd[i] + vs2[i]
+vfop.vf vd, rs1, vs2, vm  # vd[i] = f[rs1] * vd[i] + vs2[i]
 ----
 
 NOTE: For ternary multiply-add operations, the assembler syntax always
@@ -2608,12 +2608,12 @@ vmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
 vmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
 
 # Integer multiply-add, overwrite multiplicand
-vmadd.vv vd, vs1, vs2, vm    # vd[i] = (vd[i] * vs1[i]) + vs2[i]
-vmadd.vx vd, rs1, vs2, vm    # vd[i] = (vd[i] * x[rs1]) + vs2[i]
+vmadd.vv vd, vs1, vs2, vm    # vd[i] = (vs1[i] * vd[i]) + vs2[i]
+vmadd.vx vd, rs1, vs2, vm    # vd[i] = (x[rs1] * vd[i]) + vs2[i]
 
 # Integer multiply-sub, overwrite multiplicand
-vmsub.vv vd, vs1, vs2, vm    # vd[i] = (vd[i] * vs1[i]) - vs2[i]
-vmsub.vx vd, rs1, vs2, vm    # vd[i] = (vd[i] * x[rs1]) - vs2[i]
+vmsub.vv vd, vs1, vs2, vm    # vd[i] = (vs1[i] * vd[i]) - vs2[i]
+vmsub.vx vd, rs1, vs2, vm    # vd[i] = (x[rs1] * vd[i]) - vs2[i]
 ----
 
 === Vector Widening Integer Multiply-Add Instructions
@@ -2985,20 +2985,20 @@ vfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
 vfnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
 
 # FP multiply-add, overwrites multiplicand
-vfmadd.vv vd, vs1, vs2, vm    # vd[i] = +(vd[i] * vs1[i]) + vs2[i]
-vfmadd.vf vd, rs1, vs2, vm    # vd[i] = +(vd[i] * f[rs1]) + vs2[i]
+vfmadd.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vd[i]) + vs2[i]
+vfmadd.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vd[i]) + vs2[i]
 
 # FP negate-(multiply-add), overwrites multiplicand
-vfnmadd.vv vd, vs1, vs2, vm   # vd[i] = -(vd[i] * vs1[i]) - vs2[i]
-vfnmadd.vf vd, rs1, vs2, vm   # vd[i] = -(vd[i] * f[rs1]) - vs2[i]
+vfnmadd.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vd[i]) - vs2[i]
+vfnmadd.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vd[i]) - vs2[i]
 
 # FP multiply-sub, overwrites multiplicand
-vfmsub.vv vd, vs1, vs2, vm    # vd[i] = +(vd[i] * vs1[i]) - vs2[i]
-vfmsub.vf vd, rs1, vs2, vm    # vd[i] = +(vd[i] * f[rs1]) - vs2[i]
+vfmsub.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vd[i]) - vs2[i]
+vfmsub.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vd[i]) - vs2[i]
 
 # FP negate-(multiply-sub), overwrites multiplicand
-vfnmsub.vv vd, vs1, vs2, vm   # vd[i] = -(vd[i] * vs1[i]) + vs2[i]
-vfnmsub.vf vd, rs1, vs2, vm   # vd[i] = -(vd[i] * f[rs1]) + vs2[i]
+vfnmsub.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vd[i]) + vs2[i]
+vfnmsub.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vd[i]) + vs2[i]
 ----
 
 NOTE: It would be possible to use the two unused rounding modes in the
