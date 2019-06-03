@@ -1140,7 +1140,7 @@ though this does overwrite `vl`.
 
 NOTE: The behavior of `vsetvl{i}` does not depend on whether `rd`=`x0`.
 Setting `rd`=`x0` can be useful when the application already knows what value
-`vl` will assume, e.g., when changing SEW under constant VLMAX and AVL.
+`vl` will assume, e.g., when changing SEW and LMUL with constant AVL.
 
 NOTE: Earlier drafts required a trap when setting `vtype` to an
 illegal value.  However, this would have added the first
