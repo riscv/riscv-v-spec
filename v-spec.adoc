@@ -1635,7 +1635,7 @@ Each field will be held in successively numbered vector register
 groups.  When LMUL>1, each field will occupy a vector register group
 held in multiple successively numbered vector registers, and the
 vector register group for each field must follow the usual vector
-register alignment constraints (e.g., when LMUL=2 and NFIELDS=8, each
+register alignment constraints (e.g., when LMUL=2 and NFIELDS=4, each
 field's vector register group must start at an even vector register,
 but does not have to start at a multiple of 8 vector register number).
 
