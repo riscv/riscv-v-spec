@@ -1653,7 +1653,8 @@ future longer instruction encoding that has more addressable vector
 registers.
 
 The `vl` register gives the number of structures to move, which is
-equal to the number of elements transferred to each vector register group.
+equal to the number of elements transferred to each vector register
+group.  Masking is also applied at the level of whole structures.
 
 If a trap is taken, `vstart` is in units of structures.
 
