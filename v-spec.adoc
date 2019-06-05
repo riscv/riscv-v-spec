@@ -1500,6 +1500,8 @@ element.
     vsse.v vs3, (rs1), rs2, vm  # SEW
 ----
 
+NOTE: Negative and zero strides are supported.
+
 === Vector Indexed Instructions
 
 ----
@@ -1721,7 +1723,7 @@ Vector strided segment loads and stores move contiguous segments where
 each segment is separated by the byte stride offset given in the `rs2`
 GPR argument.
 
-Note: Negative and zero strides are supported.
+NOTE: Negative and zero strides are supported.
 
 ----
     # Format
