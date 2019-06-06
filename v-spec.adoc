@@ -3535,6 +3535,10 @@ the destination are written with a 1.
 
 The tail elements in the destination mask register are cleared.
 
+Traps on `vmsbf.m` are always reported with a `vstart` of 0.  The
+`vmsbf` instruction will raise an illegal instruction exception if
+`vstart` is non-zero.
+
 === `vmsif.m` set-including-first mask bit
 
 The vector mask set-including-first instruction is similar to
@@ -3562,6 +3566,10 @@ set-before-first, except it also includes the element with a set bit.
 ----
 
 The tail elements in the destination mask register are cleared.
+
+Traps on `vmsif.m` are always reported with a `vstart` of 0.  The
+`vmsif` instruction will raise an illegal instruction exception if
+`vstart` is non-zero.
 
 === `vmsof.m` set-only-first mask bit
 
@@ -3591,6 +3599,10 @@ set, if any.
 ----
 
 The tail elements in the destination mask register are cleared.
+
+Traps on `vmsof.m` are always reported with a `vstart` of 0.  The
+`vmsof` instruction will raise an illegal instruction exception if
+`vstart` is non-zero.
 
 === Example using vector mask instructions
 
