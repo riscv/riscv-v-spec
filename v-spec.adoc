@@ -2312,9 +2312,8 @@ operand and have both zero-extending (`srl`) and sign-extending
 (`sra`) forms.  The shift amount can come from a vector or a scalar
 `x` register or a 5-bit immediate.  The low lg2(2*SEW) bits of the
 vector or scalar shift amount value are used (e.g., the low 6 bits for
-a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate form
-supports shift amounts up to 31 only and is effectively zero-extended
-for SEW of > 32.
+a SEW=64-bit to SEW=32-bit narrowing operation).  The unsigned immediate form
+supports shift amounts up to 31 only.
 
 ----
  # Narrowing shift right logical, SEW = (2*SEW) >> SEW
@@ -2832,13 +2831,9 @@ would require a fourth source operand.
 
 These instructions shift the input value right, and round off the
 shifted out bits according to `vxrm`.  The scaling right shifts have
-both zero-extending (`vssrl`) and sign-extending (`vssra`) forms.  The
-shift amount can come from a vector or a scalar `x` register or a
-5-bit immediate.  The low lg2(2*SEW) bits of the vector or scalar
-shift amount value are used (e.g., the low 6 bits for a SEW=64-bit to
-SEW=32-bit narrowing operation).  The immediate form supports shift
-amounts up to 31 only and is effectively zero-extended for SEW of >
-32.
+both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. The
+low lg2(SEW) bits of the vector or scalar shift amount value are used.
+The immediate form supports shift amounts up to 31 only.
 
 ----
  # For vxrm=rnu, round = 1 << (src2-1), where src2 is vs1[i], x[rs1], imm
@@ -2861,7 +2856,10 @@ saturation into the final destination format.
 
 The second argument (vector element, scalar value, immediate value)
 gives the amount to right shift the source as in the narrowing shift
-instructions, which provides the scaling.
+instructions, which provides the scaling.  The low lg2(2*SEW) bits of
+the vector or scalar shift amount value are used (e.g., the low 6 bits
+for a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate
+form supports shift amounts up to 31 only.
 
 ----
  # Narrowing unsigned clip
