@@ -2624,9 +2624,10 @@ vnmsub.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vd[i]) + vs2[i]
 
 === Vector Widening Integer Multiply-Add Instructions
 
-The widening integer multiply-add instructions add (subtract) a
-SEW-bit*SEW-bit multiply result to (from) a 2*SEW-bit value and
-produce a 2*SEW-bit result.
+The widening integer multiply-add instructions add a SEW-bit*SEW-bit
+multiply result to (from) a 2*SEW-bit value and produce a 2*SEW-bit
+result.  All combinations of signed and unsigned multiply operands are
+supported.
 
 ----
 # Widening unsigned-integer multiply-add, overwrite addend
@@ -2637,16 +2638,13 @@ vwmaccu.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 vwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
 vwmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
-# Widening unsigned-integer multiply-sub, overwrite minuend
-vwmsacu.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
-vwmsacu.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
+# Widening signed-unsigned-integer multiply-sub, overwrite addend
+vwmaccsu.vv vd, vs1, vs2, vm    # vd[i] = +(signed(vs1[i]) * unsigned(vs2[i])) + vd[i]
+vwmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
 
-# Widening signed-integer multiply-sub, overwrite minuend
-vwmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
-vwmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
+# Widening unsigned-signed-integer multiply-sub, overwrite addend
+vwmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
 ----
-
-NOTE: There is no signed-unsigned widening multiply-add instruction.
 
 === Vector Integer Merge and Move Instructions
 
@@ -2792,6 +2790,11 @@ destination accumulator, with saturation if the result would overflow
 the destination accumulator. The `vxsat` bit is set if any overflow
 occurs.
 
+If any multiplier operand is signed, then the result is treated as a
+signed value for overflow/saturation.  If both multiplier operands are
+unsigned then the result is treated as an unsigned value for
+overflow/saturation.
+
 |===
 | SEW | Product Width | Rounded Product | Accumulator | Guard Bits
 
@@ -2806,16 +2809,18 @@ vwsmaccu.vv vd, vs1, vs2, vm # vd[i] = clipu((+(vs1[i]*vs2[i]+round)>>SEW/2)+vd[
 vwsmaccu.vx vd, rs1, vs2, vm # vd[i] = clipu((+(x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
 
 # Widening signed-integer scaled multiply-accumulate
-vwsmacc.vv vd, vs1, vs2, vm  # vd[i] = clipu((+(vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
-vwsmacc.vx vd, rs1, vs2, vm  # vd[i] = clipu((+(x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
+vwsmacc.vv vd, vs1, vs2, vm  # vd[i] = clip((+(vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
+vwsmacc.vx vd, rs1, vs2, vm  # vd[i] = clip((+(x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
 
-# Widening unsigned-integer scaled multiply-subtract
-vwsmsacu.vv vd, vs1, vs2, vm # vd[i] = clipu(-((vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
-vwsmsacu.vx vd, rs1, vs2, vm # vd[i] = clipu(-((x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
+# Widening signed-unsigned-integer scaled multiply-accumulate
+vwsmaccsu.vv vd, vs1, vs2, vm
+             # vd[i] = clip(-((signed(vs1[i])*unsigned(vs2[i])+round)>>SEW/2)+vd[i])
+vwsmaccsu.vx vd, rs1, vs2, vm
+             # vd[i] = clip(-((signed(x[rs1])*unsigned(vs2[i])+round)>>SEW/2)+vd[i])
 
-# Widening signed-integer scaled  multiply-subtract
-vwsmsac.vv vd, vs1, vs2, vm  # vd[i] = clipu(-((vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
-vwsmsac.vx vd, rs1, vs2, vm  # vd[i] = clipu(-((x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
+# Widening unsigned-signed-integer scaled  multiply-accumulate
+vwsmaccus.vx vd, rs1, vs2, vm
+             # vd[i] = clip(-((unsigned(x[rs1])*signed(vs2[i])+round)>>SEW/2)+vd[i])
 
 # For vxrm=rnu, round = ( 1 << (SEW/2-1))
 ----
