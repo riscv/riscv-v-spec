@@ -68,11 +68,11 @@
 | 101000 |V|X|I| vsrl       | 101000 | | |             | 101000 |V|F| vfmadd
 | 101001 |V|X|I| vsra       | 101001 |V|X| vmadd       | 101001 |V|F| vfnmadd
 | 101010 |V|X|I| vssrl      | 101010 | | |             | 101010 |V|F| vfmsub
-| 101011 |V|X|I| vssra      | 101011 |V|X| vmsub       | 101011 |V|F| vfnmsub
+| 101011 |V|X|I| vssra      | 101011 |V|X| vnmsub      | 101011 |V|F| vfnmsub
 | 101100 |V|X|I| vnsrl      | 101100 | | |             | 101100 |V|F| vfmacc
 | 101101 |V|X|I| vnsra      | 101101 |V|X| vmacc       | 101101 |V|F| vfnmacc
 | 101110 |V|X|I| vnclipu    | 101110 | | |             | 101110 |V|F| vfmsac
-| 101111 |V|X|I| vnclip     | 101111 |V|X| vmsac       | 101111 |V|F| vfnmsac
+| 101111 |V|X|I| vnclip     | 101111 |V|X| vnmsac      | 101111 |V|F| vfnmsac
 |===
 
 [cols="4,1,1,1,8,4,1,1,8,4,1,1,8"]
