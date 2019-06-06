@@ -4188,6 +4188,9 @@ This mechanism is not defined in the base vector ISA.
 
 == Divided Element Extension ('Zvediv')
 
+NOTE: EDIV is the mostly likely part of the spec to change
+substantially.
+
 The divided element extension allows each element to be treated as a
 packed sub-vector of narrower elements. This provides efficient
 support for some forms of narrow-width and mixed-width arithmetic, and
