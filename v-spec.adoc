@@ -2256,7 +2256,7 @@ operations that overwrite the mask register.
 
 For `vmadc` and `vmsbc`, an illegal instruction exception is raised if
 the destination vector register overlaps a source vector register
-group.
+group and LMUL > 1.
 
 === Vector Bitwise Logical Instructions
 
