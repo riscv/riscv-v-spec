@@ -3476,6 +3476,8 @@ masked elements are counted.
  vpopc.m rd, vs2, v0.t # x[rd] = sum_i ( vs2[i].LSB && v0[i].LSB )
 ----
 
+The vs1 field must be v0, other values of vs1 are reserved.
+
 Traps on `vpopc.m` are always reported with a `vstart` of 0.  The
 `vpopc` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
@@ -3490,6 +3492,8 @@ The `vfirst` instruction finds the lowest-numbered active element of
 the source mask vector that has its LSB set and writes that element's
 index to a GPR.  If no element has an LSB set, -1 is written to the
 GPR.
+
+The vs1 field must be v0, other values of vs1 are reserved.
 
 NOTE: Software can assume that any negative value (highest bit set)
 corresponds to no element found, as vector lengths will never exceed
