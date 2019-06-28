@@ -1567,7 +1567,7 @@ loop:
     vlbff.v v1, (a3)      # Load bytes
     csrr a1, vl           # Get bytes read
     vmseq.vi v0, v1, 0    # Set v0[i] where v1[i] = 0
-    vmfirst.m a2, v0      # Find first set bit
+    vfirst.m a2, v0       # Find first set bit
     add a3, a3, a1        # Bump pointer
     bltz a2, loop         # Not found?
 
@@ -3455,16 +3455,16 @@ fused with a following masked vector operation to effectively expand
 the number of predicate registers by moving values into `v0` before
 use.
 
-=== Vector mask population count `vmpopc`
+=== Vector mask population count `vpopc`
 
 ----
-    vmpopc.m rd, vs2, vm
+    vpopc.m rd, vs2, vm
 ----
 
 The source operand is a single vector register holding mask register
 values as described in Section <<sec-mask-register-layout>>.
 
-The `vmpopc.m` instruction counts the number of mask elements of the
+The `vpopc.m` instruction counts the number of mask elements of the
 active elements of the vector source mask register that have their
 least-significant bit set, and writes the result to a scalar `x`
 register.
@@ -3473,20 +3473,20 @@ The operation can be performed under a mask, in which case only the
 masked elements are counted.
 
 ----
- vmpopc.m rd, vs2, v0.t # x[rd] = sum_i ( vs2[i].LSB && v0[i].LSB )
+ vpopc.m rd, vs2, v0.t # x[rd] = sum_i ( vs2[i].LSB && v0[i].LSB )
 ----
 
-Traps on `vmpopc.m` are always reported with a `vstart` of 0.  The
-`vmpopc` instruction will raise an illegal instruction exception if
+Traps on `vpopc.m` are always reported with a `vstart` of 0.  The
+`vpopc` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
 
-=== `vmfirst` find-first-set mask bit
+=== `vfirst` find-first-set mask bit
 
 ----
-    vmfirst.m rd, vs2, vm
+    vfirst.m rd, vs2, vm
 ----
 
-The `vmfirst` instruction finds the lowest-numbered active element of
+The `vfirst` instruction finds the lowest-numbered active element of
 the source mask vector that has its LSB set and writes that element's
 index to a GPR.  If no element has an LSB set, -1 is written to the
 GPR.
@@ -3495,8 +3495,8 @@ NOTE: Software can assume that any negative value (highest bit set)
 corresponds to no element found, as vector lengths will never exceed
 2^31^ on any implementation.
 
-Traps on `vmfirst` are always reported with a `vstart` of 0.  The
-`vmfirst` instruction will raise an illegal instruction exception if
+Traps on `vfirst` are always reported with a `vstart` of 0.  The
+`vfirst` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
 
 === `vmsbf.m` set-before-first mask bit
@@ -3617,7 +3617,7 @@ loop:
     vlbuff.v v1, (a1)       # Get src bytes
       csrr t1, vl           # Get number of bytes fetched
     vmseq.vi v0, v1, 0      # Flag zero bytes
-    vmfirst.m a3, v0        # Zero found?
+    vfirst.m a3, v0         # Zero found?
       add a1, a1, t1        # Bump pointer
     vmsif.m v0, v0          # Set mask up to and including zero byte.
     vsb.v v1, (a2), v0.t    # Write out bytes
@@ -3633,7 +3633,7 @@ loop:
     vsetvli x0, a2, e8   # Vectors of bytes.
     vlbuff.v v1, (a1)       # Get src bytes
     vmseq.vi v0, v1, 0      # Flag zero bytes
-    vmfirst.m a4, v0        # Zero found?
+    vfirst.m a4, v0         # Zero found?
     vmsif.m v0, v0          # Set mask up to and including zero byte.
     vsb.v v1, (a3), v0.t    # Write out bytes
       bgez a4, exit         # Done
@@ -3732,8 +3732,8 @@ loop:
       slli a5, a5, 2              # Multiply by four bytes
     vmsne.vi v0, v8, 0            # Locate non-zero values
       add a1, a1, a5              # Bump input pointer
-    vmpopc.m a5, v0               # Count number of elements set in v0
-    viota.m v16, v0              # Get destination offsets of active elements
+    vpopc.m a5, v0                # Count number of elements set in v0
+    viota.m v16, v0               # Get destination offsets of active elements
       add a6, a6, a5              # Accumulate number of elements
     vsll.vi v16, v16, 2, v0.t     # Multiply offsets by four bytes
       slli a5, a5, 2              # Multiply number of non-zero elements by four bytes
@@ -4282,8 +4282,8 @@ continue to move whole elements.
 Vector mask logical operations are unchanged by EDIV setting, and
 continue to operate on vector registers containing element masks.
 
-Vector mask population count (`vmpopc`), find-first and related
-instructions (`vmfirst`, `vmsbf`, `vmsif`, `vmsof`), iota (`viota`),
+Vector mask population count (`vpopc`), find-first and related
+instructions (`vfirst`, `vmsbf`, `vmsif`, `vmsof`), iota (`viota`),
 and element index (`vid`) instructions are unaffected by EDIV.
 
 Vector integer bit insert/extract, and integer and floating-point
