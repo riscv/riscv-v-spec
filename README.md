@@ -1,6 +1,8 @@
 # riscv-v-spec
 Working draft of the proposed RISC-V V vector extension.
 
+For the most recent stable release, v0.7.1, click [here](https://github.com/riscv/riscv-v-spec/releases/tag/0.7.1).
+
 The top level file is [v-spec.adoc](./v-spec.adoc)
 
 Simply clicking on the file in the github repo viewer will render a usable
