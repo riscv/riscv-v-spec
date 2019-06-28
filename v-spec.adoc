@@ -4067,8 +4067,8 @@ then zero is returned for the element value.
 Vector-scalar and vector-immediate forms of the register gather are
 also provided.  These read one element from the source vector at the
 given index, and write this value to the `vl` elements at the start of
-the destination vector register. The immediate is treated as an unsigned
-integer, giving access to elements up to element 31.
+the destination vector register. The index value in the scalar register
+and the immediate are treated as unsigned integers.
 
 NOTE: These forms allow any vector element to be "splatted" to an entire vector.
 
