@@ -2256,7 +2256,7 @@ operations that overwrite the mask register.
 
 For `vmadc` and `vmsbc`, an illegal instruction exception is raised if
 the destination vector register overlaps a source vector register
-group.
+group and LMUL > 1.
 
 === Vector Bitwise Logical Instructions
 
@@ -2480,6 +2480,10 @@ Comparisons effectively AND in the mask, e.g,
     vmslt.vv    v0, va, vb        # All body elements written
     vmslt.vv    v0, vb, vc, v0.t  # Only update at set mask
 ----
+
+For all comparison instructions, an illegal instruction exception is raised if
+the destination vector register overlaps a source vector register group and
+LMUL > 1.
 
 === Vector Integer Min/Max Instructions
 
@@ -3153,6 +3157,10 @@ arguments are ordered (i.e., neither argument is NaN).
     vmford.vv v0, va, vb       # Only set where args are ordered,
     vmfgt.vv v0, va, vb, v0.t  # so only set flags on ordered values.
 ----
+
+For all comparison instructions, an illegal instruction exception is raised if
+the destination vector register overlaps a source vector register group and
+LMUL > 1.
 
 === Vector Floating-Point Classify Instruction
 
