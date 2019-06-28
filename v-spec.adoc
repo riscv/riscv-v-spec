@@ -2289,15 +2289,15 @@ logical shift left, and logical (zero-extending) and arithmetic
 # Bit shift operations
 vsll.vv vd, vs2, vs1, vm   # Vector-vector
 vsll.vx vd, vs2, rs1, vm   # vector-scalar
-vsll.vi vd, vs2, imm, vm   # vector-immediate
+vsll.vi vd, vs2, uimm, vm   # vector-immediate
 
 vsrl.vv vd, vs2, vs1, vm   # Vector-vector
 vsrl.vx vd, vs2, rs1, vm   # vector-scalar
-vsrl.vi vd, vs2, imm, vm   # vector-immediate
+vsrl.vi vd, vs2, uimm, vm   # vector-immediate
 
 vsra.vv vd, vs2, vs1, vm   # Vector-vector
 vsra.vx vd, vs2, rs1, vm   # vector-scalar
-vsra.vi vd, vs2, imm, vm   # vector-immediate
+vsra.vi vd, vs2, uimm, vm   # vector-immediate
 ----
 
 Only the low lg2(SEW) bits are read to obtain the shift amount.
@@ -2319,12 +2319,12 @@ supports shift amounts up to 31 only.
  # Narrowing shift right logical, SEW = (2*SEW) >> SEW
  vnsrl.vv vd, vs2, vs1, vm   # vector-vector
  vnsrl.vx vd, vs2, rs1, vm   # vector-scalar
- vnsrl.vi vd, vs2, imm, vm   # vector-immediate
+ vnsrl.vi vd, vs2, uimm, vm   # vector-immediate
 
  # Narrowing shift right arithmetic, SEW = (2*SEW) >> SEW
  vnsra.vv vd, vs2, vs1, vm   # vector-vector
  vnsra.vx vd, vs2, rs1, vm   # vector-scalar
- vnsra.vi vd, vs2, imm, vm   # vector-immediate
+ vnsra.vi vd, vs2, uimm, vm   # vector-immediate
 ----
 
 NOTE: It could be useful to add support for `n4` variants, where the
@@ -2836,16 +2836,16 @@ low lg2(SEW) bits of the vector or scalar shift amount value are used.
 The immediate form supports shift amounts up to 31 only.
 
 ----
- # For vxrm=rnu, round = 1 << (src2-1), where src2 is vs1[i], x[rs1], imm
+ # For vxrm=rnu, round = 1 << (src2-1), where src2 is vs1[i], x[rs1], uimm
  # Scaling shift right logical
  vssrl.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
  vssrl.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
- vssrl.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)
+ vssrl.vi vd, vs2, uimm, vm   # vd[i] = ((vs2[i] + round)>>uimm)
 
  # Scaling shift right arithmetic
  vssra.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
  vssra.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
- vssra.vi vd, vs2, imm, vm   # vd[i] = ((vs2[i] + round)>>imm)
+ vssra.vi vd, vs2, uimm, vm   # vd[i] = ((vs2[i] + round)>>uimm)
 ----
 
 === Vector Narrowing Fixed-Point Clip Instructions
@@ -2865,13 +2865,13 @@ form supports shift amounts up to 31 only.
  # Narrowing unsigned clip
  vnclipu.vv vd, vs2, vs1, vm   # vector-vector
  vnclipu.vx vd, vs2, rs1, vm   # vector-scalar
- vnclipu.vi vd, vs2, imm, vm   # vector-immediate
+ vnclipu.vi vd, vs2, uimm, vm   # vector-immediate
 
 # Narrowing signed clip,  vd[i] = clip(round(vs2[i] + rnd) >> vs1[i])
 #                          SEW           2*SEW                 SEW
  vnclip.vv vd, vs2, vs1, vm   # vector-vector
  vnclip.vx vd, vs2, rs1, vm   # vector-scalar
- vnclip.vi vd, vs2, imm, vm   # vector-immediate
+ vnclip.vi vd, vs2, uimm, vm   # vector-immediate
 ----
 
 For `vnclipu`/`vnclip`, the rounding mode is specified in the `vxrm`
@@ -3903,7 +3903,7 @@ destination vector register group, regardless of `vstart`.
 
 ----
  vslideup.vx vd, vs2, rs1, vm        # vd[i+rs1] = vs2[i]
- vslideup.vi vd, vs2, uimm[4:0], vm  # vd[i+imm] = vs2[i]
+ vslideup.vi vd, vs2, uimm[4:0], vm  # vd[i+uimm] = vs2[i]
 ----
 
 For `vslideup`, the value in `vl` specifies the number of destination
@@ -3936,7 +3936,7 @@ input vectors during execution, and to enable restart with non-zero
 
 ----
  vslidedown.vx vd, vs2, rs1, vm       # vd[i] = vs2[i+rs1]
- vslidedown.vi vd, vs2, uimm[4:0], vm # vd[i] = vs2[i+imm]
+ vslidedown.vi vd, vs2, uimm[4:0], vm # vd[i] = vs2[i+uimm]
 ----
 
 For `vslidedown`, the value in `vl` specifies the number of
