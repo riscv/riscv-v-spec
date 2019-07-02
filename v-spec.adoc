@@ -3360,34 +3360,39 @@ generating or propagating special values.
 NOTE: The ordered reduction supports compiler autovectorization, while
 the unordered FP sum allows for faster implementations.
 
+When the operation is masked (`vm=0`), the masked-off elements do not
+affect the result or the exception flags.
+
 ==== Vector Unordered Single-Width Floating-Point Sum Reduction
 
 The unordered sum reduction instruction, `vfredsum`, provides an
-implementation more freedom in performing the reduction.  The
-implementation can use any shape of reduction tree, where the inputs
-include all VLMAX elements in the source vector register group.
+implementation more freedom in performing the reduction.
 
-The first `vl` inputs to the reduction tree are the first `vl` values
-held in the source vector register group, while the remaining
-VLMAX-`vl` elements are replaced with an IEEE +0.  Any masked-off
-elements in the first `vl` elements are replaced with IEEE +0.
-
-The reduction tree is composed of VLMAX-1 binary nodes.  Each node
-must either perform an exact addition (i.e., no overflow or rounding),
-or a floating-point addition according to the standard IEEE
+The implementation can produce a result equivalent to a reduction tree
+composed of binary operator nodes, with the inputs being elements from
+the source vector register group (`vs2`) and the source scalar value
+(`vs1[0]`).  Each operator in the tree accepts two inputs and produces
+one result.  Each operator can either perform an exact addition, or a
+floating-point addition according to the RISC-V IEEE scalar
 floating-point specification and with the currently active
-floating-point rounding mode.  All nodes propagate IEEE special values
-as per the RISC-V scalar operation standard.  The root node of the
-tree must produce results according to a standard IEEE addition.
+floating-point dynamic rounding mode.  The root node in the tree must
+produce a result according to standard RISC-V IEEE floating-point
+scalar addition under the current rounding mode.  All nodes propagate
+IEEE special values as per the RISC-V scalar operation standard.
+
+If an input to an operator node is masked-off or beyond the active
+vector length, the input can either have no effect on the output
+result, effectively converting the binary operator into a unary
+identity operator, or be treated as IEEE +0 of the appropriate SEW.
 
 An implementation is allowed to add an additional IEEE +0 to the final
 result.
 
-NOTE: Adding IEEE +0 to the result avoids the need to supply and
-propagate -0 values when round-down is in effect.
-
 NOTE: The `vfredosum` instruction is a valid implementation of the
 `vfredsum` instruction.
+
+The reduction tree structure must be deterministic for a given value
+in `vtype` and `vl`.
 
 ==== Vector Single-Width Floating Max and Min Reductions
 
