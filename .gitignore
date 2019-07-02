@@ -1,9 +1,0 @@
-/v-spec.html
-/v-spec.pdf
-.DS_Store
-.*.swp
-node_modules
-package-lock.json
-public
-build
-*.pdf
