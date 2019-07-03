@@ -1837,27 +1837,26 @@ in the same vector AMO instruction.
 | Standard scalar AMO | 0 | 1 | 1 |  64 |  XLEN  | AMO*.D
 | Standard scalar AMO | 1 | 0 | 0 | 128 |  XLEN  | AMO*.Q
 | Vector AMO          | 1 | 1 | 0 |  32 | vl*SEW | VAMO*W.V
-| Vector AMO          | 1 | 1 | 1 |  64 | vl*SEW | VAMO*D.V
-| Vector AMO          | 0 | 0 | 0 | 128 | vl*SEW | VAMO*Q.V
+| Vector AMO          | 1 | 1 | 1 |  64 | vl*SEW | VAMO*E.V
 |===
 
 Mem bits is the size of element accessed in memory
 
 Reg bits is the size of element accessed in register
 
-The vector AMO width encoding flips the high bit of the corresponding
-scalar AMO width encoding.  SEW must be at least as wide as the AMO
-memory element size, otherwise an illegal instruction exception is
-raised.  If the AMO memory element width is less than SEW, the value
-returned from memory is sign-extended to fill SEW.
+There are two widths of vector AMO, one for 32-bit words and one for
+SEW-bit words.  For the 32-bit vector AMO operations, SEW must be at
+least 32 bits, otherwise an illegal instruction exception is raised.
+If SEW > 32 bits, the value returned from memory is sign-extended
+to fill SEW.
 
 If SEW is less than XLEN, then addresses in the vector `vs2` are
 sign-extended to XLEN.  If SEW is greater than XLEN, an illegal
 instruction exception is raised.
 
-Note, the AMO instruction encoding does not support arbitrary SEW-bit
-memory elements, only the standard 32-bit, 64-bit, 128-bit sizes
-required by the standard scalar base architecture.
+Vector AMO instructions are only supported for the memory element
+widths supported by AMOs in the implementation's scalar architecture.
+Other widths raise an illegal instruction exception.
 
 The vector `amoop[4:0]` field uses the same encoding as the scalar
 5-bit AMO instruction field, except that LR and SC are not supported.
@@ -1877,6 +1876,67 @@ The vector `amoop[4:0]` field uses the same encoding as the scalar
 | 1 | 1 | 0 | 0 | 0 | vamominu
 | 1 | 1 | 1 | 0 | 0 | vamomaxu
 |===
+
+The assembly syntax uses `x0` in the destination register position to
+indicate the return value is not required (`wd=0`).
+
+----
+# 32-bit vector AMOs
+vamoswapw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoswapw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+                           
+vamoaddw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoaddw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoxorw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoxorw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoandw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoandw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoorw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoorw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamominw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamomaxw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominuw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamominuw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxuw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamomaxuw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+# SEW-bit vector AMOs
+vamoswape.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoswape.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+                           
+vamoadde.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoadde.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoxore.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoxore.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoande.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoande.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoore.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamoore.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomine.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamomine.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxe.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamomaxe.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominue.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamominue.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxue.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
+vamomaxue.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+----
 
 == Vector Memory Alignment Constraints
 
