@@ -2709,14 +2709,15 @@ vwmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) +
 vwmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
 ----
 
-=== Vector Integer Merge and Move Instructions
+=== Vector Integer Merge Instructions
 
-The vector integer merge instruction combines two source operands
+The vector integer merge instructions combine two source operands
 based on the mask field.  Unlike regular arithmetic instructions, the
 merge operates on all body elements (i.e., the set of elements from
 `vstart` up to the current vector length in `vl`).
 
-When the operation is masked (`vm=0`), the instructions combine two
+The `vmerge` instructions are always masked (`vm=0`).
+The instructions combine two
 sources as follows.  At elements where the mask value is zero, the
 first operand is copied to the destination element, otherwise the
 second operand is copied to the destination element.  The first
@@ -2726,23 +2727,21 @@ scalar `x` register specified by `rs1` or a 5-bit sign-extended
 immediate.
 
 ----
-# Masked  operations, where vm=0
 vmerge.vvm vd, vs2, vs1, v0  # vd[i] = v0[i].LSB ? vs1[i] : vs2[i]
 vmerge.vxm vd, vs2, rs1, v0  # vd[i] = v0[i].LSB ? x[rs1] : vs2[i]
 vmerge.vim vd, vs2, imm, v0  # vd[i] = v0[i].LSB ? imm    : vs2[i]
 ----
 
-When the operation is unmasked (`vm=1`), the first operand specifier
-(`vs2`) in the instruction encoding must contain `v0`, and any other
+=== Vector Integer Move Instructions
+
+The vector integer move instructions copy a source operand to a vector
+register group.  These instructions are always unmasked (`vm=1`).
+The first operand specifier (`vs2`) must contain `v0`, and any other
 vector register number in `vs2` is _reserved_.  This instruction
 copies the `vs1`, `rs1`, or immediate operand to the first `vl`
-locations of the destination vector.
-
-NOTE: Microarchitectures can recognize this form to avoid unnecessary
-vector register file accesses from the first vector operand.
+locations of the destination vector register group.
 
 ----
-# Unmasked  operations, where vm=1
 vmv.v.v vd, vs1 # vd[i] = vs1[i]
 vmv.v.x vd, rs1 # vd[i] = rs1
 vmv.v.i vd, imm # vd[i] = imm
@@ -2750,6 +2749,9 @@ vmv.v.i vd, imm # vd[i] = imm
 
 NOTE: Mask values can be widened into SEW-width elements using a
 sequence `vmv.v.i vd, 0; vmerge.vim vd, vd, 1, v0`.
+
+NOTE: The vector integer move instructions share the encoding with the vector
+merge instructions, but with `vm=1` and `vs2=v0`.
 
 == Vector Fixed-Point Arithmetic Instructions
 
@@ -3242,8 +3244,8 @@ A vector-scalar floating-point merge instruction is provided, which
 operates on all body elements, from `vstart` up to the current vector
 length in `vl` regardless of mask value.
 
-When the floating-point merge instruction is masked (`vm=0`), at
-elements where the mask value is zero, the first vector operand is
+The `vfmerge.vfm` instruction is always masked (`vm=0`).
+At elements where the mask value is zero, the first vector operand is
 copied to the destination element, otherwise a scalar floating-point
 register value is copied to the destination element.
 
@@ -3251,16 +3253,24 @@ register value is copied to the destination element.
 vfmerge.vfm vd, vs2, rs1, v0  # vd[i] = v0[i].LSB ? f[rs1] : vs2[i]
 ----
 
-The unmasked form (`vm=1`) can be used to __splat__ a scalar `f`
-register value into all active elements of a vector.  The instruction
-must have the `vs2` field set to `v0`, with all other values for `vs2`
-reserved.
+NOTE: In Zfinx systems, the instruction is identical to `vmerge.vxm`.
+
+=== Vector Floating-Point Move Instruction
+
+The vector floating-point move instruction __splats__ a floating-point scalar
+operand to a vector register group.  The instruction copies a scalar `f`
+register value to all active elements of a vector register group.  This
+instruction is always unmasked (`vm=1`).  The instruction must have the `vs2`
+field set to `v0`, with all other values for `vs2` reserved.
 
 ----
-vfmv.v.f vd, rs1  # vd[i] = f[rs1];
+vfmv.v.f vd, rs1  # vd[i] = f[rs1]
 ----
 
-NOTE: In Zfinx systems, the instruction is identical to `vmerge.vx`.
+NOTE: In Zfinx systems, the instruction is identical to `vmv.v.x`.
+
+NOTE: The `vfmv.v.f` instruction shares the encoding with the `vfmerge.vfm`
+instruction, but with `vm=1` and `vs2=v0`.
 
 === Single-Width Floating-Point/Integer Type-Convert Instructions
 
