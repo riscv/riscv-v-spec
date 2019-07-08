@@ -3433,6 +3433,12 @@ the unordered FP sum allows for faster implementations.
 When the operation is masked (`vm=0`), the masked-off elements do not
 affect the result or the exception flags.
 
+NOTE: If no elements are active, no additions are performed, so the scalar in
+`vs1[0]` is simply copied to the destination register, without canonicalizing
+NaN values and without setting any exception flags.  This behavior preserves
+the handling of NaNs, exceptions, and rounding when autovectorizing a scalar
+summation loop.
+
 ==== Vector Unordered Single-Width Floating-Point Sum Reduction
 
 The unordered sum reduction instruction, `vfredsum`, provides an
@@ -3445,24 +3451,26 @@ the source vector register group (`vs2`) and the source scalar value
 one result.  Each operator can either perform an exact addition, or a
 floating-point addition according to the RISC-V IEEE scalar
 floating-point specification and with the currently active
-floating-point dynamic rounding mode.  The root node in the tree must
-produce a result according to standard RISC-V IEEE floating-point
-scalar addition under the current rounding mode.  All nodes propagate
-IEEE special values as per the RISC-V scalar operation standard.
-
-If an input to an operator node is masked-off or beyond the active
-vector length, the input can either have no effect on the output
-result, effectively converting the binary operator into a unary
-identity operator, or be treated as IEEE +0 of the appropriate SEW.
-
-An implementation is allowed to add an additional IEEE +0 to the final
-result.
-
-NOTE: The `vfredosum` instruction is a valid implementation of the
-`vfredsum` instruction.
+floating-point dynamic rounding mode.
+A node where one input is derived only from elements masked-off or beyond the
+active vector length may either treat that input as IEEE +0.0 of the
+appropriate SEW or simply copy the other input to its output.  The root node in
+the tree must produce an IEEE result of the appropriate SEW.  An implementation
+is allowed to add an additional IEEE +0.0 to the final result.
 
 The reduction tree structure must be deterministic for a given value
 in `vtype` and `vl`.
+
+NOTE: As a consequence of this definition, implementations need not propagate
+NaN payloads through the reduction tree when no elements are active. In
+particular, if no elements are active and the scalar input is NaN,
+implementations are permitted to canonicalize the NaN and, if the NaN is
+signaling, set the invalid exception flag.  Implementations are alternatively
+permitted to pass through the original NaN and set no exception flags, as with
+`vfredosum`.
+
+NOTE: The `vfredosum` instruction is a valid implementation of the
+`vfredsum` instruction.
 
 ==== Vector Single-Width Floating Max and Min Reductions
 
