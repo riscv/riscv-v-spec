@@ -4084,10 +4084,6 @@ vector for large offsets by treating as effectively smaller vector
 length, and encoding using the same internal scheme as for regular
 vector instruction writes.
 
-The destination vector register group for `vslidedown` cannot overlap
-the vector mask register if the instruction is masked, otherwise an
-illegal instruction exception is raised.
-
 ==== Vector Slide1up
 
 Variants of slide are provided that only move by one element but which
