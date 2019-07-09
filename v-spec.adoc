@@ -934,7 +934,7 @@ encodings with space for a full mask register specifier.
 
 The destination vector register group for a masked vector instruction
 can only overlap the source mask register (`v0`) when
-LMUL=1. Otherwise, an illegal vector instruction exception is raised.
+LMUL=1. Otherwise, an illegal instruction exception is raised.
 
 NOTE: This constraint supports restart with a non-zero `vstart` value.
 
