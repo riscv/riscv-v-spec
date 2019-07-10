@@ -1769,6 +1769,14 @@ address in the `rs1` field to byte offsets in vector register `vs2`.
                               #   and words from v3[i] to address x5+v5[i]+4
 ----
 
+For vector indexed segment loads, the destination vector register groups
+cannot overlap the source vector register group (specified by `vs2`), nor can
+they overlap the mask register if masked, else an illegal instruction
+exception is raised.
+
+NOTE: This constraint supports restart of indexed segment loads
+that raise exceptions partway through loading a structure.
+
 Only ordered indexed segment stores are provided. The segments must
 appear to be written in element order.
 
