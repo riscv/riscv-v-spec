@@ -3906,78 +3906,34 @@ same datapath as `viota.m` but with an implicit set mask source.
 A range of permutation instructions are provided to move elements
 around within the vector registers.
 
-=== Integer Extract Instruction
+=== Integer Scalar Move Instructions
 
-The integer extract operation transfers a single value between one
-element of a vector register and a GPR.  This instruction ignores
-LMUL and vector register groups.
-
-----
-vext.x.v rd, vs2, rs1  # rd = vs2[rs1]
-----
-
-The integer extract operation, `vext.x.v` reads one SEW-width element
-from a vector register at the element index and writes it to GPR
-destination register rd.  The GPR `rs1` register gives the element
-index, treated as an unsigned integer.  If the index is out of range
-(i.e., x[rs1] {ge} VLEN/SEW), then zero is returned for the element
-value.  If SEW > XLEN, the least-significant bits are copied to the
-destination and the upper SEW-XLEN bits are ignored.  If SEW < XLEN,
-the value is zero-extended to XLEN.
-
-The encodings corresponding to the masked version (vm=0) of `vext.x.v`
-are reserved.
-
-An assembler pseudoinstruction `vmv.x.s rd, vs2` expanding to
-`vext.x.v rd, vs2, x0` is provided as a complement to the `vmv.s.x`
-instruction below.
-
-=== Integer Scalar Move Instruction
-
-The integer scalar move instruction transfers a single value
-from a scalar `x` register to element 0 of a vector register.  The
-instructions ignore LMUL and vector register groups.
-
-NOTE: In the base vector extension, this instruction can be used to
-initialize the input of a reduction instruction.
-
-NOTE: Using scalar move instructions to access element 0 of other than
-the base register in a vector register group can expose differences in
-element layout between different RISC-V vector extension
-implementations.
+The integer scalar read/write instructions transfer a single
+value between a scalar `x` register and element 0 of a vector
+register.  The instructions ignore LMUL and vector register groups.
 
 ----
-vmv.s.x vd, rs1  # vd[0] = rs1
+vmv.x.s rd, vs2  # rd = vs2[0] (rs1=0)
+vmv.s.x vd, rs1  # vd[0] = rs1 (vs2=0)
 ----
 
-The `vmv.s.x` instruction copies the scalar integer register to
-element 0 of the destination vector register.  If SEW < XLEN, the
-least-significant bits are copied and the upper XLEN-SEW bits are
-ignored.  If SEW > XLEN, the value is zero-extended to SEW bits.
+The `vmv.x.s` instruction copies a single SEW-wide element from index 0 of the
+source vector register to a destination integer register.  If SEW > XLEN, the
+least-significant XLEN bits are transferred and the upper SEW-XLEN bits are
+ignored.  If SEW < XLEN, the value is zero-extended to XLEN bits.
 
-The other elements in the destination vector register ( 0 < index <
-VLEN/SEW) are zeroed.
-
-If `vstart` {ge} `vl`, no operation is performed and the destination
-register is not updated.
-
-The `vs2` field must be `v0`, other values of `vs2` are reserved.
-
-The encodings corresponding to the masked version (vm=0) of `vmv.s.x`
-are reserved.
+The `vmv.s.x` instruction copies the scalar integer register to element 0 of
+the destination vector register.  If SEW < XLEN, the least-significant bits
+are copied and the upper XLEN-SEW bits are ignored.  If SEW > XLEN, the value
+is zero-extended to SEW bits.  The other elements in the destination vector
+register ( 0 < index < VLEN/SEW) are zeroed.  If `vstart` {ge} `vl`, no
+operation is performed and the destination register is not updated.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
 
-NOTE: The complementary `vins.v.x` instruction, which allows a write
-to any element in a vector register, has been removed.  This
-instruction would be the only instruction (apart from `vsetvl`) that
-requires two integer source operands, and also would be slow to
-execute in an implementation with vector register renaming, relegating
-its main use to debugger modifications to state.  The alternative and
-more generally useful `vslide1up` and `vslide1down` instructions can
-be used to update vector register state in place over a debug link
-without accessing memory.
+The encodings corresponding to the masked versions (vm=0) of `vmv.x.s`
+and `vmv.s.x` are reserved.
 
 === Floating-Point Scalar Move Instructions
 

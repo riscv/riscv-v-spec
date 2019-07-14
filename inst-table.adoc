@@ -25,7 +25,7 @@
 | 001001 |V|X|I| vand       | 001001 | | |             | 001001 |V|F| vfsgnjn
 | 001010 |V|X|I| vor        | 001010 | | |             | 001010 |V|F| vfsgnjx
 | 001011 |V|X|I| vxor       | 001011 | | |             | 001011 | | |
-| 001100 |V|X|I| vrgather   | 001100 |V| | vext.x.v    | 001100 |V| | vfmv.f.s
+| 001100 |V|X|I| vrgather   | 001100 |V| | vmv.x.s     | 001100 |V| | vfmv.f.s
 | 001101 | | | |            | 001101 | |X| vmv.s.x     | 001101 | |F| vfmv.s.f
 | 001110 | |X|I| vslideup   | 001110 | |X| vslide1up   | 001110 | | |
 | 001111 | |X|I| vslidedown | 001111 | |X| vslide1down | 001111 | | |
