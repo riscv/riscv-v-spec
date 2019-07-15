@@ -25,8 +25,8 @@
 | 001001 |V|X|I| vand       | 001001 | | |             | 001001 |V|F| vfsgnjn
 | 001010 |V|X|I| vor        | 001010 | | |             | 001010 |V|F| vfsgnjx
 | 001011 |V|X|I| vxor       | 001011 | | |             | 001011 | | |
-| 001100 |V|X|I| vrgather   | 001100 |V| | vmv.x.s     | 001100 |V| | vfmv.f.s
-| 001101 | | | |            | 001101 | |X| vmv.s.x     | 001101 | |F| vfmv.s.f
+| 001100 |V|X|I| vrgather   | 001100 | | |             | 001100 | | |
+| 001101 | | | |            | 001101 | | |             | 001101 | | |
 | 001110 | |X|I| vslideup   | 001110 | |X| vslide1up   | 001110 | | |
 | 001111 | |X|I| vslidedown | 001111 | |X| vslide1down | 001111 | | |
 |===
@@ -35,13 +35,14 @@
 |===
 5+| funct6                  4+| funct6                 4+| funct6
 
-| 010000 |V|X|I| vadc       | 010000 | | |             | 010000 | | |
+| 010000 |V|X|I| vadc       | 010000 |V| | VWXUNARY0   | 010000 |V| | VWFUNARY0
+|        | | | |            | 010000 | |X| VRXUNARY0   | 010000 | |F| VRFUNARY0
 | 010001 |V|X|I| vmadc      | 010001 | | |             | 010001 | | |
 | 010010 |V|X| | vsbc       | 010010 | | |             | 010010 | | |
 | 010011 |V|X| | vmsbc      | 010011 | | |             | 010011 | | |
-| 010100 | | | |            | 010100 | | |             | 010100 | | |
+| 010100 | | | |            | 010100 |V| | VMUNARY0    | 010100 | | |
 | 010101 | | | |            | 010101 | | |             | 010101 | | |
-| 010110 | | | |            | 010110 |V| | VMUNARY0    | 010110 | | |
+| 010110 | | | |            | 010110 | | |             | 010110 | | |
 | 010111 |V|X|I| vmerge/vmv | 010111 |V| | vcompress   | 010111 | |F| vfmerge.vf/vfmv
 | 011000 |V|X|I| vmseq      | 011000 |V| | vmandnot    | 011000 |V|F| vmfeq
 | 011001 |V|X|I| vmsne      | 011001 |V| | vmand       | 011001 |V|F| vmfle
@@ -99,6 +100,40 @@
 
 <<<
 
+.VRXUNARY0 encoding space
+[cols="2,14"]
+|===
+|  vs2  |
+
+| 00000 | vmv.s.x
+|===
+
+.VWXUNARY0 encoding space
+[cols="2,14"]
+|===
+|  vs1  |
+
+| 00000 | vmv.x.s
+| 10000 | vpopc
+| 10001 | vfirst
+|===
+
+.VRFUNARY0 encoding space
+[cols="2,14"]
+|===
+|  vs2  |
+
+| 00000 | vfmv.s.f
+|===
+
+.VWFUNARY0 encoding space
+[cols="2,14"]
+|===
+|  vs1  |
+
+| 00000 | vfmv.f.s
+|===
+
 .VFUNARY0 encoding space
 [cols="2,14"]
 |===
@@ -145,8 +180,6 @@
 | 00011 | vmsif
 | 10000 | viota
 | 10001 | vid
-| 11000 | vpopc
-| 11001 | vfirst
 |===
 
 
