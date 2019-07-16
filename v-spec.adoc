@@ -3167,6 +3167,10 @@ operation exception only on signaling NaN inputs.  `vmflt`, `vmfle`, `vmfgt`,
 and `vmfge` raise the invalid operation exception on both signaling and
 quiet NaN inputs.
 
+For all comparison instructions, an illegal instruction exception is raised if
+the destination vector register overlaps a source vector register group and
+LMUL > 1.
+
 ----
     # Compare equal
     vmfeq.vv vd, vs2, vs1, vm  # Vector-vector
@@ -3211,26 +3215,18 @@ f      scalar floating-point register
 NOTE: Providing all forms is necessary to correctly handle unordered
 comparisons for NaNs.
 
-To help implement the C99 floating-point comparison functions, a
-`vmford` instruction is added that sets a mask register if the
-arguments are ordered (i.e., neither argument is NaN).
-`vmford` raises the invalid operation exception on signaling NaNs only.
-
-----
-    # Are args ordered?
-    vmford.vv  vd, vs2, vs1, vm   # Vector-vector
-    vmford.vf  vd, vs2, rs1, vm   # Vector-scalar
-----
+NOTE: C99 floating-point quiet comparisons can be implemented by masking
+the signaling comparisons when either input is NaN, as follows.  When
+the comparand is a non-NaN constant, the middle two instructions can be
+omitted.
 
 ----
     # Example of implementing isgreater()
-    vmford.vv v0, va, vb       # Only set where args are ordered,
-    vmfgt.vv v0, va, vb, v0.t  # so only set flags on ordered values.
+    vfeq.vv v0, va, va         # Only set where A is not NaN.
+    vfeq.vv v1, vb, vb         # Only set where B is not NaN.
+    vmand.mm v0, v0, v1        # Only set where A and B are ordered,
+    vmfgt.vv v0, va, vb, v0.t  #  so only set flags on ordered values.
 ----
-
-For all comparison instructions, an illegal instruction exception is raised if
-the destination vector register overlaps a source vector register group and
-LMUL > 1.
 
 === Vector Floating-Point Classify Instruction
 

@@ -46,7 +46,7 @@
 | 010111 |V|X|I| vmerge/vmv | 010111 |V| | vcompress   | 010111 | |F| vfmerge.vf/vfmv
 | 011000 |V|X|I| vmseq      | 011000 |V| | vmandnot    | 011000 |V|F| vmfeq
 | 011001 |V|X|I| vmsne      | 011001 |V| | vmand       | 011001 |V|F| vmfle
-| 011010 |V|X| | vmsltu     | 011010 |V| | vmor        | 011010 |V|F| vmford
+| 011010 |V|X| | vmsltu     | 011010 |V| | vmor        | 011010 | | |
 | 011011 |V|X| | vmslt      | 011011 |V| | vmxor       | 011011 |V|F| vmflt
 | 011100 |V|X|I| vmsleu     | 011100 |V| | vmornot     | 011100 |V|F| vmfne
 | 011101 |V|X|I| vmsle      | 011101 |V| | vmnand      | 011101 | |F| vmfgt
