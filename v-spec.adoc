@@ -3489,8 +3489,8 @@ read and write a double-width reduction result.
 
 ----
  # Simple reductions.
- vfwredosum.vs vd, vs2, vs1, vm # Ordered reduce 2*SEW =  2*SEW + sum(promote(SEW))
- vfwredsum.vs vd, vs2, vs1, vm  # Unordered reduce  2*SEW = 2*SEW + sum(promote(SEW))
+ vfwredosum.vs vd, vs2, vs1, vm # Ordered sum
+ vfwredsum.vs vd, vs2, vs1, vm  # Unordered sum
 ----
 
 The reduction of the SEW-width elements is performed as in the
