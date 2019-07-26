@@ -2889,15 +2889,15 @@ vwsmacc.vx vd, rs1, vs2, vm  # vd[i] = clip((+(x[rs1]*vs2[i]+round)>>SEW/2)+vd[i
 
 # Widening signed-unsigned-integer scaled multiply-accumulate
 vwsmaccsu.vv vd, vs1, vs2, vm
-             # vd[i] = clip(-((signed(vs1[i])*unsigned(vs2[i])+round)>>SEW/2)+vd[i])
+             # vd[i] = clip(((signed(vs1[i])*unsigned(vs2[i])+round)>>SEW/2)+vd[i])
 vwsmaccsu.vx vd, rs1, vs2, vm
-             # vd[i] = clip(-((signed(x[rs1])*unsigned(vs2[i])+round)>>SEW/2)+vd[i])
+             # vd[i] = clip(((signed(x[rs1])*unsigned(vs2[i])+round)>>SEW/2)+vd[i])
 
 # Widening unsigned-signed-integer scaled  multiply-accumulate
 vwsmaccus.vx vd, rs1, vs2, vm
-             # vd[i] = clip(-((unsigned(x[rs1])*signed(vs2[i])+round)>>SEW/2)+vd[i])
+             # vd[i] = clip(((unsigned(x[rs1])*signed(vs2[i])+round)>>SEW/2)+vd[i])
 
-# For vxrm=rnu, round = ( 1 << (SEW/2-1))
+# For vxrm=rnu, round = (1 << (SEW/2-1))
 ----
 
 NOTE: An arbitrary scaling/shift amount would be more flexible but
