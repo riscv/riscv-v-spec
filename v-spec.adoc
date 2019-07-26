@@ -4122,10 +4122,6 @@ SEW-XLEN bits are ignored.
                  vl <= i < VLMAX   tail elements, vd[i] = 0
 ----
 
-The `vslide1down` instruction requires that the destination vector
-register group does not overlap the mask register if masked.
-Otherwise, an illegal instruction exception is raised.
-
 NOTE: The `vslide1down` instruction can be used to load values into a
 vector register without using memory and without disturbing other
 vector registers.  This provides a path for debuggers to modify the
