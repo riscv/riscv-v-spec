@@ -2074,6 +2074,7 @@ or `vs1`, then `vs2`.  This ordering provides a more natural reading
 of the assembler for these ternary operations, as the multiply
 operands are always next to each other.
 
+[[sec-widening]]
 === Widening Vector Arithmetic Instructions
 
 A few vector arithmetic instructions are defined to be __widening__
@@ -2136,6 +2137,7 @@ NOTE: This constraint is necessary to support restart with non-zero
 NOTE: For the `vw<op>.wv vd, vs2, vs1` format instructions, it is legal
 for vd to equal vs2.
 
+[[sec-narrowing]]
 === Narrowing Vector Arithmetic Instructions
 
 A few instructions are provided to convert double-width source vectors
@@ -3310,6 +3312,9 @@ vfwcvt.f.x.v  vd, vs2, vm   # Convert signed integer to double-width float.
 vfwcvt.f.f.v vd, vs2, vm   # Convert single-width float to double-width float.
 ----
 
+These instructions have the same constraints on vector register overlap
+as other widening instructions (see <<sec-widening>>).
+
 NOTE: A double-width IEEE floating-point value can always represent a
 single-width integer exactly.
 
@@ -3335,6 +3340,9 @@ vfncvt.f.x.v  vd, vs2, vm   # Convert double-width signed integer to float.
 
 vfncvt.f.f.v vd, vs2, vm   # Convert double-width float to single-width float.
 ----
+
+These instructions have the same constraints on vector register overlap
+as other narrowing instructions (see <<sec-narrowing>>).
 
 NOTE: A full set of floating-point widening conversions are not
 supported as single instructions. Conversions can be implemented in
