@@ -3224,8 +3224,8 @@ omitted.
 
 ----
     # Example of implementing isgreater()
-    vfeq.vv v0, va, va         # Only set where A is not NaN.
-    vfeq.vv v1, vb, vb         # Only set where B is not NaN.
+    vfmeq.vv v0, va, va        # Only set where A is not NaN.
+    vfmeq.vv v1, vb, vb        # Only set where B is not NaN.
     vmand.mm v0, v0, v1        # Only set where A and B are ordered,
     vmfgt.vv v0, va, vb, v0.t  #  so only set flags on ordered values.
 ----
