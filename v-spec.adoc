@@ -3219,14 +3219,13 @@ comparisons for NaNs.
 
 NOTE: C99 floating-point quiet comparisons can be implemented by masking
 the signaling comparisons when either input is NaN, as follows.  When
-the comparand is a non-NaN constant, the middle two instructions can be
+the comparand is a non-NaN constant, the middle instruction can be
 omitted.
 
 ----
     # Example of implementing isgreater()
-    vfeq.vv v0, va, va         # Only set where A is not NaN.
-    vfeq.vv v1, vb, vb         # Only set where B is not NaN.
-    vmand.mm v0, v0, v1        # Only set where A and B are ordered,
+    vmfeq.vv v0, va, va        # set where A is not NaN, clear where NAN.
+    vmfeq.vv v0, vb, vb, v0.t  # clear where B is NaN, leave A NAN clear 
     vmfgt.vv v0, va, vb, v0.t  #  so only set flags on ordered values.
 ----
 
