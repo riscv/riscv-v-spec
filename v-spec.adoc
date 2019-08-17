@@ -3230,6 +3230,12 @@ omitted.
     vmfgt.vv v0, va, vb, v0.t  #  so only set flags on ordered values.
 ----
 
+NOTE: In the above sequence, it is tempting to mask the second `vmfeq`
+instruction and remove the `vmand` instruction, but this more efficient
+sequence incorrectly fails to raise the invalid exception when an
+element of `va` contains a quiet NaN and the corresponding element in
+`vb` contains a signaling NaN.
+
 === Vector Floating-Point Classify Instruction
 
 This is a unary vector-vector instruction that operates in the same
