@@ -1,0 +1,204 @@
+= Selecting "undisturbed" versus "zeroing" behavior for vector inactive and tail elements
+
+:doctype: article
+:encoding: utf-8
+:lang: en
+:toc: left
+:numbered:
+:stem: latexmath
+:le: &#8804;
+:ge: &#8805;
+
+== Introduction
+
+This document summarizes the arguments for and against either a)
+leaving undisturbed, or b) zeroing, destination elements for which
+values are not actively produced in a vector instruction.
+
+NOTE: A third option that has been used in other vector designs is to
+specify these elements as _undefined_.  The undefined option has been
+rejected due to the difficulty of ensuring compatibility across
+different implementations, as well as potential security implications.
+
+== Existing Proposal (v0.7.1)
+
+The RISC-V vector spec divides the elements operated on in a vector
+instruction into four disjoint categories: Prestart, Active, Inactive,
+and Tail.  The prestart elements are those before the current value of
+`vstart`.  Active and inactive elements lie between `vstart` and `vl`,
+with active elements masked-on and inactive elements masked-off.  Tail
+elements are those past `vl`.
+
+The current vector spec(v0.7.1) specifies that vector instructions
+writing a destination vector register group exhibit the following
+behavior:
+
+.V spec 0.7.1 behavior on elements in destination vector register group.
+[cols="4,10"]
+[%autowidth]
+|===
+| Element Category | Destination Effect
+
+| prestart         | undisturbed
+| active           | write new value
+| inactive         | undisturbed
+| tail             | write zero
+|===
+
+The prestart and active elements must behave as indicated (prestart
+undisturbed and active updated).
+
+The decision to have inactive elements be undisturbed and tail
+elements be zeroed represents a compromise between the costs of
+supporting undisturbed or zeroing across various implementations, as
+described below.
+
+== Example implementations
+
+The task group has built the following table of example
+implementations to help inform design decisions.  The implementations
+span a very wide space from tiny embedded systems to very large
+supercomputer nodes.
+
+.Example vector implementations
+[cols="10,^4,>4,>4,>4"]
+[%autowidth]
+|===
+| Description              | Issue | VLEN    | Datapath Width | Architectural Storage
+
+| Smallest                 | InO   |     32b |   32b          |    128B
+| InO superscalar spatial  | InO   |    128b |  128b          |    512B
+| InO shallow temporal     | InO   |    512b |  128b          |  2,048B
+| InO deep temporal        | InO   |  4,096b |   64b          | 16,384B
+| OoO superscalar spatial  | OoO   |    128b |  128b          |    512B
+| OoO superscalar temporal | OoO   |    512b |  128b          |  2,048B
+| OoO superscalar server   | OoO   |  2,048b |  512b          |  8,192B
+| HPC node                 | OoO   | 16,384b | 2048b          | 65,536B
+|===
+
+== Implementing Undisturbed Destination Elements
+
+=== Implementing undisturbed without renaming
+
+For machines without vector register renaming, leaving elements
+undisturbed is the simplest approach.  Writes to the elements can be
+masked off in hardware leaving the original values in place.
+
+=== Implementing undisturbed with renaming
+
+For machines with vector register renaming, a new physical destination
+vector register is allocated for each result vector, and so
+undisturbed values must be copied from the original physical register
+to the new physical destination register.  This requires use of an
+additional read port to obtain the original values.
+
+In addition, implementing undisturbed elements can add a RAW hazard
+between the original destination register contents and the new
+instruction that could reduce performance.
+
+For purely spatial machines with register renaming, undisturbed tail
+elements would not add additional execution cycles, as all tail
+elements are written on same cycle as other elements, though there is
+some additional power to read old values.
+
+For longer temporal vector registers with renaming, additional cycles
+are required to read out old tail elements to copy to the tail of the
+new destination physical register.
+
+However, we can assume renamed vector machines have to rename the
+individual vector registers in a vector register group, so large LMUL
+values do not further increase the penalty of undisturbed tail
+elements.
+
+An assumption is that most OoO machines with renaming will not have
+very deep temporal vector registers, as OoO execution and renaming
+will reduce the incentive for longer temporal vector registers.
+
+Some other OoO machines with long temporal vector registers may
+implement an in-order vector unit, with a separate load-data queue to
+support decoupled and out-of-order memory accesses.  Undisturbed
+elements would then be handled as in any vector unit without renaming.
+
+== Implementing Zeroing of Destination Elements.
+
+=== Implementing zeroing with no renaming
+
+Zeroing inactive and tail elements complicates in-order
+implementations without register renaming.
+
+While the simplest implementations could explicitly write zeros to the
+affected destination elements, this would cause every vector
+instruction to have an occupancy proportional to the maximum vector
+length.  This is particularly problematic for large LMUL values where
+up to a quarter of the entire vector regfile would have to be written.
+
+Optimized non-renamed systems will use a microarchitectural zero bit
+attached to each _element_ _group_, where an element group is the
+atomic unit of microarchitectural vector execution, which is often
+equal to the spatial datapath width.
+
+The zero bit indicate that the corresponding element group is all
+zero.  On dispatch to a vector functional unit, this bit vector must
+be snapshot and dispatched to the vector functional unit along with
+the vector instruction so that the read ports can multiplex zeros in
+place of source operands if the zeroed element groups are read.  Also,
+writes to an element group with the zero bit set, must mux in zero to
+the write port for inactive and tail elements, and then reset the zero
+bit.
+
+After dispatch, the decode stage bit vector must be updated with the
+element groups that will be zeroed (e.g., for shorter vl), to allow a
+following instruction to be dispatched with the updated bit vector.
+
+=== Implementing zeroing with renaming
+
+Out-of-order vector machines with spatial vector registers can
+directly write zero to the inactive and tail elements in the new
+physical destination register.  With larger LMUL, entire vector
+registers at the tail of a result can be renamed to a single
+constant-zero register to save physical register storage and to reduce
+execution effort.
+
+For renamed vector machines with temporal vector registers, a scheme
+similar to that for in-order vectors can be used with
+microarchitectural zero bits on each element group, except writes are
+simpler as all elements are written with new values.
+
+== Software Impact
+
+The choice between undisturbed or zeroing has implications on software
+performance, with generally much greater consequence on inactive
+elements than for tail elements, since inactive elements correspond to
+executed loop iterations while tail elements correspond to loop
+iterations past loop termination.
+
+Leaving inactive values undisturbed allows two vector values with
+non-overlapping masks to be held in a single vector register. This
+reduces register pressure when scheduling code along multiple
+control-flow paths (e.g., if-then-else).  Zeroing inactive values
+requires separate vector registers are used on disjoint control-flow
+paths.
+
+Leaving inactive values undisturbed also removes the need to
+explicitly merge values from two control-flow paths to produce a
+single vector value.
+
+Leaving tail values undisturbed can help a few code patterns,
+including reductions where the initial stripmine-loop iterations
+maintain a vector of partial results to be reduced at the end, but
+where the last strip is not an exact multiple of the hardware vector
+length.
+
+== ISA Design Impact
+
+The vector ISA has been designed to have destructive fused
+multiply-add instructions.  Besides saving opcode space, destructive
+fused muladds always read the value form the destination register to
+use as a source operand.  Masked vector loads will need an additional
+read port to merge old load destination elements with new elements,
+and this is the major cost of supporting undisturbed elements in a
+renamed machine.
+
+== Discussion
+
+
