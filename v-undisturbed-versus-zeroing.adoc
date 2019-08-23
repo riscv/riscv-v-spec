@@ -110,6 +110,11 @@ individual vector registers in a vector register group, so large LMUL
 values do not further increase the penalty of undisturbed tail
 elements.
 
+It is further possible to divide longer vector registers into smaller
+sub-registers that are renamed independently to reduce the performance
+penalty for copying the tail elements.  However, this will rapidly
+increase the cost of renaming tables.
+
 An assumption is that most OoO machines with renaming will not have
 very deep temporal vector registers, as OoO execution and renaming
 will reduce the incentive for longer temporal vector registers.
@@ -200,5 +205,4 @@ and this is the major cost of supporting undisturbed elements in a
 renamed machine.
 
 == Discussion
-
 
