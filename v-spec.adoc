@@ -3932,12 +3932,12 @@ vmv.s.x vd, rs1  # vd[0] = rs1 (vs2=0)
 The `vmv.x.s` instruction copies a single SEW-wide element from index 0 of the
 source vector register to a destination integer register.  If SEW > XLEN, the
 least-significant XLEN bits are transferred and the upper SEW-XLEN bits are
-ignored.  If SEW < XLEN, the value is zero-extended to XLEN bits.
+ignored.  If SEW < XLEN, the value is sign-extended to XLEN bits.
 
 The `vmv.s.x` instruction copies the scalar integer register to element 0 of
 the destination vector register.  If SEW < XLEN, the least-significant bits
 are copied and the upper XLEN-SEW bits are ignored.  If SEW > XLEN, the value
-is zero-extended to SEW bits.  The other elements in the destination vector
+is sign-extended to SEW bits.  The other elements in the destination vector
 register ( 0 < index < VLEN/SEW) are zeroed.  If `vstart` {ge} `vl`, no
 operation is performed and the destination register is not updated.
 
