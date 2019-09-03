@@ -3780,14 +3780,26 @@ loop:
     vfirst.m a4, v0         # Zero found?
     vmsif.m v0, v0          # Set mask up to and including zero byte.
     vsb.v v1, (a3), v0.t    # Write out bytes
-      bgez a4, exit         # Done
       csrr t1, vl           # Get number of bytes fetched
-      add a1, a1, t1        # Bump pointer
       sub a2, a2, t1        # Decrement count.
+      bgez a4, zero_tail    # Zero remaining bytes.
+      add a1, a1, t1        # Bump pointer
       add a3, a3, t1        # Bump pointer
       bnez a2, loop         # Anymore?
 
-exit:
+      ret
+
+zero_tail:
+    vsetvli x0, a2, e8,m8   # Vectors of bytes.
+    vmv.v.i v0, 0           # Splat zero.
+
+zero_loop:
+    vsetvli t1, a2, e8,m8   # Vectors of bytes.
+    vsb.v v0, (a3)          # Store zero.
+      sub a2, a2, t1        # Decrement count.
+      add a3, a3, t1        # Bump pointer
+      bnez a2, zero_loop    # Anymore?
+
       ret
 
 ----
