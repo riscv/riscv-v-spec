@@ -1155,7 +1155,7 @@ The `vsetvl{i}` instructions first set VLMAX according to the `vtype`
 argument, then set `vl` obeying the following constraints:
 
 . `vl = AVL` if `AVL {le} VLMAX`
-. `vl {ge} ceil(AVL / 2)` if `AVL < (2 * VLMAX)`
+. `ceil(AVL / 2) {le} vl {le} VLMAX` if `AVL < (2 * VLMAX)`
 . `vl = VLMAX` if `AVL {ge} (2 * VLMAX)`
 . Deterministic on any given implementation for same input AVL and VLMAX values
 . These specific properties follow from the prior rules:
