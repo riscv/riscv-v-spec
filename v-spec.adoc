@@ -229,7 +229,7 @@ was adopted in 0.6 initially to avoid issues with the floating-point
 calling convention when floating-point values were overlaid on the
 vector registers, whereas earlier versions kept the vector register
 group names contiguous (LMUL=8 has groups `v0`, `v1`, `v2`, `v3`).  In
-v0.7, the floating-point registers are separate again.
+versions v0.7 onwards, the floating-point registers are separate again.
 
 Mask register instructions always operate on a single vector register,
 regardless of LMUL setting.
@@ -257,7 +257,7 @@ instruction variants.
 
 The `vl` register holds an unsigned integer specifying the number of
 elements to be updated by a vector instruction.  Elements in any
-destination vector register group with indices {ge} `vl` are zeroed during
+destination vector register group with indices {ge} `vl` are unmodified during
 execution of a vector instruction.  When `vstart` {ge} `vl`,
 no elements are updated in any destination vector register group.
 
@@ -290,8 +290,7 @@ NOTE: All vector instructions, including `vsetvl{i}`, reset the `vstart`
 CSR to zero.
 
 If the value in the `vstart` register is greater than or equal to the
-vector length `vl` then no element operations are performed, nor are the
-elements at the end of the destination vector past `vl` zeroed.  The
+vector length `vl` then no element operations are performed.  The
 `vstart` register is then reset to zero.
 
 The `vstart` CSR is defined to have only enough writable bits to hold
@@ -389,7 +388,7 @@ remaining bits in `vtype` are zero, and `vl` is set to zero.
 The `vstart`, `vxrm`, `vxsat` CSRs can have arbitrary values at reset.
 
 NOTE: Any use of the vector unit will require an initial `vsetvl{i}`,
-which will reset `vstart.  The `vxrm` and `vxsat` fields should be
+which will reset `vstart`.  The `vxrm` and `vxsat` fields should be
 reset explicitly in software before use.
 
 The vector registers can have arbitrary values at reset.
@@ -607,9 +606,9 @@ optimize the tradeoff between datapath wiring for mixed-width
 operations and buffering needed to corner-turn wide vector unit-stride
 memory accesses into parallel accesses for the vector register file.
 
-NOTE: The previous explicit configuration design allowed these
-tradeoffs to be managed at the microarchitectural level and optimized
-for each configuration.
+NOTE: The previous explicit configuration design (version < 0.6)
+allowed these tradeoffs to be managed at the microarchitectural level
+and optimized for each configuration.
 
 === Mapping across Mixed-Width Operations
 
@@ -730,10 +729,10 @@ The mask bits for element _i_ are located in bits [MLEN*_i_+(MLEN-1) :
 MLEN*_i_] of the mask register.  When a mask element is written by a
 compare instruction, the low bit in the mask element is written with
 the compare result and the upper bits of the mask element are zeroed.
-When a value is read as a mask, only the least-significant bit of the
-mask element is used to control masking and the upper bits are
-ignored.  Mask elements past the end of the current vector length are
-zeroed.
+Destination mask elements past the end of the current vector length
+are unchanged.  When a value is read as a mask, only the
+least-significant bit of the mask element is used to control masking
+and the upper bits are ignored.
 
 The pattern is such that for constant SEW/LMUL values, the effective
 predicate bits are located in the same bit of the mask vector
@@ -998,8 +997,8 @@ update any destination vector register.
 
 - The _tail_ elements during a vector instruction's execution are the
 elements past the current vector length setting.  The tail elements do
-not raise exceptions, but do zero the results in any destination
-vector register group.
+not raise exceptions, and do not update any destination vector register
+group.
 
 - In addition, another term, _body_, is used for the set of elements
 that are either active or inactive, i.e., after prestart but before
@@ -1015,68 +1014,15 @@ the tail.
     tail(x)     = (vl <= x < VLMAX)
 ----
 
-All regular vector instructions place zeros in the tail elements of
-the destination vector register group.  Some vector arithmetic
-instructions are not maskable, so have no inactive elements, but still
-zero the tail elements.
-
-NOTE: The inactive and tail update rules were designed to provide an
-efficient compromise between requirements of implementations with and
-without vector register ECC and/or renaming.
-
-NOTE: Not zeroing past `vl` would penalize renamed implementations that
-would have to copy all elements past VL on every instruction
-execution, whereas it's a small penalty for non-renamed
-implementations to implement the tail zeroing.  While a renamed
-machine could avoid copying for whole vector registers in a group by
-not renaming, operations on individual registers may be deep enough
-that requiring full occupancy for any vector length would be
-problematic.  Zeroing values past `vl` does not impact most software,
-except for a small cost in some reduction cases.
-
-NOTE: For zeroing tail updates, implementations with temporally long
-vector registers, either with or without register renaming, will be
-motivated to add microarchitectural state to avoid actually writing
-zeros to all tail elements, but this is a relatively simple
-microarchitectural optimization.  For example, one bit per element
-group or a quantized VL can be used to track the extent of zeroing.
-An element group is the set of elements comprising the smallest atomic
-unit of execution in the microarchitecture (often equivalent to the
-width of the physical datapath in the machine).  The
-microarchitectural state for an element group indicates that zero
-should be returned for the element group on a read, and that zero
-should be substituted in for any masked-off elements in the group on
-the first write to that element group (after which the element group
-zero bit can be cleared).
-
-NOTE: Providing merging predication instead of zeroing inactive
-elements on a masked operation reduces code path length for many code
-blocks, and reduces register pressure by allowing different code paths
-to use disjoint sets of elements in the same vector register.
-Implementations with vector register ECC or renaming will have to
-perform read-update-write on the destination register value to
-preserve inactive elements on arithmetic instructions, so would appear
-to need an extra vector register read port.  However, the arithmetic
-instructions are designed such that the largest read-port requirement
-is for fused multiply-add instructions that are destructive and
-overwrite one source, and hence do not need an extra read port to
-preserve inactive elements.  Given that linear algebra is one of the
-more important applications for vector units, and that fused
-multiply-add is the dominant operation in linear algebra routines,
-microarchitectures will be optimized for fused multiply-add operations
-and so should be able to preserve inactive elements on other
-arithmetic operations without large additional cost.  However, masked
-vector load instructions incur the cost of an additional read port on
-their destination register.  The need to support resumable vector
-loads with non-zero `vstart` values also drives the need to preserve
-vector load destination register values.  The AMOs have been defined
-to be destructive in their source operand to reduce the maximum read
-port requirement for the memory pipe. An option that was considered
-was to have loads behave differently from arithmetic instructions and
-to zero any masked-off elements. However, this would require
-additional instructions and increase register pressure, and vector
-loads must in any case still cope with non-zero `vstart` values
-through some mechanism.
+NOTE: The inactive and tail update rules leave unchanged destination
+elements that are not participating in the vector operation.  Previous
+versions (v0.7) of the specification zeros the tail elements to reduce
+the complexity of implementations that implement register renaming. In
+version 0.8, this was changed to leave the tail elements undisturbed,
+which reduces complexity for simpler implementations without register
+renaming and reduces software overhead for some common sequences.  A
+rationale is provided in a separate document:
+https://github.com/riscv/riscv-v-spec/blob/master/v-undisturbed-versus-zeroing.adoc
 
 == Configuration-Setting Instructions
 
@@ -1182,34 +1128,6 @@ of `AVL < 2*VLMAX`.
 This allows software to avoid needing to explicitly calculate a running
 maximum of vector lengths observed during a stripmined loop.
 --
-
-////
-=== Rules for `vlmul`
-
-Due to the striping of elements across multiple vector registers,
-shorter AVLs can give low datapath utilization with large LMUL.
-Ideally, LMUL should be chosen to be no longer than necessary to
-accommodate the desired AVL.  The `vlmul` parameter can optionally be
-supplied as a maximum value `vlmulmax`, in which case the following
-rules are used to set `vlmul`.
-
-----
-Rule for setting LMUL based on vlmulmax value
-
-VLMAX1 = VLEN/SEW     # Elements fitting in one vector register
-
-       0 < AVL <= VLMAX1,   LMUL = 1                # Don't group
-VLMAX1   < AVL <= VLMAX1*2, LMUL = min(2,vlmulmax)  # Pairs
-VLMAX1*2 < AVL <= VLMAX1*4, LMUL = min(4,vlmulmax)  # Quads
-VLMAX1*4 < AVL              LMUL = min(8,vlmulmax)  # Octa
-
-----
-
-Software sets `vlmulmax` according to how many register groups are
-used by the code.  Software must not use any vector register numbers
-that would be illegal if the largest value of `vlmulmax` is chosen for
-`vlmul`.
-////
 
 === `vsetvl` Instruction
 
@@ -3379,7 +3297,7 @@ from the reduction, but the scalar operand is always included
 regardless of mask.
 
 The other elements in the destination vector register ( 0 < index <
-VLEN/SEW) are zeroed.
+VLEN/SEW) are left unchanged.
 
 If `vl`=0, no operation is performed and the destination register is
 not updated.
@@ -3531,7 +3449,7 @@ As with other vector instructions, the elements with indices less than
 `vstart` are unchanged, and `vstart` is reset to zero after execution.
 Vector mask logical instructions are always unmasked so there are no
 inactive elements.  Mask elements past `vl`, the tail elements, are
-zeroed.
+unchanged.
 
 Within a mask element, these instructions perform their operations
 using only the least-significant bit of each operand and zero-extend
@@ -3677,7 +3595,7 @@ writes a zero to that element and all following active elements.  If
 there is no set bit in the source vector, then all active elements in
 the destination are written with a 1.
 
-The tail elements in the destination mask register are cleared.
+The tail elements in the destination mask register are unchanged.
 
 Traps on `vmsbf.m` are always reported with a `vstart` of 0.  The
 `vmsbf` instruction will raise an illegal instruction exception if
@@ -3709,7 +3627,7 @@ set-before-first, except it also includes the element with a set bit.
      1 1 x x x x 1 1   v2 contents
 ----
 
-The tail elements in the destination mask register are cleared.
+The tail elements in the destination mask register are unchanged.
 
 Traps on `vmsif.m` are always reported with a `vstart` of 0.  The
 `vmsif` instruction will raise an illegal instruction exception if
@@ -3742,7 +3660,7 @@ set, if any.
      0 1 x x x x 0 0   v2 contents
 ----
 
-The tail elements in the destination mask register are cleared.
+The tail elements in the destination mask register are unchanged.
 
 Traps on `vmsof.m` are always reported with a `vstart` of 0.  The
 `vmsof` instruction will raise an illegal instruction exception if
@@ -3950,7 +3868,7 @@ The `vmv.s.x` instruction copies the scalar integer register to element 0 of
 the destination vector register.  If SEW < XLEN, the least-significant bits
 are copied and the upper XLEN-SEW bits are ignored.  If SEW > XLEN, the value
 is sign-extended to SEW bits.  The other elements in the destination vector
-register ( 0 < index < VLEN/SEW) are zeroed.  If `vstart` {ge} `vl`, no
+register ( 0 < index < VLEN/SEW) are unchanged.  If `vstart` {ge} `vl`, no
 operation is performed and the destination register is not updated.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
@@ -3981,7 +3899,7 @@ the destination vector register.  If SEW < FLEN, the least-significant
 bits are copied and the upper FLEN-SEW bits are ignored.  If SEW >
 FLEN, the value is NaN-boxed (1-extended) to SEW bits.  The other
 elements in the destination vector register ( 0 < index < VLEN/SEW)
-are zeroed.  If `vstart` {ge} `vl`, no operation is performed and
+are unchanged.  If `vstart` {ge} `vl`, no operation is performed and
 the destination register is not updated.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
@@ -4063,14 +3981,9 @@ using an unsigned integer in the `x` register specified by `rs1`, or a
     vslidedown behavior for destination element i in slide
                      0 <  i < vstart         Unchanged
                 vstart <= i < vl             Updated if mask enabled, unchanged if not
-                    vl <= i < VLMAX          Zeroed
+                    vl <= i < VLMAX          Unchanged
 
 ----
-
-NOTE: Microarchitectures can optimize zeros written to the end of a
-vector for large offsets by treating as effectively smaller vector
-length, and encoding using the same internal scheme as for regular
-vector instruction writes.
 
 ==== Vector Slide1up
 
@@ -4095,7 +4008,7 @@ vector register group.
 
 The `vl` register specifies how many of the destination vector
 register elements are written with source values, and all tail
-elements are zeroed.
+elements are unchanged.
 
 
 ----
@@ -4120,7 +4033,7 @@ _i_ in the destination vector register group.
 
 The `vl` register specifies how many of the destination vector
 register elements are written with source values, and all tail
-elements are zeroed.
+elements are unchanged.
 
 ----
  vslide1down.vx vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
@@ -4156,7 +4069,7 @@ vector register group.  The index values in the second vector are
 treated as unsigned integers.  The source vector can be read at any
 index < VLMAX regardless of `vl`.  The number of elements to write to
 the destination register is given by `vl`, and elements past `vl` in
-the destination are zeroed.  The operation can be masked.
+the destination are unchanged.  The operation can be masked.
 
 ----
 vrgather.vv vd, vs2, vs1, vm # vd[i] = (vs1[i] >= VLMAX) ? 0 : vs2[vs1[i]];
@@ -4199,7 +4112,7 @@ group.
 The vector mask register specified by `vs1` indicates which of the
 first `vl` elements of vector register group `vs2` should be extracted
 and packed into contiguous elements at the beginning of vector
-register `vd`. Any remaining elements of `vd` are zeroed.
+register `vd`. Any remaining elements of `vd` are unchanged.
 
 ----
     Example use of vcompress instruction
