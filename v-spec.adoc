@@ -3950,7 +3950,7 @@ unsigned 5-bit quantity.
                     0 <  i < max(vstart, OFFSET)  Unchanged
   max(vstart, OFFSET) <= i < vl                   vd[i] = vs2[i-OFFSET] if mask enabled,
                                                    unchanged if not
-                   vl <= i < VLMAX                Tail elements, vd[i] = 0
+                   vl <= i < VLMAX                Tail elements, unchanged
 ----
 
 The destination vector register group for `vslideup` cannot overlap
@@ -4020,7 +4020,7 @@ elements are unchanged.
                     i < vstart  unchanged
                 0 = i = vstart  vd[i] = x[rs1] if mask enabled, unchanged if not
   max(vstart, 1) <= i < vl      vd[i] = vs2[i-1] if mask enabled, unchanged if not
-              vl <= i < VLMAX   tail elements, vd[i] = 0
+              vl <= i < VLMAX   unchanged
 ----
 
 The `vslide1up` instruction requires that the destination vector
@@ -4055,7 +4055,7 @@ SEW-XLEN bits are ignored.
                        i < vstart  unchanged
              vstart <= i < vl-1    vd[i] = vs2[i+1] if mask enabled, unchanged if not
              vstart <= i = vl-1    vd[vl-1] = x[rs1] if mask enabled, unchanged if not
-                 vl <= i < VLMAX   tail elements, vd[i] = 0
+                 vl <= i < VLMAX   unchanged
 ----
 
 NOTE: The `vslide1down` instruction can be used to load values into a
