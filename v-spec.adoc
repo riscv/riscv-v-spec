@@ -1036,9 +1036,9 @@ values in `vl` and `vtype` to match application needs.
 
 ----
  vsetvli rd, rs1, vtypei # rd = new vl, rs1 = AVL, vtypei = new vtype setting
-                         # if rs1 = x0, then use maximum vector length
+                         # if rs1 = x0, then use current vector length
  vsetvl  rd, rs1, rs2    # rd = new vl, rs1 = AVL, rs2 = new vtype value
-                         # if rs1 = x0, then use maximum vector length
+                         # if rs1 = x0, then use current vector length
 ----
 
 The `vsetvli` instruction sets the `vtype` and `vl` CSRs based on its
@@ -1081,15 +1081,23 @@ the `vill` bit is set in `vtype`, the remaining bits in `vtype` are
 set to zero, and the `vl` register is also set to zero.
 
 The requested application vector length (AVL) is passed in `rs1` as an
-unsigned integer.  Using `x0` as the `rs1` register specifier, encodes
-an infinite AVL, and so requests the maximum possible vector length.
+unsigned integer.  Using `x0` as the `rs1` register specifier requests
+an AVL equal to the current `vl`.
 
-NOTE: A `vsetvl{i}` with AVL=`x0` can be used to read current VLMAX,
-though this does overwrite `vl`.
+NOTE: Executing `vsetvl{i}` with `rs1`=`x0` is guaranteed to keep the
+current `vl` intact if VLMAX is not reduced.
 
 NOTE: The behavior of `vsetvl{i}` does not depend on whether `rd`=`x0`.
 Setting `rd`=`x0` can be useful when the application already knows what value
-`vl` will assume, e.g., when changing SEW and LMUL with constant AVL.
+`vl` will assume, e.g., when changing SEW and LMUL by the same factor
+while keeping `vl` constant by setting `rs1`=`x0`.
+
+NOTE: Software can set `vl` to VLMAX by requesting an AVL of -1.
+
+NOTE: Earlier drafts used `rs1`=`x0` to request an AVL of VLMAX.
+The current design supports efficient manipulation of SEW without
+knowing AVL or `vl`.  Requesting a `vl` of VLMAX requires just
+one additional instruction.
 
 NOTE: Earlier drafts required a trap when setting `vtype` to an
 illegal value.  However, this would have added the first
@@ -1483,8 +1491,9 @@ strlen example using unit-stride fault-only-first instruction
 
 strlen:
     mv a3, a0             # Save start
+    li t0, -1             # Infinite AVL
 loop:
-    vsetvli a1, x0, e8  # Vector of bytes of maximum length
+    vsetvli a1, t0, e8  # Vector of bytes of maximum length
     vlbff.v v1, (a3)      # Load bytes
     csrr a1, vl           # Get bytes read
     vmseq.vi v0, v1, 0    # Set v0[i] where v1[i] = 0
@@ -3677,8 +3686,9 @@ The following is an example of vectorizing a data-dependent exit loop.
   # char* strcpy(char *dst, const char* src)
 strcpy:
       mv a2, a0             # Copy dst
+      li t0, -1             # Infinite AVL
 loop:
-    vsetvli x0, x0, e8   # Max length vectors of bytes
+    vsetvli x0, t0, e8      # Max length vectors of bytes
     vlbuff.v v1, (a1)       # Get src bytes
       csrr t1, vl           # Get number of bytes fetched
     vmseq.vi v0, v1, 0      # Flag zero bytes
