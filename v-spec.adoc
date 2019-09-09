@@ -3964,12 +3964,11 @@ unsigned 5-bit quantity.
 ----
 
 The destination vector register group for `vslideup` cannot overlap
-the vector register group of the source, and if operation is masked
-cannot overlap the vector mask register, otherwise an illegal
+the vector register group of the source, otherwise an illegal
 instruction exception is raised.
 
-NOTE: The non-overlap constraints are to avoid WAR hazards on the
-input vectors during execution, and to enable restart with non-zero
+NOTE: The non-overlap constraint avoids WAR hazards on the
+input vectors during execution, and enables restart with non-zero
 `vstart`.
 
 ==== Vector Slidedown Instructions
@@ -4034,9 +4033,8 @@ elements are unchanged.
 ----
 
 The `vslide1up` instruction requires that the destination vector
-register group does not overlap the source vector register group and
-the mask register if masked.  Otherwise, an illegal instruction
-exception is raised.
+register group does not overlap the source vector register group.
+Otherwise, an illegal instruction exception is raised.
 
 ==== Vector Slide1down Instruction
 
