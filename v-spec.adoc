@@ -8,6 +8,7 @@ Version 0.8-draft-20190906
 :stem: latexmath
 :le: &#8804;
 :ge: &#8805;
+:ne: &#8800;
 
 Contributors include: Alon Amid, Krste Asanovic, Allen Baum, Alex
 Bradbury, Tony Brewer, Chris Celio, Aliaksei Chapyzhenka, Silviu
@@ -333,16 +334,22 @@ also reflected as a field in the upper bits of `fcsr`.  Systems
 without floating-point must add `fcsr` when adding the vector
 extension.
 
+The fixed-point rounding algorithm is specified as follows.
+Suppose the pre-rounding result is `v`, and `d` bits of that result are to be
+rounded off.
+Then the rounded result is `(v >> d) + r`, where `r` depends on the rounding
+mode as specified in the following table.
+
 .vxrm encoding
-[cols="1,1,4,10"]
+[cols="1,1,4,10,5"]
 [%autowidth]
 |===
-2+| Bits [1:0] | Abbreviation | Rounding Mode
+2+| Bits [1:0] | Abbreviation | Rounding Mode | Rounding increment, `r`
 
-| 0 | 0 | rnu | round-to-nearest-up (add +0.5 LSB)
-| 0 | 1 | rne | round-to-nearest-even
-| 1 | 0 | rdn | round-down (truncate)
-| 1 | 1 | rod | round-to-odd (OR bits into LSB, aka "jam")
+| 0 | 0 | rnu | round-to-nearest-up (add +0.5 LSB)          | `v[d-1]`
+| 0 | 1 | rne | round-to-nearest-even                       | `v[d-1] & (v[d-2:0]{ne}0 \| v[d])`
+| 1 | 0 | rdn | round-down (truncate)                       | `0`
+| 1 | 1 | rod | round-to-odd (OR bits into LSB, aka "jam")  | `!v[d] & v[d-1:0]{ne}0`
 |===
 
 Bits[XLEN-1:2] should be written as zeros.
