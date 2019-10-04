@@ -158,6 +158,7 @@
 | 10010 | vfncvt.f.xu.v
 | 10011 | vfncvt.f.x.v
 | 10100 | vfncvt.f.f.v
+| 10101 | vfncvt.rod.f.f.v
 |===
 
 .VFUNARY1 encoding space
