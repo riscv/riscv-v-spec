@@ -3301,7 +3301,9 @@ vfncvt.x.f.v  vd, vs2, vm   # Convert double-width float to signed integer.
 vfncvt.f.xu.v vd, vs2, vm   # Convert double-width unsigned integer to float.
 vfncvt.f.x.v  vd, vs2, vm   # Convert double-width signed integer to float.
 
-vfncvt.f.f.v vd, vs2, vm   # Convert double-width float to single-width float.
+vfncvt.f.f.v vd, vs2, vm       # Convert double-width float to single-width float.
+vfncvt.rod.f.f.v vd, vs2, vm   # Convert double-width float to single-width float,
+                               #  rounding towards odd.
 ----
 
 These instructions have the same constraints on vector register overlap
@@ -3309,9 +3311,10 @@ as other narrowing instructions (see <<sec-narrowing>>).
 
 NOTE: A full set of floating-point widening conversions are not
 supported as single instructions. Conversions can be implemented in
-several halving steps, with equivalently rounded results and with the
-same exception flags raised (possibly raised redundantly in multiple
-steps).
+a sequence of halving steps.  Results are equivalently rounded and
+the same exception flags are raised if all but the last halving step
+use round-towards-odd (`vfncvt.rod.f.f.v`).  Only the final step
+should use the desired rounding mode.
 
 NOTE: An integer value can be halved in width using the narrowing
 integer shift instructions with a shift amount of 0.
