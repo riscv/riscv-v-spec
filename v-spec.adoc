@@ -2111,7 +2111,8 @@ mask register when LMUL=1.
 
 A `vn*` prefix on the opcode is used to distinguish these instructions
 in the assembler, or a `vfn*` prefix for narrowing floating-point
-opcodes.
+opcodes.  The double-width source vector register group is signified
+by a `w` in the source operand suffix (e.g., `vnsra.wv`)
 
 NOTE: Comparison operations that set a mask register are also
 implicitly a narrowing operation.
@@ -2324,14 +2325,14 @@ supports shift amounts up to 31 only.
 
 ----
  # Narrowing shift right logical, SEW = (2*SEW) >> SEW
- vnsrl.vv vd, vs2, vs1, vm   # vector-vector
- vnsrl.vx vd, vs2, rs1, vm   # vector-scalar
- vnsrl.vi vd, vs2, uimm, vm   # vector-immediate
+ vnsrl.wv vd, vs2, vs1, vm   # vector-vector
+ vnsrl.wx vd, vs2, rs1, vm   # vector-scalar
+ vnsrl.wi vd, vs2, uimm, vm   # vector-immediate
 
  # Narrowing shift right arithmetic, SEW = (2*SEW) >> SEW
- vnsra.vv vd, vs2, vs1, vm   # vector-vector
- vnsra.vx vd, vs2, rs1, vm   # vector-scalar
- vnsra.vi vd, vs2, uimm, vm   # vector-immediate
+ vnsra.wv vd, vs2, vs1, vm   # vector-vector
+ vnsra.wx vd, vs2, rs1, vm   # vector-scalar
+ vnsra.wi vd, vs2, uimm, vm   # vector-immediate
 ----
 
 NOTE: It could be useful to add support for `n4` variants, where the
@@ -2876,15 +2877,15 @@ form supports shift amounts up to 31 only.
 
 ----
  # Narrowing unsigned clip
- vnclipu.vv vd, vs2, vs1, vm   # vector-vector
- vnclipu.vx vd, vs2, rs1, vm   # vector-scalar
- vnclipu.vi vd, vs2, uimm, vm   # vector-immediate
+ vnclipu.wv vd, vs2, vs1, vm   # vector-vector
+ vnclipu.wx vd, vs2, rs1, vm   # vector-scalar
+ vnclipu.wi vd, vs2, uimm, vm  # vector-immediate
 
 # Narrowing signed clip,  vd[i] = clip(round(vs2[i] + rnd) >> vs1[i])
 #                          SEW           2*SEW                 SEW
- vnclip.vv vd, vs2, vs1, vm   # vector-vector
- vnclip.vx vd, vs2, rs1, vm   # vector-scalar
- vnclip.vi vd, vs2, uimm, vm   # vector-immediate
+ vnclip.wv vd, vs2, vs1, vm   # vector-vector
+ vnclip.wx vd, vs2, rs1, vm   # vector-scalar
+ vnclip.wi vd, vs2, uimm, vm  # vector-immediate
 ----
 
 For `vnclipu`/`vnclip`, the rounding mode is specified in the `vxrm`
@@ -3275,15 +3276,15 @@ A set of conversion instructions are provided to convert wider integer
 and floating-point datatypes to a type of half the width.
 
 ----
-vfncvt.xu.f.v vd, vs2, vm   # Convert double-width float to unsigned integer.
-vfncvt.x.f.v  vd, vs2, vm   # Convert double-width float to signed integer.
+vfncvt.xu.f.w vd, vs2, vm   # Convert double-width float to unsigned integer.
+vfncvt.x.f.w  vd, vs2, vm   # Convert double-width float to signed integer.
 
-vfncvt.f.xu.v vd, vs2, vm   # Convert double-width unsigned integer to float.
-vfncvt.f.x.v  vd, vs2, vm   # Convert double-width signed integer to float.
+vfncvt.f.xu.w vd, vs2, vm   # Convert double-width unsigned integer to float.
+vfncvt.f.x.w  vd, vs2, vm   # Convert double-width signed integer to float.
 
-vfncvt.f.f.v vd, vs2, vm       # Convert double-width float to single-width float.
-vfncvt.rod.f.f.v vd, vs2, vm   # Convert double-width float to single-width float,
-                               #  rounding towards odd.
+vfncvt.f.f.w vd, vs2, vm    # Convert double-width float to single-width float.
+vfncvt.rod.f.f.w vd, vs2, vm  # Convert double-width float to single-width float,
+                              #  rounding towards odd.
 ----
 
 These instructions have the same constraints on vector register overlap
@@ -3293,7 +3294,7 @@ NOTE: A full set of floating-point widening conversions are not
 supported as single instructions. Conversions can be implemented in
 a sequence of halving steps.  Results are equivalently rounded and
 the same exception flags are raised if all but the last halving step
-use round-towards-odd (`vfncvt.rod.f.f.v`).  Only the final step
+use round-towards-odd (`vfncvt.rod.f.f.w`).  Only the final step
 should use the desired rounding mode.
 
 NOTE: An integer value can be halved in width using the narrowing
