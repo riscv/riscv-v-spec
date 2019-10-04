@@ -2312,26 +2312,6 @@ Only the low lg2(SEW) bits are read to obtain the shift amount from a register v
 The immediate is treated as an unsigned shift amount, with a maximum
 shift amount of 31.
 
-=== Vector Widening Integer Left Shift Instructions
-
-Widening left shift instructions are provided.  These left shift an
-SEW-bit value from one vector register group into a 2*SEW-bit wide
-vector register group.  The source value is zero-extended to 2*SEW
-bits, then shifted left by the shift amount, with zeros inserted into
-the least-significant bits.
-
-----
-# Widening left shift operations
-vwsll.vv vd, vs2, vs1, vm   # Vector-vector
-vwsll.vx vd, vs2, rs1, vm   # vector-scalar
-vwsll.vi vd, vs2, uimm, vm   # vector-immediate
-----
-
-Only the low lg2(SEW+1) bits are read to obtain the shift amount from a register value.
-
-The immediate is treated as an unsigned shift amount, with a maximum
-shift amount of 31.
-
 === Vector Narrowing Integer Right Shift Instructions
 
 The narrowing right shifts extract a smaller field from a wider
