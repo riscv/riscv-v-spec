@@ -3597,7 +3597,7 @@ GPR.
 
 NOTE: Software can assume that any negative value (highest bit set)
 corresponds to no element found, as vector lengths will never exceed
-2^31^ on any implementation.
+2^(XLEN-1)^ on any implementation.
 
 Traps on `vfirst` are always reported with a `vstart` of 0.  The
 `vfirst` instruction will raise an illegal instruction exception if
