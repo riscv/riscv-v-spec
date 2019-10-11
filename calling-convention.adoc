@@ -1,0 +1,17 @@
+[appendix]
+== Calling Convention
+
+In the RISC-V psABI, the vector registers `v0`-`v31` are all caller-saved.
+The `vstart`, `vl`, and `vtype` CSRs are also caller-saved.
+
+The `vxrm` and `vxsat` fields have thread storage duration, like the other
+fields of the `fcsr`.
+
+Executing a system call causes `v0`-`v31` to become unspecified.
+
+NOTE: This scheme allows system calls that cause context switches to avoid
+saving and later restoring the vector registers.
+
+NOTE: The values that `v0`-`v31` assume after a system call cannot expose
+information from other processes, so typically the registers will either
+remain intact or will be zeroed.

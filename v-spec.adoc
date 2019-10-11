@@ -4483,3 +4483,5 @@ vfdot.vv v1, v2, v3
 include::inst-table.adoc[]
 
 include::vector-examples.adoc[]
+
+include::calling-convention.adoc[]
