@@ -352,6 +352,12 @@ mode as specified in the following table.
 | 1 | 1 | rod | round-to-odd (OR bits into LSB, aka "jam")  | `!v[d] & v[d-1:0]{ne}0`
 |===
 
+The rounding function:
+----
+roundoff(v, d) = (v >> d) + r
+----
+is used to represent this operation in the instruction descriptions below.
+
 Bits[XLEN-1:2] should be written as zeros.
 
 NOTE: The rounding mode can be set with a single `csrwi` instruction.
@@ -2749,10 +2755,8 @@ one bit and round off the result according to the setting in `vxrm`.
 There can be no overflow in the result.
 
 ----
-# For vrxm=rnu, round = 1
-
 # Averaging add
-# result = (src1 + src2 + round) >> 1;
+# result = roundoff(src1 + src2, 1)
 
 # Averaging adds of integers.
 vaadd.vv vd, vs2, vs1, vm   # Vector-vector
@@ -2760,7 +2764,7 @@ vaadd.vx vd, vs2, rs1, vm   # vector-scalar
 vaadd.vi vd, vs2, imm, vm   # vector-immediate
 
 # Averaging subtract
-# result = (src1 - src2 + round) >> 1;
+# result = roundoff(src1 - src2, 1)
 
 # Averaging subtract of integers.
 vasub.vv vd, vs2, vs1, vm   # Vector-vector
@@ -2777,8 +2781,9 @@ is set.
 
 ----
 # Signed saturating and rounding fractional multiply
-vsmul.vv vd, vs2, vs1, vm  # vd[i] = clip((vs2[i]*vs1[i]+round)>>(SEW-1))
-vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip((vs2[i]*x[rs1]+round)>>(SEW-1))
+# See vxrm  description for rounding calculation
+vsmul.vv vd, vs2, vs1, vm  # vd[i] = clip(roundoff(vs2[i]*vs1[i], SEW-1))
+vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip(roundoff(vs2[i]*x[rs1], SEW-1))
 ----
 
 NOTE: When multiplying two N-bit signed numbers, the largest magnitude
@@ -2788,10 +2793,6 @@ have two sign bits in 2N bits.  To retain greater precision in N
 result bits, the product is shifted right by one bit less than N,
 saturating the largest magnitude result but increasing result
 precision by one bit for all other products.
-
-NOTE: Considering adding `vxrm`-controlled rounding to `vmulhu`,
-`vmulhsu`, and `vmulh` to further support fixed-point.  These would
-not have saturation.
 
 === Vector Widening Saturating Scaled Multiply-Add
 
@@ -2850,16 +2851,15 @@ low lg2(SEW) bits of the vector or scalar shift amount value are used.
 The immediate form supports shift amounts up to 31 only.
 
 ----
- # For vxrm=rnu, round = 1 << (src2-1), where src2 is vs1[i], x[rs1], uimm
  # Scaling shift right logical
- vssrl.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
- vssrl.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
- vssrl.vi vd, vs2, uimm, vm   # vd[i] = ((vs2[i] + round)>>uimm)
+ vssrl.vv vd, vs2, vs1, vm   # vd[i] = roundoff(vs2[i], vs1[i])
+ vssrl.vx vd, vs2, rs1, vm   # vd[i] = roundoff(vs2[i], x[rs1])
+ vssrl.vi vd, vs2, uimm, vm   # vd[i] = roundoff(vs2[i], uimm)
 
  # Scaling shift right arithmetic
- vssra.vv vd, vs2, vs1, vm   # vd[i] = ((vs2[i] + round)>>vs1[i])
- vssra.vx vd, vs2, rs1, vm   # vd[i] = ((vs2[i] + round)>>x[rs1])
- vssra.vi vd, vs2, uimm, vm   # vd[i] = ((vs2[i] + round)>>uimm)
+ vssra.vv vd, vs2, vs1, vm   # vd[i] = roundoff(vs2[i],vs1[i])
+ vssra.vx vd, vs2, rs1, vm   # vd[i] = roundoff(vs2[i], x[rs1])
+ vssra.vi vd, vs2, uimm, vm   # vd[i] = roundoff(vs2[i], uimm)
 ----
 
 === Vector Narrowing Fixed-Point Clip Instructions
@@ -2876,13 +2876,13 @@ for a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate
 form supports shift amounts up to 31 only.
 
 ----
- # Narrowing unsigned clip
+# Narrowing unsigned clip,  vd[i] = clip(roundoff(vs2[i], vs1[i]) )
+#                            SEW                  2*SEW     SEW
  vnclipu.wv vd, vs2, vs1, vm   # vector-vector
  vnclipu.wx vd, vs2, rs1, vm   # vector-scalar
  vnclipu.wi vd, vs2, uimm, vm  # vector-immediate
 
-# Narrowing signed clip,  vd[i] = clip(round(vs2[i] + rnd) >> vs1[i])
-#                          SEW           2*SEW                 SEW
+# Narrowing signed clip
  vnclip.wv vd, vs2, vs1, vm   # vector-vector
  vnclip.wx vd, vs2, rs1, vm   # vector-scalar
  vnclip.wi vd, vs2, uimm, vm  # vector-immediate
