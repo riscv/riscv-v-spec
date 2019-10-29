@@ -4462,8 +4462,8 @@ vfdot.vv vd, vs2, vs1, vm   # Vector-vector
 
 ----
 # Dot product. SEW=32, EDIV=2
-vfdot.v  vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
-                                          + vs2[i][15:0] * vs1[i][15:0]
+vfdot.vv  vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
+                                           + vs2[i][15:0] * vs1[i][15:0]
 
 # Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
 vsetvli t0, a0, e32,m1,d2  # Vectors of 32-bit elements, divided into 16b sub-elements
