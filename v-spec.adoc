@@ -293,6 +293,9 @@ zero at the end of execution.
 NOTE: All vector instructions, including `vsetvl{i}`, reset the `vstart`
 CSR to zero.
 
+`vstart` is not modified by vector instructions that raise illegal-instruction
+exceptions.
+
 If the value in the `vstart` register is greater than or equal to the
 vector length `vl` then no element operations are performed.  The
 `vstart` register is then reset to zero.
