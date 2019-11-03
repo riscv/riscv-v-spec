@@ -310,7 +310,7 @@ represent indices from 0 through 255.
 The `vstart` CSR is writable by unprivileged code, but non-zero
 `vstart` values may cause vector instructions to run substantially
 slower on some implementations, so `vstart` should not be used by
-application programmers.  A few vector instructions can not be
+application programmers.  A few vector instructions cannot be
 executed with a non-zero `vstart` value and will raise an illegal
 instruction exception as defined below.
 
