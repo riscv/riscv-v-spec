@@ -4112,7 +4112,7 @@ and the immediate are treated as unsigned integers.
 NOTE: These forms allow any vector element to be "splatted" to an entire vector.
 
 ----
-vrgather.vx vd, vs2, rs1, vm # vd[i] = (x[rs1] >= VLMAX) ? 0 : vs2[rs1]
+vrgather.vx vd, vs2, rs1, vm # vd[i] = (x[rs1] >= VLMAX) ? 0 : vs2[x[rs1]]
 vrgather.vi vd, vs2, uimm, vm # vd[i] = (uimm >= VLMAX) ? 0 : vs2[uimm]
 ----
 
