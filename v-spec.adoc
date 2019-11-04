@@ -2186,20 +2186,29 @@ instructions are provided: one to provide the result (SEW width), and
 the second to generate the carry output (single bit encoded as a mask
 boolean).
 
-These instructions are encoded as unmasked instructions (vm=1) and
-operate on all body elements.  Encodings corresponding to the masked
-versions (vm=0) of these instructions are reserved.
-
 The carry inputs and outputs are represented using the mask register
 layout as described in Section <<sec-mask-register-layout>>.  Due to
 encoding constraints, the carry input must come from the implicit `v0`
 register, but carry outputs can be written to any vector register that
 respects the source/destination overlap restrictions below.
 
+`vadc` and `vsbc` add or subtract the source operands and the carry-in or
+borrow-in, and write the result to vector register `vd`.
+These instructions are encoded as masked instructions (vm=0), but they operate
+on and write back all body elements.
+Encodings corresponding to the unmasked versions (vm=1) are reserved.
+
+`vmadc` and `vmsbc` add or subtract the source operands, optionally add the
+carry-in or subtract the borrow-in if masked (vm=0), and write the result back
+to mask register `vd`.
+If unmasked (vm=1), there is no carry-in or borrow-in.
+These instructions operate on and write back all body elements, even if
+masked.
+
 ----
  # Produce sum with carry.
 
-# vd[i] = vs2[i] + vs1[i] + v0[i].LSB
+ # vd[i] = vs2[i] + vs1[i] + v0[i].LSB
  vadc.vvm   vd, vs2, vs1, v0  # Vector-vector
 
  # vd[i] = vs2[i] + x[rs1] + v0[i].LSB
@@ -2210,7 +2219,7 @@ respects the source/destination overlap restrictions below.
 
  # Produce carry out in mask register format
 
-# vd[i] = carry_out(vs2[i] + vs1[i] + v0[i].LSB)
+ # vd[i] = carry_out(vs2[i] + vs1[i] + v0[i].LSB)
  vmadc.vvm   vd, vs2, vs1, v0  # Vector-vector
 
  # vd[i] = carry_out(vs2[i] + x[rs1] + v0[i].LSB)
@@ -2218,6 +2227,15 @@ respects the source/destination overlap restrictions below.
 
  # vd[i] = carry_out(vs2[i] + imm + v0[i].LSB)
  vmadc.vim   vd, vs2, imm, v0  # Vector-immediate
+
+ # vd[i] = carry_out(vs2[i] + vs1[i])
+ vmadc.vv    vd, vs2, vs1      # Vector-vector, no carry-in
+
+ # vd[i] = carry_out(vs2[i] + x[rs1])
+ vmadc.vx    vd, vs2, rs1      # Vector-scalar, no carry-in
+
+ # vd[i] = carry_out(vs2[i] + imm)
+ vmadc.vi    vd, vs2, imm      # Vector-immediate, no carry-in
 ----
 
 Because implementing a carry propagation requires executing two
@@ -2238,7 +2256,7 @@ no subtract with immediate instructions.
 ----
  # Produce difference with borrow.
 
-# vd[i] = vs2[i] - vs1[i] - v0[i].LSB
+ # vd[i] = vs2[i] - vs1[i] - v0[i].LSB
  vsbc.vvm   vd, vs2, vs1, v0  # Vector-vector
 
  # vd[i] = vs2[i] - x[rs1] - v0[i].LSB
@@ -2251,6 +2269,12 @@ no subtract with immediate instructions.
 
  # vd[i] = borrow_out(vs2[i] - x[rs1] - v0[i].LSB)
  vmsbc.vxm   vd, vs2, rs1, v0  # Vector-scalar
+
+ # vd[i] = borrow_out(vs2[i] - vs1[i])
+ vmsbc.vv    vd, vs2, vs1      # Vector-vector, no borrow-in
+
+ # vd[i] = borrow_out(vs2[i] - x[rs1])
+ vmsbc.vx    vd, vs2, rs1      # Vector-scalar, no borrow-in
 ----
 
 For `vmsbc`, the borrow is defined to be 1 iff the difference, prior to
