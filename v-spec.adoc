@@ -4024,7 +4024,7 @@ element position.
 The `vslide1up` instruction places the `x` register argument at
 location 0 of the destination vector register group, provided that
 element 0 is active, otherwise the destination element is unchanged.
-If XLEN < SEW, the value is zero-extended to SEW bits.  If XLEN > SEW,
+If XLEN < SEW, the value is sign-extended to SEW bits.  If XLEN > SEW,
 the least-significant bits are copied over and the high SEW-XLEN bits
 are ignored.
 
@@ -4067,7 +4067,7 @@ elements are unchanged.
 The `vslide1down` instruction places the `x` register argument at
 location `vl`-1 in the destination vector register, provided that
 element `vl-1` is active, otherwise the destination element is
-unchanged. If XLEN < SEW, the value is zero-extended to SEW bits.  If
+unchanged. If XLEN < SEW, the value is sign-extended to SEW bits.  If
 XLEN > SEW, the least-significant bits are copied over and the high
 SEW-XLEN bits are ignored.
 
