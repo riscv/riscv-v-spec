@@ -3953,6 +3953,9 @@ operation and leaves the destination vector register unchanged.
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
 
+The slide instructions may be masked, with mask element _i_ controlling whether
+_destination_ element _i_ is written.
+
 ==== Vector Slideup Instructions
 
 ----
