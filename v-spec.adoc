@@ -1270,7 +1270,7 @@ Vector indexed operations add the contents of each element of the
 vector offset operand specified by `vs2` to the base effective address
 to give the effective address of each element.  The vector offset
 operand is treated as a vector of byte offsets.  If the vector offset
-elements are narrower than XLEN, they are sign-extended to XLEN before
+elements are narrower than XLEN, they are zero-extended to XLEN before
 adding to the base effective address.  If the vector offset elements
 are wider than XLEN, the least-significant XLEN bits are used in the
 address calculation.
