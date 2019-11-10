@@ -185,15 +185,17 @@ only SEW up to max(XLEN,FLEN) are required to be supported.
 
 ==== Vector Register Grouping (`vlmul`)
 
-Multiple vector registers can be grouped together to form a _vector_
-_register_ _group_, so that a single vector instruction can operate on
+Multiple vector registers can be grouped together, so that a single vector instruction can operate on
 multiple vector registers.  Vector register groups allow double-width
 or larger elements to be operated on with the same vector length as
 standard-width elements.  Vector register groups also provide greater
 execution efficiency for longer application vectors.
 
-The number of vector registers in a group, _LMUL_, is an integer power
-of two set by the `vlmul` field in `vtype` (LMUL = 2^`vlmul[1:0]`^).
+The term _vector_ _register_ _group_ is used herein to refer to one or
+more vector registers used as a single operand to a vector
+instruction.  The number of vector registers in a group, _LMUL_, is an
+integer power of two set by the `vlmul` field in `vtype` (LMUL =
+2^`vlmul[1:0]`^).
 
 The derived value VLMAX = LMUL*VLEN/SEW represents the maximum number
 of elements that can be operated on with a single vector instruction
@@ -204,7 +206,7 @@ given the current SEW and LMUL settings.
 |===
 2+| vlmul | LMUL | #groups | VLMAX      | Grouped registers
 
-| 0 | 0 |   1  |     32  |   VLEN/SEW | vn (no group)
+| 0 | 0 |   1  |     32  |   VLEN/SEW | vn (single register in group)
 | 0 | 1 |   2  |     16  | 2*VLEN/SEW | vn, vn+1
 | 1 | 0 |   4  |      8  | 4*VLEN/SEW | vn, ..., vn+3
 | 1 | 1 |   8  |      4  | 8*VLEN/SEW | vn, ..., vn+7
