@@ -3882,8 +3882,8 @@ value between a scalar `x` register and element 0 of a vector
 register.  The instructions ignore LMUL and vector register groups.
 
 ----
-vmv.x.s rd, vs2  # rd = vs2[0] (rs1=0)
-vmv.s.x vd, rs1  # vd[0] = rs1 (vs2=0)
+vmv.x.s rd, vs2  # x[rd] = vs2[0] (rs1=0)
+vmv.s.x vd, rs1  # vd[0] = x[rs1] (vs2=0)
 ----
 
 The `vmv.x.s` instruction copies a single SEW-wide element from index 0 of the
@@ -3911,8 +3911,8 @@ value between a scalar `f` register and element 0 of a vector
 register.  The instructions ignore LMUL and vector register groups.
 
 ----
-vfmv.f.s rd, vs2  # rd = vs2[0] (rs1=0)
-vfmv.s.f vd, rs1  # vd[0] = rs1 (vs2=0)
+vfmv.f.s rd, vs2  # f[rd] = vs2[0] (rs1=0)
+vfmv.s.f vd, rs1  # vd[0] = f[rs1] (vs2=0)
 ----
 
 The `vfmv.f.s` instruction copies a single SEW-wide element from index
@@ -3921,13 +3921,13 @@ register.  If SEW > FLEN, the least-significant FLEN bits are
 transferred and the upper SEW-FLEN bits are ignored.  If SEW < FLEN,
 the value is NaN-boxed (1-extended) to FLEN bits.
 
-The `vfmv.s.f` instruction copies the scalar register to element 0 of
-the destination vector register.  If SEW < FLEN, the least-significant
-bits are copied and the upper FLEN-SEW bits are ignored.  If SEW >
-FLEN, the value is NaN-boxed (1-extended) to SEW bits.  The other
-elements in the destination vector register ( 0 < index < VLEN/SEW)
-are unchanged.  If `vstart` {ge} `vl`, no operation is performed and
-the destination register is not updated.
+The `vfmv.s.f` instruction copies the scalar floating-point register
+to element 0 of the destination vector register.  If SEW < FLEN, the
+least-significant bits are copied and the upper FLEN-SEW bits are
+ignored.  If SEW > FLEN, the value is NaN-boxed (1-extended) to SEW
+bits.  The other elements in the destination vector register ( 0 <
+index < VLEN/SEW) are unchanged.  If `vstart` {ge} `vl`, no operation
+is performed and the destination register is not updated.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
@@ -4001,7 +4001,7 @@ using an unsigned integer in the `x` register specified by `rs1`, or a
 
 ----
     vslidedown behavior for source elements for element i in slide
-                     0 <= i+OFFSET < VLMAX   Read vs2[i+offset]
+                     0 <= i+OFFSET < VLMAX   Read vs2[i+OFFSET]
                  VLMAX <= i+OFFSET           Read as 0
 
     vslidedown behavior for destination element i in slide
