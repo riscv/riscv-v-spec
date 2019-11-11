@@ -3962,11 +3962,13 @@ destination vector register group, regardless of `vstart`.
  vslideup.vi vd, vs2, uimm[4:0], vm  # vd[i+uimm] = vs2[i]
 ----
 
-For `vslideup`, the value in `vl` specifies the number of destination
+For `vslideup`, the value in `vl` specifies the maximum number of destination
 elements that are written.  The start index (_OFFSET_) for the
 destination can be either specified using an unsigned integer in the
 `x` register specified by `rs1`, or a 5-bit immediate treated as an
 unsigned 5-bit quantity.
+Destination elements _OFFSET_ through `vl`-1 are written if unmasked and
+if _OFFSET_ < `vl`.
 
 ----
    vslideup behavior for destination elements
