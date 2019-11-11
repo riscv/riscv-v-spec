@@ -877,7 +877,7 @@ elements.
 
 == Vector Instruction Formats
 
-The instructions in the vector extension fit under four existing major
+The instructions in the vector extension fit under three existing major
 opcodes (LOAD-FP, STORE-FP, AMO) and one new major opcode (OP-V).
 
 Vector loads and stores are encoding within the scalar floating-point
