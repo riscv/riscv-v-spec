@@ -903,7 +903,7 @@ Vector loads and stores move bit patterns between vector register
 elements and memory.  Vector arithmetic instructions operate on values
 held in vector register elements.
 
-=== Scalar operands
+=== Scalar Operands
 
 Scalar operands can be immediates, or taken from the `x` registers,
 the `f` registers, or element 0 of a vector register.  Scalar results
@@ -936,7 +936,10 @@ so operate on a larger vector register group than that specified in
 not be greater than 8 vector registers, and if an vector instruction
 would require greater than 8 vector registers in a group, an illegal
 instruction exception is raised.  For example, attempting a widening
-operation with LMUL=8 will raise an illegal instruction exception.
+operation producing a widened vector register group result with LMUL=8
+will raise an illegal instruction exception.  Widened scalar values,
+e..g, results from widening reduction operations, are held in the
+first element of a vector register and are treated as if LMUL=1.
 
 === Vector Masking
 
