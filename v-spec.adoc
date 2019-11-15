@@ -2208,14 +2208,14 @@ respects the source/destination overlap restrictions below.
 
 `vadc` and `vsbc` add or subtract the source operands and the carry-in or
 borrow-in, and write the result to vector register `vd`.
-These instructions are encoded as masked instructions (vm=0), but they operate
+These instructions are encoded as masked instructions (`vm=0`), but they operate
 on and write back all body elements.
-Encodings corresponding to the unmasked versions (vm=1) are reserved.
+Encodings corresponding to the unmasked versions (`vm=1`) are reserved.
 
 `vmadc` and `vmsbc` add or subtract the source operands, optionally add the
-carry-in or subtract the borrow-in if masked (vm=0), and write the result back
+carry-in or subtract the borrow-in if masked (`vm=0`), and write the result back
 to mask register `vd`.
-If unmasked (vm=1), there is no carry-in or borrow-in.
+If unmasked (`vm=1`), there is no carry-in or borrow-in.
 These instructions operate on and write back all body elements, even if
 masked.
 
@@ -4191,6 +4191,9 @@ register `vd`. Any remaining elements of `vd` are unchanged.
                                 vcompress.vm v2, v1, v0
         1 2 3 4 8 7 5 2 0   v2
 ----
+
+`vcompress` is encoded as an unmasked instruction (vm=1). The equivalent
+masked instruction (vm=0) is reserved.
 
 The destination vector register group cannot overlap the source vector
 register group or the source vector mask register, otherwise an
