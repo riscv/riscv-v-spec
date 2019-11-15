@@ -2843,54 +2843,6 @@ result bits, the product is shifted right by one bit less than N,
 saturating the largest magnitude result but increasing result
 precision by one bit for all other products.
 
-=== Vector Widening Saturating Scaled Multiply-Add
-
-The widening saturating scaled multiply-add instructions perform an
-SEW-bit * SEW-bit multiply to yield a 2*SEW-bit product. The product
-is then right-shifted by SEW/2 bits with the shifted bits rounded off
-according to `vxrm`, and the rounded product is added to a 2*SEW-bit
-destination accumulator, with saturation if the result would overflow
-the destination accumulator. The `vxsat` bit is set if any overflow
-occurs.
-
-If any multiplier operand is signed, then the result is treated as a
-signed value for overflow/saturation.  If both multiplier operands are
-unsigned then the result is treated as an unsigned value for
-overflow/saturation.
-
-|===
-| SEW | Product Width | Rounded Product | Accumulator | Guard Bits
-
-|   8 | 16 | 12 | 16 |   4
-|  16 | 32 | 24 | 32 |   8
-|  32 | 64 | 48 | 64 |  16
-|===
-
-----
-# Widening unsigned-integer scaled multiply-accumulate
-vwsmaccu.vv vd, vs1, vs2, vm # vd[i] = clipu((+(vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
-vwsmaccu.vx vd, rs1, vs2, vm # vd[i] = clipu((+(x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
-
-# Widening signed-integer scaled multiply-accumulate
-vwsmacc.vv vd, vs1, vs2, vm  # vd[i] = clip((+(vs1[i]*vs2[i]+round)>>SEW/2)+vd[i])
-vwsmacc.vx vd, rs1, vs2, vm  # vd[i] = clip((+(x[rs1]*vs2[i]+round)>>SEW/2)+vd[i])
-
-# Widening signed-unsigned-integer scaled multiply-accumulate
-vwsmaccsu.vv vd, vs1, vs2, vm
-             # vd[i] = clip(((signed(vs1[i])*unsigned(vs2[i])+round)>>SEW/2)+vd[i])
-vwsmaccsu.vx vd, rs1, vs2, vm
-             # vd[i] = clip(((signed(x[rs1])*unsigned(vs2[i])+round)>>SEW/2)+vd[i])
-
-# Widening unsigned-signed-integer scaled  multiply-accumulate
-vwsmaccus.vx vd, rs1, vs2, vm
-             # vd[i] = clip(((unsigned(x[rs1])*signed(vs2[i])+round)>>SEW/2)+vd[i])
-
-# For vxrm=rnu, round = (1 << (SEW/2-1))
-----
-
-NOTE: An arbitrary scaling/shift amount would be more flexible but
-would require a fourth source operand.
-
 === Vector Single-Width Scaling Shift Instructions
 
 These instructions shift the input value right, and round off the
