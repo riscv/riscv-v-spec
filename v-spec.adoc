@@ -3899,7 +3899,7 @@ operation is performed and the destination register is not updated.
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
 
-The encodings corresponding to the masked versions (vm=0) of `vmv.x.s`
+The encodings corresponding to the masked versions (`vm=0`) of `vmv.x.s`
 and `vmv.s.x` are reserved.
 
 === Floating-Point Scalar Move Instructions
@@ -3930,7 +3930,7 @@ is performed and the destination register is not updated.
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
 
-The encodings corresponding to the masked versions (vm=0) of `vfmv.f.s`
+The encodings corresponding to the masked versions (`vm=0`) of `vfmv.f.s`
 and `vfmv.s.f` are reserved.
 
 === Vector Slide Instructions
@@ -4153,8 +4153,8 @@ register `vd`. Any remaining elements of `vd` are unchanged.
         1 2 3 4 8 7 5 2 0   v2
 ----
 
-`vcompress` is encoded as an unmasked instruction (vm=1). The equivalent
-masked instruction (vm=0) is reserved.
+`vcompress` is encoded as an unmasked instruction (`vm=1`). The equivalent
+masked instruction (`vm=0`) is reserved.
 
 The destination vector register group cannot overlap the source vector
 register group or the source vector mask register, otherwise an
