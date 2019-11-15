@@ -1810,8 +1810,17 @@ If SEW > 32 bits, the value returned from memory is sign-extended
 to fill SEW.
 
 If SEW is less than XLEN, then addresses in the vector `vs2` are
-sign-extended to XLEN.  If SEW is greater than XLEN, an illegal
+zero-extended to XLEN.  If SEW is greater than XLEN, an illegal
 instruction exception is raised.
+
+NOTE: Sign-extending addresses held in narrower SEW might match
+expectations on how narrow virtual addresses are usually handled, but
+requires slightly different hardware than for the zero-extension of
+offsets used in indexed load/stores.  By far the most common use case
+for vector AMO instructions is expected to be for address elements
+that have SEW=XLEN, where there is no extension, so the decision was
+made to simplify the hardware.  Software can always explicitly promote
+narrower addresses to sign-extended wider addresses if this is needed.
 
 Vector AMO instructions are only supported for the memory element
 widths supported by AMOs in the implementation's scalar architecture.
