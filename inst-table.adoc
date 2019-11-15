@@ -153,12 +153,12 @@
 | 01100 | vfwcvt.f.f.v
 | |
 2+| narrowing converts
-| 10000 | vfncvt.xu.f.v
-| 10001 | vfncvt.x.f.v
-| 10010 | vfncvt.f.xu.v
-| 10011 | vfncvt.f.x.v
-| 10100 | vfncvt.f.f.v
-| 10101 | vfncvt.rod.f.f.v
+| 10000 | vfncvt.xu.f.w
+| 10001 | vfncvt.x.f.w
+| 10010 | vfncvt.f.xu.w
+| 10011 | vfncvt.f.x.w
+| 10100 | vfncvt.f.f.w
+| 10101 | vfncvt.rod.f.f.w
 |===
 
 .VFUNARY1 encoding space
