@@ -2781,21 +2781,29 @@ vssub.vx vd, vs2, rs1, vm   # vector-scalar
 
 The averaging add and subtract instructions right shift the result by
 one bit and round off the result according to the setting in `vxrm`.
-There can be no overflow in the result.
+There can be no overflow in the result.  Both unsigned and signed
+versions are provided.
 
 ----
 # Averaging add
 # result = roundoff(src1 + src2, 1)
 
-# Averaging adds of integers.
+# Averaging adds of unsigned integers.
+vaaddu.vv vd, vs2, vs1, vm   # Vector-vector
+vaaddu.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Averaging adds of signed integers.
 vaadd.vv vd, vs2, vs1, vm   # Vector-vector
 vaadd.vx vd, vs2, rs1, vm   # vector-scalar
-vaadd.vi vd, vs2, imm, vm   # vector-immediate
 
 # Averaging subtract
 # result = roundoff(src1 - src2, 1)
 
-# Averaging subtract of integers.
+# Averaging subtract of unsigned integers.
+vasubu.vv vd, vs2, vs1, vm   # Vector-vector
+vasubu.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Averaging subtract of signed integers.
 vasub.vv vd, vs2, vs1, vm   # Vector-vector
 vasub.vx vd, vs2, rs1, vm   # vector-scalar
 ----

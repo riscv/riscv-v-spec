@@ -21,10 +21,10 @@
 | 000101 |V|X| | vmin       | 000101 |V| | vredmin     | 000101 |V| | vfredmin
 | 000110 |V|X| | vmaxu      | 000110 |V| | vredmaxu    | 000110 |V|F| vfmax
 | 000111 |V|X| | vmax       | 000111 |V| | vredmax     | 000111 |V| | vfredmax
-| 001000 | | | |            | 001000 | | |             | 001000 |V|F| vfsgnj
-| 001001 |V|X|I| vand       | 001001 | | |             | 001001 |V|F| vfsgnjn
-| 001010 |V|X|I| vor        | 001010 | | |             | 001010 |V|F| vfsgnjx
-| 001011 |V|X|I| vxor       | 001011 | | |             | 001011 | | |
+| 001000 | | | |            | 001000 |V|X| vaaddu      | 001000 |V|F| vfsgnj
+| 001001 |V|X|I| vand       | 001001 |V|X| vaadd       | 001001 |V|F| vfsgnjn
+| 001010 |V|X|I| vor        | 001010 |V|X| vasubu      | 001010 |V|F| vfsgnjx
+| 001011 |V|X|I| vxor       | 001011 |V|X| vasub       | 001011 | | |
 | 001100 |V|X|I| vrgather   | 001100 | | |             | 001100 | | |
 | 001101 | | | |            | 001101 | | |             | 001101 | | |
 | 001110 | |X|I| vslideup   | 001110 | |X| vslide1up   | 001110 | | |
@@ -62,9 +62,9 @@
 | 100001 |V|X|I| vsadd      | 100001 |V|X| vdiv        | 100001 | |F| vfrdiv
 | 100010 |V|X| | vssubu     | 100010 |V|X| vremu       | 100010 |V| | VFUNARY0
 | 100011 |V|X| | vssub      | 100011 |V|X| vrem        | 100011 |V| | VFUNARY1
-| 100100 |V|X|I| vaadd      | 100100 |V|X| vmulhu      | 100100 |V|F| vfmul
+| 100100 | | | |            | 100100 |V|X| vmulhu      | 100100 |V|F| vfmul
 | 100101 |V|X|I| vsll       | 100101 |V|X| vmul        | 100101 | | |
-| 100110 |V|X| | vasub      | 100110 |V|X| vmulhsu     | 100110 | | |
+| 100110 | | | |            | 100110 |V|X| vmulhsu     | 100110 | | |
 | 100111 |V|X| | vsmul      | 100111 |V|X| vmulh       | 100111 | |F| vfrsub
 | 101000 |V|X|I| vsrl       | 101000 | | |             | 101000 |V|F| vfmadd
 | 101001 |V|X|I| vsra       | 101001 |V|X| vmadd       | 101001 |V|F| vfnmadd
