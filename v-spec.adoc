@@ -1793,7 +1793,7 @@ in the same vector AMO instruction.
 | Standard scalar AMO | 0 | 1 | 1 |  64 |  XLEN  | AMO*.D
 | Standard scalar AMO | 1 | 0 | 0 | 128 |  XLEN  | AMO*.Q
 | Vector AMO          | 1 | 1 | 0 |  32 | vl*SEW | VAMO*W.V
-| Vector AMO          | 1 | 1 | 1 |  64 | vl*SEW | VAMO*E.V
+| Vector AMO          | 1 | 1 | 1 | SEW | vl*SEW | VAMO*E.V
 |===
 
 Mem bits is the size of element accessed in memory
