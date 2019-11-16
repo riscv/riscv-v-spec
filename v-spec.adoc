@@ -2793,8 +2793,9 @@ vssub.vx vd, vs2, rs1, vm   # vector-scalar
 
 The averaging add and subtract instructions right shift the result by
 one bit and round off the result according to the setting in `vxrm`.
-There can be no overflow in the result.  Both unsigned and signed
-versions are provided.
+Both unsigned and signed versions are provided.
+For `vaaddu`, `vaadd`, and `vasub`, there can be no overflow in the result.
+For `vasubu`, overflow is ignored.
 
 ----
 # Averaging add
