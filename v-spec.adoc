@@ -1113,7 +1113,8 @@ Setting `rd`=`x0` can be useful when the application already knows what value
 `vl` will assume, e.g., when changing SEW and LMUL by the same factor
 while keeping `vl` constant by setting `rs1`=`x0`.
 
-NOTE: Software can set `vl` to VLMAX by requesting an AVL of -1.
+NOTE: Software can set `vl` to VLMAX by requesting an AVL of 2^XLEN^-1,
+i.e., -1.
 
 NOTE: Earlier drafts used `rs1`=`x0` to request an AVL of VLMAX.
 The current design supports efficient manipulation of SEW without
