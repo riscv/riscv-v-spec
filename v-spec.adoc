@@ -286,7 +286,8 @@ NOTE: The value in `vlenb` is a design-time constant in any
 implementation.
 
 NOTE: Without this CSR, several instructions are needed to calculate
-current VLEN and restore original value.
+VLEN in bytes.  The code has to disturb current `vl` and `vtype`
+settings which require them to be saved and restored.
 
 === Vector Start Index CSR `vstart`
 
