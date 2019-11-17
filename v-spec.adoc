@@ -85,8 +85,8 @@ or SLEN parameters.
 
 == Vector Extension Programmer's Model
 
-The vector extension adds 32 vector registers, and five unprivileged
-CSRs (`vstart`, `vxsat`, `vxrm`, `vtype`, `vl`) to a base scalar
+The vector extension adds 32 vector registers, and six unprivileged
+CSRs (`vstart`, `vxsat`, `vxrm`, `vtype`, `vl`, `vlenb`) to a base scalar
 RISC-V ISA.  If the base scalar ISA does not include floating-point,
 then a `fcsr` register is also added to hold mirrors of the `vxsat`
 and `vxrm` CSRs as explained below.
@@ -102,6 +102,7 @@ and `vxrm` CSRs as explained below.
 | 0x00A | URW | vxrm   | Fixed-Point Rounding Mode
 | 0xC20 | URO | vl     | Vector length
 | 0xC21 | URO | vtype  | Vector data type register
+| 0xC22 | URO | vlenb  | VLEN/8 (vector register length in bytes)
 |===
 
 === Vector Registers
@@ -275,6 +276,17 @@ implementation's maximum vector length of the smallest supported
 type. The smallest vector implementation, RV32IV, would need at least
 six bits in `vl` to hold the values 0-32 (with VLEN=32, LMUL=8 and
 SEW=8 results in VLMAX of 32).
+
+=== Vector Byte Length `vlenb`
+
+The _XLEN_-bit-wide read-only CSR `vlenb` holds the value VLEN/8,
+i.e., the vector register length in bytes.
+
+NOTE: The value in `vlenb` is a design-time constant in any
+implementation.
+
+NOTE: Without this CSR, several instructions are needed to calculate
+current VLEN and restore original value.
 
 === Vector Start Index CSR `vstart`
 
@@ -1337,7 +1349,9 @@ instruction encodings respectively.
 5+| lumop[4:0] | Description
 
 | 0 | 0 | 0 | 0 | 0 | unit-stride
-| 0 | x | x | x | x | reserved, x!=0
+| 0 | 0 | x | x | x | reserved, x !=0
+| 0 | 1 | 0 | 0 | 0 | unit-stride, whole registers
+| 0 | 1 | x | x | x | reserved, x !=0
 | 1 | 0 | 0 | 0 | 0 | unit-stride fault-only-first
 | 1 | x | x | x | x | reserved, x!=0
 |===
@@ -1348,7 +1362,9 @@ instruction encodings respectively.
 5+| sumop[4:0] | Description
 
 | 0 | 0 | 0 | 0 | 0 | unit-stride
-| 0 | x | x | x | x | reserved, x!=0
+| 0 | 0 | x | x | x | reserved, x !=0
+| 0 | 1 | 0 | 0 | 0 | unit-stride, whole registers
+| 0 | 1 | x | x | x | reserved, x !=0
 | 1 | x | x | x | x | reserved
 |===
 
@@ -1363,6 +1379,9 @@ NOTE: The `nf` field for segment load/stores has replaced the use of
 the same bits for an address offset field.  The offset can be replaced
 with a single scalar integer calculation, while segment load/stores
 add more powerful primitives to move items to and from memory.
+
+The `nf[2:0]` field also encodes the number of whole vector registers
+to transfer for the whole vector register load/store instructions.
 
 === Vector Load/Store Width Encoding
 
@@ -1730,6 +1749,65 @@ that raise exceptions partway through loading a structure.
 
 Only ordered indexed segment stores are provided. The segments must
 appear to be written in element order.
+
+=== Vector Load/Store Whole Register Instructions
+
+NOTE: These instructions are still under early consideration for inclusion.
+
+These instructions load and store whole vector registers (i.e., VLEN
+bits), ignoring the settings in the `vl` and `vtype` registers.
+
+NOTE: These instructions are intended to be used to save and restore
+vector registers when the type and length of the current contents of
+the vector register is not known, or where modifying `vl` and `vtype`
+would be costly. Examples include compiler register spills, vector
+function calls where values are passed in vector registers, interrupt
+handlers, and OS context switches.
+
+----
+Format for Vector Load Whole Register Instructions under LOAD-FP major opcode
+31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
+ nf  | 000 | 1 |   01000   |    rs1    |  111  |    vd   |0000111| VL<nf>VR
+
+Format for Vector Store Whole Register Instructions under STORE-FP major opcode
+31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
+ nf  | 000 | 1 |   01000   |    rs1    |  111  |   vs3   |0100111| VS<nf>VR
+----
+
+
+NOTE: The vector whole register load instructions are encoded similar
+to unmasked zero-extended unit-stride loads of elements, with the `nf`
+field encoding how many vector registers to load and store.  The
+vector whole register store instructions are encoded similar to
+unmasked unit-stride store of elements.
+
+The instructions operate similarly to unmasked unit-stride load and
+store instructions of elements, with the base address passed in the
+scalar `x` register specified by `rs1`.  The base address must be
+naturally aligned to ELEN/8 bytes, else a misaligned load or store
+exception may be raised.
+
+The instructions transfer one or more vector registers as indicated by
+the setting of the `nf` field in the instruction.  The base vector
+register number is specified by `vd` for loads and `vs3` for stores.
+The `nf` field encodes the number of vector registers to transfer,
+numbered successively afer the base.  The base register plus the `nf`
+value cannot exceed 31, else an illegal instruction exception is
+raised.
+
+When multiple registers are transferred, the vector register contents
+are mapped to contiguous bytes in memory, with the lowest-numbered
+vector register held in the lowest-numbered memory addresses.
+
+----
+   # Format
+   vl<nf>r.v vd, (rs1)  # Vector load of nf vector registers
+   vl1r.v v3, (a0)      # Load v3 with VLEN/8 bytes held at address in a0
+   vl3r.v v3, (a0)      # Load v3,v4,v5 with 3*VLEN/8 bytes at address in a0
+
+   vl<nf>r.v vd, (rs1)  # Vector store of nf vector registers
+   vs3r.v v3, (a1)      # Store v3,v4,v5 (3*VLEN/8 bytes) to address in a1
+----
 
 == Vector AMO Operations (`Zvamo`)
 
@@ -4202,6 +4280,43 @@ instructions to restart with a non-zero `vstart`, so assumption is
 implementations will choose not do that but will instead restart from
 element 0.  This does mean elements in destination register after
 `vstart` will already have been updated.
+
+=== Whole Vector Register Move
+
+The `vmv<nf>r.v` instructions copy whole vector registers (i.e., all
+VLEN bits) ignoring the current settings of the `vl` and `vtype`
+register.
+
+NOTE: These instructions are intended to aid compilers to shuffle
+vector registers without needing to know or change `vl` or `vtype`.
+
+The instruction is encoded as an OPIVI instruction.  The number of
+vector registers to copy is encoded in the low three bits of the
+`simm` field using the same encoding as the `nf` field for memory
+instructions. The upper two bits of `simm` field must be zero.
+
+NOTE: The instruction uses the same funct6 encoding as the `vsmul`
+instruction but with an immediate operand, and only the unmasked
+version (`vm=1`).  This encoding is chosen as it is close to the
+related `vmerge` encoding, and it is unlikely the `vsmul` instruction
+would benefit from an immediate form.
+
+----
+    vmv<nf>r.v vd, vs2  # General form
+
+    vmv1r.v v1, v2   #  Copy v1=v2
+    vmv3r.v v5, v9   #  Copy v5=v9; v6=v10; v7=v11
+----
+
+The source and destination vector register groups cannot overlap if
+the register number in `vd` is greater than `vs2`, otherwise an
+illegal instruction exception will be raised.
+
+NOTE: If `vd` is equal to `vs2` the instruction is a NOP.
+
+The sum of `vd` and `nf` and the sum of `vs2` and `nf` must both be
+less than 32 (i.e., no wraparound of register addressing), else an
+illegal instruction exception is raised.
 
 == Exception Handling
 
