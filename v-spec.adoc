@@ -1792,7 +1792,7 @@ The instructions transfer one or more vector registers as indicated by
 the setting of the `nf` field in the instruction.  The base vector
 register number is specified by `vd` for loads and `vs3` for stores.
 The `nf` field encodes the number of vector registers to transfer,
-numbered successively afer the base.  The base register plus the `nf`
+numbered successively after the base.  The base register plus the `nf`
 value cannot exceed 31, else an illegal instruction exception is
 raised.
 
