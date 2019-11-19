@@ -1068,18 +1068,43 @@ values in `vl` and `vtype` to match application needs.
 
 === `vsetvli`/`vsetvl` instructions
 
-----
- vsetvli rd, rs1, vtypei # rd = new vl, rs1 = AVL, vtypei = new vtype setting
-                         # if rs1 = x0, then use current vector length
- vsetvl  rd, rs1, rs2    # rd = new vl, rs1 = AVL, rs2 = new vtype value
-                         # if rs1 = x0, then use current vector length
-----
-
 The `vsetvli` instruction sets the `vtype` and `vl` CSRs based on its
 arguments, and writes the new value of `vl` into `rd`.
 
+----
+ vsetvli rd, rs1, vtypei # rd = new vl, rs1 = AVL, vtypei = new vtype setting
+ vsetvl  rd, rs1, rs2    # rd = new vl, rs1 = AVL, rs2 = new vtype value
+----
+
 The new `vtype` setting is encoded in the immediate fields of
-`vsetvli` and in the `rs2` register for `vsetvl`.
+`vsetvli` and in the `rs2` register for `vsetvl`.  The new vector
+length setting is based on the requested application vector length
+(AVL), which is encoded in the `rs1` and `rd` fields as follows:
+
+.AVL used in `vsetvli` and `vsetvl` instructions
+[cols="2,2,10,10"]
+[%autowidth]
+|===
+|  `rd` | `rs1` | AVL value         | Description/Usage
+|  0    |  0    | Value in `vl` register | Change `vtype` without changing `vl`
+| !0    |  0    | ~0                | Set `vl` to VLMAX
+|  -    | !0    | Value in `x[rs1]` | Normal stripmining
+|===
+
+When `rs1` is not `x0`, the AVL is an unsigned integer held in the `x`
+register specified by `rs1`, and the new `vl` value is also written to
+the `x` register specified by `rd`.
+
+When `rs1=x0` but `rd!=x0`, the maximum unsigned integer value (`~0`)
+is used as the AVL, and the resulting VLMAX is written to `vl` and
+also to the `x` register specified by `rd`.
+
+When `rs1=x0` and `rd=x0`, the current vector length in `vl` is used
+as the AVL, and the resulting value is only written to `vl`.
+
+NOTE: This form of the instruction allows the `vtype` register to be
+changed without changing `vl`, provided VLMAX is not reduced.  The
+current `vl` value can be read from the `vl` CSR.
 
 include::vcfg-format.adoc[]
 
@@ -1113,25 +1138,6 @@ Examples:
 If the `vtype` setting is not supported by the implementation, then
 the `vill` bit is set in `vtype`, the remaining bits in `vtype` are
 set to zero, and the `vl` register is also set to zero.
-
-The requested application vector length (AVL) is passed in `rs1` as an
-unsigned integer.  Using `x0` as the `rs1` register specifier requests
-an AVL equal to the current `vl`.
-
-NOTE: Executing `vsetvl{i}` with `rs1`=`x0` is guaranteed to keep the
-current `vl` intact if VLMAX is not reduced.
-
-NOTE: The behavior of `vsetvl{i}` does not depend on whether `rd`=`x0`.
-Setting `rd`=`x0` can be useful when the application already knows what value
-`vl` will assume, e.g., when changing SEW and LMUL by the same factor
-while keeping `vl` constant by setting `rs1`=`x0`.
-
-NOTE: Software can set `vl` to VLMAX by requesting an AVL of -1.
-
-NOTE: Earlier drafts used `rs1`=`x0` to request an AVL of VLMAX.
-The current design supports efficient manipulation of SEW without
-knowing AVL or `vl`.  Requesting a `vl` of VLMAX requires just
-one additional instruction.
 
 NOTE: Earlier drafts required a trap when setting `vtype` to an
 illegal value.  However, this would have added the first
