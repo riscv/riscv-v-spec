@@ -4132,8 +4132,8 @@ if _OFFSET_ < `vl`.
 ----
 
 The destination vector register group for `vslideup` cannot overlap
-the vector register group of the source, otherwise an illegal
-instruction exception is raised.
+the vector register group of the source vector register group or the
+mask register, otherwise an illegal instruction exception is raised.
 
 NOTE: The non-overlap constraint avoids WAR hazards on the
 input vectors during execution, and enables restart with non-zero
@@ -4164,6 +4164,9 @@ using an unsigned integer in the `x` register specified by `rs1`, or a
                     vl <= i < VLMAX          Unchanged
 
 ----
+
+The destination vector register group cannot overlap the mask register
+if LMUL>1, otherwise an illegal instruction exception is raised.
 
 ==== Vector Slide1up
 
@@ -4201,8 +4204,9 @@ elements are unchanged.
 ----
 
 The `vslide1up` instruction requires that the destination vector
-register group does not overlap the source vector register group.
-Otherwise, an illegal instruction exception is raised.
+register group does not overlap the source vector register group or
+the mask register.  Otherwise, an illegal instruction exception is
+raised.
 
 ==== Vector Slide1down Instruction
 
@@ -4233,6 +4237,10 @@ SEW-XLEN bits are ignored.
              vstart <= i = vl-1    vd[vl-1] = x[rs1] if mask enabled, unchanged if not
                  vl <= i < VLMAX   unchanged
 ----
+
+The destination vector register group cannot overlap the source mask
+register if LMUL>1, otherwise an illegal instruction exception is
+raised.
 
 NOTE: The `vslide1down` instruction can be used to load values into a
 vector register without using memory and without disturbing other
