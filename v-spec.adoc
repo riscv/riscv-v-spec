@@ -1798,7 +1798,7 @@ appear to be written in element order.
 NOTE: These instructions are still under early consideration for inclusion.
 
 These instructions load and store whole vector registers (i.e., VLEN
-bits), ignoring the settings in the `vl` and `vtype` registers.
+bits), ignoring the settings in the `vl` and `vtype` registers. 
 
 NOTE: These instructions are intended to be used to save and restore
 vector registers when the type and length of the current contents of
@@ -1818,38 +1818,35 @@ Format for Vector Store Whole Register Instructions under STORE-FP major opcode
 ----
 
 
-NOTE: The vector whole register load instructions are encoded similar
-to unmasked zero-extended unit-stride loads of elements, with the `nf`
-field encoding how many vector registers to load and store.  The
-vector whole register store instructions are encoded similar to
-unmasked unit-stride store of elements.
-
 The instructions operate similarly to unmasked unit-stride load and
 store instructions of elements, with the base address passed in the
 scalar `x` register specified by `rs1`.  The base address must be
 naturally aligned to ELEN/8 bytes, else a misaligned load or store
 exception may be raised.
 
-The instructions transfer one or more vector registers as indicated by
-the setting of the `nf` field in the instruction.  The base vector
-register number is specified by `vd` for loads and `vs3` for stores.
-The `nf` field encodes the number of vector registers to transfer,
-numbered successively after the base.  The base register plus the `nf`
-value cannot exceed 31, else an illegal instruction exception is
-raised.
+The instructions transfer a single vector register specified by `vd`
+for loads and `vs3` for stores.  The registers are transferred to and
+from memory as if SEW=8 and LMUL=1.
 
-When multiple registers are transferred, the vector register contents
-are mapped to contiguous bytes in memory, with the lowest-numbered
-vector register held in the lowest-numbered memory addresses.
+NOTE: The vector whole register load instructions are encoded similar
+to unmasked zero-extended unit-stride loads of elements, with the `nf`
+field encoding how many vector registers to load and store.  The
+vector whole register store instructions are encoded similar to
+unmasked unit-stride store of elements.  The current base
+specification only mandates `nf`=0 is supported, with other values of
+`nf` reserved.  In a future extension, when multiple registers are
+transferred, the vector register contents are mapped to contiguous
+bytes in memory as if LMUL=1, with the lowest-numbered vector register
+held in the lowest-numbered memory addresses.  The `nf` field encodes
+the number of vector registers to transfer, numbered successively
+after the base.  The base register plus the `nf` value cannot exceed
+31, else an illegal instruction exception is raised.
 
 ----
    # Format
-   vl<nf>r.v vd, (rs1)  # Vector load of nf vector registers
    vl1r.v v3, (a0)      # Load v3 with VLEN/8 bytes held at address in a0
-   vl3r.v v3, (a0)      # Load v3,v4,v5 with 3*VLEN/8 bytes at address in a0
 
-   vl<nf>r.v vd, (rs1)  # Vector store of nf vector registers
-   vs3r.v v3, (a1)      # Store v3,v4,v5 (3*VLEN/8 bytes) to address in a1
+   vs1r.v v3, (a1)      # Store v3 to address in a1
 ----
 
 == Vector AMO Operations (`Zvamo`)
@@ -4329,7 +4326,7 @@ element 0.  This does mean elements in destination register after
 
 The `vmv<nf>r.v` instructions copy whole vector registers (i.e., all
 VLEN bits) ignoring the current settings of the `vl` and `vtype`
-register.
+register, and can copy whole vector register groups.
 
 NOTE: These instructions are intended to aid compilers to shuffle
 vector registers without needing to know or change `vl` or `vtype`.
@@ -4337,7 +4334,13 @@ vector registers without needing to know or change `vl` or `vtype`.
 The instruction is encoded as an OPIVI instruction.  The number of
 vector registers to copy is encoded in the low three bits of the
 `simm` field using the same encoding as the `nf` field for memory
-instructions. The upper two bits of `simm` field must be zero.
+instructions. The upper two bits of `simm` field must be zero, with
+other encodings reserved.  The value in `nf` must be correspond to 1,
+2, 4, or 8 registers.
+
+NOTE: A future extension may support other numbers of registers to be
+moved, but currently the values of `nf` corresponding to 3, 5, 6, 7
+are reserved.
 
 NOTE: The instruction uses the same funct6 encoding as the `vsmul`
 instruction but with an immediate operand, and only the unmasked
@@ -4349,18 +4352,18 @@ would benefit from an immediate form.
     vmv<nf>r.v vd, vs2  # General form
 
     vmv1r.v v1, v2   #  Copy v1=v2
-    vmv3r.v v5, v9   #  Copy v5=v9; v6=v10; v7=v11
+    vmv2r.v v10, v12 #  Copy v10=v12; v11=v13
+    vmv4r.v v4, v8   #  Copy v4=v8; v5=v9; v6=v10; v7=v12
+    vmv8r.v v0, v8   #  Copy v0=v8; v1=v9; ...;  v7=v15
 ----
 
-The source and destination vector register groups cannot overlap if
-the register number in `vd` is greater than `vs2`, otherwise an
-illegal instruction exception will be raised.
+The source and destination vector register numbers must be aligned
+appropriately for the vector register group size.
+
+NOTE: A future extension may relax the vector register alignment
+restrictions.
 
 NOTE: If `vd` is equal to `vs2` the instruction is a NOP.
-
-The sum of `vd` and `nf` and the sum of `vs2` and `nf` must both be
-less than 32 (i.e., no wraparound of register addressing), else an
-illegal instruction exception is raised.
 
 == Exception Handling
 
