@@ -123,13 +123,17 @@ A vector context status field, `VS`, is added to `mstatus[24:23]` and shadowed
 in `sstatus[24:23]`.  It is defined analogously to the floating-point context
 status field, `FS`.
 
-Attempts to execute any vector instruction, or to access the `vl`, `vtype`,
-or `vstart` CSRs, raise an illegal-instruction exception when the `VS` field
-is set to Off.
+Attempts to execute any vector instruction, or to access the `vl`,
+`vtype`, `vlenb`, or `vstart` CSRs, raise an illegal-instruction
+exception when the `VS` field is set to Off.
 
-When the `VS` field is set to Initial or Clean, executing any instruction
-that changes vector state, including the `vl`, `vtype`, and `vstart` registers,
-will change `VS` to Dirty.
+When the `VS` field is set to Initial or Clean, executing any
+instruction that changes vector state, including the `vl`, `vtype`,
+and `vstart` registers, will change `VS` to Dirty.
+
+NOTE: Implementations may also change `VS` field to Dirty at any time,
+even when there is no change in vector state.  Accurate setting of the
+`VS` field is an optimization.
 
 Attempts to access the `fcsr`, `vxsat`, or `vxrm` CSRs raise an
 illegal-instruction exception when the floating-point context status `FS` is
