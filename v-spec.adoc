@@ -117,6 +117,38 @@ floating-point instructions take their arguments from the integer
 register file.  The 0.7 vector extension is also compatible with this
 option.
 
+=== Vector Context Status in `mstatus`
+
+A vector context status field, `VS`, is added to `mstatus[24:23]` and shadowed
+in `sstatus[24:23]`.  It is defined analogously to the floating-point context
+status field, `FS`.
+
+Attempts to execute any vector instruction, or to access the `vl`, `vtype`,
+or `vstart` CSRs, raise an illegal-instruction exception when the `VS` field
+is set to Off.
+
+When the `VS` field is set to Initial or Clean, executing any instruction
+that changes vector state, including the `vl`, `vtype`, and `vstart` registers,
+will change `VS` to Dirty.
+
+Attempts to access the `fcsr`, `vxsat`, or `vxrm` CSRs raise an
+illegal-instruction exception when the floating-point context status `FS` is
+set to Off.
+
+NOTE: Vector instructions that read or write `fcsr`, `vxsat`, or `vxrm` raise
+an illegal-instruction exception if either `VS` or `FS` is set to Off.
+However, these CSRs can be read or written using CSR-access instructions when
+`FS` is set to a value other than Off, irrespective of the value of `VS`.
+
+If `FS` is set to Initial or Clean, executing any instruction that changes
+`fcsr`, `vxsat`, or `vxrm` will change `FS` to Dirty.
+
+NOTE: Context-switching code must save all of `fcsr` if `FS` is set to Dirty.
+
+NOTE: Fixed-point-only implementations, which would not benefit from lazy
+floating-point save/restore, might hardwire the `FS` field to Dirty to
+reduce cost.  In this case, `fcsr` would always be accessible.
+
 === Vector type register, `vtype`
 
 The read-only XLEN-wide _vector_ _type_ CSR, `vtype` provides the
