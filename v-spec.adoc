@@ -135,17 +135,17 @@ NOTE: Implementations may also change `VS` field to Dirty at any time,
 even when there is no change in vector state.  Accurate setting of the
 `VS` field is an optimization.
 
-Attempts to access the `fcsr`, `vxsat`, or `vxrm` CSRs raise an
+Attempts to access an `f` register or the `fcsr`, `vxsat`, or `vxrm` CSRs raise an
 illegal-instruction exception when the floating-point context status `FS` is
 set to Off.
 
-NOTE: Vector instructions that read or write `fcsr`, `vxsat`, or `vxrm` raise
+NOTE: Vector instructions that read or write an `f` register or `fcsr`, `vxsat`, or `vxrm` raise
 an illegal-instruction exception if either `VS` or `FS` is set to Off.
 However, these CSRs can be read or written using CSR-access instructions when
 `FS` is set to a value other than Off, irrespective of the value of `VS`.
 
 If `FS` is set to Initial or Clean, executing any instruction that changes
-`fcsr`, `vxsat`, or `vxrm` will change `FS` to Dirty.
+`fcsr`, `vxsat`, `vxrm`, or an `f` register will change `FS` to Dirty.
 
 NOTE: Context-switching code must save all of `fcsr` if `FS` is set to Dirty.
 
