@@ -1820,9 +1820,7 @@ Format for Vector Store Whole Register Instructions under STORE-FP major opcode
 
 The instructions operate similarly to unmasked unit-stride load and
 store instructions of elements, with the base address passed in the
-scalar `x` register specified by `rs1`.  The base address must be
-naturally aligned to ELEN/8 bytes, else a misaligned load or store
-exception may be raised.
+scalar `x` register specified by `rs1`.
 
 The instructions transfer a single vector register specified by `vd`
 for loads and `vs3` for stores.  The registers are transferred to and
