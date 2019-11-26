@@ -17,6 +17,11 @@ International License. See the LICENSE file for details.
 
 [[HTML](https://riscv.github.io/documents/riscv-v-spec/)] [[PDF](https://riscv.github.io/documents/riscv-v-spec/riscv-v-spec.pdf)]
 
+### Additional Resources
+
+- [riscvOVPsim](https://github.com/riscv/riscv-ovpsim) is a RISC-V simulator
+that supports current and previous versions of the V extension.
+
 ### Documentation generator
 
 Requirements
