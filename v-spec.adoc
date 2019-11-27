@@ -4115,6 +4115,7 @@ elements that are written.  The start index (_OFFSET_) for the
 destination can be either specified using an unsigned integer in the
 `x` register specified by `rs1`, or a 5-bit immediate treated as an
 unsigned 5-bit quantity.
+If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
 Destination elements _OFFSET_ through `vl`-1 are written if unmasked and
 if _OFFSET_ < `vl`.
 
@@ -4150,6 +4151,7 @@ destination elements that are written.
 The start index (_OFFSET_) for the source can be either specified
 using an unsigned integer in the `x` register specified by `rs1`, or a
 5-bit immediate treated as an unsigned 5-bit quantity.
+If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
 
 ----
     vslidedown behavior for source elements for element i in slide
