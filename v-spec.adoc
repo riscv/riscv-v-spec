@@ -4284,7 +4284,7 @@ cannot overlap with the source vector register groups, including the
 mask register if the operation is masked, otherwise an illegal
 instruction exception is raised.
 
-NOTE: When SEW=8, only vector elements 0-255 can be referenced.
+NOTE: When SEW=8, `vrgather.vv` can only reference vector elements 0-255.
 
 === Vector Compress Instruction
 
