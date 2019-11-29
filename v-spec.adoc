@@ -3356,6 +3356,10 @@ register value is copied to the destination element.
 vfmerge.vfm vd, vs2, rs1, v0  # vd[i] = v0[i].LSB ? f[rs1] : vs2[i]
 ----
 
+NOTE: Like the floating-point computational instructions, when FLEN > SEW,
+`vfmerge.vfm` substitutes a canonical NaN for `f[rs1]` if the latter is not
+properly NaN-boxed.
+
 === Vector Floating-Point Move Instruction
 
 The vector floating-point move instruction __splats__ a floating-point scalar
@@ -3370,6 +3374,10 @@ vfmv.v.f vd, rs1  # vd[i] = f[rs1]
 
 NOTE: The `vfmv.v.f` instruction shares the encoding with the `vfmerge.vfm`
 instruction, but with `vm=1` and `vs2=v0`.
+
+NOTE: Like the floating-point computational instructions, when FLEN > SEW,
+`vfmv.v.f` substitutes a canonical NaN for `f[rs1]` if the latter is not
+properly NaN-boxed.
 
 === Single-Width Floating-Point/Integer Type-Convert Instructions
 
