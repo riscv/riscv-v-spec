@@ -406,11 +406,12 @@ mode as specified in the following table.
 | 1 | 1 | rod | round-to-odd (OR bits into LSB, aka "jam")  | `!v[d] & v[d-1:0]{ne}0`
 |===
 
-The rounding function:
+The rounding functions:
 ----
-roundoff(v, d) = (v >> d) + r
+roundoff_unsigned(v, d) = (unsigned(v) >> d) + r
+roundoff_signed(v, d) = (signed(v) >> d) + r
 ----
-is used to represent this operation in the instruction descriptions below.
+are used to represent this operation in the instruction descriptions below.
 
 Bits[XLEN-1:2] should be written as zeros.
 
@@ -2947,26 +2948,24 @@ For `vasubu`, overflow is ignored.
 
 ----
 # Averaging add
-# result = roundoff(src1 + src2, 1)
 
 # Averaging adds of unsigned integers.
-vaaddu.vv vd, vs2, vs1, vm   # Vector-vector
-vaaddu.vx vd, vs2, rs1, vm   # vector-scalar
+vaaddu.vv vd, vs2, vs1, vm   # roundoff_unsigned(vs2[i] + vs1[i], 1)
+vaaddu.vx vd, vs2, rs1, vm   # roundoff_unsigned(vs2[i] + x[rs1], 1)
 
 # Averaging adds of signed integers.
-vaadd.vv vd, vs2, vs1, vm   # Vector-vector
-vaadd.vx vd, vs2, rs1, vm   # vector-scalar
+vaadd.vv vd, vs2, vs1, vm   # roundoff_signed(vs2[i] + vs1[i], 1)
+vaadd.vx vd, vs2, rs1, vm   # roundoff_signed(vs2[i] + x[rs1], 1)
 
 # Averaging subtract
-# result = roundoff(src1 - src2, 1)
 
 # Averaging subtract of unsigned integers.
-vasubu.vv vd, vs2, vs1, vm   # Vector-vector
-vasubu.vx vd, vs2, rs1, vm   # vector-scalar
+vasubu.vv vd, vs2, vs1, vm   # roundoff_unsigned(vs2[i] - vs1[i], 1)
+vasubu.vx vd, vs2, rs1, vm   # roundoff_unsigned(vs2[i] - x[rs1], 1)
 
 # Averaging subtract of signed integers.
-vasub.vv vd, vs2, vs1, vm   # Vector-vector
-vasub.vx vd, vs2, rs1, vm   # vector-scalar
+vasub.vv vd, vs2, vs1, vm   # roundoff_signed(vs2[i] - vs1[i], 1)
+vasub.vx vd, vs2, rs1, vm   # roundoff_signed(vs2[i] - x[rs1], 1)
 ----
 
 === Vector Single-Width Fractional Multiply with Rounding and Saturation
@@ -2980,8 +2979,8 @@ is set.
 ----
 # Signed saturating and rounding fractional multiply
 # See vxrm  description for rounding calculation
-vsmul.vv vd, vs2, vs1, vm  # vd[i] = clip(roundoff(vs2[i]*vs1[i], SEW-1))
-vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip(roundoff(vs2[i]*x[rs1], SEW-1))
+vsmul.vv vd, vs2, vs1, vm  # vd[i] = clip(roundoff_signed(vs2[i]*vs1[i], SEW-1))
+vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip(roundoff_signed(vs2[i]*x[rs1], SEW-1))
 ----
 
 NOTE: When multiplying two N-bit signed numbers, the largest magnitude
@@ -3002,14 +3001,14 @@ The immediate form supports shift amounts up to 31 only.
 
 ----
  # Scaling shift right logical
- vssrl.vv vd, vs2, vs1, vm   # vd[i] = roundoff(vs2[i], vs1[i])
- vssrl.vx vd, vs2, rs1, vm   # vd[i] = roundoff(vs2[i], x[rs1])
- vssrl.vi vd, vs2, uimm, vm   # vd[i] = roundoff(vs2[i], uimm)
+ vssrl.vv vd, vs2, vs1, vm   # vd[i] = roundoff_unsigned(vs2[i], vs1[i])
+ vssrl.vx vd, vs2, rs1, vm   # vd[i] = roundoff_unsigned(vs2[i], x[rs1])
+ vssrl.vi vd, vs2, uimm, vm   # vd[i] = roundoff_unsigned(vs2[i], uimm)
 
  # Scaling shift right arithmetic
- vssra.vv vd, vs2, vs1, vm   # vd[i] = roundoff(vs2[i],vs1[i])
- vssra.vx vd, vs2, rs1, vm   # vd[i] = roundoff(vs2[i], x[rs1])
- vssra.vi vd, vs2, uimm, vm   # vd[i] = roundoff(vs2[i], uimm)
+ vssra.vv vd, vs2, vs1, vm   # vd[i] = roundoff_signed(vs2[i],vs1[i])
+ vssra.vx vd, vs2, rs1, vm   # vd[i] = roundoff_signed(vs2[i], x[rs1])
+ vssra.vi vd, vs2, uimm, vm   # vd[i] = roundoff_signed(vs2[i], uimm)
 ----
 
 === Vector Narrowing Fixed-Point Clip Instructions
@@ -3026,16 +3025,16 @@ for a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate
 form supports shift amounts up to 31 only.
 
 ----
-# Narrowing unsigned clip,  vd[i] = clip(roundoff(vs2[i], vs1[i]) )
-#                            SEW                  2*SEW     SEW
- vnclipu.wv vd, vs2, vs1, vm   # vector-vector
- vnclipu.wx vd, vs2, rs1, vm   # vector-scalar
- vnclipu.wi vd, vs2, uimm, vm  # vector-immediate
+# Narrowing unsigned clip
+#                                SEW                            2*SEW   SEW
+ vnclipu.wv vd, vs2, vs1, vm   # vd[i] = clip(roundoff_unsigned(vs2[i], vs1[i]))
+ vnclipu.wx vd, vs2, rs1, vm   # vd[i] = clip(roundoff_unsigned(vs2[i], x[rs1]))
+ vnclipu.wi vd, vs2, uimm, vm  # vd[i] = clip(roundoff_unsigned(vs2[i], uimm5))
 
 # Narrowing signed clip
- vnclip.wv vd, vs2, vs1, vm   # vector-vector
- vnclip.wx vd, vs2, rs1, vm   # vector-scalar
- vnclip.wi vd, vs2, uimm, vm  # vector-immediate
+ vnclip.wv vd, vs2, vs1, vm   # vd[i] = clip(roundoff_signed(vs2[i], vs1[i]))
+ vnclip.wx vd, vs2, rs1, vm   # vd[i] = clip(roundoff_signed(vs2[i], x[rs1]))
+ vnclip.wi vd, vs2, uimm, vm  # vd[i] = clip(roundoff_signed(vs2[i], uimm5))
 ----
 
 For `vnclipu`/`vnclip`, the rounding mode is specified in the `vxrm`
