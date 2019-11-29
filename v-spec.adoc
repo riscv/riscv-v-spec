@@ -3356,8 +3356,6 @@ register value is copied to the destination element.
 vfmerge.vfm vd, vs2, rs1, v0  # vd[i] = v0[i].LSB ? f[rs1] : vs2[i]
 ----
 
-NOTE: In Zfinx systems, the instruction is identical to `vmerge.vxm`.
-
 === Vector Floating-Point Move Instruction
 
 The vector floating-point move instruction __splats__ a floating-point scalar
@@ -3369,8 +3367,6 @@ field set to `v0`, with all other values for `vs2` reserved.
 ----
 vfmv.v.f vd, rs1  # vd[i] = f[rs1]
 ----
-
-NOTE: In Zfinx systems, the instruction is identical to `vmv.v.x`.
 
 NOTE: The `vfmv.v.f` instruction shares the encoding with the `vfmerge.vfm`
 instruction, but with `vm=1` and `vs2=v0`.
