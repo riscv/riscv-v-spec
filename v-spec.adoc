@@ -3256,6 +3256,9 @@ floating-point compare instructions.  `vmfeq` and `vmfne` raise the invalid
 operation exception only on signaling NaN inputs.  `vmflt`, `vmfle`, `vmfgt`,
 and `vmfge` raise the invalid operation exception on both signaling and
 quiet NaN inputs.
+`vmfne` writes 1 to the destination element when either
+operand is NaN, whereas the other comparisons write 0 when either operand
+is NaN.
 
 For all comparison instructions, an illegal instruction exception is raised if
 the destination vector register overlaps a source vector register group and
