@@ -4070,17 +4070,18 @@ vfmv.s.f vd, rs1  # vd[0] = f[rs1] (vs2=0)
 
 The `vfmv.f.s` instruction copies a single SEW-wide element from index
 0 of the source vector register to a destination scalar floating-point
-register.  If SEW > FLEN, the least-significant FLEN bits are
-transferred and the upper SEW-FLEN bits are ignored.  If SEW < FLEN,
-the value is NaN-boxed (1-extended) to FLEN bits.
+register.  If SEW > FLEN, `vfmv.f.s` substitutes an FLEN-bit canonical
+NaN if the element value is not correctly NaN-boxed for FLEN.  If SEW
+< FLEN, the value is NaN-boxed (1-extended) to FLEN bits.
 
 The `vfmv.s.f` instruction copies the scalar floating-point register
-to element 0 of the destination vector register.  If SEW < FLEN, the
-least-significant bits are copied and the upper FLEN-SEW bits are
-ignored.  If SEW > FLEN, the value is NaN-boxed (1-extended) to SEW
-bits.  The other elements in the destination vector register ( 0 <
-index < VLEN/SEW) are unchanged.  If `vstart` {ge} `vl`, no operation
-is performed and the destination register is not updated.
+to element 0 of the destination vector register.  If SEW < FLEN and
+the value is not correctly NaN-boxed for SEW bits, an SEW-bit
+canonical NaN is substituted.  If SEW > FLEN, the value is NaN-boxed
+(1-extended) to SEW bits.  The other elements in the destination
+vector register ( 0 < index < VLEN/SEW) are unchanged.  If `vstart`
+{ge} `vl`, no operation is performed and the destination register is
+not updated.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
