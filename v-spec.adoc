@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 0.8-draft-20191207
+Version 0.8-draft-20191213
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -32,7 +32,7 @@ extension.
 
 NOTE: This is a draft of a stable proposal for the vector
 specification to be used for implementation and evaluation.  Once the
-draft label is removed, version 0.7 is intended to be stable enough to
+draft label is removed, version 0.8 is intended to be stable enough to
 begin developing toolchains, functional simulators, and initial
 implementations, though will continue to evolve with minor changes and
 updates.
@@ -45,10 +45,10 @@ instructions are mandatory for a given platform.
 
 NOTE: Each actual platform profile will formally specify the mandatory
 components of any vector extension adopted by that platform.  The base
-vector extension can expected to be close to that which will
-eventually be used in the standard Unix platform profile that supports
-vectors.  Other platforms, including embedded platforms, may choose to
-implement subsets of these extensions.  The exact set of mandatory
+vector extension given the single letter name "V" will be that
+intended for use in standard server/application-processor platform
+profiles.  Other platforms, including embedded platforms, may choose
+to implement subsets of these extensions.  The exact set of mandatory
 supported instructions for an implementation to be compliant with a
 given profile is subject to change until each profile spec is
 ratified.
@@ -71,6 +71,11 @@ be a power of 2.
 NOTE: Platform profiles may set further constraints on these
 parameters, for example, requiring that ELEN {ge} max(XLEN,FLEN), or
 requiring a minimum VLEN value, or setting an SLEN value.
+
+NOTE: There is a proposal to drop the constraint that VLEN must be a
+power of two.
+
+NOTE: There is a proposal to allow ELEN to vary with LMUL.
 
 The ISA supports writing binary code that under certain constraints
 will execute portably on harts with different values for these
@@ -114,7 +119,7 @@ Each vector register has a fixed VLEN bits of state.
 
 NOTE: Zfinx ("F in X") is a new ISA option under consideration where
 floating-point instructions take their arguments from the integer
-register file.  The 0.7 vector extension is also compatible with this
+register file.  The 0.8 vector extension is also compatible with this
 option.
 
 === Vector Context Status in `mstatus`
@@ -367,6 +372,9 @@ slower on some implementations, so `vstart` should not be used by
 application programmers.  A few vector instructions cannot be
 executed with a non-zero `vstart` value and will raise an illegal
 instruction exception as defined below.
+
+NOTE: Making `vstart` visible to unprivileged code supports user-level
+threading libraries.
 
 Implementations are permitted to raise illegal instruction exceptions when
 attempting to execute a vector instruction with a value of `vstart` that the
@@ -1604,9 +1612,8 @@ in future vector extensions.
 [[sec-aos]]
 === Vector Load/Store Segment Instructions (`Zvlsseg`)
 
-NOTE: This is being written as an extension but will likely be
-mandated in most profiles, as the operation is too generally useful to
-omit.
+NOTE: This set of instructions are intended to be included in the base
+"V" extension.
 
 The vector load/store segment instructions move multiple contiguous
 fields in memory to and from consecutively numbered vector registers.
@@ -1658,7 +1665,6 @@ but does not have to start at a multiple of 8 vector register number).
 NOTE: An earlier version imposed a vector register number constraint,
 but this decreased ability to make use of all registers when NFIELDS
 was not a power of 2.
-
 
 If the vector register numbers accessed by the segment load or store
 would increment past 31, then an illegal instruction exception is
@@ -1851,8 +1857,8 @@ after the base.  The base register plus the `nf` value cannot exceed
 == Vector AMO Operations (`Zvamo`)
 
 NOTE: Profiles will dictate whether vector AMO operations are
-supported.  The expectation is that the Unix profile will require
-vector AMO operations.
+supported.  The expectation is that the base "V" extension used for
+the Unix profile will require vector AMO operations.
 
 If vector AMO instructions are supported, then the scalar Zaamo
 instructions (atomic operations from the standard A extension) must be
@@ -2821,16 +2827,15 @@ vwmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) +
 vwmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
 ----
 
-=== Vector Quad-Widening Integer Multiply-Add Instructions
+=== Vector Quad-Widening Integer Multiply-Add Instructions (Extension `Zvqmac`)
 
 The quad-widening integer multiply-add instructions add a SEW-bit*SEW-bit
 multiply result to (from) a 4*SEW-bit value and produce a 4*SEW-bit
 result.  All combinations of signed and unsigned multiply operands are
 supported.
 
-NOTE: It is currently unclear if quad-widening will be part of
-standard base, or part of an extension.  Quad-widening would add a new
-operand access pattern to the standard.
+NOTE: These instructions are currently not planned to be part of the
+base V extension.
 
 NOTE: On ELEN=32 machines, only 8b * 8b = 16b products accumulated in
 a 32b accumulator would be supported.  Machines with ELEN=64 would
@@ -4456,8 +4461,9 @@ This mechanism is not defined in the base vector ISA.
 
 == Divided Element Extension ('Zvediv')
 
-NOTE: EDIV is the mostly likely part of the spec to change
-substantially.
+NOTE: The EDIV extension is currently not planned to be part of the
+base "V" extension, and will change substantially from the current
+sketch.
 
 The divided element extension allows each element to be treated as a
 packed sub-vector of narrower elements. This provides efficient
@@ -4466,9 +4472,6 @@ also to allow outer-loop vectorization of short vector and matrix
 operations.  In addition to modifying the behavior of some existing
 instructions, a few new instructions are provided to operate on
 vectors when EDIV > 1.
-
-NOTE: This is written as an extension for now, but could become
-part of mandatory base in Unix vector profile.
 
 The divided element extension adds a two-bit field, `vediv[1:0]` to
 the `vtype` register.
