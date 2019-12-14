@@ -1,7 +1,10 @@
 # riscv-v-spec
 Working draft of the proposed RISC-V V vector extension.
 
-For the most recent stable release, v0.7.1, click [here](https://github.com/riscv/riscv-v-spec/releases/tag/0.7.1).
+For the current stable release, v0.8, click [here](https://github.com/riscv/riscv-v-spec/releases/tag/0.8).
+The corresponding Binutils and Spike ports will be linked from here as they become available.
+
+For the _previous_ stable release, v0.7.1, click [here](https://github.com/riscv/riscv-v-spec/releases/tag/0.7.1).
 The corresponding Binutils port is [here](https://github.com/sifive/riscv-binutils-gdb/tree/2ce33d5584b11454ee2eb250a679888c310c5d18),
 and the Spike simulator port is [here](https://github.com/riscv/riscv-isa-sim/tree/49eb5a544864e063975af994f8efe3604b4980ae).
 
