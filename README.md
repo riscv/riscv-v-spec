@@ -2,11 +2,8 @@
 Working draft of the proposed RISC-V V vector extension.
 
 For the current stable release, v0.8, click [here](https://github.com/riscv/riscv-v-spec/releases/tag/0.8).
-The corresponding Binutils and Spike ports will be linked from here as they become available.
 
 For the _previous_ stable release, v0.7.1, click [here](https://github.com/riscv/riscv-v-spec/releases/tag/0.7.1).
-The corresponding Binutils port is [here](https://github.com/sifive/riscv-binutils-gdb/tree/2ce33d5584b11454ee2eb250a679888c310c5d18),
-and the Spike simulator port is [here](https://github.com/riscv/riscv-isa-sim/tree/49eb5a544864e063975af994f8efe3604b4980ae).
 
 The top level file is [v-spec.adoc](./v-spec.adoc)
 
@@ -21,9 +18,9 @@ International License. See the LICENSE file for details.
 [[HTML](https://riscv.github.io/documents/riscv-v-spec/)] [[PDF](https://riscv.github.io/documents/riscv-v-spec/riscv-v-spec.pdf)]
 
 ### Additional Resources
-
-- [riscvOVPsim](https://github.com/riscv/riscv-ovpsim) is a RISC-V simulator
-that supports current and previous versions of the V extension.
+- The Binutils port for v0.8 is not yet available; for v0.7.1 click [here](https://github.com/sifive/riscv-binutils-gdb/tree/2ce33d5584b11454ee2eb250a679888c310c5d18).
+- The Spike simulator for v0.8 is not yet available; for v0.7.1 click [here](https://github.com/riscv/riscv-isa-sim/tree/49eb5a544864e063975af994f8efe3604b4980ae).
+- [riscvOVPsim](https://github.com/riscv/riscv-ovpsim) is a free RISC-V reference simulator. For Vectors v0.8 click [here](https://github.com/riscv/riscv-ovpsim), and for v0.7.1 click [here](https://github.com/riscv/riscv-ovpsim).
 
 ### Documentation generator
 
