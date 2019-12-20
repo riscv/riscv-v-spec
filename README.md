@@ -19,7 +19,7 @@ International License. See the LICENSE file for details.
 
 ### Additional Resources
 - The Binutils port for v0.8 is not yet available; for v0.7.1 click [here](https://github.com/sifive/riscv-binutils-gdb/tree/2ce33d5584b11454ee2eb250a679888c310c5d18).
-- The Spike simulator for v0.8 is not yet available; for v0.7.1 click [here](https://github.com/riscv/riscv-isa-sim/tree/49eb5a544864e063975af994f8efe3604b4980ae).
+- The Spike simulator for v0.8 is available [here](https://github.com/riscv/riscv-isa-sim/tree/b8806095104da9c41e65696840c2863a08f82936).
 - [riscvOVPsim](https://github.com/riscv/riscv-ovpsim) is a free RISC-V reference simulator. For Vectors v0.8 click [here](https://github.com/riscv/riscv-ovpsim), and for v0.7.1 click [here](https://github.com/riscv/riscv-ovpsim).
 
 ### Documentation generator
