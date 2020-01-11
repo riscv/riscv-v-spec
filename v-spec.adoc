@@ -1108,7 +1108,7 @@ https://github.com/riscv/riscv-v-spec/blob/master/v-undisturbed-versus-zeroing.a
 
 == Configuration-Setting Instructions
 
-A set of instructions are provided to allow rapid configuration of the
+A set of instructions is provided to allow rapid configuration of the
 values in `vl` and `vtype` to match application needs.
 
 === `vsetvli`/`vsetvl` instructions
@@ -1612,7 +1612,7 @@ in future vector extensions.
 [[sec-aos]]
 === Vector Load/Store Segment Instructions (`Zvlsseg`)
 
-NOTE: This set of instructions are intended to be included in the base
+NOTE: This set of instructions is intended to be included in the base
 "V" extension.
 
 The vector load/store segment instructions move multiple contiguous
@@ -2265,7 +2265,7 @@ implicitly a narrowing operation.
 
 == Vector Integer Arithmetic Instructions
 
-A set of vector integer arithmetic instructions are provided.
+A set of vector integer arithmetic instructions is provided.
 
 === Vector Single-Width Integer Add and Subtract
 
@@ -2904,7 +2904,7 @@ merge instructions, but with `vm=1` and `vs2=v0`.
 
 == Vector Fixed-Point Arithmetic Instructions
 
-A set of vector arithmetic instructions are provided to support
+A set of vector arithmetic instructions is provided to support
 fixed-point arithmetic.
 
 An N-bit element can hold two's-complement signed integers in the
@@ -3403,7 +3403,7 @@ dynamic rounding mode in `frm`.
 
 === Widening Floating-Point/Integer Type-Convert Instructions
 
-A set of conversion instructions are provided to convert between
+A set of conversion instructions is provided to convert between
 narrower integer and floating-point datatypes to a type of twice the
 width.
 
@@ -3426,14 +3426,14 @@ single-width integer exactly.
 NOTE: A double-width IEEE floating-point value can always represent a
 single-width IEEE floating-point value exactly.
 
-NOTE: A full set of floating-point widening conversions are not
+NOTE: A full set of floating-point widening conversions is not
 supported as single instructions, but any widening conversion can be
 implemented as several doubling steps with equivalent results and no
 additional exception flags raised.
 
 === Narrowing Floating-Point/Integer Type-Convert Instructions
 
-A set of conversion instructions are provided to convert wider integer
+A set of conversion instructions is provided to convert wider integer
 and floating-point datatypes to a type of half the width.
 
 ----
@@ -3451,7 +3451,7 @@ vfncvt.rod.f.f.w vd, vs2, vm  # Convert double-width float to single-width float
 These instructions have the same constraints on vector register overlap
 as other narrowing instructions (see <<sec-narrowing>>).
 
-NOTE: A full set of floating-point widening conversions are not
+NOTE: A full set of floating-point widening conversions is not
 supported as single instructions. Conversions can be implemented in
 a sequence of halving steps.  Results are equivalently rounded and
 the same exception flags are raised if all but the last halving step
