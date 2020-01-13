@@ -1389,7 +1389,8 @@ ordering on stores.
 NOTE: The indexed-unordered variant is provided as a potential
 implementation optimization.  Implementations are free to ignore the
 optimization and implement indexed-unordered identically to
-indexed-ordered.
+indexed-ordered.  For implementations with precise vector traps,
+exceptions on indexed-unordered stores are precise.
 
 Additional unit-stride vector addressing modes are encoded using the
 5-bit `lumop` and `sumop` fields in the unit-stride load and store
