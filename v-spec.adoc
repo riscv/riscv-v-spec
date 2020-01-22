@@ -1609,6 +1609,10 @@ security.  It is possible that security mitigations can be
 implemented to allow fault-only-first variants of non-contiguous accesses
 in future vector extensions.
 
+NOTE: Even when an exception is not raised, implementations are permitted
+to process fewer than `vl` elements and reduce `vl` accordingly,
+but at least one element must be processed.
+
 [[sec-aos]]
 === Vector Load/Store Segment Instructions (`Zvlsseg`)
 
