@@ -4141,14 +4141,14 @@ if _OFFSET_ < `vl`.
    OFFSET is amount to slideup, either from x register or a 5-bit immediate
 
                     0 <  i < max(vstart, OFFSET)  Unchanged
-  max(vstart, OFFSET) <= i < vl                   vd[i] = vs2[i-OFFSET] if mask enabled,
+  max(vstart, OFFSET) <= i < vl                   vd[i] = vs2[i-OFFSET] if mask[i] enabled,
                                                    unchanged if not
                    vl <= i < VLMAX                Tail elements, unchanged
 ----
 
 The destination vector register group for `vslideup` cannot overlap
-the vector register group of the source vector register group or the
-mask register, otherwise an illegal instruction exception is raised.
+the source vector register group or the mask register, otherwise an
+illegal instruction exception is raised.
 
 NOTE: The non-overlap constraint avoids WAR hazards on the
 input vectors during execution, and enables restart with non-zero
@@ -4176,7 +4176,7 @@ If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
 
     vslidedown behavior for destination element i in slide
                      0 <  i < vstart         Unchanged
-                vstart <= i < vl             Updated if mask enabled, unchanged if not
+                vstart <= i < vl             Updated if mask[i] enabled, unchanged if not
                     vl <= i < VLMAX          Unchanged
 
 ----
@@ -4214,8 +4214,8 @@ elements are unchanged.
    vslide1up behavior
 
                     i < vstart  unchanged
-                0 = i = vstart  vd[i] = x[rs1] if mask enabled, unchanged if not
-  max(vstart, 1) <= i < vl      vd[i] = vs2[i-1] if mask enabled, unchanged if not
+                0 = i = vstart  vd[i] = x[rs1] if mask[i] enabled, unchanged if not
+  max(vstart, 1) <= i < vl      vd[i] = vs2[i-1] if mask[i] enabled, unchanged if not
               vl <= i < VLMAX   unchanged
 ----
 
@@ -4249,8 +4249,8 @@ SEW-XLEN bits are ignored.
    vslide1down behavior
 
                        i < vstart  unchanged
-             vstart <= i < vl-1    vd[i] = vs2[i+1] if mask enabled, unchanged if not
-             vstart <= i = vl-1    vd[vl-1] = x[rs1] if mask enabled, unchanged if not
+             vstart <= i < vl-1    vd[i] = vs2[i+1] if mask[i] enabled, unchanged if not
+             vstart <= i = vl-1    vd[vl-1] = x[rs1] if mask[i] enabled, unchanged if not
                  vl <= i < VLMAX   unchanged
 ----
 
