@@ -2888,11 +2888,13 @@ vmerge.vim vd, vs2, imm, v0  # vd[i] = v0[i].LSB ? imm    : vs2[i]
 === Vector Integer Move Instructions
 
 The vector integer move instructions copy a source operand to a vector
-register group.  These instructions are always unmasked (`vm=1`).
-The first operand specifier (`vs2`) must contain `v0`, and any other
-vector register number in `vs2` is _reserved_.  This instruction
-copies the `vs1`, `rs1`, or immediate operand to the first `vl`
-locations of the destination vector register group.
+register group.
+The `vmv.v.v` variant copies a vector register group, whereas the `vmv.v.x`
+and `vmv.v.i` variants __splat__ a scalar register or immediate to all active
+elements of the destination vector register group.
+These instructions are always unmasked (`vm=1`).
+The first operand specifier (`vs2`) must contain `v0`, and any other vector
+register number in `vs2` is _reserved_.
 
 ----
 vmv.v.v vd, vs1 # vd[i] = vs1[i]
