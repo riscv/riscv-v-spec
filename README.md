@@ -18,9 +18,17 @@ International License. See the LICENSE file for details.
 [[HTML](https://riscv.github.io/documents/riscv-v-spec/)] [[PDF](https://riscv.github.io/documents/riscv-v-spec/riscv-v-spec.pdf)]
 
 ### Additional Resources
-- The Binutils port for v0.8 is not yet available; for v0.7.1 click [here](https://github.com/sifive/riscv-binutils-gdb/tree/2ce33d5584b11454ee2eb250a679888c310c5d18).
-- The Spike simulator for v0.8 is available [here](https://github.com/riscv/riscv-isa-sim/tree/b8806095104da9c41e65696840c2863a08f82936).
-- [riscvOVPsim](https://github.com/riscv/riscv-ovpsim) is a free RISC-V reference simulator. For Vectors v0.8 click [here](https://github.com/riscv/riscv-ovpsim), and for v0.7.1 click [here](https://github.com/riscv/riscv-ovpsim).
+
+- The [Binutils port for v0.8](https://github.com/riscv/riscv-binutils-gdb/tree/rvv-0.8.x)
+- The [GNU toolchain port for v0.8](https://github.com/riscv/riscv-gnu-toolchain/tree/rvv-0.8.x)
+- The [Spike simulator](https://github.com/riscv/riscv-isa-sim) which supports v0.8
+- The [RISC-V Proxy Kernel](https://github.com/riscv/riscv-pk)
+  (to be used with e.g. Spike) supports enabling v0.8 CPU support
+  when compiled with a v0.8 capable GNU toolchain
+- [riscvOVPsim](https://github.com/riscv/riscv-ovpsim) is a free
+  RISC-V reference simulator that has support for  v0.8 and
+  v0.7.1 (simulator is under a proprietary license, models are
+  open source)
 
 ### Documentation generator
 
