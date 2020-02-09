@@ -1,0 +1,77 @@
+Date: 2020/2/7
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Number of Attendees: ~17
+Current issues on github: https://github.com/riscv/riscv-v-spec
+ 
+Issues discussed: #347, #348, #335, #341, #362/#354, #367
+
+The following issues were discussed.
+
+#347 Special case stride of x0
+
+There was a proposal to mandate the semantics of strided accesses when
+rs2=x0 to only access memory once and replicate data to all active
+vector elements.  This would have been useful when accessing
+non-idempotent memory.  However, it was not clear how to implement
+this in the presence of interrupts.  The proposal was dropped.
+Implementations are still free to perform the optimization when
+running from idempotent memory regions.
+
+#348 ELEN > VLEN?
+
+A proposal to allow ELEN to vary with LMUL and to be greater than VLEN
+was discussed.   The proposal still needs to work through how bits
+would map to registers in this case, and the decision was to review
+the complete proposal to see if there was any impact on software or
+implementations that did not implement this feature.
+
+#335 Allow non-power-of-2 VLEN
+
+The group was unsure if relaxing this constraint would have impact on
+software.  No clear example has emerged, but the consenus was continue
+to keep exploring if there are any issues.
+
+#341 Separate vcsr from fcsr
+
+The various options were discussed but a new suggestion was that the
+new vcsr should include the FPU fields.  This would remove the
+additional CSR save/restore on context switch caused by adding vcsr,
+while removing the interaction between VS and FS in the current PoR.
+
+In the new proposal, when the FPU is disabled but the vector unit is
+enabled, any floating-point operation (even vector-vector) will raise
+an illegal instruction exception.  The FP status bit are preserved
+when the FPU is disabled, as before.  When the FPU is disabled, the FP
+status fields read as zero and writes to the FP status bit fields in
+vcsr are ignored.  Writes to the dedicated separate FP status
+registers will cause exceptions as before.
+
+This change will be made to the spec for v0.9.
+
+#362,#354 Remove non-SEW vector load/store
+
+This proposal would simplify the vector load/store instructions by
+dropping the fixed-size variants vlb/vlh/vlw/vsb/vsh/vsw.
+
+Additional widening instructions will likely be required to reduce the
+instruction count overhead, but these have not been discussed yet.
+
+Discussion covered the new proposal to provide a fractional LMUL to
+avoid one drawback of dropping these memory operations.  The general
+consensus was in favor, as the scheme also aids mixed-width
+floating-point arithmetic (for which there is no equivalent to the
+widening/narrowing load/stores).  The proposal requires adding a new
+bit to LMUL in vtype, so that a new instruction will not be required.
+
+#367 Tail don’t-care as option
+
+This proposal would allow tail elements to be set to "don't care"
+values to support temporal vector machines with register renaming,
+which otherwise have to copy destination elements from the original
+destination physical register to the new destination physical
+register.  Discussion centered around the software ecosystem impact of
+supporting a choice here, and also the possible alternative
+microachitecture design points, with sub-register renaming, that would
+reduce the impact of supporting the current "tail-undisturbed" policy.
+Disussion will continue in the group.

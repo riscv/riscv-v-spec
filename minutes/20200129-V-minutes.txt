@@ -1,0 +1,44 @@
+Date: 2020/1/24
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Number of Attendees: ~20
+github: https://github.com/riscv/riscv-v-spec
+ 
+Outstanding items from prior meeting:
+    #362/#354, #341, #348, #347, #335, #326, #318, #235
+
+Current items:
+    #362/#354, #341    
+
+New actionable items to be addressed in next meeting:
+    
+Is group tracking to roadmap? y/n
+
+The main discussion in the group that occupied most of the time was
+around #362/#354, whether to drop the fixed-size vector load/store
+instructions, leaving only the SEW-sized load/store instructions.
+Dropping these instructions would save considerable complexity in
+memory pipelines. However, dropping support would also require
+execution of additional instructions in some common cases.  A remedy
+would be to add more widening or quad-widening (quadening) compute
+instructions to reduce this impact.
+
+During the call a second issue was raised.  The current design uses
+constant SEW/LMUL ratios to align data types of different element
+widths.  If only SEW-sized load/stores were available, then a
+computation using a mixture of element widths would have to use larger
+LMUL for larger SEW values, which effectively reduces the number of
+available registers and so increases register pressure.  The fixed
+width load/stores allow, e.g., a byte to be loaded into a vector
+register with four-byte width with LMUL=1 so avoids this issue.
+
+No resolution was reached, but this was to be studied further.
+
+The second point that was quickly discussed at the end of the meeting
+was the proposed separation of a vcsr from fcsr (#341).  There was
+little obvious enthusiasm in favor of one choice over the other, and
+so the design is left as is for now.
+
+
+
+
