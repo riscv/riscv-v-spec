@@ -123,8 +123,8 @@ option.
 
 === Vector Context Status in `mstatus`
 
-A vector context status field, `VS`, is added to `mstatus[24:23]` and shadowed
-in `sstatus[24:23]`.  It is defined analogously to the floating-point context
+A vector context status field, `VS`, is added to `mstatus[10:9]` and shadowed
+in `sstatus[10:9]`.  It is defined analogously to the floating-point context
 status field, `FS`.
 
 Attempts to execute any vector instruction, or to access the vector
