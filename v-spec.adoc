@@ -4355,6 +4355,11 @@ register, and can copy whole vector register groups.
 NOTE: These instructions are intended to aid compilers to shuffle
 vector registers without needing to know or change `vl` or `vtype`.
 
+NOTE: The move is performed even if `vstart` {ge} `vl`.
+
+NOTE: Even though these instructions ignore the `vtype` setting,
+they still raise an illegal-instruction exception if `vill`=1.
+
 The instruction is encoded as an OPIVI instruction.  The number of
 vector registers to copy is encoded in the low three bits of the
 `simm` field using the same encoding as the `nf` field for memory
