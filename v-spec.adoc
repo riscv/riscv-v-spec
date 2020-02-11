@@ -2109,6 +2109,11 @@ NaN-boxed value, in which case the least-significant SEW bits of the
 `f`register are used, else the canonical NaN value is used.  If
 FLEN<SEW, the value is NaN-boxed (one-extended) to SEW.
 
+NOTE: The 5-bit immediate is unsigned when either providing a
+register index in vrgather or a count for shift or slide.
+In all other cases it is signed and sign extended to SEW bits,
+even for bitwise and unsigned instructions, notably compare and add.
+
 NOTE: The proposed Zfinx variants will take the floating-point scalar
 argument from the `x` registers.
 
