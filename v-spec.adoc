@@ -1807,7 +1807,8 @@ appear to be written in element order.
 NOTE: These instructions are still under early consideration for inclusion.
 
 These instructions load and store whole vector registers (i.e., VLEN
-bits), ignoring the settings in the `vl` and `vtype` registers. 
+bits).  The instructions operate as if SEW=8 and `vl`=VLMAX,
+regardless of current settings in `vtype` and `vl`
 
 NOTE: These instructions are intended to be used to save and restore
 vector registers when the type and length of the current contents of
@@ -4349,8 +4350,9 @@ element 0.  This does mean elements in destination register after
 === Whole Vector Register Move
 
 The `vmv<nf>r.v` instructions copy whole vector registers (i.e., all
-VLEN bits) ignoring the current settings of the `vl` and `vtype`
-register, and can copy whole vector register groups.
+VLEN bits) and can copy whole vector register groups.  The
+instructions operate as if SEW=8 and `vl`=VLMAX, regardless of
+current settings in `vtype` and `vl`.
 
 NOTE: These instructions are intended to aid compilers to shuffle
 vector registers without needing to know or change `vl` or `vtype`.
