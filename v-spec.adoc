@@ -2111,7 +2111,7 @@ NaN-boxed value, in which case the least-significant SEW bits of the
 FLEN<SEW, the value is NaN-boxed (one-extended) to SEW.
 
 NOTE: The 5-bit immediate is unsigned when either providing a
-register index in vrgather or a count for shift or slide.
+register index in vrgather or a count for shift, clip, or slide.
 In all other cases it is signed and sign extended to SEW bits,
 even for bitwise and unsigned instructions, notably compare and add.
 
