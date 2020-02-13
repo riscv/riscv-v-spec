@@ -1812,6 +1812,10 @@ These instructions load and store whole vector registers (i.e., VLEN
 bits).  The instructions operate as if SEW=8 and `vl`=VLMAX,
 regardless of current settings in `vtype` and `vl`
 
+NOTE: No elements are transferred if `vstart` {ge} VLMAX.
+The usual property that no elements are written if `vstart` {ge} `vl`
+does not apply to these instructions.
+
 NOTE: These instructions are intended to be used to save and restore
 vector registers when the type and length of the current contents of
 the vector register is not known, or where modifying `vl` and `vtype`
