@@ -1809,10 +1809,10 @@ appear to be written in element order.
 NOTE: These instructions are still under early consideration for inclusion.
 
 These instructions load and store whole vector registers (i.e., VLEN
-bits).  The instructions operate as if SEW=8 and `vl`=VLMAX,
+bits).  The instructions operate as if SEW=8 and `vl`=VLEN/8,
 regardless of current settings in `vtype` and `vl`
 
-NOTE: No elements are transferred if `vstart` {ge} VLMAX.
+NOTE: No elements are transferred if `vstart` {ge} VLEN/8.
 The usual property that no elements are written if `vstart` {ge} `vl`
 does not apply to these instructions.
 
@@ -1822,6 +1822,8 @@ the vector register is not known, or where modifying `vl` and `vtype`
 would be costly. Examples include compiler register spills, vector
 function calls where values are passed in vector registers, interrupt
 handlers, and OS context switches.
+Software can determine the number of bytes transferred by reading the
+`vlenb` register.
 
 ----
 Format for Vector Load Whole Register Instructions under LOAD-FP major opcode
@@ -4361,16 +4363,15 @@ element 0.  This does mean elements in destination register after
 === Whole Vector Register Move
 
 The `vmv<nf>r.v` instructions copy whole vector registers (i.e., all
-VLEN bits) and can copy whole vector register groups.  The
-instructions operate as if SEW=8 and `vl`=VLMAX, regardless of
-current settings in `vtype` and `vl`.
+VLEN bits) and can copy whole vector register groups.
+The instructions operate on each register in the group as if SEW=8 and
+`vl`=VLEN/8, regardless of current settings in `vtype` and `vl`.
 
 NOTE: These instructions are intended to aid compilers to shuffle
 vector registers without needing to know or change `vl` or `vtype`.
 
-NOTE: No elements are moved if `vstart` {ge} VLMAX.  The usual property
-that no elements are written if `vstart` {ge} `vl` does not apply to
-these instructions.
+NOTE: The usual property that no elements are written if `vstart` {ge} `vl`
+does not apply to these instructions.
 
 The instruction is encoded as an OPIVI instruction.  The number of
 vector registers to copy is encoded in the low three bits of the
