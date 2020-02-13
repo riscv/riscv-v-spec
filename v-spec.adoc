@@ -285,9 +285,11 @@ instruction attempted to write an unsupported value to `vtype`.
 NOTE: The `vill` bit is held in bit XLEN-1 of the CSR to support
 checking for illegal values with a branch on the sign bit.
 
-If the `vill` bit is set, then any attempt to execute a vector
-instruction (other than a vector configuration instruction) will raise
-an illegal instruction exception.
+If the `vill` bit is set, then any attempt to execute a vector instruction
+that depends upon `vtype` will raise an illegal-instruction exception.
+
+NOTE: `vsetvl{i}` and whole-register loads, stores, and moves do not depend
+upon `vtype`.
 
 When the `vill` bit is set, the other XLEN-1 bits in `vtype` shall be
 zero.
@@ -4365,9 +4367,6 @@ vector registers without needing to know or change `vl` or `vtype`.
 NOTE: No elements are moved if `vstart` {ge} VLMAX.  The usual property
 that no elements are written if `vstart` {ge} `vl` does not apply to
 these instructions.
-
-NOTE: Even though these instructions ignore the `vtype` setting,
-they still raise an illegal-instruction exception if `vill`=1.
 
 The instruction is encoded as an OPIVI instruction.  The number of
 vector registers to copy is encoded in the low three bits of the
