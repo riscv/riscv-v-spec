@@ -1849,7 +1849,7 @@ to unmasked zero-extended unit-stride loads of elements, with the `nf`
 field encoding how many vector registers to load and store.  The
 vector whole register store instructions are encoded similar to
 unmasked unit-stride store of elements.  The current base
-specification only mandates `nf`=0 is supported, with other values of
+specification mandates that only `nf`=0 is supported, with other values of
 `nf` reserved.  In a future extension, when multiple registers are
 transferred, the vector register contents are mapped to contiguous
 bytes in memory as if LMUL=1, with the lowest-numbered vector register
@@ -4362,10 +4362,11 @@ element 0.  This does mean elements in destination register after
 
 === Whole Vector Register Move
 
-The `vmv<nf>r.v` instructions copy whole vector registers (i.e., all
+The `vmv<nr>r.v` instructions copy whole vector registers (i.e., all
 VLEN bits) and can copy whole vector register groups.
-The instructions operate on each register in the group as if SEW=8 and
-`vl`=VLEN/8, regardless of current settings in `vtype` and `vl`.
+The instructions operates as if it were the load of a whole register store/load pair.
+That is SEW=8, `vl`=VLEN/8 * nr and nr registers are transferred.
+Current settings in `vtype` and `vl` have no affect on this instruction.
 
 NOTE: These instructions are intended to aid compilers to shuffle
 vector registers without needing to know or change `vl` or `vtype`.
@@ -4377,7 +4378,7 @@ The instruction is encoded as an OPIVI instruction.  The number of
 vector registers to copy is encoded in the low three bits of the
 `simm` field using the same encoding as the `nf` field for memory
 instructions. The upper two bits of `simm` field must be zero, with
-other encodings reserved.  The value in `nf` must be correspond to 1,
+other encodings reserved.  The value in `nf` must correspond to 1,
 2, 4, or 8 registers.
 
 NOTE: A future extension may support other numbers of registers to be
@@ -4391,8 +4392,7 @@ related `vmerge` encoding, and it is unlikely the `vsmul` instruction
 would benefit from an immediate form.
 
 ----
-    vmv<nf>r.v vd, vs2  # General form
-
+    vmv<nr>r.v vd, vs2  # General form; sets simm field to nr - 1
     vmv1r.v v1, v2   #  Copy v1=v2
     vmv2r.v v10, v12 #  Copy v10=v12; v11=v13
     vmv4r.v v4, v8   #  Copy v4=v8; v5=v9; v6=v10; v7=v11
