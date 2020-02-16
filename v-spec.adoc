@@ -4364,8 +4364,8 @@ element 0.  This does mean elements in destination register after
 
 The `vmv<nr>r.v` instructions copy whole vector registers (i.e., all
 VLEN bits) and can copy whole vector register groups.
-The instructions operates as if it were the load of a whole register store/load pair.
-That is SEW=8, `vl`=VLEN/8 * nr and nr registers are transferred.
+The instructions operates as if SEW=8, `vl`=VLEN/8 * nr and 
+LMUL = nr.
 Current settings in `vtype` and `vl` have no affect on this instruction.
 
 NOTE: These instructions are intended to aid compilers to shuffle
