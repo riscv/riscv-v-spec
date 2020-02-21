@@ -1626,9 +1626,7 @@ NOTE: These operations support operations on "array-of-structures"
 datatypes by unpacking each field in a structure into separate vector
 registers.
 
-As for regular vector loads and stores, the width encoding gives the
-size of the memory elements, which are homogeneous in size, while SEW
-encodes the size of the register elements.
+NOTE: vector loads and stores always use element width specified by vtype
 
 The three-bit `nf` field in the vector instruction encoding is an
 unsigned integer that contains one less than the number of fields per
@@ -1699,18 +1697,13 @@ segment loads and stores respectively.
 
 ----
     # Format
-    vlseg<nf>{b,h,w}.v vd, (rs1),  vm    # Unit-stride signed segment load template
     vlseg<nf>e.v vd, (rs1), vm           # Unit-stride segment load template
-    vlseg<nf>{b,h,w}u.v vd, (rs1), vm    # Unit-stride unsigned segment load template
-    vsseg<nf>{b,h,w,e}.v vs3, (rs1), vm  # Unit-stride segment store template
+    vsseg<nf>e.v vs3, (rs1), vm          # Unit-stride segment store template
 
     # Examples
-    vlseg2b.v vd, (rs1), vm   # Load vector of signed 2*1-byte segments into vd, vd+1
-    vlseg3bu.v vd, (rs1), vm  # Load vector of unsigned 3*1-byte segments into vd, vd+1, vd+2
-    vlseg7w.v vd, (rs1), vm   # Load vector of 7*4-byte segments into vd, vd+1, ... vd+6
     vlseg8e.v vd, (rs1), vm   # Load vector of 8*SEW-byte segments into vd, vd+1, .. vd+7
 
-    vsseg3b.v vs3, (rs1), vm  # Store packed vector of 3*1-byte segments from vs3,vs3+1,vs3+2 to memory
+    vsseg3e.v vs3, (rs1), vm  # Store packed vector of 3*SEW-byte segments from vs3,vs3+1,vs3+2 to memory
 ----
 
 For loads, the `vd` register will hold the first field loaded from the
@@ -1720,14 +1713,16 @@ field to be stored in each segment.
 ----
     # Example 1
     # Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
-    vlseg3bu.v v8, (a0), vm
+    vsetvli a1, t0, e8
+    vlseg3e.v v8, (a0), vm
     # v8 holds the red pixels
     # v9 holds the green pixels
     # v10 holds the blue pixels
 
     # Example 2
     # Memory structure holds complex values, 32b for real and 32b for imaginary
-    vlseg2w.v v8, (a0), vm
+    vsetvli a1, t0, e32
+    vlseg2e.v v8, (a0), vm
     # v8 holds real
     # v9 holds imaginary
 ----
@@ -1736,9 +1731,7 @@ There are also fault-only-first versions of the unit-stride instructions.
 
 ----
     # Template for vector fault-only-first unit-stride segment loads and stores.
-    vlseg<nf>{b,h,w}ff.v vd, (rs1),  vm    # Unit-stride signed fault-only-first segment loads
     vlseg<nf>eff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
-    vlseg<nf>{b,h,w}uff.v vd, (rs1),   vm  # Unit-stride unsigned fault-only-first segment loads
 ----
 
 ==== Vector Strided Segment Loads and Stores
@@ -1751,18 +1744,18 @@ NOTE: Negative and zero strides are supported.
 
 ----
     # Format
-    vlsseg<nf>{b,h,w}.v vd, (rs1), rs2, vm    # Strided signed segment loads
     vlsseg<nf>e.v vd, (rs1), rs2, vm          # Strided segment loads
-    vlsseg<nf>{b,h,w}u.v vd, (rs1), rs2, vm   # Strided unsigned segment loads
-    vssseg<nf>{b,h,w,e}.v vs3, (rs1), rs2, vm # Strided segment stores
+    vssseg<nf>e.v vs3, (rs1), rs2, vm         # Strided segment stores
 
     # Examples
-    vlsseg3b.v v4, (x5), x6   # Load bytes at addresses x5+i*x6   into v4[i],
+    vsetvli a1, t0, e8
+    vlsseg3e.v v4, (x5), x6   # Load bytes at addresses x5+i*x6   into v4[i],
                               #  and bytes at addresses x5+i*x6+1 into v5[i],
                               #  and bytes at addresses x5+i*x6+2 into v6[i].
 
     # Examples
-    vssseg2w.v v2, (x5), x6   # Store words from v2[i] to address x5+i*x6
+    vsetvli a1, t0, e32
+    vssseg2e.v v2, (x5), x6   # Store words from v2[i] to address x5+i*x6
                               #   and words from v3[i] to address x5+i*x6+4
 ----
 
@@ -1778,18 +1771,18 @@ address in the `rs1` field to byte offsets in vector register `vs2`.
 
 ----
     # Format
-    vlxseg<nf>{b,h,w}.v vd, (rs1), vs2, vm    # Indexed signed segment loads
     vlxseg<nf>e.v vd, (rs1), vs2, vm          # Indexed segment loads
-    vlxseg<nf>{b,h,w}u.v vd, (rs1), vs2, vm   # Indexed unsigned segment loads
-    vsxseg<nf>{b,h,w,e}.v vs3, (rs1), vs2, vm # Indexed segment stores
+    vsxseg<nf>e.v vs3, (rs1), vs2, vm         # Indexed segment stores
 
     # Examples
-    vlxseg3bu.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
+    vsetvli a1, t0, e8
+    vlxseg3e.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
                               #  and bytes at addresses x5+v3[i]+1 into v5[i],
                               #  and bytes at addresses x5+v3[i]+2 into v6[i].
 
     # Examples
-    vsxseg2w.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
+    vsetvli a1, t0, e32
+    vsxseg2e.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
                               #   and words from v3[i] to address x5+v5[i]+4
 ----
 
