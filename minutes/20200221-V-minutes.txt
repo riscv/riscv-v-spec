@@ -1,0 +1,51 @@
+Date: 2020/2/21
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Number of Attendees: ~13
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Note, the Zoom meeting details have changed.  Please view the member
+calendar entry for updated details.
+
+Issues discussed: #341/#377, #367, #362/#354, #381
+
+The following issues were discussed.
+
+#341/#377 Separate vcsr from fcsr
+
+Last time, the agreement was to add a new vcsr but to shadow fcsr
+fields in the new vcsr to reduce context swap time.  Due to concerns
+raised in #377, the agreement was now to keep the separate vcsr but
+to not shadow fcsr fields.
+
+This change will be made to the spec for v0.9.
+
+#367 Tail agnostic as option
+
+Extensive disussion continued in the group about allowing this as an
+option.  The group proposing this change will describe the
+implementation challenges of the current tail-undisturbed scheme in
+the context of a renamed vector register machine with long temporal
+vectors.
+
+#362/#354 Remove non-SEW vector load/store
+
+Discussion covered the new proposal to provide a fractional LMUL to
+avoid one drawback of dropping these memory operations.  The general
+consensus was in favor, as the scheme also aids mixed-width
+floating-point arithmetic (for which there is no equivalent to the
+widening/narrowing load/stores).  The proposal requires adding a new
+bit to LMUL in vtype, so that a new instruction will not be required.
+The detailed fractional LMUL proposal was only recently presented, so
+the group will continue the discussion online before next meeting.
+
+#381 Index size in indexed load/store and AMO
+
+The group discussed the issue of providing XLEN-sized indices in
+indexed load/stores and AMOs, if non-SEW vector load/stores are
+dropped.  This was also previously a concern for floating-point codes,
+as there were no fixed-precision floating-point loads/stores.  The two
+proposals were 1) to provide only XLEN-width indices or 2) provide
+XLEN and 32b indices, and whether these are only present in extended
+64b encoding. Discussion to continue.
+
