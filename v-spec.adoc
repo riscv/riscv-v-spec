@@ -139,23 +139,6 @@ NOTE: Implementations may also change `VS` field to Dirty at any time,
 even when there is no change in vector state.  Accurate setting of the
 `VS` field is an optimization.
 
-When the floating-point context status `FS` is set to Off, attempts to
-access an `f` register or the `fcsr` CSR raise an illegal-instruction
-exception.  All vector floating-point instructions will also raise an
-illegal instruction exception if `FS` is set to Off.
-
-NOTE: Even vector-vector floating-point instructions that do not
-access the `f` registers need to read the dynamic rounding mode in
-`frm` and might need to raise an exception flag in `fflags` and so
-cannot be executed when FS is set to Off.
-
-If `FS` is set to Initial or Clean, executing any vector instruction
-that changes `fflags` or an `f` register will change `FS` to Dirty.
-
-NOTE: Implementations may conservatively change `FS` to Dirty even if
-executing the vector instruction does not actually change the value in
-`fflags` or the `f` register.
-
 === Vector type register, `vtype`
 
 The read-only XLEN-wide _vector_ _type_ CSR, `vtype` provides the
@@ -392,7 +375,7 @@ a vector arithmetic instruction when `vstart` is nonzero.
 The vector fixed-point rounding-mode register holds a two-bit
 read-write rounding-mode field.  The vector fixed-point rounding-mode
 is given a separate CSR address to allow independent access, but is
-also reflected as a field in the upper bits of `vcsr`.
+also reflected as a field in `vcsr`.
 
 The fixed-point rounding algorithm is specified as follows.
 Suppose the pre-rounding result is `v`, and `d` bits of that result are to be
@@ -429,14 +412,12 @@ The `vxsat` CSR holds a single read-write bit that indicates if a
 fixed-point instruction has had to saturate an output value to fit
 into a destination format.
 
-The `vxsat` bit is mirrored in the upper bits of `vcsr`.
+The `vxsat` bit is mirrored in `vcsr`.
 
 === Vector Control and Status Register `vcsr`
 
 The `vxrm` and `vxsat` separate CSRs can also be accessed via fields
-in the vector control and status CSR, `vcsr`.  To reduce
-context-switch overhead, the `frm` and `fflags` CSRs are also mapped
-into `vcsr` at the same locations as in `fcsr`.
+in the vector control and status CSR, `vcsr`.
 
 .vcsr layout
 [cols=">2,4,10"]
@@ -445,15 +426,9 @@ into `vcsr` at the same locations as in `fcsr`.
 | Bits | Name   | Description
 
 
-| 10:9 | vxrm   | Fixed-point rounding mode
-|    8 | vxsat  | Fixed-point accrued saturation flag
-|  7:5 | frm    | Floating-point rounding mode
-|  4:0 | fflags | Floating-point accrued exception flags
+|  2:1 | vxrm[1:0] | Fixed-point rounding mode
+|    0 | vxsat     | Fixed-point accrued saturation flag
 |===
-
-When the floating-point unit is not present or is disabled
-(`*status.FS`=Off), the `frm` and `fflags` fields return zero when
-read, and writes to these fields are ignored.
 
 === State of Vector Extension at Reset
 
