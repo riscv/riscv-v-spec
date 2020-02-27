@@ -80,7 +80,7 @@ vvaddint32:
 # Fixed 16b SEW:
 
 loop:
-    vsetvli t0, a0, e16  # Use 16b elements.
+    vsetvli t0, a0, e16     # Use 16b elements.
     vlb.v v0, (a1)          # Get x[i], sign-extended to 16b
       sub a0, a0, t0        # Decrement element count
       add a1, a1, t0        # x[i] Bump pointer
@@ -92,7 +92,7 @@ loop:
     vlh.v v1, (a3), v0.t    # z[i] = b[i] case
       add a3, a3, t0        # b[i] bump pointer
     vsh.v v1, (a4)          # Store z
-      add a4, a4, t0        # b[i] bump pointer
+      add a4, a4, t0        # z[i] bump pointer
       bnez a0, loop
 ----
 
