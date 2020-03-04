@@ -1601,7 +1601,9 @@ NOTE: These operations support operations on "array-of-structures"
 datatypes by unpacking each field in a structure into separate vector
 registers.
 
-NOTE: vector loads and stores always use element width specified by vtype
+NOTE: To simplify memory-system datapath design, segment loads and
+stores only support SEW-bit elements.  The encodings corresponding
+to byte-, halfword-, and word-sized elements are reserved.
 
 The three-bit `nf` field in the vector instruction encoding is an
 unsigned integer that contains one less than the number of fields per
