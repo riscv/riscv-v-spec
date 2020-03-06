@@ -4,8 +4,7 @@
 In the RISC-V psABI, the vector registers `v0`-`v31` are all caller-saved.
 The `vstart`, `vl`, and `vtype` CSRs are also caller-saved.
 
-The `vxrm` and `vxsat` fields have thread storage duration, like the other
-fields of the `fcsr`.
+The `vxrm` and `vxsat` fields have thread storage duration.
 
 Executing a system call causes `v0`-`v31` to become unspecified.
 
