@@ -1,0 +1,47 @@
+Date: 2020/3/6
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Number of Attendees: ~21
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Note, the Zoom meeting details have changed.  Please view the member
+calendar entry for updated details.
+
+Issues discussed: #362,#354,#382, 
+
+The following issues were discussed.
+
+#362,#354,#382 Fractional LMUL additional registers
+
+There was considerable discussion trying to understand the design of
+the scheme to pack multiple fractional LMUL registers into the base
+vector registers.  The conclusion was that we first had to understand
+how fractional LMUL would map into the base vector registers,
+including interaction with SLEN, before attempting to add fractional
+LMUL register packing as another optimization with another level of
+complexity.
+
+Waiting on receiving the fractional LMUL mapping.
+
+#367 Tail Agnostic
+
+The discussion reviewed the proposal that long temporal vector
+registers with renaming could be handled using vector length trimming.
+
+The proposal was then added that masking should also be given option
+of being agnostic giving three options:
+ 1) tail-undisturbed + masking-undisturbed
+ 2) tail-agnostic + masking-undisturbed
+ 3) tail-agnostic + masking-agnostic
+
+All implementations would have to support all options.
+
+Simple implementations can ignore setting and treat all as 1).
+
+Option 2) could be implemented as option 1) even if option 3) was
+supported.
+
+The recommendation was that agnostic destination elements had to only
+be either zero or undisturbed.
+
+Discussion to continue with this suggestion.
