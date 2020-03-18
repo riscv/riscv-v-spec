@@ -1692,6 +1692,13 @@ There are also fault-only-first versions of the unit-stride instructions.
     vlseg<nf>eff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
 ----
 
+For unit-stride segment loads, the destination vector register groups
+cannot overlap the mask register if masked, else an illegal instruction
+exception is raised.
+
+NOTE: This constraint supports restart of segment loads
+that raise exceptions partway through loading a structure.
+
 ==== Vector Strided Segment Loads and Stores
 
 Vector strided segment loads and stores move contiguous segments where
@@ -1720,6 +1727,13 @@ NOTE: Negative and zero strides are supported.
 For strided segment stores where the byte stride is such that segments
 could overlap in memory, the segments must appear to be written in
 element order.
+
+For strided segment loads, the destination vector register groups
+cannot overlap the mask register if masked, else an illegal instruction
+exception is raised.
+
+NOTE: This constraint supports restart of strided segment loads
+that raise exceptions partway through loading a structure.
 
 ==== Vector Indexed Segment Loads and Stores
 
