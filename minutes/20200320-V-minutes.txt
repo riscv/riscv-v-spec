@@ -1,0 +1,67 @@
+Date: 2020/3/20
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Number of Attendees: ~20
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed: #367, #393
+
+The following issues were discussed.
+
+#367 Tail Agnostic
+
+Proposal to add option of tail and/or mask agnostic behavior.
+
+Concern about software incompatibility if agnostic option would allow
+software to make use of 0s when this is detected.  Proposal that
+agnostic would require that either ones are written to non active
+results, or they are left undisturbed.  Writing ones is consistent
+with scalar FP NaN-boxing.
+
+It was noted that hardware could add a debugging mode that detected
+when non-portable behavior was detected (using values written as
+agnostic), but this would not be mandated.
+
+To support thread migration between different microarchitectures
+(e.g., big and little cores), it would be explicitly stated that
+agnostic behavior (undisturbed versus writing ones) could change on
+each execution of an instruction, or even when restarting an
+instruction at non-zero vstart.
+
+The tail and/or mask agnostic behavior would be recorded in vtype (or
+maybe vcsr?)as two bits.  Suggested encoding:
+
+     [1:0]
+      0 0   Tail undisturbed, masked undisturbed
+      1 0   Tail agnostic, masked undisturbed      
+      1 1   Tail agnostic, masked agnostic
+      0 1   Illegal, sets vill
+
+Implementations would be required to implement both state bits even if
+the microarchitecture ignored setting and executed all options as
+tail+mask undisturbed (a legal implementation).
+
+Discussion to continue on mailing list.
+
+#393 Fractional LMUL additional registers
+
+Proposal to add fractional LMUL to support a greater number of usable
+architecture registers in presence of mixed-width operands.
+
+There was discussion about the new proposal on mapping fractional LMUL
+elements when systems have SLEN<VLEN, as it appeared to break SLEN
+wiring optimization.  A scheme that appears to address the datapath
+wiring concern spreads out fractional LMUL elements along the register
+was discussed in meeting
+
+    VLEN=128b, SLEN=64b
+    F E D C B A 9 8 7 6 5 4 3 2 1 0  Byte number
+
+    X X X X X X X X X X X X 0 0 0 0  LMUL=1/4, SEW=32b
+    X X X X X X X X 0 0 0 0 0 0 0 0  LMUL=1/2, SEW=64b
+
+    X X X X 1 1 1 1 X X X X 0 0 0 0  LMUL=1/2, SEW=32b
+    1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0  LMUL=1, SEW=64b
+
+Discussion to continue on mailing list.
+
