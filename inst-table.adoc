@@ -145,6 +145,8 @@
 | 00001 | vfcvt.x.f.v
 | 00010 | vfcvt.f.xu.v
 | 00011 | vfcvt.f.x.v
+| 00110 | vfcvt.rtz.xu.f.v
+| 00111 | vfcvt.rtz.x.f.v
 | |
 2+| widening converts
 | 01000 | vfwcvt.xu.f.v
@@ -152,6 +154,8 @@
 | 01010 | vfwcvt.f.xu.v
 | 01011 | vfwcvt.f.x.v
 | 01100 | vfwcvt.f.f.v
+| 01110 | vfwcvt.rtz.xu.f.v
+| 01111 | vfwcvt.rtz.x.f.v
 | |
 2+| narrowing converts
 | 10000 | vfncvt.xu.f.w
@@ -160,6 +164,8 @@
 | 10011 | vfncvt.f.x.w
 | 10100 | vfncvt.f.f.w
 | 10101 | vfncvt.rod.f.f.w
+| 10110 | vfncvt.rtz.xu.f.v
+| 10111 | vfncvt.rtz.x.f.v
 |===
 
 .VFUNARY1 encoding space

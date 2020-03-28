@@ -3383,16 +3383,23 @@ floating-point values and unsigned and signed integers, where both
 source and destination are SEW wide.
 
 ----
-vfcvt.xu.f.v vd, vs2, vm   # Convert float to unsigned integer.
-vfcvt.x.f.v  vd, vs2, vm   # Convert float to signed integer.
+vfcvt.xu.f.v vd, vs2, vm       # Convert float to unsigned integer.
+vfcvt.x.f.v  vd, vs2, vm       # Convert float to signed integer.
 
-vfcvt.f.xu.v vd, vs2, vm   # Convert unsigned integer to float.
-vfcvt.f.x.v  vd, vs2, vm   # Convert signed integer to float.
+vfcvt.rtz.xu.f.v vd, vs2, vm   # Convert float to unsigned integer, truncating.
+vfcvt.rtz.x.f.v  vd, vs2, vm   # Convert float to signed integer, truncating.
+
+vfcvt.f.xu.v vd, vs2, vm       # Convert unsigned integer to float.
+vfcvt.f.x.v  vd, vs2, vm       # Convert signed integer to float.
 ----
 
 The conversions follow the same rules on exceptional conditions as the
-scalar conversion instructions.  The conversions always use the
-dynamic rounding mode in `frm`.
+scalar conversion instructions.
+The conversions use the dynamic rounding mode in `frm`, except for the `rtz`
+variants, which round towards zero.
+
+NOTE: The `rtz` variants are provided to accelerate truncating conversions
+from floating-point to integer, as is common in languages like C and Java.
 
 === Widening Floating-Point/Integer Type-Convert Instructions
 
@@ -3401,13 +3408,16 @@ narrower integer and floating-point datatypes to a type of twice the
 width.
 
 ----
-vfwcvt.xu.f.v vd, vs2, vm   # Convert float to double-width unsigned integer.
-vfwcvt.x.f.v  vd, vs2, vm   # Convert float to double-width signed integer.
+vfwcvt.xu.f.v vd, vs2, vm       # Convert float to double-width unsigned integer.
+vfwcvt.x.f.v  vd, vs2, vm       # Convert float to double-width signed integer.
 
-vfwcvt.f.xu.v vd, vs2, vm   # Convert unsigned integer to double-width float.
-vfwcvt.f.x.v  vd, vs2, vm   # Convert signed integer to double-width float.
+vfwcvt.rtz.xu.f.v vd, vs2, vm   # Convert float to double-width unsigned integer, truncating.
+vfwcvt.rtz.x.f.v  vd, vs2, vm   # Convert float to double-width signed integer, truncating.
 
-vfwcvt.f.f.v vd, vs2, vm   # Convert single-width float to double-width float.
+vfwcvt.f.xu.v vd, vs2, vm       # Convert unsigned integer to double-width float.
+vfwcvt.f.x.v  vd, vs2, vm       # Convert signed integer to double-width float.
+
+vfwcvt.f.f.v vd, vs2, vm        # Convert single-width float to double-width float.
 ----
 
 These instructions have the same constraints on vector register overlap
@@ -3430,15 +3440,18 @@ A set of conversion instructions is provided to convert wider integer
 and floating-point datatypes to a type of half the width.
 
 ----
-vfncvt.xu.f.w vd, vs2, vm   # Convert double-width float to unsigned integer.
-vfncvt.x.f.w  vd, vs2, vm   # Convert double-width float to signed integer.
+vfncvt.xu.f.w vd, vs2, vm       # Convert double-width float to unsigned integer.
+vfncvt.x.f.w  vd, vs2, vm       # Convert double-width float to signed integer.
 
-vfncvt.f.xu.w vd, vs2, vm   # Convert double-width unsigned integer to float.
-vfncvt.f.x.w  vd, vs2, vm   # Convert double-width signed integer to float.
+vfncvt.rtz.xu.f.w vd, vs2, vm   # Convert double-width float to unsigned integer, truncating.
+vfncvt.rtz.x.f.w  vd, vs2, vm   # Convert double-width float to signed integer, truncating.
 
-vfncvt.f.f.w vd, vs2, vm    # Convert double-width float to single-width float.
-vfncvt.rod.f.f.w vd, vs2, vm  # Convert double-width float to single-width float,
-                              #  rounding towards odd.
+vfncvt.f.xu.w vd, vs2, vm       # Convert double-width unsigned integer to float.
+vfncvt.f.x.w  vd, vs2, vm       # Convert double-width signed integer to float.
+
+vfncvt.f.f.w vd, vs2, vm        # Convert double-width float to single-width float.
+vfncvt.rod.f.f.w vd, vs2, vm    # Convert double-width float to single-width float,
+                                #  rounding towards odd.
 ----
 
 These instructions have the same constraints on vector register overlap
