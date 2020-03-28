@@ -1814,7 +1814,7 @@ to unmasked zero-extended unit-stride loads of elements, with the `nf`
 field encoding how many vector registers to load and store.  The
 vector whole register store instructions are encoded similar to
 unmasked unit-stride store of elements.  The current base
-specification only mandates `nf`=0 is supported, with other values of
+specification mandates that only `nf`=0 is supported, with other values of
 `nf` reserved.  In a future extension, when multiple registers are
 transferred, the vector register contents are mapped to contiguous
 bytes in memory as if LMUL=1, with the lowest-numbered vector register
@@ -4291,10 +4291,10 @@ element 0.  This does mean elements in destination register after
 
 === Whole Vector Register Move
 
-The `vmv<nf>r.v` instructions copy whole vector registers (i.e., all
+The `vmv<nr>r.v` instructions copy whole vector registers (i.e., all
 VLEN bits) and can copy whole vector register groups.
-The instructions operate on each register in the group as if SEW=8 and
-`vl`=VLEN/8, regardless of current settings in `vtype` and `vl`.
+The instructions operate as if SEW=8, `vl`=VLEN/8 * `nr`, and LMUL = `nr`,
+regardless of current settings in `vtype` and `vl`.
 
 NOTE: These instructions are intended to aid compilers to shuffle
 vector registers without needing to know or change `vl` or `vtype`.
@@ -4305,13 +4305,11 @@ does not apply to these instructions.
 The instruction is encoded as an OPIVI instruction.  The number of
 vector registers to copy is encoded in the low three bits of the
 `simm` field using the same encoding as the `nf` field for memory
-instructions. The upper two bits of `simm` field must be zero, with
-other encodings reserved.  The value in `nf` must be correspond to 1,
-2, 4, or 8 registers.
+instructions, i.e., `simm` = `nr-1`.
+`nr` must be 1, 2, 4, or 8.
 
-NOTE: A future extension may support other numbers of registers to be
-moved, but currently the values of `nf` corresponding to 3, 5, 6, 7
-are reserved.
+NOTE: A future extension may support other numbers of registers to be moved.
+Values of `simm` other than 0, 1, 3, and 7 are currently reserved.
 
 NOTE: The instruction uses the same funct6 encoding as the `vsmul`
 instruction but with an immediate operand, and only the unmasked
@@ -4320,7 +4318,7 @@ related `vmerge` encoding, and it is unlikely the `vsmul` instruction
 would benefit from an immediate form.
 
 ----
-    vmv<nf>r.v vd, vs2  # General form
+    vmv<nr>r.v vd, vs2  # General form
 
     vmv1r.v v1, v2   #  Copy v1=v2
     vmv2r.v v10, v12 #  Copy v10=v12; v11=v13
