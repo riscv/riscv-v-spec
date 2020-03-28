@@ -1291,6 +1291,7 @@ include::vmem-format.adoc[]
 | lumop[4:0]/sumop[4:0] | are additional fields encoding variants of unit-stride instructions
 |===
 
+[[sec-addressing-modes]]
 === Vector Load/Store Addressing Modes
 
 The base vector extension supports unit-stride, strided, and
@@ -1308,21 +1309,20 @@ effective address, and then access subsequent elements at address
 increments given by the byte offset contained in the `x` register
 specified by `rs2`.
 
-Vector indexed operations add the contents of each element of the
-vector offset operand specified by `vs2` to the base effective address
-to give the effective address of each element.  The vector offset
-operand is treated as a vector of byte offsets.  If the vector offset
-elements are narrower than XLEN, they are zero-extended to XLEN before
-adding to the base effective address.  If the vector offset elements
-are wider than XLEN, the least-significant XLEN bits are used in the
-address calculation.
-
-NOTE: Current PoR for vector indexed instructions requires that vector
-byte offset (vs2) and vector read/write data (vs3/vd) are of same
-width.  One question is whether and how to allow for two sizes of
-vector operand in a vector indexed instruction?  For example, for
-scatter/gather of byte values in a 64-bit address space without
-requiring bytes use 64b of space in a vector register.
+Vector indexed and AMO operations add the contents of each element of the
+vector offset operand specified by `vs2` to the base effective address to give
+the effective address of each element.
+The vector offset operand is treated as a vector of byte offsets.
+Vector offset elements are always XLEN bits wide, regardless of SEW.
+Hence, vector register group `vs2` may comprise more or fewer vector registers
+than the vector register group corresponding to the load or store data (`vd`
+or `vs3`).
+When SEW {le} XLEN, LMUL must not exceed (8 * SEW / XLEN), and the index
+vector is accessed as though LMUL were (LMUL * XLEN / SEW).
+When SEW > XLEN, LMUL must not exceed (8 * XLEN / SEW), and the index
+vector is accessed as though LMUL were (LMUL * SEW / XLEN).
+In either case, the index vector register group number must be valid for the
+effective index-vector LMUL.
 
 The vector addressing modes are encoded using the 3-bit `mop[2:0]`
 field.
@@ -1527,6 +1527,9 @@ NOTE: Negative and zero strides are supported.
     vsuxw.v vs3, (rs1), vs2, vm  # 32b
     vsuxe.v vs3, (rs1), vs2, vm  # SEW
 ----
+
+For indexed loads, if SEW != XLEN, the destination vector register group cannot
+overlap the index vector register group.
 
 === Unit-stride Fault-Only-First Loads
 
@@ -1856,18 +1859,18 @@ amoop[4:0] specifies the AMO operation
 wd specifies whether the original memory value is written to vd (1=yes, 0=no)
 ----
 
-AMOs have the same addressing mode as indexed operations except with
-no immediate offset.  A vector of byte offsets in register `vs2` are
-added to the scalar base register in `rs1` to give the addresses of
-the AMO operations.
+AMOs have the same addressing mode as indexed operations, described in
+Section <<sec-addressing-modes>>.
 
-The `vs2` vector register supplies the byte offset of each element,
-while the `vs3` vector register supplies the source data for the
+The `vs3` vector register supplies the source data for the
 atomic memory operation.
 
 If the `wd` bit is set, the `vd` register is written with the initial
 value of the memory element.  If the `wd` bit is clear, the `vd`
 register is not written.
+
+If the `wd` bit is set and SEW != XLEN, the destination vector register group
+cannot overlap the index vector register group.
 
 NOTE: When `wd` is clear, the memory system does not need to return
 the original memory value, and the original values in `vd` will be
