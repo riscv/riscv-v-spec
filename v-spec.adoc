@@ -176,7 +176,7 @@ encoding.
 The value in `vsew` sets the dynamic _standard_ _element_ _width_
 (SEW).  By default, a vector register is viewed as being divided into
 VLEN / SEW standard-width elements. The valid SEW values are the powers
-of two from 8 to ELEN.
+of two from 8 to ELEN, inclusive.
 
 .vsew[2:0] (standard element width) encoding
 [cols="1,1,1,>13"]
