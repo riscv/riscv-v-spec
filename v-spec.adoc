@@ -4104,7 +4104,7 @@ if _OFFSET_ < `vl`.
 ----
 
 The destination vector register group for `vslideup` cannot overlap
-the source vector register group or the mask register, otherwise an
+the source vector register group, otherwise an
 illegal instruction exception is raised.
 
 NOTE: The non-overlap constraint avoids WAR hazards on the
@@ -4178,9 +4178,8 @@ elements are unchanged.
 ----
 
 The `vslide1up` instruction requires that the destination vector
-register group does not overlap the source vector register group or
-the mask register.  Otherwise, an illegal instruction exception is
-raised.
+register group does not overlap the source vector register group.
+Otherwise, an illegal instruction exception is raised.
 
 The `vfslide1up` instruction is defined analogously, but sources its
 scalar argument from an `f` register.
