@@ -4053,8 +4053,8 @@ may optimize certain OFFSET values for `vslideup` and `vslidedown`.
 In particular, power-of-2 offsets may operate substantially faster
 than other offsets.
 
-For all of the `vslideup`, `vslidedown`, `vslide1up`, and
-`vslide1down` instructions, if `vstart` {ge} `vl`, the instruction performs no
+For all of the `vslideup`, `vslidedown`, `v[f]slide1up`, and
+`v[f]slide1down` instructions, if `vstart` {ge} `vl`, the instruction performs no
 operation and leaves the destination vector register unchanged.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
@@ -4135,7 +4135,8 @@ also allow a scalar integer value to be inserted at the vacated
 element position.
 
 ----
- vslide1up.vx vd, vs2, rs1, vm        # vd[0]=x[rs1], vd[i+1] = vs2[i]
+ vslide1up.vx  vd, vs2, rs1, vm        # vd[0]=x[rs1], vd[i+1] = vs2[i]
+ vfslide1up.vf vd, vs2, rs1, vm        # vd[0]=f[rs1], vd[i+1] = vs2[i]
 ----
 
 The `vslide1up` instruction places the `x` register argument at
@@ -4168,6 +4169,12 @@ register group does not overlap the source vector register group or
 the mask register.  Otherwise, an illegal instruction exception is
 raised.
 
+The `vfslide1up` instruction is defined analogously, but sources its
+scalar argument from an `f` register.
+If SEW < FLEN and the value is not correctly NaN-boxed for SEW bits, an
+SEW-bit canonical NaN is substituted.
+If FLEN < SEW, the scalar value is NaN-boxed (one-extended) to SEW bits.
+
 ==== Vector Slide1down Instruction
 
 The `vslide1down` instruction copies the first `vl`-1 active elements
@@ -4179,7 +4186,8 @@ register elements are written with source values, and all tail
 elements are unchanged.
 
 ----
- vslide1down.vx vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
+ vslide1down.vx  vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
+ vfslide1down.vf vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=f[rs1]
 ----
 
 The `vslide1down` instruction places the `x` register argument at
@@ -4201,6 +4209,12 @@ SEW-XLEN bits are ignored.
 The destination vector register group cannot overlap the source mask
 register if LMUL>1, otherwise an illegal instruction exception is
 raised.
+
+The `vfslide1down` instruction is defined analogously, but sources its
+scalar argument from an `f` register.
+If SEW < FLEN and the value is not correctly NaN-boxed for SEW bits, an
+SEW-bit canonical NaN is substituted.
+If FLEN < SEW, the scalar value is NaN-boxed (one-extended) to SEW bits.
 
 NOTE: The `vslide1down` instruction can be used to load values into a
 vector register without using memory and without disturbing other

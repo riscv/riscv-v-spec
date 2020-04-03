@@ -27,8 +27,8 @@
 | 001011 |V|X|I| vxor       | 001011 |V|X| vasub       | 001011 | | |
 | 001100 |V|X|I| vrgather   | 001100 | | |             | 001100 | | |
 | 001101 | | | |            | 001101 | | |             | 001101 | | |
-| 001110 | |X|I| vslideup   | 001110 | |X| vslide1up   | 001110 | | |
-| 001111 | |X|I| vslidedown | 001111 | |X| vslide1down | 001111 | | |
+| 001110 | |X|I| vslideup   | 001110 | |X| vslide1up   | 001110 | |F| vfslide1up
+| 001111 | |X|I| vslidedown | 001111 | |X| vslide1down | 001111 | |F| vfslide1down
 |===
 
 // [cols="4,1,1,1,8,4,1,1,8,4,1,1,8"]
