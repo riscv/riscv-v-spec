@@ -1,0 +1,31 @@
+Date: 2020/4/03
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Number of Attendees: ~15
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed: #354/362
+
+The following issues were discussed.
+
+Closing on version v0.9. A list of proposed changes to form v0.9 were
+presented.  The main dispute was around dropping byte/halfword/word
+vector load/stores.
+
+#354/362 Drop byte/halfword/word vector load/stores
+
+Most of the meeting time was spent discussing this issue, which was
+contentious.
+
+Participants in favor of retaining these instructions were concerned
+about the code size and performance impact of dropping them.
+Proponents in favor of dropping them noted that the main impact was
+only for integer code (floating-point code does not benefit from these
+instructions), that performance might be lower using these
+instructions rather than widening, and that there was a large benefit
+in reducing memory pipeline complexity.  The group was going to
+consider some examples to be supplied by the members, including some
+mixed floating-point/integer code.
+
+Discussion to continue on mailing list.
+
