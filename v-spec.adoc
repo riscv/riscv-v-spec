@@ -2627,7 +2627,7 @@ masked va >= x, vd != v0
 masked va >= x, any vd
 
   pseudoinstruction: vmsge{u}.vx vd, va, x, v0.t, vt
-  expansion: vmslt{u}.vx vt, va, x;  vmandnot.mm vd, vd, vt
+  expansion: vmslt{u}.vx vt, va, x;  vmandnot.mm vd, v0, vt
 
   The vt argument to the pseudoinstruction must name a temporary vector register that is
   not same as vd and which will be clobbered by the pseudoinstruction
