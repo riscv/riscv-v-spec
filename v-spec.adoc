@@ -4138,9 +4138,6 @@ If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
 
 ----
 
-The destination vector register group cannot overlap the mask register
-if LMUL>1, otherwise an illegal instruction exception is raised.
-
 ==== Vector Slide1up
 
 Variants of slide are provided that only move by one element but which
@@ -4217,10 +4214,6 @@ SEW-XLEN bits are ignored.
              vstart <= i = vl-1    vd[vl-1] = x[rs1] if mask[i] enabled, unchanged if not
                  vl <= i < VLMAX   unchanged
 ----
-
-The destination vector register group cannot overlap the source mask
-register if LMUL>1, otherwise an illegal instruction exception is
-raised.
 
 The `vfslide1down` instruction is defined analogously, but sources its
 scalar argument from an `f` register.
