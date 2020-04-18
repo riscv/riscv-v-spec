@@ -1,0 +1,28 @@
+Date: 2020/4/17
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Number of Attendees: ~15
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed: new "effective element width", location of agnostic bits
+
+The following issues were discussed.
+
+New "effective element width" proposal
+
+We discussed the proposal sent on mailing list to reuse the width
+field to encode an effective element width, as a way to improve
+efficiency on mixed-width floating-point code and to reduce impact of
+dropping fixed width loads and stores on integer code.   Consensus was
+to explore the options for encoding effective element width on mailing
+list and discuss next time.
+
+Location of tail/mask-agnostic bits
+
+Discussion reached consensus on placing these in the vtype register,
+noting that later extensions could redefine vtype CSR written by
+vsetvl as a "window" into a larger group of vector configuration CSRs.
+It was noted that there is no space to add more configuration
+instructions in existing footprint, and that the exisitng instructions
+fit the base immediate format.
+
