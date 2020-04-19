@@ -1106,7 +1106,7 @@ length setting is based on the requested application vector length
 [%autowidth]
 |===
 |  `rd` | `rs1` | AVL value         | Description/Usage
-|  0    |  0    | Value in `vl` register | Change `vtype` without changing `vl`
+|  0    |  0    | Value in `vl` register | Change `vtype` keeping existing `vl`
 | !0    |  0    | ~0                | Set `vl` to VLMAX
 |  -    | !0    | Value in `x[rs1]` | Normal stripmining
 |===
@@ -1124,6 +1124,9 @@ as the AVL, and the resulting value is only written to `vl`.
 
 NOTE: This form of the instruction allows the `vtype` register to be
 changed without changing `vl`, provided VLMAX is not reduced.  The
+`vl` value can be reduced by this instruction if the SEW/LMUL ratio
+changes causes VLMAX to shrink.  This design was chosen to ensure `vl`
+would always hold a legal value for current `vtype` setting.  The
 current `vl` value can be read from the `vl` CSR.
 
 include::vcfg-format.adoc[]
