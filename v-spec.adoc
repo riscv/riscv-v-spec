@@ -2161,7 +2161,8 @@ Assembly syntax pattern for vector widening arithmetic instructions
 vwop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
 vwop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 
-# Double-width result, first source double-width, second source single-width: 2*SEW = 2*SEW op SEW
+# Double-width result, first source double-width, 
+#              second source single-width: 2*SEW = 2*SEW op SEW
 vwop.wv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
 vwop.wx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 ----
@@ -2756,7 +2757,7 @@ vwmul.vx  vd, vs2, rs1, vm # vector-scalar
 vwmulu.vv vd, vs2, vs1, vm # vector-vector
 vwmulu.vx vd, vs2, rs1, vm # vector-scalar
 
-# Widening signed-unsigned integer multiply
+# Widening signed(vs2)-unsigned integer multiply
 vwmulsu.vv vd, vs2, vs1, vm # vector-vector
 vwmulsu.vx vd, vs2, rs1, vm # vector-scalar
 ----
@@ -2809,12 +2810,12 @@ vwmaccu.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 vwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
 vwmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
-# Widening signed-unsigned-integer multiply-add, overwrite addend
-vwmaccsu.vv vd, vs1, vs2, vm    # vd[i] = +(signed(vs1[i]) * unsigned(vs2[i])) + vd[i]
-vwmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
+# Widening signed(vs2)-unsigned-integer multiply-add, overwrite addend
+vwmaccsu.vv vd, vs1, vs2, vm    # vd[i] = +(unsigned(vs1[i]) * signed(vs2[i])) + vd[i]
+vwmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
 
-# Widening unsigned-signed-integer multiply-add, overwrite addend
-vwmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
+# Widening unsigned(vs2)-signed-integer multiply-add, overwrite addend
+vwmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
 ----
 
 === Vector Quad-Widening Integer Multiply-Add Instructions (Extension `Zvqmac`)
@@ -2840,12 +2841,12 @@ vqmaccu.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 vqmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
 vqmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
-# Quad-widening signed-unsigned-integer multiply-add, overwrite addend
-vqmaccsu.vv vd, vs1, vs2, vm    # vd[i] = +(signed(vs1[i]) * unsigned(vs2[i])) + vd[i]
-vqmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
+# Quad-widening signed(vs2)-unsigned-integer multiply-add, overwrite addend
+vqmaccsu.vv vd, vs1, vs2, vm    # vd[i] = +(unsigned(vs1[i]) * signed(vs2[i])) + vd[i]
+vqmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
 
-# Quad-widening unsigned-signed-integer multiply-add, overwrite addend
-vqmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
+# Quad-widening unsigned(vs2)-signed-integer multiply-add, overwrite addend
+vqmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
 ----
 
 === Vector Integer Merge Instructions
