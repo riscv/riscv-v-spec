@@ -1221,43 +1221,21 @@ throughput on mixed-width operations in a single loop.
 # Example: Load 16-bit values, widen multiply to 32b, shift 32b result
 # right by 3, store 32b values.
 
-# Loop using only widest elements:
-
-loop:
-    vsetvli a3, a0, e32,m8  # Use only 32-bit elements
-    vlh.v v8, (a1)          # Sign-extend 16b load values to 32b elements
-      sll t1, a3, 1         # Multiply length by two bytes/element
-      add a1, a1, t1        # Bump pointer
-    vmul.vx  v8, v8, x10    # 32b multiply result
-    vsrl.vi  v8, v8, 3      # Shift elements
-    vsw.v v8, (a2)          # Store vector of 32b results
-      sll t1, a3, 2         # Multiply length by four bytes/element
-      add a2, a2, t1        # Bump pointer
-      sub a0, a0, a3        # Decrement count
-      bnez a0, loop         # Any more?
-
-# Alternative loop that switches element widths.
-
 loop:
     vsetvli a3, a0, e16,m4  # vtype = 16-bit integer vectors
-    vlh.v v4, (a1)          # Get 16b vector
+    vle.v v4, (a1)          # Get 16b vector
       slli t1, a3, 1        # Multiply length by two bytes/element
       add a1, a1, t1        # Bump pointer
     vwmul.vx v8, v4, x10    # 32b in <v8--v15>
 
     vsetvli x0, a0, e32,m8  # Operate on 32b values
     vsrl.vi v8, v8, 3
-    vsw.v v8, (a2)          # Store vector of 32b
+    vse.v v8, (a2)          # Store vector of 32b elements
       slli t1, a3, 2        # Multiply length by four bytes/element
       add a2, a2, t1        # Bump pointer
       sub a0, a0, a3        # Decrement count
       bnez a0, loop         # Any more?
 ----
-
-The second loop is more complex but will have greater performance on
-machines where 16b widening multiplies are faster than 32b integer
-multiplies, and where 16b vector load can run faster due to the
-narrower writes to the vector regfile.
 
 == Vector Loads and Stores
 
@@ -1335,14 +1313,11 @@ field.
 |===
 3+| mop [2:0] | Description | Opcodes
 
-| 0 | 0 | 0 | zero-extended unit-stride | VLxU,VLE
-| 0 | 0 | 1 | reserved                  |
-| 0 | 1 | 0 | zero-extended strided     | VLSxU, VLSE
-| 0 | 1 | 1 | zero-extended indexed     | VLXxU, VLXE
-| 1 | 0 | 0 | sign-extended unit-stride | VLx  (x!=E)
-| 1 | 0 | 1 | reserved                  |
-| 1 | 1 | 0 | sign-extended strided     | VLSx (x!=E)
-| 1 | 1 | 1 | sign-extended indexed     | VLXx (x!=E)
+| 0 | 0 | 0 | unit-stride   | VLE
+| 0 | 0 | 1 | reserved      |
+| 0 | 1 | 0 | strided       | VLSE
+| 0 | 1 | 1 | indexed       | VLXE
+| 1 | X | X | reserved
 |===
 
 .encoding for stores
@@ -1350,14 +1325,14 @@ field.
 |===
 3+| mop [2:0] | Description | Opcodes
 
-| 0 | 0 | 0 | unit-stride       | VSx
+| 0 | 0 | 0 | unit-stride       | VSE
 | 0 | 0 | 1 | reserved          |
-| 0 | 1 | 0 | strided           | VSSx
-| 0 | 1 | 1 | indexed-ordered   | VSXx
+| 0 | 1 | 0 | strided           | VSE
+| 0 | 1 | 1 | indexed-ordered   | VSXE
 | 1 | 0 | 0 | reserved          |
 | 1 | 0 | 1 | reserved          |
 | 1 | 1 | 0 | reserved          |
-| 1 | 1 | 1 | indexed-unordered | VSUXx
+| 1 | 1 | 1 | indexed-unordered | VSUXE
 |===
 
 The vector indexed memory operations have two forms, ordered and
@@ -1416,43 +1391,28 @@ to transfer for the whole vector register load/store instructions.
 
 === Vector Load/Store Width Encoding
 
-The vector loads and stores are encoded using the width values that
-are not claimed by the standard scalar floating-point loads and
-stores.  Three of the width types encode vector loads and stores that
-move fixed-size memory elements of 8 bits, 16 bits, or 32 bits, while
-the fourth encoding moves SEW-bit memory elements.
+Vector loads and stores are encoded using width values that are not
+claimed by the standard scalar floating-point loads and stores.  One
+width encoding is used for vector loads and stores that move SEW-bit
+memory elements.
 
 [cols="4,1,1,1,3,3,3"]
 |===
-|                  3+| Width [2:0] | Mem bits | Reg bits | Opcode
+|                  3+| Width [2:0] | Mem bits | Reg bits | Opcodes
 
 | Standard scalar FP | 0 | 0 | 1 |   16   | FLEN   | FLH/FSH
 | Standard scalar FP | 0 | 1 | 0 |   32   | FLEN   | FLW/FSW
 | Standard scalar FP | 0 | 1 | 1 |   64   | FLEN   | FLD/FSD
 | Standard scalar FP | 1 | 0 | 0 |  128   | FLEN   | FLQ/FSQ
-| Vector byte        | 0 | 0 | 0 | vl*8   | vl*SEW | VxB
-| Vector halfword    | 1 | 0 | 1 | vl*16  | vl*SEW | VxH
-| Vector word        | 1 | 1 | 0 | vl*32  | vl*SEW | VxW
-| Vector element     | 1 | 1 | 1 | vl*SEW | vl*SEW | VxE
+| Vector byte        | 0 | 0 | 0 |    -   |   -    | reserved
+| Vector halfword    | 1 | 0 | 1 |    -   |   -    | reserved
+| Vector word        | 1 | 1 | 0 |    -   |   -    | reserved
+| Vector element     | 1 | 1 | 1 |  SEW   |  SEW   | VLxE/VSxE
 |===
 
-Mem bits is the size of element accessed in memory
+Mem bits is the size of each element accessed in memory
 
-Reg bits is the size of element accessed in register
-
-Fixed-sized vector loads can optionally sign or zero-extend their
-memory element into the destination register element if the register
-element is wider than the memory element.  A fixed-size vector load
-raises an illegal instruction exception if the destination register
-element is narrower than the memory element.  The variable-sized load
-is encoded as if a zero-extended load, with what would be the
-sign-extended encoding of a variable-sized load currently reserved.
-
-Fixed-size vector stores take their operand from the least-significant
-bits of the register element if the register element if wider than the
-memory element.  Fixed-sized vector stores raise an illegal
-instruction exception if the memory element is wider than the register
-element.
+Reg bits is the size of each element accessed in register
 
 === Vector Unit-Stride Instructions
 
@@ -1460,20 +1420,9 @@ element.
     # Vector unit-stride loads and stores
 
     # vd destination, rs1 base address, vm is mask encoding (v0.t or <missing>)
-    vlb.v  vd, (rs1), vm # 8b signed
-    vlh.v  vd, (rs1), vm # 16b signed
-    vlw.v  vd, (rs1), vm # 32b signed
-
-    vlbu.v vd, (rs1), vm # 8b unsigned
-    vlhu.v vd, (rs1), vm # 16b unsigned
-    vlwu.v vd, (rs1), vm # 32b unsigned
-
     vle.v  vd, (rs1), vm # SEW
 
     # vs3 store data, rs1 base address, vm is mask encoding (v0.t or <missing>)
-    vsb.v  vs3, (rs1), vm  # 8b store
-    vsh.v  vs3, (rs1), vm  # 16b store
-    vsw.v  vs3, (rs1), vm  # 32b store
     vse.v  vs3, (rs1), vm  # SEW store
 ----
 
@@ -1483,20 +1432,9 @@ element.
     # Vector strided loads and stores
 
     # vd destination, rs1 base address, rs2 byte stride
-    vlsb.v  vd, (rs1), rs2, vm # 8b
-    vlsh.v  vd, (rs1), rs2, vm # 16b
-    vlsw.v  vd, (rs1), rs2, vm # 32b
-
-    vlsbu.v vd, (rs1), rs2, vm # unsigned 8b
-    vlshu.v vd, (rs1), rs2, vm # unsigned 16b
-    vlswu.v vd, (rs1), rs2, vm # unsigned 32b
-
     vlse.v  vd, (rs1), rs2, vm  # SEW
 
     # vs3 store data, rs1 base address, rs2 byte stride
-    vssb.v vs3, (rs1), rs2, vm  # 8b
-    vssh.v vs3, (rs1), rs2, vm  # 16b
-    vssw.v vs3, (rs1), rs2, vm  # 32b
     vsse.v vs3, (rs1), rs2, vm  # SEW
 ----
 
@@ -1508,33 +1446,19 @@ NOTE: Negative and zero strides are supported.
     # Vector indexed loads and stores
 
     # vd destination, rs1 base address, vs2 indices
-    vlxb.v  vd, (rs1), vs2, vm  # 8b
-    vlxh.v  vd, (rs1), vs2, vm  # 16b
-    vlxw.v  vd, (rs1), vs2, vm  # 32b
-
-    vlxbu.v vd, (rs1), vs2, vm  # 8b unsigned
-    vlxhu.v vd, (rs1), vs2, vm  # 16b unsigned
-    vlxwu.v vd, (rs1), vs2, vm  # 32b unsigned
-
     vlxe.v  vd, (rs1), vs2, vm  # SEW
 
     # Vector ordered-indexed store instructions
     # vs3 store data, rs1 base address, vs2 indices
-    vsxb.v vs3, (rs1), vs2, vm  # 8b
-    vsxh.v vs3, (rs1), vs2, vm  # 16b
-    vsxw.v vs3, (rs1), vs2, vm  # 32b
     vsxe.v vs3, (rs1), vs2, vm  # SEW
 
     # Vector unordered-indexed store instructions
-    vsuxb.v vs3, (rs1), vs2, vm  # 8b
-    vsuxh.v vs3, (rs1), vs2, vm  # 16b
-    vsuxw.v vs3, (rs1), vs2, vm  # 32b
     vsuxe.v vs3, (rs1), vs2, vm  # SEW
 ----
 
 === Unit-stride Fault-Only-First Loads
 
-The unit-stride fault-only-first load instructions are used to vectorize
+The unit-stride fault-only-first load instruction is used to vectorize
 loops with data-dependent exit conditions (while loops).  These
 instructions execute as a regular load except that they will only take
 a trap on element 0.  If an element > 0 raises an exception, that
@@ -1543,14 +1467,6 @@ register are not modified, and the vector length `vl` is reduced to the
 number of elements processed without a trap.
 
 ----
-    vlbff.v  vd, (rs1), vm # 8b
-    vlhff.v  vd, (rs1), vm # 16b
-    vlwff.v  vd, (rs1), vm # 32b
-
-    vlbuff.v vd, (rs1), vm # unsigned 8b
-    vlhuff.v vd, (rs1), vm # unsigned 16b
-    vlwuff.v vd, (rs1), vm # unsigned 32b
-
     vleff.v  vd, (rs1), vm # SEW
 ----
 
@@ -1585,10 +1501,6 @@ fields in memory to and from consecutively numbered vector registers.
 NOTE: These operations support operations on "array-of-structures"
 datatypes by unpacking each field in a structure into separate vector
 registers.
-
-NOTE: To simplify memory-system datapath design, segment loads and
-stores only support SEW-bit elements.  The encodings corresponding
-to byte-, halfword-, and word-sized elements are reserved.
 
 The three-bit `nf` field in the vector instruction encoding is an
 unsigned integer that contains one less than the number of fields per
@@ -1898,19 +1810,12 @@ in the same vector AMO instruction.
 | Standard scalar AMO | 0 | 1 | 0 |  32 |  XLEN  | AMO*.W
 | Standard scalar AMO | 0 | 1 | 1 |  64 |  XLEN  | AMO*.D
 | Standard scalar AMO | 1 | 0 | 0 | 128 |  XLEN  | AMO*.Q
-| Vector AMO          | 1 | 1 | 0 |  32 | vl*SEW | VAMO*W.V
-| Vector AMO          | 1 | 1 | 1 | SEW | vl*SEW | VAMO*E.V
+| Vector AMO          | 1 | 1 | 1 | SEW |   SEW  | VAMO*E.V
 |===
 
 Mem bits is the size of element accessed in memory
 
 Reg bits is the size of element accessed in register
-
-There are two widths of vector AMO, one for 32-bit words and one for
-SEW-bit words.  For the 32-bit vector AMO operations, SEW must be at
-least 32 bits, otherwise an illegal instruction exception is raised.
-If SEW > 32 bits, the value returned from memory is sign-extended
-to fill SEW.
 
 If SEW is less than XLEN, then addresses in the vector `vs2` are
 zero-extended to XLEN.  If SEW is greater than XLEN, an illegal
@@ -1927,7 +1832,7 @@ narrower addresses to sign-extended wider addresses if this is needed.
 
 Vector AMO instructions are only supported for the memory element
 widths supported by AMOs in the implementation's scalar architecture.
-Other widths raise an illegal instruction exception.
+Other element widths raise an illegal instruction exception.
 
 The vector `amoop[4:0]` field uses the same encoding as the scalar
 5-bit AMO instruction field, except that LR and SC are not supported.
@@ -1952,34 +1857,6 @@ The assembly syntax uses `x0` in the destination register position to
 indicate the return value is not required (`wd=0`).
 
 ----
-# 32-bit vector AMOs
-vamoswapw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoswapw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-                           
-vamoaddw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoaddw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-
-vamoxorw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoxorw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-
-vamoandw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoandw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-
-vamoorw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoorw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-
-vamominw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamominw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-
-vamomaxw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamomaxw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-
-vamominuw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamominuw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-
-vamomaxuw.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamomaxuw.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-
 # SEW-bit vector AMOs
 vamoswape.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
 vamoswape.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
@@ -3955,7 +3832,7 @@ compact_non_zero:
     li a6, 0                      # Clear count of non-zero elements
 loop:
     vsetvli a5, a0, e32,m8  # 32-bit integers
-    vlw.v v8, (a1)                # Load input vector
+    vle.v v8, (a1)                # Load input vector
       sub a0, a0, a5              # Decrement number done
       slli a5, a5, 2              # Multiply by four bytes
     vmsne.vi v0, v8, 0            # Locate non-zero values
@@ -3965,7 +3842,7 @@ loop:
       add a6, a6, a5              # Accumulate number of elements
     vsll.vi v16, v16, 2, v0.t     # Multiply offsets by four bytes
       slli a5, a5, 2              # Multiply number of non-zero elements by four bytes
-    vsuxw.v v8, (a2), v16, v0.t   # Scatter using scaled viota results under mask
+    vsuxe.v v8, (a2), v16, v0.t   # Scatter using scaled viota results under mask
       add a2, a2, a5              # Bump output pointer
       bnez a0, loop               # Any more?
 

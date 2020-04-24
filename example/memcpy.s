@@ -8,10 +8,10 @@
       mv a3, a0 # Copy destination
   loop:
     vsetvli t0, a2, e8,m8  # Vectors of 8b
-    vlb.v v0, (a1)                # Load bytes
+    vle.v v0, (a1)                # Load bytes
       add a1, a1, t0              # Bump pointer
       sub a2, a2, t0              # Decrement count
-    vsb.v v0, (a3)                # Store bytes
+    vse.v v0, (a3)                # Store bytes
       add a3, a3, t0              # Bump pointer
       bnez a2, loop               # Any more?
       ret                         # Return

@@ -79,22 +79,22 @@ c_col_loop: # Loop across one row of C blocks
     mv bkp, bnp # step to next column in B matrix
 
     # Initalize current C submatrix block from memory.
-    vlw.v  v0, (cnp); add ccp, cnp, cstride;
-    vlw.v  v1, (ccp); add ccp, ccp, cstride;
-    vlw.v  v2, (ccp); add ccp, ccp, cstride;
-    vlw.v  v3, (ccp); add ccp, ccp, cstride;
-    vlw.v  v4, (ccp); add ccp, ccp, cstride;
-    vlw.v  v5, (ccp); add ccp, ccp, cstride;
-    vlw.v  v6, (ccp); add ccp, ccp, cstride;
-    vlw.v  v7, (ccp); add ccp, ccp, cstride;
-    vlw.v  v8, (ccp); add ccp, ccp, cstride;
-    vlw.v  v9, (ccp); add ccp, ccp, cstride;
-    vlw.v v10, (ccp); add ccp, ccp, cstride;
-    vlw.v v11, (ccp); add ccp, ccp, cstride;
-    vlw.v v12, (ccp); add ccp, ccp, cstride;
-    vlw.v v13, (ccp); add ccp, ccp, cstride;
-    vlw.v v14, (ccp); add ccp, ccp, cstride;
-    vlw.v v15, (ccp)
+    vle.v  v0, (cnp); add ccp, cnp, cstride;
+    vle.v  v1, (ccp); add ccp, ccp, cstride;
+    vle.v  v2, (ccp); add ccp, ccp, cstride;
+    vle.v  v3, (ccp); add ccp, ccp, cstride;
+    vle.v  v4, (ccp); add ccp, ccp, cstride;
+    vle.v  v5, (ccp); add ccp, ccp, cstride;
+    vle.v  v6, (ccp); add ccp, ccp, cstride;
+    vle.v  v7, (ccp); add ccp, ccp, cstride;
+    vle.v  v8, (ccp); add ccp, ccp, cstride;
+    vle.v  v9, (ccp); add ccp, ccp, cstride;
+    vle.v v10, (ccp); add ccp, ccp, cstride;
+    vle.v v11, (ccp); add ccp, ccp, cstride;
+    vle.v v12, (ccp); add ccp, ccp, cstride;
+    vle.v v13, (ccp); add ccp, ccp, cstride;
+    vle.v v14, (ccp); add ccp, ccp, cstride;
+    vle.v v15, (ccp)
 
 
     mv kt, k # Initialize inner loop counter
@@ -106,7 +106,7 @@ c_col_loop: # Loop across one row of C blocks
     flw ft2, (amp); add amp, amp, astride;
     flw ft3, (amp); add amp, amp, astride;
     # Get vector from B matrix
-    vlw.v v16, (bkp)
+    vle.v v16, (bkp)
 
     # Loop on inner dimension for current C block
  k_loop:
@@ -165,28 +165,28 @@ c_col_loop: # Loop across one row of C blocks
     flw ft3, (amp)
     add amp, amp, astride
     vfmacc.vf v15, ft15, v16
-    vlw.v v16, (bkp)            # Get next vector from B matrix, overlap loads with jump stalls
+    vle.v v16, (bkp)            # Get next vector from B matrix, overlap loads with jump stalls
     j k_loop
 
 1:  vfmacc.vf v15, ft15, v16
     
     # Save C matrix block back to memory
-    vsw.v  v0, (cnp); add ccp, cnp, cstride;
-    vsw.v  v1, (ccp); add ccp, ccp, cstride;
-    vsw.v  v2, (ccp); add ccp, ccp, cstride;
-    vsw.v  v3, (ccp); add ccp, ccp, cstride;
-    vsw.v  v4, (ccp); add ccp, ccp, cstride;
-    vsw.v  v5, (ccp); add ccp, ccp, cstride;
-    vsw.v  v6, (ccp); add ccp, ccp, cstride;
-    vsw.v  v7, (ccp); add ccp, ccp, cstride;
-    vsw.v  v8, (ccp); add ccp, ccp, cstride;
-    vsw.v  v9, (ccp); add ccp, ccp, cstride;
-    vsw.v v10, (ccp); add ccp, ccp, cstride;
-    vsw.v v11, (ccp); add ccp, ccp, cstride;
-    vsw.v v12, (ccp); add ccp, ccp, cstride;
-    vsw.v v13, (ccp); add ccp, ccp, cstride;
-    vsw.v v14, (ccp); add ccp, ccp, cstride;
-    vsw.v v15, (ccp)
+    vse.v  v0, (cnp); add ccp, cnp, cstride;
+    vse.v  v1, (ccp); add ccp, ccp, cstride;
+    vse.v  v2, (ccp); add ccp, ccp, cstride;
+    vse.v  v3, (ccp); add ccp, ccp, cstride;
+    vse.v  v4, (ccp); add ccp, ccp, cstride;
+    vse.v  v5, (ccp); add ccp, ccp, cstride;
+    vse.v  v6, (ccp); add ccp, ccp, cstride;
+    vse.v  v7, (ccp); add ccp, ccp, cstride;
+    vse.v  v8, (ccp); add ccp, ccp, cstride;
+    vse.v  v9, (ccp); add ccp, ccp, cstride;
+    vse.v v10, (ccp); add ccp, ccp, cstride;
+    vse.v v11, (ccp); add ccp, ccp, cstride;
+    vse.v v12, (ccp); add ccp, ccp, cstride;
+    vse.v v13, (ccp); add ccp, ccp, cstride;
+    vse.v v14, (ccp); add ccp, ccp, cstride;
+    vse.v v15, (ccp)
 
     # Following tail instructions should be scheduled earlier in free slots during C block save.
     # Leaving here for clarity.
