@@ -152,13 +152,13 @@ regular CSR writes.  Allowing updates only via the `vsetvl{i}`
 instructions simplifies maintenance of the `vtype` register state.
 
 In the base vector extension, the `vtype` register has three fields,
-`vill`, `vsew[2:0]`, and `vlmul[1:0]`.
+`vill`, `vsew[2:0]`, and `vlmul[2:0]`.
 
 include::vtype-format.adoc[]
 
-NOTE: The smallest base implementation requires storage for only four
-bits of storage in `vtype`, two bits for `vsew[1:0]` and two bits for
-`vlmul[1:0]`.  The illegal value represented by `vill` can be encoded
+NOTE: The smallest base implementation requires storage for only five
+bits of storage in `vtype`, two bits for `vsew[1:0]` and three bits for
+`vlmul[2:0]`.  The illegal value represented by `vill` can be encoded
 using the illegal 64-bit combination in `vsew[1:0]` without requiring
 an additional storage bit.
 
@@ -208,57 +208,67 @@ only SEW up to max(XLEN,FLEN) are required to be supported.
 
 ==== Vector Register Grouping (`vlmul`)
 
-Multiple vector registers can be grouped together, so that a single vector instruction can operate on
-multiple vector registers.  Vector register groups allow double-width
-or larger elements to be operated on with the same vector length as
-standard-width elements.  Vector register groups also provide greater
-execution efficiency for longer application vectors.
+Multiple vector registers can be grouped together, so that a single
+vector instruction can operate on multiple vector registers.  The term
+_vector_ _register_ _group_ is used herein to refer to one or more
+vector registers used as a single operand to a vector instruction.
+Vector register groups allow double-width or larger elements to be
+operated on with the same vector length as standard-width elements.
+Vector register groups also provide greater execution efficiency for
+longer application vectors.
 
-The term _vector_ _register_ _group_ is used herein to refer to one or
-more vector registers used as a single operand to a vector
-instruction.  The number of vector registers in a group, _LMUL_, is an
-integer power of two set by the `vlmul` field in `vtype` (LMUL =
-2^`vlmul[1:0]`^).
+The vector length multiplier, _LMUL_, when greater than 1, represents
+the number of vector registers that are combined to form a vector
+register group.  LMUL can have integer values 1,2,4,8.
+
+LMUL can also be a fractional value, reducing the number of bits used
+in a vector register.  LMUL can have fractional values 1/2, 1/4, 1/8.
+Fractional LMUL is used to increase the number of usable architectural
+registers when operating on mixed-width values, by not requiring that
+larger-width vectors occupy multiple vector registers. Instead, wider
+values can occupy a single vector register and narrower values can
+occupy a fraction of a vector register.
+
+LMUL is set by the signed `vlmul` field in `vtype` (LMUL =
+2^`vlmul[2:0]`^).
 
 The derived value VLMAX = LMUL*VLEN/SEW represents the maximum number
 of elements that can be operated on with a single vector instruction
-given the current SEW and LMUL settings.
+given the current SEW and LMUL settings as shown in the table below.
 
-[cols="1,1,2,2,5,5"]
+[cols="1,1,1,2,2,5,5"]
 [%autowidth]
 |===
-2+| vlmul | LMUL | #groups | VLMAX      | Grouped registers
+  3+| vlmul | LMUL | #groups | VLMAX      | Registers grouped with register __n__
 
-| 0 | 0 |   1  |     32  |   VLEN/SEW | vn (single register in group)
-| 0 | 1 |   2  |     16  | 2*VLEN/SEW | vn, vn+1
-| 1 | 0 |   4  |      8  | 4*VLEN/SEW | vn, ..., vn+3
-| 1 | 1 |   8  |      4  | 8*VLEN/SEW | vn, ..., vn+7
+| 1 | 0 | 0 |   -  |     -   |     -      | reserved
+| 1 | 0 | 1 |   1/8|     32  | VLEN/SEW/8 | `v` __n__ (single register in group)
+| 1 | 1 | 0 |   1/4|     32  | VLEN/SEW/4 | `v` __n__ (single register in group)
+| 1 | 1 | 1 |   1/2|     32  | VLEN/SEW/2 | `v` __n__ (single register in group)
+| 0 | 0 | 0 |   1  |     32  |   VLEN/SEW | `v` __n__ (single register in group)
+| 0 | 0 | 1 |   2  |     16  | 2*VLEN/SEW | `v` __n__, `v` __n__+1
+| 0 | 1 | 0 |   4  |      8  | 4*VLEN/SEW | `v` __n__, ..., `v` __n__+3
+| 0 | 1 | 1 |   8  |      4  | 8*VLEN/SEW | `v` __n__, ..., `v` __n__+7
 |===
 
-When `vlmul=01`, then vector operations on register `v` __n__ also
-operate on vector register `v` __n__+1, giving twice the vector length
-in bits.  Instructions specifying a vector operand with an
-odd-numbered vector register will raise an illegal instruction
+When LMUL=2, the vector register group contains vector register `v`
+__n__ and vector register `v` __n__+1, providing twice the vector
+length in bits.  Instructions specifying a vector register group with
+an odd-numbered vector register will raise an illegal instruction
 exception.
 
-Similarly, when `vlmul=10`, vector instructions operate on four
-vector registers at a time, and instructions specifying vector
-operands using vector register numbers that are not multiples of four
-will raise an illegal instruction exception.  When `vlmul=11`,
-operations operate on eight vector registers at a time, and
-instructions specifying vector operands using register numbers that
-are not multiples of eight will raise an illegal instruction
-exception.
+When LMUL=4, the vector register group contains four vector registers,
+and instructions specifying vector register groups using vector
+register numbers that are not multiples of four will raise an illegal
+instruction exception.
 
-NOTE: This grouping pattern (LMUL=8 has groups `v0`,`v8`,`v16`,`v24`)
-was adopted in 0.6 initially to avoid issues with the floating-point
-calling convention when floating-point values were overlaid on the
-vector registers, whereas earlier versions kept the vector register
-group names contiguous (LMUL=8 has groups `v0`, `v1`, `v2`, `v3`).  In
-versions v0.7 onwards, the floating-point registers are separate again.
+When LMUL=8, the vector register group contains eight vector
+registers, and instructions specifying vector register groups using
+register numbers that are not multiples of eight will raise an illegal
+instruction exception.
 
-Mask register instructions always operate on a single vector register,
-regardless of LMUL setting.
+Mask registers are always contained in a single vector register,
+regardless of LMUL.
 
 ==== Vector Type Illegal `vill`
 
@@ -310,7 +320,7 @@ NOTE: The value in `vlenb` is a design-time constant in any
 implementation.
 
 NOTE: Without this CSR, several instructions are needed to calculate
-VLEN in bytes.  The code has to disturb current `vl` and `vtype`
+VLEN in bytes, and the code has to disturb current `vl` and `vtype`
 settings which require them to be saved and restored.
 
 === Vector Start Index CSR `vstart`
@@ -451,7 +461,7 @@ The vector registers can have arbitrary values at reset.
 
 The following diagrams illustrate how different width elements are
 packed into the bytes of a vector register depending on the current
-SEW and LMUL settings, as well as implementation ELEN and VLEN.
+SEW and LMUL settings, as well as implementation ELEN, VLEN, and SLEN.
 Elements are packed into each vector register with the
 least-significant byte in the lowest-numbered bits.
 
@@ -461,15 +471,15 @@ configurations, which reduces implementation flexibility but removes
 need for zeroing on config changes.  Making the mapping explicit also
 has the advantage of simplifying oblivious context save-restore code,
 as the code can save the configuration in `vl` and `vtype`,
-then reset `vtype` to a convenient value (e.g., four vector groups of
+then reset `vtype` to a convenient value (e.g., four vector register groups of
 LMUL=8, SEW=ELEN) before saving all vector register bits without
 needing to parse the configuration.  The reverse process will restore
 the state.
 
-=== Mapping with LMUL=1
+=== Mapping for SLEN=VLEN and LMUL {le} 1
 
-When LMUL=1, elements are simply packed in order from the
-least-significant to most-significant bits of the vector register.
+When SLEN=VLEN and LMUL=1, elements are simply packed in order from
+the least-significant to most-significant bits of the vector register.
 
 NOTE: To increase readability, vector register layouts are drawn with
 bytes ordered from right to left with increasing byte address.  Bits
@@ -478,10 +488,13 @@ increasing bit index from right to left corresponding to increasing
 magnitude.
 
 ----
-  The element index is given in hexadecimal and is shown placed at the least-significant byte of the stored element. ELEN <=128 and LMUL=1 throughout.
+LMUL=1 examples.
+
+The element index is given in hexadecimal and is shown placed at the
+least-significant byte of the stored element.
 
 
- VLEN=32b
+ VLEN=SLEN=32b
 
  Byte         3 2 1 0
 
@@ -489,7 +502,7 @@ magnitude.
  SEW=16b        1   0
  SEW=32b            0
 
- VLEN=64b
+ VLEN=SLEN=64b
 
  Byte        7 6 5 4 3 2 1 0
 
@@ -498,7 +511,7 @@ magnitude.
  SEW=32b           1       0
  SEW=64b                   0
 
- VLEN=128b
+ VLEN=SLEN=128b
 
  Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
 
@@ -508,7 +521,7 @@ magnitude.
  SEW=64b                   1               0
  SEW=128b                                  0
 
- VLEN=256b
+ VLEN=SLEN=256b
 
  Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
 
@@ -519,71 +532,44 @@ magnitude.
  SEW=128b                                1                               0
 ----
 
-=== Mapping with LMUL > 1
-
-When vector registers are grouped, the elements of the vector register
-group are striped across the constituent vector registers.  The
-striping distance in bits, SLEN, sets how many bits are packed
-contiguously into one vector register before moving to the next in the
-group.
-
-For example, when SLEN = 128, the striping pattern is repeated in
-multiples of 128 bits.  The first 128/SEW elements are packed
-contiguously at the start of the first vector register in the group.
-The next 128/SEW elements are packed contiguously at the start of the
-next vector register in the group.  After packing the first
-LMUL*128/SEW elements at the start of each of the LMUL vector
-registers in the group, the second LMUL*128/SEW group of elements are
-packed into the second 128b segment of each of the vector registers in
-the group, and so on.
+When LMUL < 1, only the first LMUL*VLEN/SEW elements in the vector
+register are used.  The remaining space in the vector register is
+treated as part of the tail.
 
 ----
- Example 1: VLEN=32b, SEW=16b, LMUL=2
+ Example, VLEN=SLEN=128b, LMUL=1/4
+
+ Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ SEW=8b      - - - - - - - - - - - - 3 2 1 0
+ SEW=16b       -   -   -   -   -   -   1   0
+ SEW=32b           -       -       -       0
+----
+
+=== Mapping with SLEN=VLEN and LMUL > 1
+
+When vector registers are grouped, the elements of the vector register
+group are striped across the constituent vector registers.  When
+SLEN=VLEN, the elements are packed contiguously in element order in
+each vector register in the group, moving to the next highest-numbered
+vector register in the group once each vector register is filled.
+
+----
+ LMUL examples for SLEN=VLEN
+
+ VLEN=SLEN=32b, SEW=8b, LMUL=2
+
+ Byte         3 2 1 0
+ v2*n         3 2 1 0
+ v2*n+1       7 6 5 4
+
+ VLEN=SLEN=32b, SEW=16b, LMUL=2
 
  Byte         3 2 1 0
  v2*n           1   0
  v2*n+1         3   2
 
- Example 2: VLEN=64b, SEW=32b, LMUL=2
-
- Byte         7 6 5 4 3 2 1 0
- v2*n               1       0
- v2*n+1             3       2
-
- Example 3: VLEN=128b, SEW=32b, LMUL=2
-
- Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
- v2*n              3       2       1       0
- v2*n+1            7       6       5       4
-
- Example 4: VLEN=256b, SEW=32b, LMUL=2
-
- Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
- v2*n            B       A       9       8       3       2       1       0
- v2*n+1          F       E       D       C       7       6       5       4
-----
-
-If SEW > SLEN, the striping pattern places one element in each
-vector register in the group before moving to the next vector register
-in the group.  So, when LMUL=2, the even-numbered vector register
-contains the even-numbered elements of the vector and the odd-numbered
-vector register contains the odd-numbered elements of the vector.
-
-NOTE: In most implementations, the striping distance SLEN {ge} ELEN.
-
-----
- Example: VLEN=256b, SEW=256b, LMUL=2
-
- Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
- v2*n                                                                    0
- v2*n+1                                                                  1
-
-----
-
-When LMUL = 4, four vector registers hold elements as shown:
-
-----
- Example 1: VLEN=32b, SLEN=32b, SEW=16b, LMUL=4,
+ VLEN=SLEN=32b, SEW=16b, LMUL=4
 
  Byte         3 2 1 0
  v4*n           1   0
@@ -591,7 +577,21 @@ When LMUL = 4, four vector registers hold elements as shown:
  v4*n+2         5   4
  v4*n+3         7   6
 
- Example 2: VLEN=64b, SLEN=64b, SEW=32b, LMUL=4
+ VLEN=SLEN=32b, SEW=32b, LMUL=4
+
+ Byte         3 2 1 0
+ v4*n               0
+ v4*n+1             1
+ v4*n+2             2
+ v4*n+3             3
+
+ VLEN=SLEN=64b, SEW=32b, LMUL=2
+
+ Byte         7 6 5 4 3 2 1 0
+ v2*n               1       0
+ v2*n+1             3       2
+
+ VLEN=SLEN=64b, SEW=32b, LMUL=4
 
  Byte         7 6 5 4 3 2 1 0
  v4*n               1       0
@@ -599,70 +599,150 @@ When LMUL = 4, four vector registers hold elements as shown:
  v4*n+2             5       4
  v4*n+3             7       6
 
+ VLEN=SLEN=128b, SEW=32b, LMUL=2
 
- Example 3: VLEN=128b, SLEN=64b, SEW=32b, LMUL=4
+ Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
+ v2*n              3       2       1       0
+ v2*n+1            7       6       5       4
 
- Byte          F E D C B A 9 8 7 6 5 4 3 2 1 0
- v4*n                9       8       1       0   32b elements
- v4*n+1              B       A       3       2
- v4*n+2              D       C       5       4
- v4*n+3              F       E       7       6
-
- Example 4: VLEN=128b, SLEN=128b, SEW=32b, LMUL=4
+ VLEN=SLEN=128b, SEW=32b, LMUL=4
 
  Byte          F E D C B A 9 8 7 6 5 4 3 2 1 0
- v4*n                3       2       1       0   32b elements
+ v4*n                3       2       1       0
  v4*n+1              7       6       5       4
  v4*n+2              B       A       9       8
  v4*n+3              F       E       D       C
+----
 
- Example 5: VLEN=256b, SLEN=128b, SEW=32b, LMUL=4
+=== Mapping with SLEN < VLEN and LMUL {le} 1
+
+The striping distance in bits, SLEN, sets the maximum displacement
+between vector register bit positions that participate in the same
+elemental mixed-width arithmetic operation.
+
+NOTE: The striping distance SLEN can be designed as less than VLEN to
+reduce cross-datapath wiring for mixed-width operations on
+implementations that have wide spatial vector datapaths.  For such
+machines, SLEN is typically at least 128 bits and used for vector
+datapaths operating on at least 256 bits per cycle or wider.  For
+datapath designs where cross-datapath wiring is not a constraint, SLEN
+will usually be set to VLEN.  Earlier explicit configuration vector
+extension designs (< 0.6) allowed these tradeoffs to be managed at the
+microarchitectural level and optimized for each configuration.
+
+NOTE: Compared to v0.8, the SLEN<VLEN mapping pattern has changed to
+support fractional LMUL in a straightforward way and also to provide
+greater throughput on shorter vectors when using a wide spatial
+datapath.  The main complication is that the memory connections are
+slightly more complex.
+
+When SLEN < VLEN, each vector register is divided into VLEN/SLEN
+sections each holding SLEN bits.
+
+When LMUL=1, successive vector elements are mapped into successive
+sections, wrapping back around to the first section until the vector
+register is full.
+
+----
+ LMUL=1 examples for SLEN < VLEN
+
+ VLEN=256b, SLEN=128b, SEW=8b, LMUL=1
+
+ Section                  1                                0
+ Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
+          1F1D1B1917151311 F D B 9 7 5 3 1 1E1C1A1816141210 E C A 8 6 4 2 0
+
+ VLEN=256b, SLEN=128b, SEW=16b, LMUL=1
+
+ Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
+             F   D   B   9   7   5   3   1    E   C   A   8   6   4   2   0
+
+ VLEN=256b, SLEN=128b, SEW=32b, LMUL=1
+
+ Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
+                 7       5       3       1        6       4       2       0
+
+ VLEN=256b, SLEN=128b, SEW=64b, LMUL=1
+
+ Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
+                         3               1                2               0
+
+----
+
+When LMUL < 1, only the first LMUL*VLEN/SEW elements in the vector
+register are used, with these elements mapped to sections in the same
+way as when LMUL=1.  The remaining space in the vector register is
+treated as part of the tail.
+
+NOTE: As with SLEN=VLEN designs, SLEN<VLEN implementations can treat
+fractional LMUL simply as though the vector length was reduced with
+LMUL=1.
+
+----
+ Example, VLEN=256b, SLEN=128b, LMUL=1/4
+
+ Section                  1                                0
+ Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
+           - - - - - - - - - - - - 7 5 3 1  - - - - - - - - - - - - 6 4 2 0
+
+ VLEN=256b, SLEN=128b, SEW=16b, LMUL=1/4
+
+ Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
+             -   -   -   -   -   -   3   1    -   -   -   -   -   -   2   0
+
+ VLEN=256b, SLEN=128b, SEW=32b, LMUL=1
+
+ Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
+                 -       -       -       1        -       -       -       0
+----
+
+NOTE: The SLEN < VLEN mapping pattern does require full-width
+cross-datapath connections in the vector memory system between memory
+bytes and vector register bytes, but this is a small fraction of all
+operand wiring in a vector unit.
+
+=== Mapping with SLEN < VLEN and LMUL > 1
+
+When SLEN < VLEN and LMUL > 1, the first vector register is packed
+with the initial VLEN/SEW elements in the same way as for LMUL=1. The
+second vector register in the group is packed with the next VLEN/SEW
+elements following the same pattern.
+
+----
+ LMUL examples for SLEN < VLEN
+
+ VLEN=256b, SLEN=128b, SEW=32b, LMUL=2
+
+ Section                  1                                0
+ Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
+ v2*n            7       5       3       1        6       4       2       0
+ v2*n+1          F       D       B       9        E       C       A       8
+
+ VLEN=256b, SLEN=128b, SEW=64b, LMUL=2
 
  Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
- v4*n           13      12      11      10       3       2       1       0
- v4*n+1         17      16      15      14       7       6       5       4
- v4*n+2         1B      1A      19      18       B       A       9       8
- v4*n+3         1F      1E      1D      1C       F       E       D       C
+ v2*n                    3               1               2               0
+ v2*n+1                  7               5               6               4
 
- Example 6: VLEN=256b, SLEN=128b, SEW=256b, LMUL=4
+ VLEN=256b, SLEN=128b, SEW=64b, LMUL=4
 
  Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
- v4*n                                                                    0
- v4*n+1                                                                  1
- v4*n+2                                                                  2
- v4*n+3                                                                  3
-----
-
-A similar pattern is followed for LMUL = 8.
+ v4*n                    3               1               2               0
+ v4*n+1                  7               5               6               4
+ v4*n+2                  B               9               A               8
+ v4*n+3                  F               D               E               C
 
 ----
- Example: VLEN=256b, SLEN=128b, SEW=32b, LMUL=8
 
- Byte   1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
- v8*n         23      22      21      20       3       2       1       0
- v8*n+1       27      26      25      24       7       6       5       4
- v8*n+2       2B      2A      29      28       B       A       9       8
- v8*n+3       2F      2E      2D      2C       F       E       D       C
- v8*n+4       33      32      31      30      13      12      11      10
- v8*n+5       37      36      35      34      17      16      15      14
- v8*n+6       3B      3A      39      38      1B      1A      19      18
- v8*n+7       3F      3E      3D      3C      1F      1E      1D      1C
-----
+If SEW > SLEN, the packing operates as if SLEN was increased to SEW.
+
+NOTE: In most implementations, the striping distance SLEN {ge} ELEN.
 
 Different striping patterns are architecturally visible, but software
 can be written that produces the same results regardless of striping
 pattern. The primary constraint is to not change the LMUL used to
 access values held in a vector register group (i.e., do not read
 values with a different LMUL than used to write values to the group).
-
-NOTE: The striping length SLEN for an implementation is set to
-optimize the tradeoff between datapath wiring for mixed-width
-operations and buffering needed to corner-turn wide vector unit-stride
-memory accesses into parallel accesses for the vector register file.
-
-NOTE: The previous explicit configuration design (version < 0.6)
-allowed these tradeoffs to be managed at the microarchitectural level
-and optimized for each configuration.
 
 === Mapping across Mixed-Width Operations
 
@@ -1860,7 +1940,7 @@ indicate the return value is not required (`wd=0`).
 # SEW-bit vector AMOs
 vamoswape.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
 vamoswape.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
-                           
+
 vamoadde.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
 vamoadde.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
 
@@ -3415,7 +3495,7 @@ elements before summing them.
 
 ----
     # Unsigned sum reduction into double-width accumulator
-    vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(zero-extend(SEW)) 
+    vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(zero-extend(SEW))
 
     # Signed sum reduction into double-width accumulator
     vwredsum.vs  vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(sign-extend(SEW))
@@ -4172,7 +4252,7 @@ register `vd`. Any remaining elements of `vd` are unchanged.
         1 1 0 1 0 0 1 0 1   v0
         8 7 6 5 4 3 2 1 0   v1
         1 2 3 4 5 6 7 8 9   v2
-        
+
                                 vcompress.vm v2, v1, v0
         1 2 3 4 8 7 5 2 0   v2
 ----
