@@ -936,7 +936,11 @@ vector length was reduced.
 In systems with SLEN < VLEN, the mask elements are striped across the
 VLEN/SLEN sections of the vector mask register.  Mask element 0 is in
 least-significant bits of section 0, and mask element 1 is in
-least-significant bits of section 1, etc. 
+least-significant bits of section 1, etc.  In general, the
+least-significant bit of the mask element for element __i__ is located
+at bit:
+
+mask_LSB_index(__i__) = (__i__ % (VLEN / SLEN)) * SLEN + floor(__i__ / (VLEN / SLEN)) * MLEN
 
 ----
  Mask register element location examples for SLEN < VLEN
@@ -963,9 +967,7 @@ least-significant bits of section 1, etc.
                               [144]   [128]                     [16]     [0]
 ----
 
-TODO: More examples might be useful. A formula should be derived to
-locate each element __i__'s mask element in the vector register.
-
+TODO: More examples might be useful.
 
 == Vector Instruction Formats
 
