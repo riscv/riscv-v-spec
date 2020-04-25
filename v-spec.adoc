@@ -476,9 +476,9 @@ LMUL=8, SEW=ELEN) before saving all vector register bits without
 needing to parse the configuration.  The reverse process will restore
 the state.
 
-=== Mapping for SLEN=VLEN and LMUL {le} 1
+=== Mapping for VLEN=SLEN and LMUL {le} 1
 
-When SLEN=VLEN and LMUL=1, elements are simply packed in order from
+When VLEN=SLEN and LMUL=1, elements are simply packed in order from
 the least-significant to most-significant bits of the vector register.
 
 NOTE: To increase readability, vector register layouts are drawn with
@@ -634,7 +634,7 @@ NOTE: Compared to v0.8, the SLEN<VLEN mapping pattern has changed to
 support fractional LMUL in a straightforward way and also to provide
 greater throughput on shorter vectors when using a wide spatial
 datapath.  The main complication is that the memory connections are
-slightly more complex.
+somewhat more complex, if not greater in number.
 
 When SLEN < VLEN, each vector register is divided into VLEN/SLEN
 sections each holding SLEN bits.
@@ -763,7 +763,7 @@ values with a different LMUL than used to write values to the group).
 
 The vector ISA is designed to support mixed-width operations without
 requiring a large number of explicit additional rearrangement
-instructions or requiring a large amount of additional datpath wiring.
+instructions or requiring a large amount of additional datapath wiring.
 The recommended software strategy is to modify `vtype` dynamically to
 keep SEW/LMUL constant (and hence VLMAX constant) when operating on
 vectors of different precision values.
@@ -821,8 +821,8 @@ SLEN-wide sections of the datapath.
 | SEW= 512 |   |    |    |    |     |     |   8  |  4  |   2  |  1  |  1/2 | 1/4 | 1/8 |
 | SEW=1024 |   |    |    |    |     |     |      |  8  |   4  |  2  |   1  | 1/2 | 1/4 | 1/8
 
-|===     
-         
+|===
+
 
 Larger LMUL settings can also used to simply increase vector length to
 reduce instruction fetch and dispatch overheads, in cases where fewer
@@ -835,34 +835,24 @@ A vector mask occupies only one vector register regardless of SEW and
 LMUL.  The mask bits that are used for each vector operation depends
 on the current SEW and LMUL setting.
 
-The maximum number of elements in a vector operand is:
+A mask element is allocated for each data element by dividing the mask
+register into mask elements.  The size of each mask element in bits,
+_MLEN_, is:
 
 ----
-               VLMAX = LMUL * VLEN/SEW
+                MLEN = SEW/max(LMUL,1)
 ----
 
-A mask is allocated for each element by dividing the mask register
-into VLEN/VLMAX fields.  The size of each mask element in bits, _MLEN_,
-is:
-
-----
-                MLEN = VLEN/VLMAX
-                     = VLEN/(LMUL * VLEN/SEW)
-                     = SEW/LMUL
-----
+Fractional LMUL values, LMUL < 1, have the same MLEN as LMUL=1.
 
 The size of MLEN varies from ELEN (SEW=ELEN, LMUL=1) down to 1
 (SEW=8b,LMUL=8), and hence a single vector register can always hold
-the entire mask register.
+the entire set of VLMAX mask elements.
+
+==== Mask Element Locations for SLEN=VLEN
 
 The mask bits for element _i_ are located in bits [MLEN*_i_+(MLEN-1) :
-MLEN*_i_] of the mask register.  When a mask element is written by a
-compare instruction, the low bit in the mask element is written with
-the compare result and the upper bits of the mask element are zeroed.
-Destination mask elements past the end of the current vector length
-are unchanged.  When a value is read as a mask, only the
-least-significant bit of the mask element is used to control masking
-and the upper bits are ignored.
+MLEN*_i_] of the mask register.
 
 The pattern is such that for constant SEW/LMUL values, the effective
 predicate bits are located in the same bit of the mask vector
@@ -870,7 +860,7 @@ register, which simplifies use of masking in loops with mixed-width
 elements.
 
 ----
- VLEN=32b
+ SLEN=VLEN=32b
 
           Byte    3   2   1   0
  LMUL=1,SEW=8b
@@ -937,52 +927,45 @@ elements.
                 [31][30][29][28]
 ----
 
+When LMUL < 1, the mask elements are accessed as if LMUL=1 and the
+vector length was reduced.
+
+
+=== Mask Element Locations for SLEN < VLEN
+
+In systems with SLEN < VLEN, the mask elements are striped across the
+VLEN/SLEN sections of the vector mask register.  Mask element 0 is in
+least-significant bits of section 0, and mask element 1 is in
+least-significant bits of section 1, etc. 
+
 ----
- VLEN=256b, SLEN=128b
- Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
+ Mask register element location examples for SLEN < VLEN
+ The bit position of the LSB of each mask element is in decimal inside [] braces.
 
- SEW=8b, LMUL=1, VLMAX=32
+ VLEN=256b, SLEN=128b, SEW=32b, LMUL=2, MLEN=16b
 
- v1       1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
-        [248]          ...            [128] ...[96] ...[64] ...[32] ... [0] Mask bit positions in decimal
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
 
- SEW=16b, LMUL=2, VLMAX=32
+ v2*n            7       5       3       1|       6       4       2       0
+              [176]   [160]   [144]   [128]     [48]    [32]    [16]     [0]
 
- v2*n       17  16  15  14  13  12  11  10   7   6   5   4   3   2   1   0
-          [184]          ...          [128]    ...     [32]    ...      [0]
- v2*n+1     1F  1E  1D  1C  1B  1A  19  18   F   E   D   C   B   A   9   8
-          [248]          ...          [196]    ...     [96]    ...     [64]
+ v2*n+1          F       D       B       9|       E       C       A       8
+              [240]   [224]   [208]   [192]    [112]     [96]   [80]    [64]
 
- SEW=32b, LMUL=4, VLMAX=32
 
- v4*n           13      12      11      10       3       2       1       0
-              [152]        ...        [128]    [24]        ...          [0]
- v4*n+1         17      16      15      14       7       6       5       4
-              [184]        ...        [160]    [56]        ...         [32]
- v4*n+2         1B      1A      19      18       B       A       9       8
-              [116]        ...        [192]    [88]        ...         [64]
- v4*n+3         1F      1E      1D      1C       F       E       D       C
-              [248]        ...        [224]   [120]        ...         [96]
+ VLEN=256b, SLEN=128b, SEW=32b, LMUL=1/2, MLEN=16b
 
- SEW=64b, LMUL=8, VLMAX=32
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
 
- v8*n                   11              10               1               0
-                      [136]           [128]             [8]             [0]
- v8*n+1                 13              12               3               2
-                      [152]           [144]            [24]            [16]
- v8*n+2                 15              14               5               4
-                      [168]           [160]            [40]            [32]
- v8*n+3                 17              16               7               6
-                      [184]           [176]            [56]            [48]
- v8*n+4                 19              18               9               8
-                      [200]           [192]            [72]            [64]
- v8*n+5                 1B              1A               B               A
-                      [216]           [208]            [88]            [80]
- v8*n+6                 1D              1C               D               C
-                      [232]           [224]           [104]            [96]
- v8*n+7                 1F              1E               F               E
-                      [248]           [240]           [120]           [112]
+ vn              -       -       3       1|       -       -       2       0
+                              [144]   [128]                     [16]     [0]
 ----
+
+TODO: More examples might be useful. A formula should be derived to
+locate each element __i__'s mask element in the vector register.
+
 
 == Vector Instruction Formats
 
@@ -1058,21 +1041,27 @@ element and never generate exceptions.
 
 In the base vector extension, the mask value used to control execution
 of a masked vector instruction is always supplied by vector register
-`v0`.  Only the least-significant bit of each element of the mask
-vector is used to control execution.
+`v0`.
 
 NOTE: Future vector extensions may provide longer instruction
 encodings with space for a full mask register specifier.
 
 The destination vector register group for a masked vector instruction
 can only overlap the source mask register (`v0`) when
-LMUL=1. Otherwise, an illegal instruction exception is raised.
+LMUL{le}1. Otherwise, an illegal instruction exception is raised.
 
 NOTE: This constraint supports restart with a non-zero `vstart` value.
 
 Other vector registers can be used to hold working mask values, and
 mask vector logical operations are provided to perform predicate
 calculations. [[sec-mask-vector-logical]]
+
+When a mask element is written by a compare instruction, the low bit
+in the mask element is written with the compare result and the upper
+bits of the mask element are zeroed.  Destination mask elements past
+the end of the current vector length are unchanged.  When a value is
+read as a mask, only the least-significant bit of the mask element is
+used to control masking and the upper bits are ignored.
 
 [[sec-vector-mask-encoding]]
 ==== Mask Encoding
@@ -1130,8 +1119,9 @@ update any destination vector register.
 
 - The _tail_ elements during a vector instruction's execution are the
 elements past the current vector length setting.  The tail elements do
-not raise exceptions, and do not update any destination vector register
-group.
+not raise exceptions, and do not update any destination vector
+register group.  When LMUL < 1, the tail includes the elements past
+VLMAX that are held in the same vector register.
 
 - In addition, another term, _body_, is used for the set of elements
 that are either active or inactive, i.e., after prestart but before
@@ -1144,7 +1134,7 @@ the tail.
     active(x)   = (vstart <= x < vl) && mask(x)
     inactive(x) = (vstart <= x < vl) && !mask(x)
     body(x)     = active(x) || inactive(x)
-    tail(x)     = (vl <= x < VLMAX)
+    tail(x)     = (vl <= x < max(VLMAX,VLEN/SEW))
 ----
 
 NOTE: The inactive and tail update rules leave unchanged destination
@@ -1212,16 +1202,22 @@ include::vtype-format.adoc[]
 ----
  Suggested assembler names used for vtypei setting
 
- e8    #   8b elements
- e16   #  16b elements
- e32   #  32b elements
- e64   #  64b elements
- e128  # 128b elements
+ e8    # SEW=8b
+ e16   # SEW=16b
+ e32   # SEW=32b
+ e64   # SEW=64b
+ e128  # SEW=128b
+ e256  # SEW=256b
+ e512  # SEW=512b
+ e1024 # SEW=1024b
 
- m1   # Vlmul x1, assumed if m setting absent
- m2   # Vlmul x2
- m4   # Vlmul x4
- m8   # Vlmul x8
+ mf8  # LMUL=1/8
+ mf4  # LMUL=1/4
+ mf2  # LMUL=1/2
+ m1   # LMUL=1, assumed if m setting absent
+ m2   # LMUL=2
+ m4   # LMUL=4
+ m8   # LMUL=8
 
  d1   # EDIV 1, assumed if d setting absent
  d2   # EDIV 2
@@ -1232,6 +1228,7 @@ Examples:
     vsetvli t0, a0, e8          # SEW= 8, LMUL=1, EDIV=1
     vsetvli t0, a0, e8,m2       # SEW= 8, LMUL=2, EDIV=1
     vsetvli t0, a0, e32,m2,d4   # SEW=32, LMUL=2, EDIV=4
+    vsetvli t0, a0, e32,mf2     # SEW=32, LMUL=1/2, EDIV=1
 ----
 
 If the `vtype` setting is not supported by the implementation, then
@@ -1596,7 +1593,7 @@ segment, _NFIELDS_.
 | 1 | 1 | 1 | 8
 |===
 
-The LMUL setting must be such that LMUL * NFIELDS <= 8, otherwise an
+The LMUL setting must be such that LMUL * NFIELDS {le} 8, otherwise an
 illegal instruction exception is raised.
 
 NOTE: The product LMUL * NFIELDS represents the number of underlying
@@ -2186,12 +2183,12 @@ Where there is a second source vector register group (specified by
 The destination vector register group cannot overlap the first source
 vector register group (specified by `vs2`).  The destination vector
 register group cannot overlap the mask register if used, unless
-LMUL=1. If either constraint is violated, an illegal instruction
+LMUL{le}1. If either constraint is violated, an illegal instruction
 exception is raised.
 
 NOTE: It is safe to overwrite a second source vector register group
 with the same LMUL and element width as the result, or to overwrite a
-mask register when LMUL=1.
+mask register when LMUL{le}1.
 
 A `vn*` prefix on the opcode is used to distinguish these instructions
 in the assembler, or a `vfn*` prefix for narrowing floating-point
