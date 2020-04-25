@@ -694,18 +694,20 @@ fractional LMUL simply as though the vector length was reduced with
 LMUL=1.
 
 ----
- Example, VLEN=256b, SLEN=128b, LMUL=1/4
+ Example, VLEN=256b, SLEN=128b
+
+ SEW=8b, LMUL=1/4
 
  Section                  1                                0
  Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
            - - - - - - - - - - - - 7 5 3 1| - - - - - - - - - - - - 6 4 2 0
 
- VLEN=256b, SLEN=128b, SEW=16b, LMUL=1/4
+ SEW=16b, LMUL=1/4
 
  Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
              -   -   -   -   -   -   3   1|   -   -   -   -   -   -   2   0
 
- VLEN=256b, SLEN=128b, SEW=32b, LMUL=1
+ SEW=32b, LMUL=1/4
 
  Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
                  -       -       -       1|       -       -       -       0
