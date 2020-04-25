@@ -648,25 +648,40 @@ register is full.
 
  VLEN=256b, SLEN=128b, SEW=8b, LMUL=1
 
- Section                  1                                0
- Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
-          1F1D1B1917151311 F D B 9 7 5 3 1 1E1C1A1816141210 E C A 8 6 4 2 0
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+          1F1D1B1917151311 F D B 9 7 5 3 1|1E1C1A1816141210 E C A 8 6 4 2 0
 
  VLEN=256b, SLEN=128b, SEW=16b, LMUL=1
 
- Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
-             F   D   B   9   7   5   3   1    E   C   A   8   6   4   2   0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+             F   D   B   9   7   5   3   1|   E   C   A   8   6   4   2   0
 
  VLEN=256b, SLEN=128b, SEW=32b, LMUL=1
 
- Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
-                 7       5       3       1        6       4       2       0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+                 7       5       3       1|       6       4       2       0
 
  VLEN=256b, SLEN=128b, SEW=64b, LMUL=1
 
- Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
-                         3               1                2               0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+                         3               1|               2               0
 
+ VLEN=256b, SLEN=64b, SEW=16b, LMUL=1
+
+ Section          3       |        2       |        1       |        0
+ Byte     1F1E1D1C1B1A1918|1716151413121110| F E D C B A 9 8| 7 6 5 4 3 2 1 0
+             F   B   7   3|   E   A   6   2|   D   9   5   1|   C   8   4   0
+
+ VLEN=256b, SLEN=64b, SEW=32b, LMUL=1
+
+ Byte     1F1E1D1C1B1A1918|1716151413121110| F E D C B A 9 8| 7 6 5 4 3 2 1 0
+                 7       3|       6       2|       5       1|       4       0
+
+ VLEN=256b, SLEN=64b, SEW=64b, LMUL=1
+
+ Byte     1F1E1D1C1B1A1918|1716151413121110| F E D C B A 9 8| 7 6 5 4 3 2 1 0
+                         3|               2|               1|               0
 ----
 
 When LMUL < 1, only the first LMUL*VLEN/SEW elements in the vector
@@ -682,18 +697,18 @@ LMUL=1.
  Example, VLEN=256b, SLEN=128b, LMUL=1/4
 
  Section                  1                                0
- Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
-           - - - - - - - - - - - - 7 5 3 1  - - - - - - - - - - - - 6 4 2 0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+           - - - - - - - - - - - - 7 5 3 1| - - - - - - - - - - - - 6 4 2 0
 
  VLEN=256b, SLEN=128b, SEW=16b, LMUL=1/4
 
- Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
-             -   -   -   -   -   -   3   1    -   -   -   -   -   -   2   0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+             -   -   -   -   -   -   3   1|   -   -   -   -   -   -   2   0
 
  VLEN=256b, SLEN=128b, SEW=32b, LMUL=1
 
- Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
-                 -       -       -       1        -       -       -       0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+                 -       -       -       1|       -       -       -       0
 ----
 
 NOTE: The SLEN < VLEN mapping pattern does require full-width
@@ -713,24 +728,24 @@ elements following the same pattern.
 
  VLEN=256b, SLEN=128b, SEW=32b, LMUL=2
 
- Section                  1                                0
- Byte     1F1E1D1C1B1A19181716151413121110  F E D C B A 9 8 7 6 5 4 3 2 1 0
- v2*n            7       5       3       1        6       4       2       0
- v2*n+1          F       D       B       9        E       C       A       8
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+ v2*n            7       5       3       1|       6       4       2       0
+ v2*n+1          F       D       B       9|       E       C       A       8
 
  VLEN=256b, SLEN=128b, SEW=64b, LMUL=2
 
- Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
- v2*n                    3               1               2               0
- v2*n+1                  7               5               6               4
+ Byte     1F1E1D1C1B1A19181716151413121110|F E D C B A 9 8 7 6 5 4 3 2 1 0
+ v2*n                    3               1|              2               0
+ v2*n+1                  7               5|              6               4
 
  VLEN=256b, SLEN=128b, SEW=64b, LMUL=4
 
- Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
- v4*n                    3               1               2               0
- v4*n+1                  7               5               6               4
- v4*n+2                  B               9               A               8
- v4*n+3                  F               D               E               C
+ Byte     1F1E1D1C1B1A19181716151413121110|F E D C B A 9 8 7 6 5 4 3 2 1 0
+ v4*n                    3               1|              2               0
+ v4*n+1                  7               5|              6               4
+ v4*n+2                  B               9|              A               8
+ v4*n+3                  F               D|              E               C
 
 ----
 
@@ -746,91 +761,72 @@ values with a different LMUL than used to write values to the group).
 
 === Mapping across Mixed-Width Operations
 
-The pattern used to map elements within a vector register group is
-designed to reduce datapath wiring when supporting operations across
-multiple element widths.  The recommended software strategy in this
-case is to modify `vtype` dynamically to keep SEW/LMUL constant (and
-hence VLMAX constant).
+The vector ISA is designed to support mixed-width operations without
+requiring a large number of explicit additional rearrangement
+instructions or requiring a large amount of additional datpath wiring.
+The recommended software strategy is to modify `vtype` dynamically to
+keep SEW/LMUL constant (and hence VLMAX constant) when operating on
+vectors of different precision values.
 
 The following example shows four different packed element widths (8b,
 16b, 32b, 64b) in a VLEN=256b/SLEN=128b implementation.  The vector
 register grouping factor (LMUL) is increased by the relative element
 size such that each group can hold the same number of vector elements
-(32 in this example) to simplify stripmining code.  Any operation
+(VLMAX=16 in this example) to simplify stripmining code.  Any operation
 between elements with the same index only touches operand bits located
-within the same 128b portion of the datapath.
+within the same 128b section of the datapath.
 
 ----
- VLEN=256b, SLEN=128b
- Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
+Examples VLEN=256b, SLEN=128b, with SEW/LMUL=16
 
- SEW=8b, LMUL=1, VLMAX=32
+Section                  1               |                0
+Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+vn        - - - - - - - - F D B 9 7 5 3 1| - - - - - - - - E C A 8 6 4 2 0  SEW=8b, LMUL=1/2
 
- v1       1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
+Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+vn          F   D   B   9   7   5   3   1|   E   C   A   8   6   4   2   0  SEW=16b, LMUL=1
 
- SEW=16b, LMUL=2, VLMAX=32
+Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+v2*n            7       5       3       1|       6       4       2       0  SEW=32b, LMUL=2
+v2*n+1          F       D       B       9|       E       C       A       8
 
- v2*n       17  16  15  14  13  12  11  10   7   6   5   4   3   2   1   0
- v2*n+1     1F  1E  1D  1C  1B  1A  19  18   F   E   D   C   B   A   9   8
-
- SEW=32b, LMUL=4, VLMAX=32
-
- v4*n           13      12      11      10       3       2       1       0
- v4*n+1         17      16      15      14       7       6       5       4
- v4*n+2         1B      1A      19      18       B       A       9       8
- v4*n+3         1F      1E      1D      1C       F       E       D       C
-
- SEW=64b, LMUL=8, VLMAX=32
-
- v8*n                   11              10               1               0
- v8*n+1                 13              12               3               2
- v8*n+2                 15              14               5               4
- v8*n+3                 17              16               7               6
- v8*n+4                 19              18               9               8
- v8*n+5                 1B              1A               B               A
- v8*n+6                 1D              1C               D               C
- v8*n+7                 1F              1E               F               E
+Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0  SEW=64b, LMUL=4
+v4*n                    3               1|               2               0
+v4*n+1                  7               5|               6               4
+v4*n+2                  B               9|               A               8
+v4*n+3                  F               D|               E               C
 ----
+
+The following table shows each possible constant SEW/LMUL operating
+point for loops with mixed-width operations.  Each column represents a
+constant SEW/LMUL operating point.  Entries in table are the LMUL
+values that yield that column's SEW/LMUL value for the datawidth on
+that row.  In each column, an LMUL setting for a datawidth indicates
+that it can be aligned with the other datawidths in the same column
+that also have an LMUL setting, such that all have the same VLMAX and
+that element-wise operations between data widths are contained within
+SLEN-wide sections of the datapath.
+
+
+[options="footer"]
+|===
+| SEW/LMUL | 1 |  2 |  4 |  8 | 16  | 32  |  64  | 128 |  256 | 512 | 1024 |2048 |4096 |8192
+
+| SEW=   8 | 8 |  4 |  2 |  1 | 1/2 | 1/4 |  1/8 |     |      |     |      |     |     |
+| SEW=  16 |   |  8 |  4 |  2 |  1  | 1/2 |  1/4 | 1/8 |      |     |      |     |     |
+| SEW=  32 |   |    |  8 |  4 |  2  |  1  |  1/2 | 1/4 |  1/8 |     |      |     |     |
+| SEW=  64 |   |    |    |  8 |  4  |  2  |   1  | 1/2 |  1/4 | 1/8 |      |     |     |
+| SEW= 128 |   |    |    |    |  8  |  4  |   2  |  1  |  1/2 | 1/4 |  1/8 |     |     |
+| SEW= 256 |   |    |    |    |     |  8  |   4  |  2  |   1  | 1/2 |  1/4 | 1/8 |     |
+| SEW= 512 |   |    |    |    |     |     |   8  |  4  |   2  |  1  |  1/2 | 1/4 | 1/8 |
+| SEW=1024 |   |    |    |    |     |     |      |  8  |   4  |  2  |   1  | 1/2 | 1/4 | 1/8
+
+|===     
+         
 
 Larger LMUL settings can also used to simply increase vector length to
 reduce instruction fetch and dispatch overheads, in cases where fewer
-logical vector registers are required.
-
-The following table shows each possible constant SEW/LMUL operating
-point for loops with mixed-width operations.
-
-----
-       Numbers in columns are LMUL values, and each column
-       represents constant SEW/LMUL operating point
-
- SEW/LMUL    1   2   4   8  16  32  64 128 256 512 1024
-
-      SEW
-        8    8   4   2   1
-       16        8   4   2   1
-       32            8   4   2   1
-       64                8   4   2   1
-      128                    8   4   2   1
-      256                        8   4   2   1
-      512                            8   4   2   1
-     1024                                8   4   2   1
-----
-
-NOTE: Larger LMUL values can cause lower datapath utilization for
-short vectors if SLEN is less than the spatial datapath width.  In the
-example above with VLEN=256b, SLEN=128b, and LMUL=8, if the
-implementation is purely spatial with a 256b-wide vector datapath,
-then for an application vector length less than 17, only half of the
-datapath will be active.  The `vsetvl` instructions below could have a
-facility added to dynamically select an appropriate LMUL according to
-the required application vector length (AVL) and range of element
-widths.
-
-NOTE: Narrower machines will set SLEN to be at least as large as the
-datapath spatial width, so there is no need to reduce LMUL. Wider
-machines might set SLEN lower than the spatial datapath width to
-reduce wiring for mixed-width operations (e.g., width=1024, ELEN=32,
-SLEN=128), in which case optimizing LMUL will be important.
+architectural vector registers are sufficient.
 
 [[sec-mask-register-layout]]
 === Mask Register Layout
