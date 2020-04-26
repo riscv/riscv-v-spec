@@ -70,7 +70,7 @@ be a power of 2.
 
 NOTE: Platform profiles may set further constraints on these
 parameters, for example, requiring that ELEN {ge} max(XLEN,FLEN), or
-requiring a minimum VLEN value, or setting an SLEN value.
+requiring a minimum VLEN value, or setting SLEN, or requiring SLEN=VLEN.
 
 NOTE: There is a proposal to drop the constraint that VLEN must be a
 power of two.
@@ -720,8 +720,8 @@ LMUL=1.
 
 NOTE: The SLEN < VLEN mapping pattern does require full-width
 cross-datapath connections in the vector memory system between memory
-bytes and vector register bytes, but this is a small fraction of all
-operand wiring in a vector unit.
+bytes and vector register bytes, but this is unavoidable in general,
+and a small fraction of all operand wiring in a vector unit.
 
 === Mapping with SLEN < VLEN and LMUL > 1
 
@@ -762,9 +762,9 @@ NOTE: In most implementations, the striping distance SLEN {ge} ELEN.
 
 Different striping patterns are architecturally visible, but software
 can be written that produces the same results regardless of striping
-pattern. The primary constraint is to not change the LMUL used to
+pattern. The primary constraint is to not change the SEW used to
 access values held in a vector register group (i.e., do not read
-values with a different LMUL than used to write values to the group).
+values with a different SEW than used to write values to the group).
 
 === Mapping across Mixed-Width Operations
 
@@ -815,7 +815,6 @@ that element-wise operations between data widths are contained within
 SLEN-wide sections of the datapath.
 
 
-[options="footer"]
 |===
 | SEW/LMUL | 1 |  2 |  4 |  8 | 16  | 32  |  64  | 128 |  256 | 512 | 1024 |2048 |4096 |8192
 
@@ -834,6 +833,11 @@ SLEN-wide sections of the datapath.
 Larger LMUL settings can also used to simply increase vector length to
 reduce instruction fetch and dispatch overheads, in cases where fewer
 architectural vector registers are sufficient.
+
+NOTE: The SEW/LMUL values of 2048 and greater are shown in the table
+for completeness but they do not add a useful operating point in the
+base architecture as they use less than the full register capacity and
+do not enable more architectural registers.
 
 [[sec-mask-register-layout]]
 === Mask Register Layout
