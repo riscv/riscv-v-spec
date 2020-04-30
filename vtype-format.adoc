@@ -5,7 +5,7 @@
 |     Bits | Name       | Description
 
 |   XLEN-1 | vill       | Illegal value if set
-| XLEN-2:5 |            | Reserved (write 0)
+| XLEN-2:6 |            | Reserved (write 0)
 |        5 | vlmul[2]   | Vector register group multiplier (LMUL) setting (fractional)
 |      4:2 | vsew[2:0]  | Standard element width (SEW) setting
 |      1:0 | vlmul[1:0] | Vector register group multiplier (LMUL) setting
