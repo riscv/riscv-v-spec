@@ -159,8 +159,6 @@ bits of storage in `vtype`, two bits for `vsew[1:0]` and three bits for
 using the illegal 64-bit combination in `vsew[1:0]` without requiring
 an additional storage bit.
 
-NOTE: The vediv[1:0] field is used by the EDIV extension described below.
-
 NOTE: Further standard and custom extensions to the vector base will
 extend these fields to support a greater variety of data types.
 
@@ -1229,16 +1227,10 @@ include::vtype-format.adoc[]
  m4   # LMUL=4
  m8   # LMUL=8
 
- d1   # EDIV 1, assumed if d setting absent
- d2   # EDIV 2
- d4   # EDIV 4
- d8   # EDIV 8
-
 Examples:
-    vsetvli t0, a0, e8          # SEW= 8, LMUL=1, EDIV=1
-    vsetvli t0, a0, e8,m2       # SEW= 8, LMUL=2, EDIV=1
-    vsetvli t0, a0, e32,m2,d4   # SEW=32, LMUL=2, EDIV=4
-    vsetvli t0, a0, e32,mf2     # SEW=32, LMUL=1/2, EDIV=1
+    vsetvli t0, a0, e8          # SEW= 8, LMUL=1
+    vsetvli t0, a0, e8,m2       # SEW= 8, LMUL=2
+    vsetvli t0, a0, e32,mf2     # SEW=32, LMUL=1/2
 ----
 
 If the `vtype` setting is not supported by the implementation, then
@@ -4413,7 +4405,7 @@ vectors when EDIV > 1.
 The divided element extension adds a two-bit field, `vediv[1:0]` to
 the `vtype` register.
 
-include::vtype-format.adoc[]
+include::vtype-ediv-format.adoc[]
 
 The `vediv` field encodes the number of ways, _EDIV_, into which each
 SEW-bit element is subdivided into equal sub-elements.  A vector
@@ -4428,6 +4420,19 @@ register group is now considered to hold a vector of sub-vectors.
 | 1 | 0 | 4 | four equal sub-elements
 | 1 | 1 | 8 | eight equal sub-elements
 |===
+
+
+The assembly syntax for vsetvli has additional options added to encode
+the EDIV options.
+
+----
+ d1   # EDIV 1, assumed if d setting absent
+ d2   # EDIV 2
+ d4   # EDIV 4
+ d8   # EDIV 8
+
+ vsetvli t0, a0, e32,m2,d4   # SEW=32, LMUL=2, EDIV=4
+----
 
 |===
 .2+| SEW .2+| EDIV .2+| Sub-element 2+| Integer accumulator 3+| FP sum/dot accumulator
