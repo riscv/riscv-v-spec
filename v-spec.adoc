@@ -72,9 +72,6 @@ NOTE: Platform profiles may set further constraints on these
 parameters, for example, requiring that ELEN {ge} max(XLEN,FLEN), or
 requiring a minimum VLEN value, or setting SLEN, or requiring SLEN=VLEN.
 
-NOTE: There is a proposal to drop the constraint that VLEN must be a
-power of two.
-
 NOTE: There is a proposal to allow ELEN to vary with LMUL.
 
 The ISA supports writing binary code that under certain constraints
