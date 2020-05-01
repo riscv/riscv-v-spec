@@ -148,8 +148,8 @@ NOTE: Earlier drafts allowed the `vtype` register to be written using
 regular CSR writes.  Allowing updates only via the `vsetvl{i}`
 instructions simplifies maintenance of the `vtype` register state.
 
-In the base vector extension, the `vtype` register has three fields,
-`vill`, `vsew[2:0]`, and `vlmul[2:0]`.
+In the base vector extension, the `vtype` register has five fields,
+`vill`, `ma`, `ta`, vsew[2:0]`, and `vlmul[2:0]`.
 
 include::vtype-format.adoc[]
 
@@ -166,7 +166,7 @@ NOTE: It is anticipated that an extended 64-bit instruction encoding
 would allow these fields to be specified statically in the instruction
 encoding.
 
-==== Vector standard element width `vsew`
+==== Vector standard element width `vsew[2:0]`
 
 The value in `vsew` sets the dynamic _standard_ _element_ _width_
 (SEW).  By default, a vector register is viewed as being divided into
@@ -201,7 +201,7 @@ only SEW up to max(XLEN,FLEN) are required to be supported.
 |  8 | 16
 |===
 
-==== Vector Register Grouping (`vlmul`)
+==== Vector Register Grouping (`vlmul[2:0]`)
 
 Multiple vector registers can be grouped together, so that a single
 vector instruction can operate on multiple vector registers.  The term
@@ -269,6 +269,88 @@ instruction exception.
 
 Mask registers are always contained in a single vector register,
 regardless of LMUL.
+
+==== Vector Tail Agnostic and Vector Mask Agnostic `vta` and `vma`
+
+These two bits modify the behavior of destination tail elements and
+destination inactive masked off elements respectively during the
+execution of vector instructions.  The tail and inactive sets contain
+element positions that are not receiving new results during a vector
+operation, as defined in Section <<sec-inactive-defs>>.
+
+All systems must support all four options:
+
+[cols="1,1,3,3"]
+[%autowidth]
+|===
+| `vta` | `vma` | Tail Elements | Inactive Elements
+
+|   0   |   0   | undisturbed   | undisturbed
+|   0   |   1   | undisturbed   | agnostic
+|   1   |   0   | agnostic      | undisturbed
+|   1   |   1   | agnostic      | agnostic
+|===
+
+When a set is marked undisturbed, the corresponding set of destination
+elements in any vector destination operand retain the value they
+previously held.
+
+When a set is marked agnostic, the corresponding set of destination
+elements in any vector destination operand can either retain the value
+they previously held, or are overwritten with 1s.  Within a single
+vector instruction, each destination element can be either left
+undisturbed or overwritten with 1s, in any combination, and the
+pattern of undisturbed or overwritten with 1s is not required to be
+deterministic when the instruction is executed with the same inputs.
+
+NOTE: The agnostic policy was added to accomodate machines with vector
+register renaming, and/or that have deeply temporal vector registers.
+With an undisturbed policy, all elements would have to be read from
+the old physical destination vector register to be copied into the new
+physical destination vector register.  This causes an inefficiency
+when these inactive or tail values are not required for subsequent
+calculations.
+
+NOTE: The intent is for software to select the option that reduces
+micorarchitectural work by selecting agnostic when the value in the
+respective set does not matter.
+
+NOTE: The value of all 1s was chosen for the overwrite value to
+discourage software developers from depending on the value written.
+
+NOTE: A simple in-order implementation can ignore the setting and
+simply execute all vector instructions using the undisturbed
+policy. The two `vtype` state bits must still be provided for
+compatibilty and to support thread migration.
+
+NOTE: An out-of-order implementation can choose to implement
+tail-agnostic + mask-agnostic using tail-agnostic + mask-undisturbed.
+
+NOTE: The definition of agnostic result policy is left loose to
+accomodate migrating application threads between harts on a small
+in-order core (which probably leaves agnostic regions undisturbed) and
+harts on a larger out-of-order core with register renaming (which
+probably overwrites agnostic elements with 1s).  As it might be
+necessary to restart in the middle, we allow arbitrary mixing of
+agnostic poilcies within a single vector instruction.
+
+The assembly syntax adds two flags to the `vsetvli` instruction:
+
+----
+ ta   # Tail agnostic
+ tu   # Tail undisturbed
+ ma   # Mask agnostic
+ mu   # Mask undisturbed
+
+ vsetvli t0, a0, e32,m4,ta,ma   # Tail agnostic, mask agnostic
+ vsetvli t0, a0, e32,m4,tu,ma   # Tail undisturbed, mask agnostic
+ vsetvli t0, a0, e32,m4,ta,mu   # Tail agnostic, mask undisturbed
+
+ vsetvli, t0, a0, s32,m4, ta,mu # Tail agnostic, mask undisturbed
+
+ vsetvli, t0, a0, s32,m4, ta,mu # Tail agnostic, mask undisturbed
+----
+
 
 ==== Vector Type Illegal `vill`
 
@@ -1106,6 +1188,7 @@ mask register specifier and supporting both true and complement
 masking. The `.t` suffix on the masking operand also helps to visually
 encode the use of a mask.
 
+[[sec-inactive-defs]]
 === Prestart, Active, Inactive, Body, and Tail Element Definitions
 
 The elements operated on during a vector instruction's execution can
