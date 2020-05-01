@@ -213,8 +213,8 @@ Vector register groups also provide greater execution efficiency for
 longer application vectors.
 
 The vector length multiplier, _LMUL_, when greater than 1, represents
-the number of vector registers that are combined to form a vector
-register group.  LMUL can have integer values 1,2,4,8.
+the default number of vector registers that are combined to form a
+vector register group.  LMUL can have integer values 1,2,4,8.
 
 LMUL can also be a fractional value, reducing the number of bits used
 in a vector register.  LMUL can have fractional values 1/2, 1/4, 1/8.
@@ -1106,22 +1106,37 @@ Zfinx ISA option.
 
 === Vector Operands
 
+Each vector operand has an _effective_ _element_ _width_ (EEW) and an
+_effective_ LMUL (EMUL) that is used to determine the size and
+location of all the elements within a vector register group.  By
+default, for most operands of most instructions, EEW=SEW and
+EMUL=LMUL.
+
+Some vector instructions have source and destination vector operands
+with the same number of elements but different widths, so that EEW and
+EMUL differ from SEW and LMUL respectively but EEW/EMUL = SEW/LMUL.
+For example, most widening arithmetic instructions have a source group
+with EEW=SEW and EMUL=LMUL but destination group with EEW=2*SEW and
+EMUL=2*LMUL.  Narrowing instructions have a source operand that has
+EEW=2*SEW and EMUL=2*LMUL but destination where EEW=SEW and EMUL=LMUL.
+
 Vector operands or results may occupy one or more vector registers
-depending on LMUL, but are always specified using the lowest-numbered
+depending on EMUL, but are always specified using the lowest-numbered
 vector register in the group.  Using other than the lowest-numbered
 vector register to specify a vector register group will result in an
 illegal instruction exception.
 
-Some vector instructions consume and produce wider-width elements and
-so operate on a larger vector register group than that specified in
-`vlmul`.  The largest vector register group used by an instruction can
-not be greater than 8 vector registers, and if an vector instruction
-would require greater than 8 vector registers in a group, an illegal
-instruction exception is raised.  For example, attempting a widening
-operation producing a widened vector register group result with LMUL=8
-will raise an illegal instruction exception.  Widened scalar values,
-e..g, results from widening reduction operations, are held in the
-first element of a vector register and are treated as if LMUL=1.
+The largest vector register group used by an instruction can not be
+greater than 8 vector registers (i.e., EMUL{le}}8), and if a vector
+instruction would require greater than 8 vector registers in a group,
+an illegal instruction exception is raised.  For example, attempting a
+widening operation producing a widened vector register group result
+when LMUL=8 will raise an illegal instruction exception as this would
+imply a result EMUL=16.
+
+Widened scalar values, e..g, results from widening reduction
+operations, are held in the first element of a vector register and
+have EMUL=1.
 
 === Vector Masking
 
@@ -1138,7 +1153,7 @@ encodings with space for a full mask register specifier.
 
 The destination vector register group for a masked vector instruction
 can only overlap the source mask register (`v0`) when
-LMUL{le}1. Otherwise, an illegal instruction exception is raised.
+LMUL{le}1.  Otherwise, an illegal instruction exception is raised.
 
 NOTE: This constraint supports restart with a non-zero `vstart` value.
 
@@ -1191,7 +1206,7 @@ encode the use of a mask.
 [[sec-inactive-defs]]
 === Prestart, Active, Inactive, Body, and Tail Element Definitions
 
-The elements operated on during a vector instruction's execution can
+The element indices operated on during a vector instruction's execution can
 be divided into four disjoint subsets.
 
 - The _prestart_ elements are those whose element index is less than the
@@ -1280,18 +1295,18 @@ When `rs1=x0` and `rd=x0`, the current vector length in `vl` is used
 as the AVL, and the resulting value is only written to `vl`.
 
 NOTE: This form of the instruction allows the `vtype` register to be
-changed without changing `vl`, provided VLMAX is not reduced.  The
-`vl` value can be reduced by this instruction if the SEW/LMUL ratio
-changes causes VLMAX to shrink.  This design was chosen to ensure `vl`
-would always hold a legal value for current `vtype` setting.  The
-current `vl` value can be read from the `vl` CSR.
+changed while maintaining the current `vl`, provided VLMAX is not
+reduced.  The `vl` value can be reduced by this instruction if the
+SEW/LMUL ratio changes causes VLMAX to shrink.  This design was chosen
+to ensure `vl` would always hold a legal value for current `vtype`
+setting.  The current `vl` value can be read from the `vl` CSR.
 
 include::vcfg-format.adoc[]
 
 include::vtype-format.adoc[]
 
 ----
- Suggested assembler names used for vtypei setting
+ Suggested assembler names used for vsetvli immediate
 
  e8    # SEW=8b
  e16   # SEW=16b
@@ -1848,8 +1863,9 @@ appear to be written in element order.
 NOTE: These instructions are still under early consideration for inclusion.
 
 These instructions load and store whole vector registers (i.e., VLEN
-bits).  The instructions operate as if SEW=8 and `vl`=VLEN/8,
-regardless of current settings in `vtype` and `vl`
+bits).  The instructions operate with an EEW=8 and effective vector
+length `evl`=VLEN/8, regardless of current settings in `vtype` and
+`vl`
 
 NOTE: No elements are transferred if `vstart` {ge} VLEN/8.
 The usual property that no elements are written if `vstart` {ge} `vl`
@@ -1881,7 +1897,7 @@ scalar `x` register specified by `rs1`.
 
 The instructions transfer a single vector register specified by `vd`
 for loads and `vs3` for stores.  The registers are transferred to and
-from memory as if SEW=8 and LMUL=1.
+from memory with EEW=8 and EMUL=1.
 
 NOTE: The vector whole register load instructions are encoded similar
 to unmasked zero-extended unit-stride loads of elements, with the `nf`
@@ -2181,9 +2197,8 @@ operands are always next to each other.
 === Widening Vector Arithmetic Instructions
 
 A few vector arithmetic instructions are defined to be __widening__
-operations where the destination elements are 2*SEW wide and are
-stored in a vector register group with twice the number of vector
-registers.
+operations where the destination elements have EEW=2*SEW and
+EMUL=2*LMUL.
 
 The first operand can be either single or double-width. These are
 generally written with a `vw*` prefix on the opcode or `vfw*` for
@@ -2210,29 +2225,26 @@ from `vwf*` to be more consistent with any scalar widening
 floating-point operations that will be written as `fw*`.
 
 NOTE: For integer multiply-add, another possible widening option
-increases the size of the accumulator to 4*SEW (i.e., 4*SEW +=
+increases the size of the accumulator to EEW=4*SEW (i.e., 4*SEW +=
 SEW*SEW).  These would be distinguished by a `vw4*` prefix on the
 opcode.  These are not included at this time, but are a possible
 addition to spec.
 
 The destination vector register group results are arranged as if both
-SEW and LMUL were at twice their current settings (i.e., the
-destination element width is 2*SEW, and the destination vector
-register group LMUL is 2*LMUL).
+SEW and LMUL were at twice their current settings (i.e., EEW=2*SEW,
+EMUL=2*LMUL).
 
-For all widening instructions, the destination element width must be a
-supported element width and the destination LMUL value must also be a
-supported LMUL value ({le}8, i.e., current LMUL must be {le}4),
-otherwise an illegal instruction exception is raised.
+For all widening instructions, the destination EEW and EMUL values
+must be a supported configuration, otherwise an illegal instruction
+exception is raised.
 
 The destination vector register group must be specified using a vector
-register number that is valid for the destination's LMUL value,
-otherwise an illegal instruction exception is raised.
+register number that is valid for the destination's EMUL, otherwise an
+illegal instruction exception is raised.
 
 The destination vector register group cannot overlap a source vector
-register group of a different element width (including the mask
-register if masked), otherwise an illegal instruction exception is
-raised.
+register group of a different EEW (including the mask register if
+masked), otherwise an illegal instruction exception is raised.
 
 NOTE: This constraint is necessary to support restart with non-zero
 `vstart`.
@@ -2245,12 +2257,10 @@ for vd to equal vs2.
 
 A few instructions are provided to convert double-width source vectors
 into single-width destination vectors.  These instructions convert a
-vector register group organized as if LMUL and SEW were twice the
-current settings, and convert to a vector register group with the
-current LMUL/SEW vectors/elements.
+vector register group with EEW/EMUL=2*SEW/2*LMUL to a vector register
+group with the current LMUL/SEW vectors/elements.
 
-If (2*LMUL > 8), or (2 * SEW) > ELEN, an illegal instruction exception
-is raised.
+If EEW > ELEN or EMUL > 8, an illegal instruction exception is raised.
 
 NOTE: An alternative design decision would have been to treat LMUL as
 defining the size of the source vector register group.  The choice
@@ -2259,11 +2269,12 @@ LMUL changes.
 
 The source and destination vector register groups have to be specified
 with a vector register number that is legal for the source and
-destination LMUL value respectively, otherwise an illegal instruction
+destination EMUL values respectively, otherwise an illegal instruction
 exception is raised.
 
 Where there is a second source vector register group (specified by
-`vs1`), this has the same (narrower) width as the result.
+`vs1`), this has the same (narrower) width as the result (i.e.,
+EEW=SEW).
 
 The destination vector register group cannot overlap the first source
 vector register group (specified by `vs2`).  The destination vector
@@ -4355,9 +4366,10 @@ element 0.  This does mean elements in destination register after
 === Whole Vector Register Move
 
 The `vmv<nr>r.v` instructions copy whole vector registers (i.e., all
-VLEN bits) and can copy whole vector register groups.
-The instructions operate as if SEW=8, `vl`=VLEN/8 * `nr`, and LMUL = `nr`,
-regardless of current settings in `vtype` and `vl`.
+VLEN bits) and can copy whole vector register groups.  The
+instructions operate as if EEW=8, EMUL = `nr`, effective length
+`evl`=VLEN/8 * EMUL, regardless of current settings in `vtype` and
+`vl`.
 
 NOTE: These instructions are intended to aid compilers to shuffle
 vector registers without needing to know or change `vl` or `vtype`.
