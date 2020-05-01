@@ -1,0 +1,15 @@
+.`vtype` register layout
+[cols=">2,4,10"]
+[%autowidth]
+|===
+|     Bits | Name       | Description
+
+|   XLEN-1 | vill       | Illegal value if set
+| XLEN-2:10|            | Reserved (write 0)
+|      9:8 | vediv[1:0] | Used by EDIV extension
+|        7 | vma        | Mask agnostic
+|        6 | vta        | Tail agnostic
+|        5 | vlmul[2]   | Vector register group multiplier (LMUL) setting (fractional)
+|      4:2 | vsew[2:0]  | Standard element width (SEW) setting
+|      1:0 | vlmul[1:0] | Vector register group multiplier (LMUL) setting
+|===
