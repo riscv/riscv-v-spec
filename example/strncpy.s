@@ -6,11 +6,11 @@ strncpy:
       mv a3, a0             # Copy dst
 loop:
     vsetvli x0, a2, e8,m8   # Vectors of bytes.
-    vleff.v v8, (a1)        # Get src bytes
+    vle8ff.v v8, (a1)        # Get src bytes
     vmseq.vi v0, v8, 0      # Flag zero bytes
     vfirst.m a4, v0         # Zero found?
     vmsif.m v0, v0          # Set mask up to and including zero byte.
-    vse.v v8, (a3), v0.t    # Write out bytes
+    vse8.v v8, (a3), v0.t    # Write out bytes
       csrr t1, vl           # Get number of bytes fetched
       sub a2, a2, t1        # Decrement count.
       bgez a4, zero_tail    # Zero remaining bytes.
@@ -26,7 +26,7 @@ zero_tail:
 
 zero_loop:
     vsetvli t1, a2, e8,m8   # Vectors of bytes.
-    vse.v v0, (a3)          # Store zero.
+    vse8.v v0, (a3)          # Store zero.
       sub a2, a2, t1        # Decrement count.
       add a3, a3, t1        # Bump pointer
       bnez a2, zero_loop    # Anymore?
