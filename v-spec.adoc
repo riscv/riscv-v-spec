@@ -1494,7 +1494,7 @@ field.
 | 0 | 0 | 1 | reserved      |
 | 0 | 1 | 0 | strided       | VLSE
 | 0 | 1 | 1 | indexed       | VLXE
-| 1 | X | X | reserved
+| 1 | X | X | reserved      |
 |===
 
 .encoding for stores
@@ -1503,13 +1503,10 @@ field.
 3+| mop [2:0] | Description | Opcodes
 
 | 0 | 0 | 0 | unit-stride       | VSE
-| 0 | 0 | 1 | reserved          |
+| 0 | 0 | 1 | indexed-unordered | VSUXE
 | 0 | 1 | 0 | strided           | VSE
 | 0 | 1 | 1 | indexed-ordered   | VSXE
-| 1 | 0 | 0 | reserved          |
-| 1 | 0 | 1 | reserved          |
-| 1 | 1 | 0 | reserved          |
-| 1 | 1 | 1 | indexed-unordered | VSUXE
+| 1 | X | X | reserved          |
 |===
 
 The vector indexed memory operations have two forms, ordered and
@@ -1581,9 +1578,9 @@ memory elements.
 | Standard scalar FP | 0 | 1 | 0 |   32   | FLEN   | FLW/FSW
 | Standard scalar FP | 0 | 1 | 1 |   64   | FLEN   | FLD/FSD
 | Standard scalar FP | 1 | 0 | 0 |  128   | FLEN   | FLQ/FSQ
-| Vector byte        | 0 | 0 | 0 |    -   |   -    | reserved
-| Vector halfword    | 1 | 0 | 1 |    -   |   -    | reserved
-| Vector word        | 1 | 1 | 0 |    -   |   -    | reserved
+| Reserved           | 0 | 0 | 0 |    -   |   -    |
+| Reserved           | 1 | 0 | 1 |    -   |   -    |
+| Reserved           | 1 | 1 | 0 |    -   |   -    |
 | Vector element     | 1 | 1 | 1 |  SEW   |  SEW   | VLxE/VSxE
 |===
 
