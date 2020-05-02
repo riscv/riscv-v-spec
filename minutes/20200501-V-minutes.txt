@@ -1,0 +1,55 @@
+Date: 2020/5/01
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~20
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+#440 LMUL contiguous?
+
+Discussed the recent change to add extra bit for fractional LMUL.
+Explained that the reason to revert to backwards-compatible layout was
+to reduce implementation churn.  Not intended as a precedent that
+pre-freeze specs have to ensure backwards compatibility.  Can be
+changed in later or 1.0 version.
+
+#418 Drop LMUL
+
+Agreed to retain LMUL given discussion on github, but to bring up some
+of the detailed suggestions as separate issues.
+
+#424/425 New explicit EEW scheme in load/stores
+
+Group was generally favorable on the new scheme that encodes effective
+element width in loads/stores.
+
+The spec still has not been updated to add 4* widening and 2* widening
+operations that would sign/zero extend from 1/4*SEW and 1/2*SEW to
+SEW.
+
+Some concern expressed that dropping fixed-width sign/zero-extending
+byte/halfword load/stores will hurt performance of some key loops.
+Also noted that bringing in smaller data items as fractional LMUL will
+avoid tying up as many architectural registers as bringing as full
+width elements.  Will keep studying application kernels.
+
+#434 SLEN=VLEN as optional extension
+
+General sentiment was that it will be bad to fragment and we should
+find way to retain SLEN<=VLEN as single standard.  Also, that
+SLEN=VLEN will be too expensive even on large cores, with only a
+subset of workload needing in-memory format in registers.
+
+Proposals suggested including adding another bit to vsetvli to change
+to in-memory format in vector registers (potentially reducing VLEN),
+or adding "cast" instructions to change in/out of memory byte order.
+The latter could be in-place overwrites that turn into NOPs in
+SLEN=VLEN implementations.
+
+Group to provide proposals.
+
+#423 transient vtype modifier
+
+Briefly discussed adding a transient vtype modifier, but no decisions.
