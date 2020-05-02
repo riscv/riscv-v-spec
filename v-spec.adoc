@@ -1645,7 +1645,7 @@ NOTE: Negative and zero strides are supported.
     vsxei32.v vs3, (rs1), vs2, vm # SEW data, 32b indices
 
     # Vector unordered-indexed store instructions
-    vsuxei64.v vs3, (rs1), vs2, vm # SEW data, 32b indices
+    vsuxei64.v vs3, (rs1), vs2, vm # SEW data, 64b indices
 ----
 
 === Unit-stride Fault-Only-First Loads
