@@ -1400,14 +1400,14 @@ throughput on mixed-width operations in a single loop.
 
 loop:
     vsetvli a3, a0, e16,m4  # vtype = 16-bit integer vectors
-    vle.v v4, (a1)          # Get 16b vector
+    vle16.v v4, (a1)        # Get 16b vector
       slli t1, a3, 1        # Multiply length by two bytes/element
       add a1, a1, t1        # Bump pointer
     vwmul.vx v8, v4, x10    # 32b in <v8--v15>
 
     vsetvli x0, a0, e32,m8  # Operate on 32b values
     vsrl.vi v8, v8, 3
-    vse.v v8, (a2)          # Store vector of 32b elements
+    vse32.v v8, (a2)        # Store vector of 32b elements
       slli t1, a3, 2        # Multiply length by four bytes/element
       add a2, a2, t1        # Bump pointer
       sub a0, a0, a3        # Decrement count

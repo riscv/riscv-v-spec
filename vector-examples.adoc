@@ -20,17 +20,17 @@ include::example/vvaddint32.s[lines=4..-1]
 # Mixed-width code that keeps SEW/LMUL=8
   loop:
     vsetvli a4, a0, e8,m1  # Byte vector for predicate calc
-    vle.v v1, (a1)                # Load a[i]
+    vle8.v v1, (a1)               # Load a[i]
       add a1, a1, a4              # Bump pointer.
     vmslt.vi v0, v1, 5            # a[i] < 5?
 
     vsetvli x0, a0, e32,m4 # Vector of 32-bit values.
       sub a0, a0, a4              # Decrement count
     vmv.v.i v4, 1                 # Splat immediate to destination
-    vle.v v4, (a3), v0.t          # Load requested elements of C.
+    vle32.v v4, (a3), v0.t        # Load requested elements of C.
       sll t1, a4, 2
       add a3, a3, t1              # Bump pointer.
-    vse.v v4, (a2)                # Store b[i].
+    vse32.v v4, (a2)              # Store b[i].
       add a2, a2, t1              # Bump pointer.
       bnez a0, loop               # Any more?
 ----
@@ -49,18 +49,18 @@ include::example/memcpy.s[lines=4..-1]
 
 loop:
     vsetvli t0, a0, e8,m1   # Use 8b elements.
-    vle.v v0, (a1)          # Get x[i]
+    vle8.v v0, (a1)         # Get x[i]
       sub a0, a0, t0        # Decrement element count
       add a1, a1, t0        # x[i] Bump pointer
     vmslt.vi v0, v0, 5      # Set mask in v0
       slli t0, t0, 1        # Multiply by 2 bytes
     vsetvli t0, a0, e16,m2  # Use 16b elements.
-    vle.v v1, (a2), v0.t    # z[i] = a[i] case
+    vle16.v v1, (a2), v0.t  # z[i] = a[i] case
     vmnot.m v0, v0          # Invert v0
       add a2, a2, t0        # a[i] bump pointer
-    vle.v v1, (a3), v0.t    # z[i] = b[i] case
+    vle16.v v1, (a3), v0.t  # z[i] = b[i] case
       add a3, a3, t0        # b[i] bump pointer
-    vse.v v1, (a4)          # Store z
+    vse16.v v1, (a4)        # Store z
       add a4, a4, t0        # z[i] bump pointer
       bnez a0, loop
 ----
