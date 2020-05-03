@@ -1889,11 +1889,9 @@ NOTE: These instructions are still under early consideration for inclusion.
 These instructions load and store whole vector registers (i.e., VLEN
 bits).  The instructions operate with an EEW=8 and effective vector
 length `evl`=VLEN/8, regardless of current settings in `vtype` and
-`vl`
-
-NOTE: No elements are transferred if `vstart` {ge} VLEN/8.
-The usual property that no elements are written if `vstart` {ge} `vl`
-does not apply to these instructions.
+`vl`.  No elements are transferred if `vstart` {ge} VLEN/8.  The usual
+property that no elements are written if `vstart` {ge} `vl` does not
+apply to these instructions.
 
 NOTE: These instructions are intended to be used to save and restore
 vector registers when the type and length of the current contents of
