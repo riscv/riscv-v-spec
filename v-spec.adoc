@@ -270,6 +270,7 @@ instruction exception.
 Mask registers are always contained in a single vector register,
 regardless of LMUL.
 
+[[sec-agnostic]]
 ==== Vector Tail Agnostic and Vector Mask Agnostic `vta` and `vma`
 
 These two bits modify the behavior of destination tail elements and
@@ -4310,8 +4311,9 @@ source vector register group at locations given by a second source
 vector register group.  The index values in the second vector are
 treated as unsigned integers.  The source vector can be read at any
 index < VLMAX regardless of `vl`.  The number of elements to write to
-the destination register is given by `vl`, and elements past `vl` in
-the destination are unchanged.  The operation can be masked.
+the destination register is given by `vl`, and the remaining elements
+past `vl` are handled according to the current tail policy
+(Section <<sec-agnostic>>).  The operation can be masked.
 
 ----
 vrgather.vv vd, vs2, vs1, vm # vd[i] = (vs1[i] >= VLMAX) ? 0 : vs2[vs1[i]];
@@ -4355,7 +4357,9 @@ group.
 The vector mask register specified by `vs1` indicates which of the
 first `vl` elements of vector register group `vs2` should be extracted
 and packed into contiguous elements at the beginning of vector
-register `vd`. Any remaining elements of `vd` are unchanged.
+register `vd`. The remaining elements of `vd` are treated as tail
+elements according to the current tail policy (Section
+<<sec-agnostic>>).
 
 ----
     Example use of vcompress instruction
