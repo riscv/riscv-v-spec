@@ -3653,14 +3653,21 @@ The implementation can produce a result equivalent to a reduction tree
 composed of binary operator nodes, with the inputs being elements from
 the source vector register group (`vs2`) and the source scalar value
 (`vs1[0]`).  Each operator in the tree accepts two inputs and produces
-one result.  Each operator can either perform an exact addition, or a
-floating-point addition according to the RISC-V IEEE scalar
-floating-point specification and with the currently active
-floating-point dynamic rounding mode.
+one result.
+Each operator first computes an exact sum as a RISC-V scalar floating-point
+addition with infinite exponent range and precision, then converts this exact
+sum to a floating-point format with range and precision each at least as great
+as the element floating-point format indicated by SEW, rounding using the
+currently active floating-point dynamic rounding mode.
+A different floating-point range and precision may be chosen for the result of
+each operator.
 A node where one input is derived only from elements masked-off or beyond the
 active vector length may either treat that input as the additive identity of the
-appropriate EEW or simply copy the other input to its output.  The root node in
-the tree must produce an IEEE result of the appropriate EEW.  An implementation
+appropriate EEW or simply copy the other input to its output.
+The rounded result from the root node in the tree is converted (rounded again,
+using the dynamic rounding mode) to the standard floating-point format
+indicated by SEW.
+An implementation
 is allowed to add an additional additive identity to the final result.
 
 The additive identity is +0.0 when rounding down (towards -{inf}) or
