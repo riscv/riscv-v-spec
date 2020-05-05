@@ -38,7 +38,7 @@
 | 010000 |V|X|I| vadc       | 010000 |V| | VWXUNARY0   | 010000 |V| | VWFUNARY0
 |        | | | |            | 010000 | |X| VRXUNARY0   | 010000 | |F| VRFUNARY0
 | 010001 |V|X|I| vmadc      | 010001 | | |             | 010001 | | |
-| 010010 |V|X| | vsbc       | 010010 | | |             | 010010 | | |
+| 010010 |V|X| | vsbc       | 010010 |V| | VXUNARY0    | 010010 | | |
 | 010011 |V|X| | vmsbc      | 010011 | | |             | 010011 | | |
 | 010100 | | | |            | 010100 |V| | VMUNARY0    | 010100 | | |
 | 010101 | | | |            | 010101 | | |             | 010101 | | |
@@ -117,6 +117,19 @@
 | 00000 | vmv.x.s
 | 10000 | vpopc
 | 10001 | vfirst
+|===
+
+.VXUNARY0 encoding space
+[cols="2,14"]
+|===
+|  vs1  |
+
+| 00010 | vzext.vf8
+| 00011 | vsext.vf8
+| 00100 | vzext.vf4
+| 00101 | vsext.vf4
+| 00110 | vzext.vf2
+| 00111 | vsext.vf2
 |===
 
 .VRFUNARY0 encoding space

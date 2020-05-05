@@ -2377,6 +2377,25 @@ instructions with a scalar operand of `x0`.  Can define assembly
 pseudoinstructions `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and
 `vwcvtu.x.x.v vd,vs,vm = vwaddu.vx vd,vs,x0,vm`.
 
+=== Vector Integer Extension
+
+The vector integer extension instructions zero- or sign-extend a
+source vector integer operand with EEW less than SEW to fill SEW-sized
+elements in the destination.  The EEW of the source is 1/2, 1/4, or
+1/8 of the destination, while EMUL of the source is (EEW/SEW)*LMUL.
+
+----
+vzext.vf2 vd, vs2, vm  # Zero-extend SEW/2 source to SEW destination
+vsext.vf2 vd, vs2, vm  # Sign-extend SEW/2 source to SEW destination
+vzext.vf4 vd, vs2, vm  # Zero-extend SEW/4 source to SEW destination
+vsext.vf4 vd, vs2, vm  # Sign-extend SEW/4 source to SEW destination
+vzext.vf8 vd, vs2, vm  # Zero-extend SEW/8 source to SEW destination
+vsext.vf8 vd, vs2, vm  # Sign-extend SEW/8 source to SEW destination
+----
+
+If the source EEW is not a supported width or the source EMUL is not a
+supported LMUL, an illegal instruction exception is raised.
+
 === Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 
 To support multi-word integer arithmetic, instructions that operate on
