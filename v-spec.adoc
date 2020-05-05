@@ -930,12 +930,10 @@ register into mask elements.  The size of each mask element in bits,
 _MLEN_, is:
 
 ----
-                MLEN = SEW/max(LMUL,1)
+                MLEN = SEW/LMUL
 ----
 
-Fractional LMUL values, LMUL < 1, have the same MLEN as LMUL=1.
-
-The size of MLEN varies from ELEN (SEW=ELEN, LMUL=1) down to 1
+The size of MLEN varies from 8*ELEN (SEW=ELEN, LMUL=1/8) down to 1
 (SEW=8b,LMUL=8), and hence a single vector register can always hold
 the entire set of VLMAX mask elements.
 
@@ -1048,13 +1046,21 @@ mask_LSB_index(__i__) = (__i__ % (VLEN / SLEN)) * SLEN + floor(__i__ / (VLEN / S
               [240]   [224]   [208]   [192]    [112]     [96]   [80]    [64]
 
 
- VLEN=256b, SLEN=128b, SEW=32b, LMUL=1/2, MLEN=16b
+ VLEN=256b, SLEN=128b, SEW=32b, LMUL=1/2, MLEN=64b
 
  Section                  1               |                0
  Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
 
  vn              -       -       3       1|       -       -       2       0
-                              [144]   [128]                     [16]     [0]
+                              [192]   [128]                     [64]     [0]
+
+ VLEN=256b, SLEN=128b, SEW=64b, LMUL=1, MLEN=64b
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ vn                      3               1|               2               0
+                      [192]           [128]             [64]             [0]
 ----
 
 TODO: More examples might be useful.
