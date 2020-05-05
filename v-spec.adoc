@@ -3121,8 +3121,9 @@ If any destination element is saturated, the `vxsat` bit is set in the
 
 The standard vector floating-point instructions treat 16-bit, 32-bit,
 64-bit, and 128-bit elements as IEEE-754/2008-compatible values.  If
-the current SEW does not correspond to a supported IEEE floating-point
-type, an illegal instruction exception is raised.
+the EEW of a vector floating-point operand does not correspond to a
+supported IEEE floating-point type, an illegal instruction exception
+is raised.
 
 NOTE: The floating-point element widths that are supported depend on
 the platform.
