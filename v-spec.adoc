@@ -9,6 +9,7 @@ Version 0.9-draft-20200424
 :le: &#8804;
 :ge: &#8805;
 :ne: &#8800;
+:inf: &#8734;
 
 Contributors include: Alon Amid, Krste Asanovic, Allen Baum, Alex
 Bradbury, Tony Brewer, Chris Celio, Aliaksei Chapyzhenka, Silviu
@@ -3657,10 +3658,13 @@ floating-point addition according to the RISC-V IEEE scalar
 floating-point specification and with the currently active
 floating-point dynamic rounding mode.
 A node where one input is derived only from elements masked-off or beyond the
-active vector length may either treat that input as IEEE +0.0 of the
-appropriate SEW or simply copy the other input to its output.  The root node in
-the tree must produce an IEEE result of the appropriate SEW.  An implementation
-is allowed to add an additional IEEE +0.0 to the final result.
+active vector length may either treat that input as the additive identity of the
+appropriate EEW or simply copy the other input to its output.  The root node in
+the tree must produce an IEEE result of the appropriate EEW.  An implementation
+is allowed to add an additional additive identity to the final result.
+
+The additive identity is +0.0 when rounding down (towards -{inf}) or
+-0.0 for all other rounding modes.
 
 The reduction tree structure must be deterministic for a given value
 in `vtype` and `vl`.
