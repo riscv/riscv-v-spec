@@ -1142,7 +1142,7 @@ widening operation producing a widened vector register group result
 when LMUL=8 will raise an illegal instruction exception as this would
 imply a result EMUL=16.
 
-Widened scalar values, e..g, results from widening reduction
+Widened scalar values, e.g., results from widening reduction
 operations, are held in the first element of a vector register and
 have EMUL=1.
 
