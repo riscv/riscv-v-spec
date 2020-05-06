@@ -1513,7 +1513,7 @@ field.
 
 | 0 | 0 | unit-stride       | VSE<EEW>
 | 0 | 1 | indexed-unordered | VSUXEI<EEW>
-| 1 | 0 | strided           | VSE<EEW>
+| 1 | 0 | strided           | VSSE<EEW>
 | 1 | 1 | indexed-ordered   | VSXEI<EEW>
 |===
 
