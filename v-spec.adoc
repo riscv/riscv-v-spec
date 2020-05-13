@@ -719,9 +719,7 @@ implementations that have wide spatial vector datapaths.  For such
 machines, SLEN is typically at least 128 bits and used for vector
 datapaths operating on at least 256 bits per cycle or wider.  For
 datapath designs where cross-datapath wiring is not a constraint, SLEN
-will usually be set to VLEN.  Earlier explicit configuration vector
-extension designs (< 0.6) allowed these tradeoffs to be managed at the
-microarchitectural level and optimized for each configuration.
+will usually be set to VLEN.
 
 NOTE: Compared to v0.8, the SLEN<VLEN mapping pattern has changed to
 support fractional LMUL in a straightforward way and also to provide
@@ -869,7 +867,7 @@ register grouping factor (LMUL) is increased by the relative element
 size such that each group can hold the same number of vector elements
 (VLMAX=16 in this example) to simplify stripmining code.  Any operation
 between elements with the same index only touches operand bits located
-within the same 128b section of the datapath.
+within the same SLEN=128b section of the datapath.
 
 ----
 Examples VLEN=256b, SLEN=128b, with SEW/LMUL=16
@@ -919,8 +917,8 @@ SLEN-wide sections of the datapath.
 
 
 Larger LMUL settings can also used to simply increase vector length to
-reduce instruction fetch and dispatch overheads, in cases where fewer
-architectural vector registers are sufficient.
+reduce instruction fetch and dispatch overheads in cases where fewer
+vector register values are needed.
 
 NOTE: The SEW/LMUL values of 2048 and greater are shown in the table
 for completeness but they do not add a useful operating point in the
