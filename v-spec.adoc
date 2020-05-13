@@ -569,17 +569,6 @@ SEW and LMUL settings, as well as implementation ELEN, VLEN, and SLEN.
 Elements are packed into each vector register with the
 least-significant byte in the lowest-numbered bits.
 
-NOTE: Previous RISC-V vector proposals (< 0.6) hid this mapping from
-software, whereas this proposal has a specific mapping for all
-configurations, which reduces implementation flexibility but removes
-need for zeroing on config changes.  Making the mapping explicit also
-has the advantage of simplifying oblivious context save-restore code,
-as the code can save the configuration in `vl` and `vtype`,
-then reset `vtype` to a convenient value (e.g., four vector register groups of
-LMUL=8, SEW=ELEN) before saving all vector register bits without
-needing to parse the configuration.  The reverse process will restore
-the state.
-
 === Mapping for VLEN=SLEN and LMUL {le} 1
 
 When VLEN=SLEN and LMUL=1, elements are simply packed in order from
