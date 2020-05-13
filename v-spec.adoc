@@ -177,8 +177,11 @@ encoding.
 
 The value in `vsew` sets the dynamic _standard_ _element_ _width_
 (SEW).  By default, a vector register is viewed as being divided into
-VLEN / SEW standard-width elements.  In the base vector extension,
-only SEW up to max(XLEN,FLEN) are required to be supported.
+VLEN / SEW standard-width elements.
+
+NOTE: In the base vector "V" extension, only SEW up to ELEN =
+max(XLEN,FLEN) are required to be supported.  Other platforms may
+impose different constraints on ELEN.
 
 .vsew[2:0] (standard element width) encoding
 [cols="1,1,1,>13"]
