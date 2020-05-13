@@ -291,7 +291,7 @@ regardless of LMUL.
 ==== Vector Tail Agnostic and Vector Mask Agnostic `vta` and `vma`
 
 These two bits modify the behavior of destination tail elements and
-destination inactive masked off elements respectively during the
+destination inactive masked-off elements respectively during the
 execution of vector instructions.  The tail and inactive sets contain
 element positions that are not receiving new results during a vector
 operation, as defined in Section <<sec-inactive-defs>>.
@@ -310,13 +310,13 @@ All systems must support all four options:
 |===
 
 When a set is marked undisturbed, the corresponding set of destination
-elements in any vector destination operand retain the value they
-previously held.
+elements in any vector or mask destination operand retain the value
+they previously held.
 
 When a set is marked agnostic, the corresponding set of destination
-elements in any vector destination operand can either retain the value
-they previously held, or are overwritten with 1s.  Within a single
-vector instruction, each destination element can be either left
+elements in any vector or mask destination operand can either retain
+the value they previously held, or are overwritten with 1s.  Within a
+single vector instruction, each destination element can be either left
 undisturbed or overwritten with 1s, in any combination, and the
 pattern of undisturbed or overwritten with 1s is not required to be
 deterministic when the instruction is executed with the same inputs.
@@ -333,16 +333,18 @@ NOTE: The intent is for software to select the option that reduces
 micorarchitectural work by selecting agnostic when the value in the
 respective set does not matter.
 
-NOTE: The value of all 1s was chosen for the overwrite value to
-discourage software developers from depending on the value written.
+NOTE: The value of all 1s instead of all 0s was chosen for the
+overwrite value to discourage software developers from depending on
+the value written.
 
 NOTE: A simple in-order implementation can ignore the setting and
 simply execute all vector instructions using the undisturbed
-policy. The two `vtype` state bits must still be provided for
-compatibilty and to support thread migration.
+policy. The `vta` and `vma` state bits must still be provided in
+`vtype` for compatibilty and to support thread migration.
 
 NOTE: An out-of-order implementation can choose to implement
-tail-agnostic + mask-agnostic using tail-agnostic + mask-undisturbed.
+tail-agnostic + mask-agnostic using tail-agnostic + mask-undisturbed
+to reduce implementation complexity.
 
 NOTE: The definition of agnostic result policy is left loose to
 accomodate migrating application threads between harts on a small
@@ -350,7 +352,11 @@ in-order core (which probably leaves agnostic regions undisturbed) and
 harts on a larger out-of-order core with register renaming (which
 probably overwrites agnostic elements with 1s).  As it might be
 necessary to restart in the middle, we allow arbitrary mixing of
-agnostic poilcies within a single vector instruction.
+agnostic policies within a single vector instruction.  This allowed
+mixing of policies also enables implementations that might change
+policies for different granules of a vector register, for example,
+using undisturbed within a granule that is actively operated on but
+renaming to all 1s for granules in the tail.
 
 The assembly syntax adds two flags to the `vsetvli` instruction:
 
