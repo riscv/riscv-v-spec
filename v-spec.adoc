@@ -155,15 +155,16 @@ regular CSR writes.  Allowing updates only via the `vsetvl{i}`
 instructions simplifies maintenance of the `vtype` register state.
 
 In the base vector extension, the `vtype` register has five fields,
-`vill`, `ma`, `ta`, vsew[2:0]`, and `vlmul[2:0]`.
+`vill`, `ma`, `ta`, `vsew[2:0]`, and `vlmul[2:0]`.
 
 include::vtype-format.adoc[]
 
-NOTE: The smallest base implementation requires storage for only five
-bits of storage in `vtype`, two bits for `vsew[1:0]` and three bits for
-`vlmul[2:0]`.  The illegal value represented by `vill` can be encoded
-using the illegal 64-bit combination in `vsew[1:0]` without requiring
-an additional storage bit.
+NOTE: The smallest base implementation supporting ELEN=32 requires
+storage for only seven bits of storage in `vtype`, two bits for `ma`
+and `ta`, two bits for `vsew[1:0]` and three bits for `vlmul[2:0]`.
+The illegal value represented by `vill` can be encoded using the
+illegal 64-bit combination in `vsew[1:0]` without requiring an
+additional storage bit.
 
 NOTE: Further standard and custom extensions to the vector base will
 extend these fields to support a greater variety of data types.
