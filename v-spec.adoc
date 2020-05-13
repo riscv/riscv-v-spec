@@ -3434,9 +3434,10 @@ way as the scalar classify instruction.
 ----
 
 The 10-bit mask produced by this instruction is placed in the
-least-significant bits of the result elements.  The instruction is
-only defined for SEW=16b and above, so the result will always fit in
-the destination elements.
+least-significant bits of the result elements.  The upper (SEW-10)
+bits of the result are filled with zeros. The instruction is only
+defined for SEW=16b and above, so the result will always fit in the
+destination elements.
 
 === Vector Floating-Point Merge Instruction
 
