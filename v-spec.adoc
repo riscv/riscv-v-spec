@@ -235,9 +235,16 @@ values can occupy a single vector register and narrower values can
 occupy a fraction of a vector register.
 
 Implementations must support fractional LMUL settings for LMUL {ge}
-SEW/ELEN, for the ELEN value at LMUL=1, which ensures there is space
-to store at least one element.  An attempt to set an unsupported SEW
-and LMUL configuration sets the `vill` bit in `vtype`.
+SEW/ELEN, for the ELEN value at LMUL=1.  An attempt to set an
+unsupported SEW and LMUL configuration sets the `vill` bit in `vtype`.
+
+NOTE: Requiring LMUL {ge} SEW/ELEN allows software to only use a
+single vector register to hold the widest (ELEN) elements with
+fractional LMUL used to hold narrower elements when operating on
+mixed-width elements.  If LMUL < SEW/ELEN there is no guarantee an
+implementation would have enough bits in the fractional vector
+register to store at least one element, as VLEN=ELEN is a valid
+implementation choice.
 
 LMUL is set by the signed `vlmul` field in `vtype` (LMUL =
 2^`vlmul[2:0]`^).
