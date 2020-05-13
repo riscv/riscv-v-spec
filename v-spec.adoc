@@ -929,30 +929,16 @@ do not enable more architectural registers.
 === Mask Register Layout
 
 A vector mask occupies only one vector register regardless of SEW and
-LMUL.  The mask bits that are used for each vector operation depends
-on the current SEW and LMUL setting.
+LMUL.  Each element is allocated a single mask bit in a mask vector
+register.
 
-A mask element is allocated for each data element by dividing the mask
-register into mask elements.  The size of each mask element in bits,
-_MLEN_, is:
-
-----
-                MLEN = SEW/LMUL
-----
-
-The size of MLEN varies from 8*ELEN (SEW=ELEN, LMUL=1/8) down to 1
-(SEW=8b,LMUL=8), and hence a single vector register can always hold
-the entire set of VLMAX mask elements.
+NOTE: Earlier designs (pre-0.9) had a varying number of bits per mask
+value (MLEN).  In the 0.9 design, MLEN=1.
 
 ==== Mask Element Locations for SLEN=VLEN
 
-The mask bits for element _i_ are located in bits [MLEN*_i_+(MLEN-1) :
-MLEN*_i_] of the mask register.
-
-The pattern is such that for constant SEW/LMUL values, the effective
-predicate bits are located in the same bit of the mask vector
-register, which simplifies use of masking in loops with mixed-width
-elements.
+The mask bit for element _i_ is located in bit _i_ of the mask
+register, independent of SEW or LMUL.
 
 ----
  SLEN=VLEN=32b
@@ -960,48 +946,48 @@ elements.
           Byte    3   2   1   0
  LMUL=1,SEW=8b
                   3   2   1   0  Element
-                [24][16][08][00] Mask bit position in decimal
+                [03][02][01][00] Mask bit position in decimal
 
  LMUL=2,SEW=16b
                       1       0
-                    [08]    [00]
+                    [01]    [00]
                       3       2
-                    [24]    [16]
+                    [03]    [02]
 
  LMUL=4,SEW=32b               0
                             [00]
                               1
-                            [08]
+                            [01]
                               2
-                            [16]
+                            [02]
                               3
-                            [24]
+                            [03]
 ----
 
 ----
  LMUL=2,SEW=8b
                   3   2   1   0
-                [12][08][04][00]
+                [03][02][01][00]
                   7   6   5   4
-                [28][24][20][16]
+                [07][06][05][04]
 
  LMUL=8,SEW=32b
                               0
                             [00]
                               1
-                            [04]
+                            [01]
                               2
-                            [08]
+                            [02]
                               3
-                            [12]
+                            [03]
                               4
-                            [16]
+                            [04]
                               5
-                            [20]
+                            [05]
                               6
-                            [24]
+                            [06]
                               7
-                            [28]
+                            [07]
 
  LMUL=8,SEW=8b
                   3   2   1   0
@@ -1022,20 +1008,15 @@ elements.
                 [31][30][29][28]
 ----
 
-When LMUL < 1, the mask elements are accessed as if LMUL=1 and the
-vector length was reduced.
-
-
 === Mask Element Locations for SLEN < VLEN
 
 In systems with SLEN < VLEN, the mask elements are striped across the
 VLEN/SLEN sections of the vector mask register.  Mask element 0 is in
-least-significant bits of section 0, and mask element 1 is in
-least-significant bits of section 1, etc.  In general, the
-least-significant bit of the mask element for element __i__ is located
-at bit:
+the least-significant bit of section 0, and mask element 1 is in
+least-significant bit of section 1, etc.  In general, the the mask bit
+for element __i__ is located bit:
 
-mask_LSB_index(__i__) = (__i__ % (VLEN / SLEN)) * SLEN + floor(__i__ / (VLEN / SLEN)) * MLEN
+mask_bit_index(__i__) = (__i__ % (VLEN / SLEN)) * SLEN + floor(__i__ / (VLEN / SLEN))
 
 ----
  Mask register element location examples for SLEN < VLEN
@@ -1047,10 +1028,10 @@ mask_LSB_index(__i__) = (__i__ % (VLEN / SLEN)) * SLEN + floor(__i__ / (VLEN / S
  Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
 
  v2*n            7       5       3       1|       6       4       2       0
-              [176]   [160]   [144]   [128]     [48]    [32]    [16]     [0]
+              [131]   [130]   [129]   [128]      [3]     [2]     [1]     [0]
 
  v2*n+1          F       D       B       9|       E       C       A       8
-              [240]   [224]   [208]   [192]    [112]     [96]   [80]    [64]
+              [135]   [134]   [133]   [132]      [7]     [6]     [5]     [4]
 
 
  VLEN=256b, SLEN=128b, SEW=32b, LMUL=1/2, MLEN=64b
@@ -1059,7 +1040,7 @@ mask_LSB_index(__i__) = (__i__ % (VLEN / SLEN)) * SLEN + floor(__i__ / (VLEN / S
  Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
 
  vn              -       -       3       1|       -       -       2       0
-                              [192]   [128]                     [64]     [0]
+                              [129]   [128]                      [1]     [0]
 
  VLEN=256b, SLEN=128b, SEW=64b, LMUL=1, MLEN=64b
 
@@ -1067,7 +1048,7 @@ mask_LSB_index(__i__) = (__i__ % (VLEN / SLEN)) * SLEN + floor(__i__ / (VLEN / S
  Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
 
  vn                      3               1|               2               0
-                      [192]           [128]             [64]             [0]
+                      [129]           [128]              [1]             [0]
 ----
 
 TODO: More examples might be useful.
@@ -1156,8 +1137,11 @@ have EMUL=1.
 === Vector Masking
 
 Masking is supported on many vector instructions.  Element operations
-that are masked off do not modify the destination vector register
-element and never generate exceptions.
+that are masked off (inactive) never generate exceptions.  The
+destination vector register elements corresponding to masked-off
+elements are handled with either a mask-undisturbed or mask-agnostic
+policy depending on the setting of the `vma` bit in `vtype` (Section
+<<sec-agnostic>>).
 
 In the base vector extension, the mask value used to control execution
 of a masked vector instruction is always supplied by vector register
@@ -1167,8 +1151,8 @@ NOTE: Future vector extensions may provide longer instruction
 encodings with space for a full mask register specifier.
 
 The destination vector register group for a masked vector instruction
-can only overlap the source mask register (`v0`) when
-LMUL{le}1.  Otherwise, an illegal instruction exception is raised.
+cannot overlap the source mask register (`v0`).  Otherwise, an illegal
+instruction exception is raised.
 
 NOTE: This constraint supports restart with a non-zero `vstart` value.
 
@@ -1176,12 +1160,10 @@ Other vector registers can be used to hold working mask values, and
 mask vector logical operations are provided to perform predicate
 calculations. [[sec-mask-vector-logical]]
 
-When a mask element is written by a compare instruction, the low bit
-in the mask element is written with the compare result and the upper
-bits of the mask element are zeroed.  Destination mask elements past
-the end of the current vector length are unchanged.  When a value is
-read as a mask, only the least-significant bit of the mask element is
-used to control masking and the upper bits are ignored.
+When a mask is written with a compare result, destination mask bits
+past the end of the current vector length are handled according to the
+tail policy (undisturbed or agnostic) set by the `vta` bit in `vtype
+(Section <<sec-agnostic>>).
 
 [[sec-vector-mask-encoding]]
 ==== Mask Encoding
@@ -1202,12 +1184,12 @@ provided both true and complement masking using `v0` as well as
 encoding scalar operations.
 
 Vector masking is represented in assembler code as another vector
-operand, with `.t` indicating if operation occurs when `v0[i].LSB` is
+operand, with `.t` indicating if operation occurs when `v0.mask[i]` is
 `1`.  If no masking operand is specified, unmasked vector execution
 (`vm=1`) is assumed.
 
 ----
-    vop.v*    v1, v2, v3, v0.t  # enabled where v0[i].LSB=1, m=0
+    vop.v*    v1, v2, v3, v0.t  # enabled where v0.mask[i]=1, m=0
     vop.v*    v1, v2, v3        # unmasked vector operation, m=1
 ----
 
@@ -1261,16 +1243,6 @@ the tail.
     body(x)     = active(x) || inactive(x)
     tail(x)     = (vl <= x < max(VLMAX,VLEN/SEW))
 ----
-
-NOTE: The inactive and tail update rules leave unchanged destination
-elements that are not participating in the vector operation.  Previous
-versions (v0.7) of the specification zeros the tail elements to reduce
-the complexity of implementations that implement register renaming. In
-version 0.8, this was changed to leave the tail elements undisturbed,
-which reduces complexity for simpler implementations without register
-renaming and reduces software overhead for some common sequences.  A
-rationale is provided in a separate document:
-https://github.com/riscv/riscv-v-spec/blob/master/v-undisturbed-versus-zeroing.adoc
 
 == Configuration-Setting Instructions
 
@@ -1815,13 +1787,6 @@ There are also fault-only-first versions of the unit-stride instructions.
     vlseg<nf>e<eew>ff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
 ----
 
-For unit-stride segment loads, the destination vector register groups
-cannot overlap the mask register if masked, else an illegal instruction
-exception is raised.
-
-NOTE: This constraint supports restart of segment loads
-that raise exceptions partway through loading a structure.
-
 ==== Vector Strided Segment Loads and Stores
 
 Vector strided segment loads and stores move contiguous segments where
@@ -1851,12 +1816,6 @@ For strided segment stores where the byte stride is such that segments
 could overlap in memory, the segments must appear to be written in
 element order.
 
-For strided segment loads, the destination vector register groups
-cannot overlap the mask register if masked, else an illegal instruction
-exception is raised.
-
-NOTE: This constraint supports restart of strided segment loads
-that raise exceptions partway through loading a structure.
 
 ==== Vector Indexed Segment Loads and Stores
 
@@ -1885,10 +1844,9 @@ EMUL=(EEW/SEW)*LMUL.
                               #   and words from v3[i] to address x5+v5[i]+4
 ----
 
-For vector indexed segment loads, the destination vector register groups
-cannot overlap the source vector register group (specified by `vs2`), nor can
-they overlap the mask register if masked, else an illegal instruction
-exception is raised.
+For vector indexed segment loads, the destination vector register
+groups cannot overlap the source vector register group (specified by
+`vs2`), else an illegal instruction exception is raised.
 
 NOTE: This constraint supports restart of indexed segment loads
 that raise exceptions partway through loading a structure.
@@ -2278,8 +2236,8 @@ register number that is valid for the destination's EMUL, otherwise an
 illegal instruction exception is raised.
 
 The destination vector register group cannot overlap a source vector
-register group of a different EEW (including the mask register if
-masked), otherwise an illegal instruction exception is raised.
+register group of a different EEW, otherwise an illegal instruction
+exception is raised.
 
 NOTE: This constraint is necessary to support restart with non-zero
 `vstart`.
@@ -2312,14 +2270,11 @@ Where there is a second source vector register group (specified by
 EEW=SEW).
 
 The destination vector register group cannot overlap the first source
-vector register group (specified by `vs2`).  The destination vector
-register group cannot overlap the mask register if used, unless
-LMUL{le}1. If either constraint is violated, an illegal instruction
-exception is raised.
+vector register group (specified by `vs2`), otherwise an illegal
+instruction exception is raised.
 
 NOTE: It is safe to overwrite a second source vector register group
-with the same LMUL and element width as the result, or to overwrite a
-mask register when LMUL{le}1.
+with the same LMUL and element width as the result.
 
 A `vn*` prefix on the opcode is used to distinguish these instructions
 in the assembler, or a `vfn*` prefix for narrowing floating-point
@@ -2512,14 +2467,14 @@ For `vmsbc`, the borrow is defined to be 1 iff the difference, prior to
 truncation, is negative.
 
 For `vadc` and `vsbc`, an illegal instruction exception is raised
-if the destination vector register is `v0` and LMUL > 1.
+if the destination vector register is `v0`.
 
 NOTE: This constraint corresponds to the constraint on masked vector
 operations that overwrite the mask register.
 
 For `vmadc` and `vmsbc`, an illegal instruction exception is raised if
 the destination vector register overlaps a source vector register
-group and LMUL > 1.
+group.
 
 === Vector Bitwise Logical Instructions
 
@@ -2750,8 +2705,7 @@ Comparisons effectively AND in the mask, e.g,
 ----
 
 For all comparison instructions, an illegal instruction exception is raised if
-the destination vector register overlaps a source vector register group and
-LMUL > 1.
+the destination vector register overlaps a source vector register group.
 
 === Vector Integer Min/Max Instructions
 
@@ -2951,7 +2905,7 @@ vqmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) +
 === Vector Integer Merge Instructions
 
 The vector integer merge instructions combine two source operands
-based on the mask field.  Unlike regular arithmetic instructions, the
+based on a mask.  Unlike regular arithmetic instructions, the
 merge operates on all body elements (i.e., the set of elements from
 `vstart` up to the current vector length in `vl`).
 
@@ -2966,9 +2920,9 @@ scalar `x` register specified by `rs1` or a 5-bit sign-extended
 immediate.
 
 ----
-vmerge.vvm vd, vs2, vs1, v0  # vd[i] = v0[i].LSB ? vs1[i] : vs2[i]
-vmerge.vxm vd, vs2, rs1, v0  # vd[i] = v0[i].LSB ? x[rs1] : vs2[i]
-vmerge.vim vd, vs2, imm, v0  # vd[i] = v0[i].LSB ? imm    : vs2[i]
+vmerge.vvm vd, vs2, vs1, v0  # vd[i] = v0.mask[i] ? vs1[i] : vs2[i]
+vmerge.vxm vd, vs2, rs1, v0  # vd[i] = v0.mask[i] ? x[rs1] : vs2[i]
+vmerge.vim vd, vs2, imm, v0  # vd[i] = v0.mask[i] ? imm    : vs2[i]
 ----
 
 === Vector Integer Move Instructions
@@ -3367,9 +3321,9 @@ quiet NaN inputs.
 operand is NaN, whereas the other comparisons write 0 when either operand
 is NaN.
 
-For all comparison instructions, an illegal instruction exception is raised if
-the destination vector register overlaps a source vector register group and
-LMUL > 1.
+For all comparison instructions, an illegal instruction exception is
+raised if the destination vector register overlaps a source vector
+register group.
 
 ----
     # Compare equal
@@ -3461,7 +3415,7 @@ copied to the destination element, otherwise a scalar floating-point
 register value is copied to the destination element.
 
 ----
-vfmerge.vfm vd, vs2, rs1, v0  # vd[i] = v0[i].LSB ? f[rs1] : vs2[i]
+vfmerge.vfm vd, vs2, rs1, v0  # vd[i] = v0.mask[i] ? f[rs1] : vs2[i]
 ----
 
 NOTE: Like the floating-point computational instructions, when FLEN > SEW,
@@ -3595,7 +3549,7 @@ types not supported in the scalar unit.
 
 Inactive elements from the source vector register group are excluded
 from the reduction, but the scalar operand is always included
-regardless of mask.
+regardless of the mask values.
 
 The other elements in the destination vector register ( 0 < index <
 VLEN/SEW) are left unchanged.
@@ -3751,7 +3705,7 @@ a vector register.
 === Vector Mask-Register Logical Instructions
 
 Vector mask-register logical operations operate on mask registers.
-The size of one element in a mask register is SEW/LMUL, so these
+Each element in a mask register is a single bit, so these
 instructions all operate on single vector registers regardless of the
 setting of the `vlmul` field in `vtype`.  They do not change the value
 of `vlmul`.
@@ -3760,21 +3714,18 @@ As with other vector instructions, the elements with indices less than
 `vstart` are unchanged, and `vstart` is reset to zero after execution.
 Vector mask logical instructions are always unmasked so there are no
 inactive elements.  Mask elements past `vl`, the tail elements, are
-unchanged.
-
-Within a mask element, these instructions perform their operations
-using only the least-significant bit of each operand and zero-extend
-the single-bit result to fill the destination mask element.
+handled according to the setting of `vta` in `vtype` (Section
+<<sec-agnostic>>).
 
 ----
-    vmand.mm vd, vs2, vs1     # vd[i] =   vs2[i].LSB &&  vs1[i].LSB
-    vmnand.mm vd, vs2, vs1    # vd[i] = !(vs2[i].LSB &&  vs1[i].LSB)
-    vmandnot.mm vd, vs2, vs1  # vd[i] =   vs2[i].LSB && !vs1[i].LSB
-    vmxor.mm  vd, vs2, vs1    # vd[i] =   vs2[i].LSB ^^  vs1[i].LSB
-    vmor.mm  vd, vs2, vs1     # vd[i] =   vs2[i].LSB ||  vs1[i].LSB
-    vmnor.mm  vd, vs2, vs1    # vd[i] = !(vs2[i[.LSB ||  vs1[i].LSB)
-    vmornot.mm  vd, vs2, vs1  # vd[i] =   vs2[i].LSB || !vs1[i].LSB
-    vmxnor.mm vd, vs2, vs1    # vd[i] = !(vs2[i].LSB ^^  vs1[i].LSB)
+    vmand.mm vd, vs2, vs1     # vd[i] =   vs2.mask[i] &&  vs1.mask[i]
+    vmnand.mm vd, vs2, vs1    # vd[i] = !(vs2.mask[i] &&  vs1.mask[i])
+    vmandnot.mm vd, vs2, vs1  # vd[i] =   vs2.mask[i] && !vs1.mask[i]
+    vmxor.mm  vd, vs2, vs1    # vd[i] =   vs2.mask[i] ^^  vs1.mask[i]
+    vmor.mm  vd, vs2, vs1     # vd[i] =   vs2.mask[i] ||  vs1.mask[i]
+    vmnor.mm  vd, vs2, vs1    # vd[i] = !(vs2.mask[i] ||  vs1.mask[i])
+    vmornot.mm  vd, vs2, vs1  # vd[i] =   vs2.mask[i] || !vs1.mask[i]
+    vmxnor.mm vd, vs2, vs1    # vd[i] = !(vs2.mask[i] ^^  vs1.mask[i])
 ----
 
 Several assembler pseudoinstructions are defined as shorthand for
@@ -3788,8 +3739,8 @@ common uses of mask logical operations:
 
 NOTE: The vmcpy.m instruction is not called vmmv as elsewhere in the
 architecture mv implies a bitwise copy without interpreting the bits.
-The vmcpy.m instruction will clear upper bits of the destination mask
-register to zero regardless of source values in these bits.
+
+NOTE: vmcpy.m should change name to vmmv.m with new mask encoding.
 
 The set of eight mask logical instructions can generate any of the 16
 possibly binary logical functions of the two input masks:
@@ -3838,15 +3789,14 @@ The source operand is a single vector register holding mask register
 values as described in Section <<sec-mask-register-layout>>.
 
 The `vpopc.m` instruction counts the number of mask elements of the
-active elements of the vector source mask register that have their
-least-significant bit set, and writes the result to a scalar `x`
-register.
+active elements of the vector source mask register that have the value
+1 and writes the result to a scalar `x` register.
 
 The operation can be performed under a mask, in which case only the
 masked elements are counted.
 
 ----
- vpopc.m rd, vs2, v0.t # x[rd] = sum_i ( vs2[i].LSB && v0[i].LSB )
+ vpopc.m rd, vs2, v0.t # x[rd] = sum_i ( vs2.mask[i] && v0.mask[i] )
 ----
 
 Traps on `vpopc.m` are always reported with a `vstart` of 0.  The
@@ -3860,8 +3810,8 @@ Traps on `vpopc.m` are always reported with a `vstart` of 0.  The
 ----
 
 The `vfirst` instruction finds the lowest-numbered active element of
-the source mask vector that has its LSB set and writes that element's
-index to a GPR.  If no element has an LSB set, -1 is written to the
+the source mask vector that has the value 1 and writes that element's
+index to a GPR.  If no element has the value 1, -1 is written to the
 GPR.
 
 NOTE: Software can assume that any negative value (highest bit set)
@@ -3901,8 +3851,8 @@ Traps on `vfirst` are always reported with a `vstart` of 0.  The
 
 The `vmsbf.m` instruction takes a mask register as input and writes
 results to a mask register.  The instruction writes a 1 to all active
-mask elements before the first source element that has a set LSB, then
-writes a zero to that element and all following active elements.  If
+mask elements before the first source element that is a 1, then
+writes a 0 to that element and all following active elements.  If
 there is no set bit in the source vector, then all active elements in
 the destination are written with a 1.
 
@@ -3992,7 +3942,7 @@ include::example/strncpy.s[lines=4..-1]
 
 The `viota.m` instruction reads a source vector mask register and
 writes to each element of the destination vector register group the
-sum of all the least-significant bits of elements in the mask register
+sum of all the bits of elements in the mask register
 whose index is less than the element, e.g., a parallel prefix sum of
 the mask values.
 
@@ -4380,9 +4330,8 @@ vrgather.vi vd, vs2, uimm, vm # vd[i] = (uimm >= VLMAX) ? 0 : vs2[uimm]
 ----
 
 For any `vrgather` instruction, the destination vector register group
-cannot overlap with the source vector register groups, including the
-mask register if the operation is masked, otherwise an illegal
-instruction exception is raised.
+cannot overlap with the source vector register groups, otherwise an
+illegal instruction exception is raised.
 
 NOTE: When SEW=8, `vrgather.vv` can only reference vector elements 0-255.
 
@@ -4419,8 +4368,7 @@ elements according to the current tail policy (Section
 masked instruction (`vm=0`) is reserved.
 
 The destination vector register group cannot overlap the source vector
-register group or the source vector mask register, otherwise an
-illegal instruction exception is raised.
+register group, otherwise an illegal instruction exception is raised.
 
 A trap on a `vcompress` instruction is always reported with a
 `vstart` of 0.  Executing a `vcompress` instruction with a non-zero
@@ -4557,6 +4505,9 @@ This mechanism is not defined in the base vector ISA.
 NOTE: The EDIV extension is currently not planned to be part of the
 base "V" extension, and will change substantially from the current
 sketch.
+
+NOTE: This section has not been updated to account for new mask format
+in v0.9.
 
 The divided element extension allows each element to be treated as a
 packed sub-vector of narrower elements. This provides efficient
