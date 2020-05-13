@@ -155,7 +155,7 @@ regular CSR writes.  Allowing updates only via the `vsetvl{i}`
 instructions simplifies maintenance of the `vtype` register state.
 
 In the base vector extension, the `vtype` register has five fields,
-`vill`, `ma`, `ta`, `vsew[2:0]`, and `vlmul[2:0]`.
+`vill`, `vma`, `vta`, `vsew[2:0]`, and `vlmul[2:0]`.
 
 include::vtype-format.adoc[]
 
