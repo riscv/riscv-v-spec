@@ -448,9 +448,10 @@ CSR to zero.
 `vstart` is not modified by vector instructions that raise illegal-instruction
 exceptions.
 
-If the value in the `vstart` register is greater than or equal to the
-vector length `vl` then no element operations are performed.  The
-`vstart` register is then reset to zero.
+For instructions where the number of elements to be performed is set
+by `vl`, if the value in the `vstart` register is greater than or
+equal to the vector length `vl` then no element operations are
+performed.  The `vstart` register is then reset to zero.
 
 The `vstart` CSR is defined to have only enough writable bits to hold
 the largest element index (one less than the maximum VLMAX) or
