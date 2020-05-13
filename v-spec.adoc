@@ -1952,7 +1952,7 @@ NOTE: Profiles will dictate whether vector AMO operations are
 supported.  The expectation is that the base "V" extension used for
 the Unix profile will require vector AMO operations.
 
-If vector AMO instructions are supported, then the scalar Zaamo
+If vector AMO instructions are supported, then the scalar Zvamo
 instructions (atomic operations from the standard A extension) must be
 present.
 
