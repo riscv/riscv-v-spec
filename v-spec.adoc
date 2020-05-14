@@ -1937,7 +1937,7 @@ vs2[4:0] specifies v register holding address
 vs3/vd[4:0] specifies v register holding source operand and destination
 
 vm specifies vector mask
-width[2:0] specifies size of memory elements, and distinguishes from scalar AMO
+width[2:0] specifies size of index elements, and distinguishes from scalar AMO
 amoop[4:0] specifies the AMO operation
 wd specifies whether the original memory value is written to vd (1=yes, 0=no)
 ----
@@ -1949,7 +1949,7 @@ atomic memory operation.
 AMOs have the same index EEW scheme as indexed operations, except
 without the `mew` bit, which is is assumed to be zero, so offsets can
 have EEW=8,16,32,64 only.  A vector of byte offsets in register `vs2`
-are added to the scalar base register in `rs1` to give the addresses
+is added to the scalar base register in `rs1` to give the addresses
 of the AMO operations.
 
 The data register `vs3` used dynamic SEW and MUL setting.
