@@ -1151,7 +1151,9 @@ NOTE: Future vector extensions may provide longer instruction
 encodings with space for a full mask register specifier.
 
 The destination vector register group for a masked vector instruction
-cannot overlap the source mask register (`v0`).  Otherwise, an illegal
+cannot overlap the source mask register (`v0`), unless the destination
+vector register is being written with a mask value (e.g., comparisons)
+or the scalar result of a reduction.  Otherwise, an illegal
 instruction exception is raised.
 
 NOTE: This constraint supports restart with a non-zero `vstart` value.
@@ -2550,11 +2552,12 @@ destination is 1/4 width of source.
 
 === Vector Integer Comparison Instructions
 
-The following integer compare instructions write 1 to the
-destination mask register element if the comparison evaluates to true,
-and 0 otherwise.  The destination mask vector is always held in a
-single vector register, with a layout of elements as described in
-Section <<sec-mask-register-layout>>.
+The following integer compare instructions write 1 to the destination
+mask register element if the comparison evaluates to true, and 0
+otherwise.  The destination mask vector is always held in a single
+vector register, with a layout of elements as described in Section
+<<sec-mask-register-layout>>.  The destination mask vector register
+may be the same as the source vector mask register (`v0`).
 
 ----
 # Set if equal
@@ -2703,9 +2706,6 @@ Comparisons effectively AND in the mask, e.g,
     vmslt.vv    v0, va, vb        # All body elements written
     vmslt.vv    v0, vb, vc, v0.t  # Only update at set mask
 ----
-
-For all comparison instructions, an illegal instruction exception is raised if
-the destination vector register overlaps a source vector register group.
 
 === Vector Integer Min/Max Instructions
 
@@ -3310,7 +3310,9 @@ takes all bits except the sign bit from the vector `vs2` operands.
 These vector FP compare instructions compare two source operands and
 write the comparison result to a mask register.  The destination mask
 vector is always held in a single vector register, with a layout of
-elements as described in Section <<sec-mask-register-layout>>.
+elements as described in Section <<sec-mask-register-layout>>.  The
+destination mask vector register may be the same as the source vector
+mask register (`v0`).
 
 The compare instructions follow the semantics of the scalar
 floating-point compare instructions.  `vmfeq` and `vmfne` raise the invalid
@@ -3320,10 +3322,6 @@ quiet NaN inputs.
 `vmfne` writes 1 to the destination element when either
 operand is NaN, whereas the other comparisons write 0 when either operand
 is NaN.
-
-For all comparison instructions, an illegal instruction exception is
-raised if the destination vector register overlaps a source vector
-register group.
 
 ----
     # Compare equal
@@ -3705,10 +3703,11 @@ a vector register.
 === Vector Mask-Register Logical Instructions
 
 Vector mask-register logical operations operate on mask registers.
-Each element in a mask register is a single bit, so these
-instructions all operate on single vector registers regardless of the
-setting of the `vlmul` field in `vtype`.  They do not change the value
-of `vlmul`.
+Each element in a mask register is a single bit, so these instructions
+all operate on single vector registers regardless of the setting of
+the `vlmul` field in `vtype`.  They do not change the value of
+`vlmul`.  The destination vector register may be the same as either
+source vector register.
 
 As with other vector instructions, the elements with indices less than
 `vstart` are unchanged, and `vstart` is reset to zero after execution.
@@ -3811,8 +3810,8 @@ Traps on `vpopc.m` are always reported with a `vstart` of 0.  The
 
 The `vfirst` instruction finds the lowest-numbered active element of
 the source mask vector that has the value 1 and writes that element's
-index to a GPR.  If no element has the value 1, -1 is written to the
-GPR.
+index to a GPR.  If no active element has the value 1, -1 is written
+to the GPR.
 
 NOTE: Software can assume that any negative value (highest bit set)
 corresponds to no element found, as vector lengths will never exceed
@@ -3856,11 +3855,16 @@ writes a 0 to that element and all following active elements.  If
 there is no set bit in the source vector, then all active elements in
 the destination are written with a 1.
 
-The tail elements in the destination mask register are unchanged.
+The tail elements in the destination mask register are handled
+according to the setting of the `vta` bit in `vtype` (Section
+<<sec-agnostic>>).
 
 Traps on `vmsbf.m` are always reported with a `vstart` of 0.  The
 `vmsbf` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
+
+The destination register cannot overlap either the source register or
+the mask register ('v0').
 
 === `vmsif.m` set-including-first mask bit
 
@@ -3888,11 +3892,16 @@ set-before-first, except it also includes the element with a set bit.
      1 1 x x x x 1 1   v2 contents
 ----
 
-The tail elements in the destination mask register are unchanged.
+The tail elements in the destination mask register are handled
+according to the setting of the `vta` bit in `vtype` (Section
+<<sec-agnostic>>).
 
 Traps on `vmsif.m` are always reported with a `vstart` of 0.  The
 `vmsif` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
+
+The destination register cannot overlap either the source register or
+the mask register ('v0').
 
 === `vmsof.m` set-only-first mask bit
 
@@ -3921,11 +3930,16 @@ set, if any.
      0 1 x x x x 0 0   v2 contents
 ----
 
-The tail elements in the destination mask register are unchanged.
+The tail elements in the destination mask register are handled
+according to the setting of the `vta` bit in `vtype` (Section
+<<sec-agnostic>>).
 
 Traps on `vmsof.m` are always reported with a `vstart` of 0.  The
 `vmsof` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
+
+The destination register cannot overlap either the source register or
+the mask register ('v0').
 
 === Example using vector mask instructions
 
@@ -4368,7 +4382,8 @@ elements according to the current tail policy (Section
 masked instruction (`vm=0`) is reserved.
 
 The destination vector register group cannot overlap the source vector
-register group, otherwise an illegal instruction exception is raised.
+register group or the source mask register, otherwise an illegal
+instruction exception is raised.
 
 A trap on a `vcompress` instruction is always reported with a
 `vstart` of 0.  Executing a `vcompress` instruction with a non-zero
