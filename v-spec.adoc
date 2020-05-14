@@ -3540,6 +3540,9 @@ are held in element 0 of a single vector register, not a vector
 register group, so any vector register can be the scalar source or
 destination of a vector reduction regardless of LMUL setting.
 
+The destination vector register can overlap the mask register 'v0' for
+masked reductions.
+
 NOTE: Reductions read and write the scalar operand and result into
 element 0 of a vector register to avoid a loss of decoupling with the
 scalar processor, and to support future polymorphic use with future
