@@ -3867,7 +3867,7 @@ Traps on `vmsbf.m` are always reported with a `vstart` of 0.  The
 `vstart` is non-zero.
 
 The destination register cannot overlap either the source register or
-the mask register ('v0').
+the mask register ('v0') if the instruction is masked.
 
 === `vmsif.m` set-including-first mask bit
 
@@ -3904,7 +3904,7 @@ Traps on `vmsif.m` are always reported with a `vstart` of 0.  The
 `vstart` is non-zero.
 
 The destination register cannot overlap either the source register or
-the mask register ('v0').
+the mask register ('v0') if the instruction is masked.
 
 === `vmsof.m` set-only-first mask bit
 
@@ -3942,7 +3942,7 @@ Traps on `vmsof.m` are always reported with a `vstart` of 0.  The
 `vstart` is non-zero.
 
 The destination register cannot overlap either the source register or
-the mask register ('v0').
+the mask register ('v0') if the instruction is masked.
 
 === Example using vector mask instructions
 
