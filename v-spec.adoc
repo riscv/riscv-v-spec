@@ -3730,16 +3730,16 @@ handled according to the setting of `vta` in `vtype` (Section
 Several assembler pseudoinstructions are defined as shorthand for
 common uses of mask logical operations:
 ----
-    vmcpy.m vd, vs  => vmand.mm vd, vs, vs  # Copy mask register
+    vmmv.m vd, vs  => vmand.mm vd, vs, vs  # Copy mask register
     vmclr.m vd     => vmxor.mm vd, vd, vd   # Clear mask register
     vmset.m vd     => vmxnor.mm vd, vd, vd  # Set mask register
     vmnot.m vd, vs => vmnand.mm vd, vs, vs  # Invert bits
 ----
 
-NOTE: The vmcpy.m instruction is not called vmmv as elsewhere in the
-architecture mv implies a bitwise copy without interpreting the bits.
-
-NOTE: vmcpy.m should change name to vmmv.m with new mask encoding.
+NOTE: The vmmv.m instruction was previously called vmcpy.m, but with
+new layout it is more consistent to name as a "mv" because bits are
+copied without interpretation.  The vmcpy.m assembler
+psuedo-instruction can be retained for compatibility.
 
 The set of eight mask logical instructions can generate any of the 16
 possibly binary logical functions of the two input masks:
