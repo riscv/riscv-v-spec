@@ -918,7 +918,7 @@ SLEN-wide sections of the datapath.
 
 Larger LMUL settings can also used to simply increase vector length to
 reduce instruction fetch and dispatch overheads in cases where fewer
-vector register values are needed.
+vector register groups are needed.
 
 NOTE: The SEW/LMUL values of 2048 and greater are shown in the table
 for completeness but they do not add a useful operating point in the
