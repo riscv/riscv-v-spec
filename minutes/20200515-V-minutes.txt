@@ -1,0 +1,44 @@
+Date: 2020/5/15
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~20
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+# MLEN=1 change
+
+The new layout of mask registers with fixed MLEN=1 was discussed.  The
+group was generally in favor of the change, though there is a proposal
+in flight to rearrange bits to align with bytes.  This might save some
+wiring but could increase bits read/written for the mask in a
+microarchitecture.
+
+#434 SLEN=VLEN as optional extension
+
+Most of the time was spent discussing the possible software
+fragmentation from having code optimized for SLEN=LEN versus
+SLEN<VLEN, and how to avoid.  The group was keen to prevent possible
+fragmentation, so is going to consider several options:
+
+- providing cast instructions that are mandatory, so at least
+  SLEN<VLEN code runs correctly on SLEN=VLEN machines.
+
+- consider a different data layout that could allow casting up to ELEN
+  (<=SLEN), however these appear to result in even greater variety of
+  layouts or dynamic layouts
+
+- invent a microarchitecture that can appear as SLEN=VLEN but
+  internally restrict datapath communication within SLEN width of
+  datapath, or prove this is impossible/expensive
+
+
+# v0.9
+
+The group agreed to declare the current version of the spec as 0.9,
+representing a clear stable step for software and implementors.
+
+
+
+
