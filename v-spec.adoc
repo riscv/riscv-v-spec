@@ -1122,6 +1122,21 @@ vector register in the group.  Using other than the lowest-numbered
 vector register to specify a vector register group will result in an
 illegal instruction exception.
 
+A destination vector register group can overlap a source vector register
+group only if one of the following holds:
+
+- The destination EEW equals the source EEW.
+- The destination EEW is smaller than the source EEW and the overlap is in
+  the lowest-numbered part of the source register group (e.g., when LMUL=1,
+  `vnsrl.wv v0, v0` is legal, but a destination of `v1` is not).
+- The destination EEW is greater than the source EEW, the source EMUL is
+  at least 1, and the overlap is in the highest-numbered part of the
+  destination register group (e.g., when LMUL=8, `vzext.vf4 v0, v6` is legal,
+  but a source of `v0`, `v2`, or `v4` is not).
+
+For the purpose of register group overlap constraints, mask elements have
+EEW=1.
+
 The largest vector register group used by an instruction can not be
 greater than 8 vector registers (i.e., EMUL{le}}8), and if a vector
 instruction would require greater than 8 vector registers in a group,
