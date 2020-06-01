@@ -15,8 +15,6 @@ For a better rendering, use "asciidoctor v-spec.adoc".
 This work is licensed under a Creative Commons Attribution 4.0
 International License. See the LICENSE file for details.
 
-[[HTML](https://riscv.github.io/documents/riscv-v-spec/)] [[PDF](https://riscv.github.io/documents/riscv-v-spec/riscv-v-spec.pdf)]
-
 ### Additional Resources
 
 - The [Binutils port for v0.8](https://github.com/riscv/riscv-binutils-gdb/tree/rvv-0.8.x)
