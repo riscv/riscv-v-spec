@@ -24,7 +24,7 @@ International License. See the LICENSE file for details.
   (to be used with e.g. Spike) supports enabling v0.8 CPU support
   when compiled with a v0.8 capable GNU toolchain
 - [riscvOVPsim](https://github.com/riscv/riscv-ovpsim) is a free
-  RISC-V reference simulator that has support for  v0.8 and
+  RISC-V reference simulator that has support for v0.9, v0.8 and
   v0.7.1 (simulator is under a proprietary license, models are
   open source)
 
