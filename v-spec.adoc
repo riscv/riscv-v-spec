@@ -2252,10 +2252,6 @@ The destination vector register group must be specified using a vector
 register number that is valid for the destination's EMUL, otherwise an
 illegal instruction exception is raised.
 
-The destination vector register group cannot overlap a source vector
-register group of a different EEW, otherwise an illegal instruction
-exception is raised.
-
 NOTE: This constraint is necessary to support restart with non-zero
 `vstart`.
 
@@ -2285,10 +2281,6 @@ exception is raised.
 Where there is a second source vector register group (specified by
 `vs1`), this has the same (narrower) width as the result (i.e.,
 EEW=SEW).
-
-The destination vector register group cannot overlap the first source
-vector register group (specified by `vs2`), otherwise an illegal
-instruction exception is raised.
 
 NOTE: It is safe to overwrite a second source vector register group
 with the same LMUL and element width as the result.
@@ -2393,7 +2385,7 @@ The carry inputs and outputs are represented using the mask register
 layout as described in Section <<sec-mask-register-layout>>.  Due to
 encoding constraints, the carry input must come from the implicit `v0`
 register, but carry outputs can be written to any vector register that
-respects the source/destination overlap restrictions below.
+respects the source/destination overlap restrictions.
 
 `vadc` and `vsbc` add or subtract the source operands and the carry-in or
 borrow-in, and write the result to vector register `vd`.
@@ -2488,10 +2480,6 @@ if the destination vector register is `v0`.
 
 NOTE: This constraint corresponds to the constraint on masked vector
 operations that overwrite the mask register.
-
-For `vmadc` and `vmsbc`, an illegal instruction exception is raised if
-the destination vector register overlaps a source vector register
-group.
 
 === Vector Bitwise Logical Instructions
 
