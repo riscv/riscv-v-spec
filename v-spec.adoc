@@ -372,6 +372,16 @@ The assembly syntax adds two flags to the `vsetvli` instruction:
  vsetvli t0, a0, e32,m4,tu,mu   # Tail undisturbed, mask undisturbed
 ----
 
+NOTE: To maintain backward compatibility in the short term and reduce
+software churn in the move to 0.9, when these flags are not specified
+on a `vsetvli`, they should default to
+mask-undisturbed/tail-undisturbed.  The use of `vsetvli` without these
+flags should be deprecated, however, such that the specifying a flag
+setting becomes mandatory.  If anything, the default should be
+tail-agnostic/mask-agnostic, so software has to specify when it cares
+about the non-participating elements, but given the historical meaning
+of the instruction prior to introduction of these flags, it is safest
+to always require them in future assembly code.
 
 ==== Vector Type Illegal `vill`
 
@@ -1403,13 +1413,13 @@ throughput on mixed-width operations in a single loop.
 # right by 3, store 32b values.
 
 loop:
-    vsetvli a3, a0, e16,m4  # vtype = 16-bit integer vectors
+    vsetvli a3, a0, e16,m4,ta,ma  # vtype = 16-bit integer vectors
     vle16.v v4, (a1)        # Get 16b vector
       slli t1, a3, 1        # Multiply length by two bytes/element
       add a1, a1, t1        # Bump pointer
     vwmul.vx v8, v4, x10    # 32b in <v8--v15>
 
-    vsetvli x0, a0, e32,m8  # Operate on 32b values
+    vsetvli x0, a0, e32,m8,ta,ma  # Operate on 32b values
     vsrl.vi v8, v8, 3
     vse32.v v8, (a2)        # Store vector of 32b elements
       slli t1, a3, 2        # Multiply length by four bytes/element
@@ -1783,7 +1793,7 @@ field to be stored in each segment.
 ----
     # Example 1
     # Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
-    vsetvli a1, t0, e8
+    vsetvli a1, t0, e8, ta,ma
     vlseg3e8.v v8, (a0), vm
     # v8 holds the red pixels
     # v9 holds the green pixels
@@ -1791,7 +1801,7 @@ field to be stored in each segment.
 
     # Example 2
     # Memory structure holds complex values, 32b for real and 32b for imaginary
-    vsetvli a1, t0, e32
+    vsetvli a1, t0, e32, ta,ma
     vlseg2e32.v v8, (a0), vm
     # v8 holds real
     # v9 holds imaginary
@@ -1818,13 +1828,13 @@ NOTE: Negative and zero strides are supported.
     vssseg<nf>e<eew>.v vs3, (rs1), rs2, vm         # Strided segment stores
 
     # Examples
-    vsetvli a1, t0, e8
+    vsetvli a1, t0, e8, ta,ma
     vlsseg3e8.v v4, (x5), x6   # Load bytes at addresses x5+i*x6   into v4[i],
                               #  and bytes at addresses x5+i*x6+1 into v5[i],
                               #  and bytes at addresses x5+i*x6+2 into v6[i].
 
     # Examples
-    vsetvli a1, t0, e32
+    vsetvli a1, t0, e32, ta,ma
     vssseg2e32.v v2, (x5), x6   # Store words from v2[i] to address x5+i*x6
                                 #   and words from v3[i] to address x5+i*x6+4
 ----
@@ -1850,13 +1860,13 @@ EMUL=(EEW/SEW)*LMUL.
     vsxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm         # Indexed segment stores
 
     # Examples
-    vsetvli a1, t0, e8
+    vsetvli a1, t0, e8, ta,ma
     vlxseg3ei32.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
                               #  and bytes at addresses x5+v3[i]+1 into v5[i],
                               #  and bytes at addresses x5+v3[i]+2 into v6[i].
 
     # Examples
-    vsetvli a1, t0, e32
+    vsetvli a1, t0, e32, ta,ma
     vsxseg2e32.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
                               #   and words from v3[i] to address x5+v5[i]+4
 ----
@@ -4036,7 +4046,7 @@ instructions (indexed stores) to perform vector compress functions.
 compact_non_zero:
     li a6, 0                      # Clear count of non-zero elements
 loop:
-    vsetvli a5, a0, e32,m8  # 32-bit integers
+    vsetvli a5, a0, e32,m8,ta,ma   # 32-bit integers
     vle32.v v8, (a1)               # Load input vector
       sub a0, a0, a5               # Decrement number done
       slli a5, a5, 2               # Multiply by four bytes

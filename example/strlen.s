@@ -7,7 +7,7 @@
 strlen:
     mv a3, a0             # Save start
 loop:
-    vsetvli a1, x0, e8,m8 # Vector of bytes of maximum length
+    vsetvli a1, x0, e8,m8, ta,ma  # Vector of bytes of maximum length
     vle8ff.v v8, (a3)      # Load bytes
     csrr a1, vl           # Get bytes read
     vmseq.vi v0, v8, 0    # Set v0[i] where v8[i] = 0
