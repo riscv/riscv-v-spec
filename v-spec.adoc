@@ -1698,8 +1698,8 @@ fewer than `vl` elements and reduce `vl` accordingly, but if `vstart`=0 and
 [[sec-aos]]
 === Vector Load/Store Segment Instructions (`Zvlsseg`)
 
-NOTE: This set of instructions is intended to be included in the base
-"V" extension.
+NOTE: This set of instructions is included in the base "V" extension
+used for the Unix profile.
 
 The vector load/store segment instructions move multiple contiguous
 fields in memory to and from consecutively numbered vector registers.
@@ -1943,9 +1943,8 @@ after the base.  The base register plus the `nf` value cannot exceed
 
 == Vector AMO Operations (`Zvamo`)
 
-NOTE: Profiles will dictate whether vector AMO operations are
-supported.  The expectation is that the base "V" extension used for
-the Unix profile will require vector AMO operations.
+NOTE: This set of instructions is included in the base "V" extension
+used for the Unix profile.
 
 If vector AMO instructions are supported, then the scalar Zaamo
 instructions (atomic operations from the standard A extension) must be
