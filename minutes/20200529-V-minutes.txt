@@ -1,0 +1,42 @@
+Date: 2020/5/29
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~15
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+#434 SLEN=VLEN as optional extension
+
+We spend considerable time discussing register layouts and how to
+avoid software fragmentation while supporting a wide variety of
+physical implementations.
+
+The most straightforward for software would be to mandate the
+SLEN=VLEN register layout, which matches memory layout and is
+straightforward for machines with physical datapath widths of <=128
+bits.
+
+However, this will incur a wire communication penalty for simpler
+implementations with a wide physical datapath (>128b/cycle).  More
+complex microarchitectures could potentially work around this.
+
+The fragmentation issue arises because software might be writtne
+assuming/requring the SLEN=VLEN layout, and avoid using the casting
+operations which could otherwise provide software portability between
+SLEN=VLEN and SLEN<VLEN machines in most cases.
+
+We discussed various options including fixed the parameter by platform
+including an example of a platform might have rules such as fix
+SLEN=VLEN for VLEN<128 and have SLEN=128 for VLEN>128. Another option
+is a mode switch to select when SLEN=VLEN behavior is required.
+
+# Virtual machine migration
+
+We surfaced a concern about migrating virtual machines in the data
+center, which provides a higher barrier to software portability.  The
+in-register data layout will propagate to memory and so images can
+only be ported between machines with the same in-register data layout.
+Having software use in-register cast instructions would not be
+sufficient to allow VM migration.
