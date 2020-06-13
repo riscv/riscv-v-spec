@@ -1867,7 +1867,7 @@ EMUL=(EEW/SEW)*LMUL.
 
     # Examples
     vsetvli a1, t0, e32, ta,ma
-    vsxseg2e32.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
+    vsxseg2ei32.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
                               #   and words from v3[i] to address x5+v5[i]+4
 ----
 
