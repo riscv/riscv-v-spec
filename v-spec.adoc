@@ -2051,32 +2051,32 @@ indicate the return value is not required (`wd=0`).
 
 ----
 # Vector AMOs for index EEW=32
-vamoswapei32.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoswapei32.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+vamoswapei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoswapei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 
-vamoaddei32.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoaddei32.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+vamoaddei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoaddei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 
-vamoxorei32.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoxorei32.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+vamoxorei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoxorei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 
-vamoandei32.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoandei32.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+vamoandei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoandei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 
-vamoorei32.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamoorei32.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+vamoorei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoorei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 
-vamominei32.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamominei32.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+vamominei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 
-vamomaxei32.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamomaxei32.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+vamomaxei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 
-vamominuei32.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamominuei32.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+vamominuei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominuei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 
-vamomaxuei32.v vd, (rs1), v2, vd,  v0.t # Write original value to register, wd=1
-vamomaxuei32.v x0, (rs1), v2, vs3, v0.t # Do not write original value to register, wd=0
+vamomaxuei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxuei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 ----
 
 == Vector Memory Alignment Constraints
