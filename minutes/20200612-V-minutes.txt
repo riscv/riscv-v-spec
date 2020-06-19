@@ -1,0 +1,25 @@
+Date: 2020/6/12
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~15
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+#434 SLEN=VLEN as optional extension
+
+We spent the meeting discussing the register layout options.
+
+We reviewed the alternate approaches other ISAs had taken in handling
+widening options, and will update a doc outlining the approaches
+others have taken.
+
+Discussion centered around possible microarchitectural approaches to
+preserving SLEN=VLEN model in wider machines.  There was concern over
+the effect of width-oblivious register spill/restore code on
+techniques to hide internal layout.  Discussion to continue on mailing
+list.
+
+Meetings moved to every week to attempt to close spec to 1.0 by end of
+June.
