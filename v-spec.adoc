@@ -254,6 +254,9 @@ prohibit future use of this encoding in an extension, so to allow for
 a future definition of LMUL<SEW/ELEN behavior, we consider the
 behavior in this case when `vill` is not set to be __reserved__.
 
+NOTE: It is recommended that assemblers provide a warning (not an
+error) if a `vsetvli` instruction attempts to write an LMUL < SEW/ELEN.
+
 LMUL is set by the signed `vlmul` field in `vtype` (LMUL =
 2^`vlmul[2:0]`^).
 
