@@ -1,0 +1,57 @@
+Date: 2020/6/19
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~12
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+#235 reciprocal and reciprocal square-root approximations
+
+This was a long-standing issue regarding adding these floating-point
+instructions.  The group was in favor of proceeding.  The main issues
+are 1) what precision of approximation to provide, and 2) should the
+instructions be bit-compatible across implementations.
+
+The group wanted to better understand the cost/benefit of the
+precision choice, in terms of number of iterations required for
+half/single/double precise calculations.  While generally it was
+preferred that implementations be required to be bit-compatible, the
+concern was raised that some implementations might want to implement
+these using regular FP operations, which might not be possible if
+bit-compatibility (instead of range constraint) was given.  A possible
+path was requiring an 8b bit-compatible approximation that is
+relatively cheap to implement, with possibly more accurate versions
+later.
+
+#499 tight possible fractional LMUL settings
+
+The issue was raised that current spec has a one-sided constraint that
+implementations must provide fractional LMUL for all supported SEW,
+where LMUL >= SEW/ELEN, but that it also implies that implementations
+may implement smaller fractional LMUL.  This could cause some code to
+operate correctly on one implementation that supported a smaller
+fractional LMUL, but to fail on a compliant implementation that only
+implemented the mandated fractional LMULs.  The resolution was to deem
+the setting of LMUL < SEW/ELEN to be a "reserved" operation, where it
+is legal but not required to set vill.  Assemblers that are aware of
+ELEN should raise a warning (but should not error) if an LMUL setting
+is less than SEW/ELEN.
+
+#487 Implementations with minimum SEW>8
+
+Some partial implementations might not want to implement all element
+widths, including omitting byte operations for example.  The
+description of most instructions still applies, but the whole register
+move instructions were defined in terms of SEW=8.
+
+If the register layout issue is resolved with a mandate to keep memory
+layout byte order visible in registers, then this issue is moot as SEW
+does not affect the visible operation of the whole register move
+instructions.
+
+IF the register layout issue does not mandate to memory layout byte
+order visible in registers, then we can reword the whole register move
+specification to operate in terms of the minimum supported element
+width. This will not affect the standard vector profiles.
