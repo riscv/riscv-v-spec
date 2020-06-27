@@ -1,0 +1,160 @@
+Date: 2020/6/26
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~15
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Thanks to all the participants who stayed for what became a two-hour
+meeting that resolved many issues.
+
+Issues discussed:
+
+#235 reciprocal and reciprocal square-root approximations
+
+The group agreed to add these to the v1.0 spec.  The proposal
+circulated on mailing list would provide approximately 7 bits of
+accuracy and allow close-to-accurate results for bfloat16, FP16, FP32,
+FP64 in 0,1,2,3 iterations respectively.  The group was going to
+review the detailed proposal including the actual error at each
+iteration, and to consider the cost of implementing the table.  The
+group agreed with proposal that no special instruction for the
+iteration was needed.
+
+#434 SLEN=VLEN layout mandatory
+
+After extensive discussion over many months and many emails, the group
+has decided to mandate that architecturally-visible in-register data
+layout matches in-memory layouts (described as SLEN=VLEN in spec).
+
+This will dramatically simplify the spec and resolve many open issues.
+The main cost is for spatial wide datapaths when implementing the
+widening and narrowing operations.  The RVV scheme provides
+significant static and dynamic code size savings over previous
+widening approaches.  While wide machines might require more complex
+microarchitectures, there will still be a significant efficiency
+saving versus other widening approaches that require multiple
+additional instructions. To help reduce performance penalties when
+restoring values from memory using the whole register move
+instructions, a microarchitectural hint will be added to these
+instructions.  This hint does not change the architectural state and
+can be ignored in simple implementations, but when used correctly can
+improve performance on optimized wider implementations.
+
+#492 whole register load/stores
+
+The current whole register load/store instructions only move one whole
+vector register at a time.  It was noted that this causes a large
+increase in code when a vector register group has to be spilled inside
+a routine.  Apart from having to save the individual vector registers
+separately, the register holding the address pointer has to be
+incremented between individual vector load/store instructions, adding
+more static and dynamic code to register spills.
+
+It was previously noted that as with the whole vector register move
+instructions the nf field could be used to give the number of
+registers to load/store, restricted to LMUL values of 1,2,4,8 and with
+register operands restricted to have same number constraints as vector
+register groups.  This would allow the implementation of these
+instructions to reuse that for unit-stride load/stores of vector
+register groups except with fixed maximum length (with SLEN=VLEN
+change, the SEW is no longer relevant, but loads will have a SEW
+hint).
+
+There was still opposition to adding these, so discussion will
+continue on the list.
+
+#349 Half-precision scalar floating-point
+
+The vector specification relies on scalar half-precision
+floating-point instructions.  There is a proposal to provide the same
+instructions as currently exist for single-precision using the format
+encoding space reserved for half-precision.  These are sufficient for
+the vector extension.
+
+It was noted that a separate task group should be created for the
+scalar half-precision instructions.  This task group should consider
+delimited a subset of half-precision instructions that only provide
+load/store and convert of half-precision values, as well as
+considering adding additional widening instructions.  However, these
+topics are not relevant to the vector specification.
+
+Similarly, bfloat16 was mentioned, and the proposal is to add a mode
+field to the fcsr to indicate half-precision is using bfloat16 format,
+but again, this was considered outside the scope of the vector task
+group.  The RISC-V numeric standard for bfloat16 including handling of
+exceptional values will also need to handled by a separate task group.
+
+#348 ELEN>VLEN
+
+The crypto group require support for multiple long element lengths and
+also request that ELEN can be formed from multiple vector registers.
+There is a proposal in #348 on how to handle this, but the
+implications need to be checked throughout the spec. The SLEN=VLEN
+decision removes one source of complexity here.
+
+#440 Lmul[2:0]
+
+The layout of lmul in vtype was not disturbed in v0.9 to reduce effort
+for prototype implementations.  The group felt that v1.0 should repack
+vtype fields to make the three bits of lmul contiguous in the vtype
+register.
+
+#364 Imprecise trap model
+
+There was considerable discussion around constraints on imprecise
+traps and related issues.  A proposal for imprecise trap support has
+been made, but will be discussed further on the mailing list.
+
+## Clarify the vstart can occur before element that traps?
+
+There was much discussion regarding whether implementations could set
+vstart to be earlier than the element that caused the trap.  The
+current spec text was unclear on this issue, but appeared to allow
+this.
+
+After considerable debate, it was resolved that in as many cases as
+possible, vstart should be required to point to the faulting element,
+but a few cases may need special treatment including unorderd indexed
+accesses.  The spec will be revisited to enumerate any cases where
+vstart need not be precise to the element level.
+
+## Make vector alignment/misalignment independent of scalar
+   alignment/misalignment 
+
+RISC-v implementations may or may not support misaligned accesses on
+scalar load/stores.  The consensus was to separate specification of
+support on vector from scalar (i.e., they could differ in their
+support for misaligned accesses).  This led to a broader discussion
+regarding PMAs, which should separate memory attributes for scalar
+versus vector accesses.
+
+## Unordered vector indexed stores report address exceptions in
+   element order
+
+After much discussion, the group was leaning to requiring that vector
+indexed stores have to report adddress exceptions in element order,
+but the spec of unordered stores was to be reviewed both for this
+issue, and for possible impact on vector memory model.
+
+## Privileged support for vector extension
+
+Variable VLEN was proposed as an optional extension to allow
+privileged layers to reduce the visible VLEN to aid in software
+migration.
+
+The small section on imprecise traps in v0.9 was to be extended and
+clarified, possible including adding as an optional extension.
+
+It was noted that mstatus.vs needed clarifying.
+
+## Creat issue labels
+
+To prepare for v1.0, the repo will have labels attached to issues to
+categorize as "resolve for 1.0", "resolve after 1.0" etc.
+
+The plan is to incorporate the above decisions and begin drafting v1.0
+candidate for public review.
+
+
+
