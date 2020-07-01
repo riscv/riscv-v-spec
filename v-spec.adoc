@@ -25,6 +25,17 @@ Known issues with current version:
 - vector memory consistency model needs to be clarified
 - interaction with privileged architectures
 
+== Changes from v0.9
+
+=== SLEN=VLEN layout mandatory
+
+The group has decided to make the SLEN=VLEN layout mandatory.
+In-register layout of the bytes of a vector matches in-memory layout
+of bytes in a vector.  Many of the optimizations possible with the
+earlier SLEN<VLEN layouts can be achieved with microarchitectural
+techniques on wide datapath machines, and SLEN=VLEN provides a much
+simpler specification and interface to software.
+
 == Introduction
 
 This document describes the draft of version 1.0 of the RISC-V vector
@@ -73,18 +84,16 @@ machine learning.
 
 == Implementation-defined Constant Parameters
 
-Each hart supporting the vector extension defines three parameters:
+Each hart supporting the vector extension defines two parameters:
 
-. The maximum size of a single vector element in bits, _ELEN_ {ge} 8, which
-must be a power of 2.
 . The number of bits in a vector register, _VLEN_ {ge} _ELEN_, which must
 be a power of 2.
-. The striping distance in bits, _SLEN_, which must be VLEN {ge} SLEN {ge}
-32, and which must be a power of 2.
+. The maximum size of a single vector element in bits, _ELEN_ {ge} 8, which
+must be a power of 2.
 
-NOTE: Platform profiles may set further constraints on these
-parameters, for example, requiring that ELEN {ge} max(XLEN,FLEN), or
-requiring a minimum VLEN value, or setting SLEN, or requiring SLEN=VLEN.
+NOTE: Profiles may set further constraints on these parameters, for
+example, requiring that ELEN {ge} max(XLEN,FLEN), or requiring a
+minimum VLEN value.
 
 NOTE: There is a proposal to allow ELEN to vary with LMUL that would
 relax the constraint that _VLEN_ {ge} _ELEN_.
@@ -97,8 +106,8 @@ NOTE: Code can be written that will expose differences in
 implementation parameters.
 
 NOTE: Thread contexts with active vector state cannot be migrated
-during execution between harts that have any difference in VLEN, ELEN,
-or SLEN parameters.
+during execution between harts that have any difference in VLEN or
+ELEN parameters.
 
 == Vector Extension Programmer's Model
 
@@ -595,14 +604,14 @@ The vector registers can have arbitrary values at reset.
 
 The following diagrams illustrate how different width elements are
 packed into the bytes of a vector register depending on the current
-SEW and LMUL settings, as well as implementation ELEN, VLEN, and SLEN.
-Elements are packed into each vector register with the
-least-significant byte in the lowest-numbered bits.
+SEW and LMUL settings, as well as implementation VLEN.  Elements are
+packed into each vector register with the least-significant byte in
+the lowest-numbered bits.
 
-=== Mapping for VLEN=SLEN and LMUL {le} 1
+=== Mapping for LMUL {le} 1
 
-When VLEN=SLEN and LMUL=1, elements are simply packed in order from
-the least-significant to most-significant bits of the vector register.
+When LMUL=1, elements are simply packed in order from the
+least-significant to most-significant bits of the vector register.
 
 NOTE: To increase readability, vector register layouts are drawn with
 bytes ordered from right to left with increasing byte address.  Bits
@@ -617,7 +626,7 @@ The element index is given in hexadecimal and is shown placed at the
 least-significant byte of the stored element.
 
 
- VLEN=SLEN=32b
+ VLEN=32b
 
  Byte         3 2 1 0
 
@@ -625,7 +634,7 @@ least-significant byte of the stored element.
  SEW=16b        1   0
  SEW=32b            0
 
- VLEN=SLEN=64b
+ VLEN=64b
 
  Byte        7 6 5 4 3 2 1 0
 
@@ -634,7 +643,7 @@ least-significant byte of the stored element.
  SEW=32b           1       0
  SEW=64b                   0
 
- VLEN=SLEN=128b
+ VLEN=128b
 
  Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
 
@@ -644,7 +653,7 @@ least-significant byte of the stored element.
  SEW=64b                   1               0
  SEW=128b                                  0
 
- VLEN=SLEN=256b
+ VLEN=256b
 
  Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
 
@@ -660,7 +669,7 @@ register are used.  The remaining space in the vector register is
 treated as part of the tail.
 
 ----
- Example, VLEN=SLEN=128b, LMUL=1/4
+ Example, VLEN=128b, LMUL=1/4
 
  Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
 
@@ -669,30 +678,30 @@ treated as part of the tail.
  SEW=32b           -       -       -       0
 ----
 
-=== Mapping with SLEN=VLEN and LMUL > 1
+=== Mapping with LMUL > 1
 
 When vector registers are grouped, the elements of the vector register
-group are striped across the constituent vector registers.  When
-SLEN=VLEN, the elements are packed contiguously in element order in
-each vector register in the group, moving to the next highest-numbered
-vector register in the group once each vector register is filled.
+group are striped across the constituent vector registers.  The
+elements are packed contiguously in element order in each vector
+register in the group, moving to the next highest-numbered vector
+register in the group once each vector register is filled.
 
 ----
- LMUL examples for SLEN=VLEN
+ LMUL > 1 examples
 
- VLEN=SLEN=32b, SEW=8b, LMUL=2
+ VLEN=32b, SEW=8b, LMUL=2
 
  Byte         3 2 1 0
  v2*n         3 2 1 0
  v2*n+1       7 6 5 4
 
- VLEN=SLEN=32b, SEW=16b, LMUL=2
+ VLEN=32b, SEW=16b, LMUL=2
 
  Byte         3 2 1 0
  v2*n           1   0
  v2*n+1         3   2
 
- VLEN=SLEN=32b, SEW=16b, LMUL=4
+ VLEN=32b, SEW=16b, LMUL=4
 
  Byte         3 2 1 0
  v4*n           1   0
@@ -700,7 +709,7 @@ vector register in the group once each vector register is filled.
  v4*n+2         5   4
  v4*n+3         7   6
 
- VLEN=SLEN=32b, SEW=32b, LMUL=4
+ VLEN=32b, SEW=32b, LMUL=4
 
  Byte         3 2 1 0
  v4*n               0
@@ -708,13 +717,13 @@ vector register in the group once each vector register is filled.
  v4*n+2             2
  v4*n+3             3
 
- VLEN=SLEN=64b, SEW=32b, LMUL=2
+ VLEN=64b, SEW=32b, LMUL=2
 
  Byte         7 6 5 4 3 2 1 0
  v2*n               1       0
  v2*n+1             3       2
 
- VLEN=SLEN=64b, SEW=32b, LMUL=4
+ VLEN=64b, SEW=32b, LMUL=4
 
  Byte         7 6 5 4 3 2 1 0
  v4*n               1       0
@@ -722,13 +731,13 @@ vector register in the group once each vector register is filled.
  v4*n+2             5       4
  v4*n+3             7       6
 
- VLEN=SLEN=128b, SEW=32b, LMUL=2
+ VLEN=128b, SEW=32b, LMUL=2
 
  Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
  v2*n              3       2       1       0
  v2*n+1            7       6       5       4
 
- VLEN=SLEN=128b, SEW=32b, LMUL=4
+ VLEN=128b, SEW=32b, LMUL=4
 
  Byte          F E D C B A 9 8 7 6 5 4 3 2 1 0
  v4*n                3       2       1       0
@@ -737,187 +746,35 @@ vector register in the group once each vector register is filled.
  v4*n+3              F       E       D       C
 ----
 
-=== Mapping with SLEN < VLEN and LMUL {le} 1
-
-The striping distance in bits, SLEN, sets the maximum displacement
-between vector register bit positions that participate in the same
-elemental mixed-width arithmetic operation.
-
-NOTE: The striping distance SLEN can be designed as less than VLEN to
-reduce cross-datapath wiring for mixed-width operations on
-implementations that have wide spatial vector datapaths.  For such
-machines, SLEN is typically at least 128 bits and used for vector
-datapaths operating on at least 256 bits per cycle or wider.  For
-datapath designs where cross-datapath wiring is not a constraint, SLEN
-will usually be set to VLEN.
-
-NOTE: Compared to v0.8, the SLEN<VLEN mapping pattern has changed to
-support fractional LMUL in a straightforward way and also to provide
-greater throughput on shorter vectors when using a wide spatial
-datapath.  The main complication is that the memory connections are
-somewhat more complex, if not greater in number.
-
-When SLEN < VLEN, each vector register is divided into VLEN/SLEN
-sections each holding SLEN bits.
-
-When LMUL=1, successive vector elements are mapped into successive
-sections, wrapping back around to the first section until the vector
-register is full.
-
-----
- LMUL=1 examples for SLEN < VLEN
-
- VLEN=256b, SLEN=128b, SEW=8b, LMUL=1
-
- Section                  1               |                0
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-          1F1D1B1917151311 F D B 9 7 5 3 1|1E1C1A1816141210 E C A 8 6 4 2 0
-
- VLEN=256b, SLEN=128b, SEW=16b, LMUL=1
-
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-             F   D   B   9   7   5   3   1|   E   C   A   8   6   4   2   0
-
- VLEN=256b, SLEN=128b, SEW=32b, LMUL=1
-
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-                 7       5       3       1|       6       4       2       0
-
- VLEN=256b, SLEN=128b, SEW=64b, LMUL=1
-
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-                         3               1|               2               0
-
- VLEN=256b, SLEN=64b, SEW=16b, LMUL=1
-
- Section          3       |        2       |        1       |        0
- Byte     1F1E1D1C1B1A1918|1716151413121110| F E D C B A 9 8| 7 6 5 4 3 2 1 0
-             F   B   7   3|   E   A   6   2|   D   9   5   1|   C   8   4   0
-
- VLEN=256b, SLEN=64b, SEW=32b, LMUL=1
-
- Byte     1F1E1D1C1B1A1918|1716151413121110| F E D C B A 9 8| 7 6 5 4 3 2 1 0
-                 7       3|       6       2|       5       1|       4       0
-
- VLEN=256b, SLEN=64b, SEW=64b, LMUL=1
-
- Byte     1F1E1D1C1B1A1918|1716151413121110| F E D C B A 9 8| 7 6 5 4 3 2 1 0
-                         3|               2|               1|               0
-----
-
-When LMUL < 1, only the first LMUL*VLEN/SEW elements in the vector
-register are used, with these elements mapped to sections in the same
-way as when LMUL=1.  The remaining space in the vector register is
-treated as part of the tail.
-
-NOTE: As with SLEN=VLEN designs, SLEN<VLEN implementations can treat
-fractional LMUL simply as though the vector length was reduced with
-LMUL=1.
-
-----
- Example, VLEN=256b, SLEN=128b
-
- SEW=8b, LMUL=1/4
-
- Section                  1                                0
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-           - - - - - - - - - - - - 7 5 3 1| - - - - - - - - - - - - 6 4 2 0
-
- SEW=16b, LMUL=1/4
-
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-             -   -   -   -   -   -   3   1|   -   -   -   -   -   -   2   0
-
- SEW=32b, LMUL=1/4
-
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-                 -       -       -       1|       -       -       -       0
-----
-
-NOTE: The SLEN < VLEN mapping pattern does require full-width
-cross-datapath connections in the vector memory system between memory
-bytes and vector register bytes, but this is unavoidable in general,
-and a small fraction of all operand wiring in a vector unit.
-
-=== Mapping with SLEN < VLEN and LMUL > 1
-
-When SLEN < VLEN and LMUL > 1, the first vector register is packed
-with the initial VLEN/SEW elements in the same way as for LMUL=1. The
-second vector register in the group is packed with the next VLEN/SEW
-elements following the same pattern.
-
-----
- LMUL examples for SLEN < VLEN
-
- VLEN=256b, SLEN=128b, SEW=32b, LMUL=2
-
- Section                  1               |                0
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
- v2*n            7       5       3       1|       6       4       2       0
- v2*n+1          F       D       B       9|       E       C       A       8
-
- VLEN=256b, SLEN=128b, SEW=64b, LMUL=2
-
- Byte     1F1E1D1C1B1A19181716151413121110|F E D C B A 9 8 7 6 5 4 3 2 1 0
- v2*n                    3               1|              2               0
- v2*n+1                  7               5|              6               4
-
- VLEN=256b, SLEN=128b, SEW=64b, LMUL=4
-
- Byte     1F1E1D1C1B1A19181716151413121110|F E D C B A 9 8 7 6 5 4 3 2 1 0
- v4*n                    3               1|              2               0
- v4*n+1                  7               5|              6               4
- v4*n+2                  B               9|              A               8
- v4*n+3                  F               D|              E               C
-
-----
-
-If SEW > SLEN, the packing operates as if SLEN was increased to SEW.
-
-NOTE: In most implementations, the striping distance SLEN {ge} ELEN.
-
-Different striping patterns are architecturally visible, but software
-can be written that produces the same results regardless of striping
-pattern. The primary constraint is to not change the SEW used to
-access values held in a vector register group (i.e., do not read
-values with a different SEW than used to write values to the group).
-
 === Mapping across Mixed-Width Operations
 
 The vector ISA is designed to support mixed-width operations without
-requiring a large number of explicit additional rearrangement
-instructions or requiring a large amount of additional datapath wiring.
-The recommended software strategy is to modify `vtype` dynamically to
-keep SEW/LMUL constant (and hence VLMAX constant) when operating on
-vectors of different precision values.
+requiring explicit additional rearrangement instructions.  The
+recommended software strategy is to modify `vtype` dynamically to keep
+SEW/LMUL constant (and hence VLMAX constant) when operating on vectors
+of different precision values.
 
 The following example shows four different packed element widths (8b,
-16b, 32b, 64b) in a VLEN=256b/SLEN=128b implementation.  The vector
-register grouping factor (LMUL) is increased by the relative element
-size such that each group can hold the same number of vector elements
-(VLMAX=16 in this example) to simplify stripmining code.  Any operation
-between elements with the same index only touches operand bits located
-within the same SLEN=128b section of the datapath.
+16b, 32b, 64b) in a VLEN=128b implementation.  The vector register
+grouping factor (LMUL) is increased by the relative element size such
+that each group can hold the same number of vector elements (VLMAX=8
+in this example) to simplify stripmining code.
 
 ----
-Examples VLEN=256b, SLEN=128b, with SEW/LMUL=16
+Example VLEN=128b, with SEW/LMUL=16
 
-Section                  1               |                0
-Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-vn        - - - - - - - - F D B 9 7 5 3 1| - - - - - - - - E C A 8 6 4 2 0  SEW=8b, LMUL=1/2
+Byte      F E D C B A 9 8 7 6 5 4 3 2 1 0
+vn        - - - - - - - - 7 6 5 4 3 2 1 0  SEW=8b, LMUL=1/2
 
-Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-vn          F   D   B   9   7   5   3   1|   E   C   A   8   6   4   2   0  SEW=16b, LMUL=1
+vn          7   6   5   4   3   2   1   0  SEW=16b, LMUL=1
 
-Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-v2*n            7       5       3       1|       6       4       2       0  SEW=32b, LMUL=2
-v2*n+1          F       D       B       9|       E       C       A       8
+v2*n            3       2       1       0  SEW=32b, LMUL=2
+v2*n+1          7       6       5       4
 
-Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0  SEW=64b, LMUL=4
-v4*n                    3               1|               2               0
-v4*n+1                  7               5|               6               4
-v4*n+2                  B               9|               A               8
-v4*n+3                  F               D|               E               C
+v4*n                    1               0  SEW=64b, LMUL=4
+v4*n+1                  3               2
+v4*n+2                  5               4
+v4*n+3                  7               6
 ----
 
 The following table shows each possible constant SEW/LMUL operating
@@ -926,10 +783,7 @@ constant SEW/LMUL operating point.  Entries in table are the LMUL
 values that yield that column's SEW/LMUL value for the datawidth on
 that row.  In each column, an LMUL setting for a datawidth indicates
 that it can be aligned with the other datawidths in the same column
-that also have an LMUL setting, such that all have the same VLMAX and
-that element-wise operations between data widths are contained within
-SLEN-wide sections of the datapath.
-
+that also have an LMUL setting, such that all have the same VLMAX.
 
 |===
 | SEW/LMUL | 1 |  2 |  4 |  8 | 16  | 32  |  64  | 128 |  256 | 512 | 1024 |2048 |4096 |8192
@@ -965,13 +819,13 @@ register.
 NOTE: Earlier designs (pre-0.9) had a varying number of bits per mask
 value (MLEN).  In the 0.9 design, MLEN=1.
 
-==== Mask Element Locations for SLEN=VLEN
+==== Mask Element Locations
 
 The mask bit for element _i_ is located in bit _i_ of the mask
 register, independent of SEW or LMUL.
 
 ----
- SLEN=VLEN=32b
+ VLEN=32b
 
           Byte    3   2   1   0
  LMUL=1,SEW=8b
@@ -1037,51 +891,6 @@ register, independent of SEW or LMUL.
                  1F  1E  1D  1C
                 [31][30][29][28]
 ----
-
-=== Mask Element Locations for SLEN < VLEN
-
-In systems with SLEN < VLEN, the mask elements are striped across the
-VLEN/SLEN sections of the vector mask register.  Mask element 0 is in
-the least-significant bit of section 0, and mask element 1 is in
-least-significant bit of section 1, etc.  In general, the the mask bit
-for element __i__ is located bit:
-
-mask_bit_index(__i__) = (__i__ % (VLEN / SLEN)) * SLEN + floor(__i__ / (VLEN / SLEN))
-
-----
- Mask register element location examples for SLEN < VLEN
- The bit position of the LSB of each mask element is in decimal inside [] braces.
-
- VLEN=256b, SLEN=128b, SEW=32b, LMUL=2, MLEN=16b
-
- Section                  1               |                0
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-
- v2*n            7       5       3       1|       6       4       2       0
-              [131]   [130]   [129]   [128]      [3]     [2]     [1]     [0]
-
- v2*n+1          F       D       B       9|       E       C       A       8
-              [135]   [134]   [133]   [132]      [7]     [6]     [5]     [4]
-
-
- VLEN=256b, SLEN=128b, SEW=32b, LMUL=1/2, MLEN=64b
-
- Section                  1               |                0
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-
- vn              -       -       3       1|       -       -       2       0
-                              [129]   [128]                      [1]     [0]
-
- VLEN=256b, SLEN=128b, SEW=64b, LMUL=1, MLEN=64b
-
- Section                  1               |                0
- Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
-
- vn                      3               1|               2               0
-                      [129]           [128]              [1]             [0]
-----
-
-TODO: More examples might be useful.
 
 == Vector Instruction Formats
 
@@ -1626,13 +1435,13 @@ raises an illegal instruction exception.
 | Standard scalar FP   | x |   0 | 1 | 0 |   32   | FLEN   | FLW/FSW
 | Standard scalar FP   | x |   0 | 1 | 1 |   64   | FLEN   | FLD/FSD
 | Standard scalar FP   | x |   1 | 0 | 0 |  128   | FLEN   | FLQ/FSQ
-| Vector 8b element    | 0 |   0 | 0 | 0 |    8   |    8   | VLxE8/VSxE8   
-| Vector 16b element   | 0 |   1 | 0 | 1 |   16   |   16   | VLxE16/VSxE16  
-| Vector 32b element   | 0 |   1 | 1 | 0 |   32   |   32   | VLxE32/VSxE32  
-| Vector 64b element   | 0 |   1 | 1 | 1 |   64   |   64   | VLxE64/VSxE64  
-| Vector 128b element  | 1 |   0 | 0 | 0 |  128   |  128   | VLxE128/VSxE128 
-| Vector 256b element  | 1 |   1 | 0 | 1 |  256   |  256   | VLxE256/VSxE256 
-| Vector 512b element  | 1 |   1 | 1 | 0 |  512   |  512   | VLxE512/VSxE512 
+| Vector 8b element    | 0 |   0 | 0 | 0 |    8   |    8   | VLxE8/VSxE8
+| Vector 16b element   | 0 |   1 | 0 | 1 |   16   |   16   | VLxE16/VSxE16
+| Vector 32b element   | 0 |   1 | 1 | 0 |   32   |   32   | VLxE32/VSxE32
+| Vector 64b element   | 0 |   1 | 1 | 1 |   64   |   64   | VLxE64/VSxE64
+| Vector 128b element  | 1 |   0 | 0 | 0 |  128   |  128   | VLxE128/VSxE128
+| Vector 256b element  | 1 |   1 | 0 | 1 |  256   |  256   | VLxE256/VSxE256
+| Vector 512b element  | 1 |   1 | 1 | 0 |  512   |  512   | VLxE512/VSxE512
 | Vector 1024b element | 1 |   1 | 1 | 1 | 1024   | 1024   | VLxE1024/VSxE1024
 |===
 
