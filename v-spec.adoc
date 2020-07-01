@@ -86,10 +86,10 @@ machine learning.
 
 Each hart supporting the vector extension defines two parameters:
 
+. The maximum size of a vector element that any operation can produce or consume in bits, _ELEN_ {ge} 8, which
+must be a power of 2.
 . The number of bits in a vector register, _VLEN_ {ge} _ELEN_, which must
 be a power of 2.
-. The maximum size of a single vector element in bits, _ELEN_ {ge} 8, which
-must be a power of 2.
 
 NOTE: Profiles may set further constraints on these parameters, for
 example, requiring that ELEN {ge} max(XLEN,FLEN), or requiring a
