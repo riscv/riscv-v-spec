@@ -27,36 +27,45 @@ Known issues with current version:
 
 == Introduction
 
-This document describes the draft of the RISC-V vector extension.
+This document describes the draft of version 1.0 of the RISC-V vector
+extension.
 
-NOTE: This is a draft of a stable proposal for the vector
+NOTE: This is a draft of the stable proposal for the vector extension
 specification to be used for implementation and evaluation.  Once the
-draft label is removed, version 0.9 is intended to be stable enough to
-begin developing toolchains, functional simulators, and initial
-implementations, though will continue to evolve with minor changes and
-updates.
+draft label is removed, version 1.0 is intended to be sent out for
+public review as part of the RISC-V International ratification
+process.  Version 1.0 is also considered stable enough to begin
+developing toolchains, functional simulators, and initial
+implementations, including in upstream software projects, and is not
+expected to have major functionality changes except if serious issues
+are discovered during ratification.  Once ratified, the spec will be
+given version 2.0.
 
-This draft spec is intended to capture how a certain vector function
-will be implemented as vector instructions, but is not intended to
-determine what set of vector instructions are mandatory for a given
-platform profile.
+This draft spec is intended to capture how the complete set of
+currently defined vector instructions, but is not intended to
+determine what set of vector instructions and which supported element
+widths are mandatory for a given platform profile.
 
 The term _base_ _vector_ _extension_ is used informally to describe
 the standard set of vector ISA components that will be required for
 the single-letter "V" extension, which is intended for use in standard
-server and application-processor platform profiles.  Other platforms,
-including embedded platforms, may choose to implement subsets of these
-extensions.  The exact set of mandatory supported instructions for an
-implementation to be compliant with a given profile will only be
-determined when each profile spec is ratified.
+server and application-processor platform profiles.  The set of
+mandatory instructions and supported element widths will vary with the
+base ISA (RV32I, RV64I) as described below.
+
+Other platforms, including embedded platforms, may choose to implement
+subsets of these extensions.  The exact set of mandatory supported
+instructions for an implementation to be compliant with a given
+profile will only be determined when each profile spec is ratified.
+For convenience in defining subset profiles, vector instruction
+subsets are given ISA string names beginning with the "Zv" prefix.
 
 The document describes all the individual features to be included in
-the base vector extension, along with drafts of some initial
-extensions to the base.
+the base vector extension.
 
 NOTE: The set of instructions to be included or not in the base "V"
 extension, and the naming of all the vector instruction subsets and
-extensions is not yet determined.
+extensions is still under review in this draft.
 
 The base vector extension is designed to act as a base for additional
 vector extensions in various domains, including cryptography and
