@@ -36,6 +36,12 @@ earlier SLEN<VLEN layouts can be achieved with microarchitectural
 techniques on wide datapath machines, and SLEN=VLEN provides a much
 simpler specification and interface to software.
 
+=== Support ELEN > VLEN for LMUL > 1
+
+Specification was loosened to allow elements wider than a single
+vector register to be supported using a vector register group, but
+profiles can still mandate a minimum ELEN when LMUL = 1.
+
 == Introduction
 
 This document describes the draft of version 1.0 of the RISC-V vector
@@ -88,15 +94,12 @@ Each hart supporting the vector extension defines two parameters:
 
 . The maximum size of a vector element that any operation can produce or consume in bits, _ELEN_ {ge} 8, which
 must be a power of 2.
-. The number of bits in a vector register, _VLEN_ {ge} _ELEN_, which must
+. The number of bits in a single vector register, _VLEN_, which must
 be a power of 2.
 
 NOTE: Profiles may set further constraints on these parameters, for
 example, requiring that ELEN {ge} max(XLEN,FLEN), or requiring a
 minimum VLEN value.
-
-NOTE: There is a proposal to allow ELEN to vary with LMUL that would
-relax the constraint that _VLEN_ {ge} _ELEN_.
 
 The ISA supports writing binary code that under certain constraints
 will execute portably on harts with different values for these
@@ -228,6 +231,21 @@ impose different constraints on ELEN.
 | 16 |  8
 |  8 | 16
 |===
+
+The supported element width may vary with LMUL, but profiles may
+mandate the minimum SEW that must be supported with LMUL=1.
+
+NOTE: Some implementations may support larger SEWs only when bits from
+multiple vector registers are combined.  The base V vector standard
+requires that SEW=max(XLEN,FLEN) is supported with LMUL=1.
+
+NOTE: Software that relies on large EEW should attempt to use the
+largest LMUL, and hence the fewest vector register groups, to increase
+the number of implementations on which the code will run. The `vill`
+bit in `vtype` should be checked to see if the configuration is
+supported, and an alternate code path provided if it is
+not. Alternatively, a profile can mandate the minimum SEW at each LMUL
+setting.
 
 ==== Vector Register Grouping (`vlmul[2:0]`)
 
@@ -809,6 +827,43 @@ for completeness but they do not add a useful operating point in the
 base architecture as they use less than the full register capacity and
 do not enable more architectural registers.
 
+=== Mapping with LMUL > 1 and ELEN > VLEN
+
+If vector registers are grouped to support larger SEW, with ELEN >
+VLEN, the vector registers in the group are concatenated to form a
+single array of bytes, with the lowest-numbered register in the group
+holding the lowest-addressed bytes from the memory layout.
+
+----
+ LMUL > 1 ELEN>VLEN, examples
+
+ VLEN=32b, SEW=64b, LMUL=2
+
+ Byte         3 2 1 0
+ v2*n               0
+ v2*n+1
+
+ VLEN=32b, SEW=64b, LMUL=4
+
+ Byte         3 2 1 0
+ v4*n               0
+ v4*n+1
+ v4*n+2             1
+ v4*n+3
+
+ VLEN=32b, SEW=64b, LMUL=8
+
+ Byte         3 2 1 0
+ v8*n               0
+ v8*n+1             
+ v8*n+2             1
+ v8*n+3              
+ v8*n+4             2
+ v8*n+5             
+ v8*n+6             3
+ v8*n+7             
+----
+
 [[sec-mask-register-layout]]
 === Mask Register Layout
 
@@ -987,6 +1042,12 @@ imply a result EMUL=16.
 Widened scalar values, e.g., results from widening reduction
 operations, are held in the first element of a vector register and
 have EMUL=1.
+
+NOTE: Current reduction operations are defined to hold input and
+output values in a single vector register, with implicit EMUL of 1, so
+cannot accomodate using a vector register group to hold a wide scalar
+reduction result.  This would require an independent parameter to give
+the EMUL for the scalar reduction element.
 
 === Vector Masking
 
