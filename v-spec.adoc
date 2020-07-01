@@ -191,17 +191,17 @@ NOTE: It is anticipated that an extended 64-bit instruction encoding
 would allow these fields to be specified statically in the instruction
 encoding.
 
-==== Vector standard element width `vsew[2:0]`
+==== Vector selected element width `vsew[2:0]`
 
-The value in `vsew` sets the dynamic _standard_ _element_ _width_
+The value in `vsew` sets the dynamic _selected_ _element_ _width_
 (SEW).  By default, a vector register is viewed as being divided into
-VLEN / SEW standard-width elements.
+VLEN/SEW selected-width elements.
 
 NOTE: In the base vector "V" extension, only SEW up to ELEN =
 max(XLEN,FLEN) are required to be supported.  Other platforms may
 impose different constraints on ELEN.
 
-.vsew[2:0] (standard element width) encoding
+.vsew[2:0] (selected element width) encoding
 [cols="1,1,1,>13"]
 [%autowidth]
 |===
@@ -236,7 +236,7 @@ vector instruction can operate on multiple vector registers.  The term
 _vector_ _register_ _group_ is used herein to refer to one or more
 vector registers used as a single operand to a vector instruction.
 Vector register groups allow double-width or larger elements to be
-operated on with the same vector length as standard-width elements.
+operated on with the same vector length as selected-width elements.
 Vector register groups also provide greater execution efficiency for
 longer application vectors.
 
