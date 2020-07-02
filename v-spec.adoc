@@ -25,6 +25,8 @@ Known issues with current version:
 - vector memory consistency model needs to be clarified
 - interaction with privileged architectures
 
+:sectnums!:
+
 == Changes from v0.9
 
 === SLEN=VLEN layout mandatory
@@ -41,6 +43,8 @@ simpler specification and interface to software.
 Specification was loosened to allow elements wider than a single
 vector register to be supported using a vector register group, but
 profiles can still mandate a minimum ELEN when LMUL = 1.
+
+:sectnums:
 
 == Introduction
 
