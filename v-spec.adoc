@@ -1358,12 +1358,12 @@ include::vmem-format.adoc[]
 | lumop[4:0]/sumop[4:0] | are additional fields encoding variants of unit-stride instructions
 |===
 
-Vector memory operations directly encode EEW of the data to be
-transferred statically in the instruction to reduce the number of
-`vtype` changes when accessing memory in a mixed-width routine.
-Indexed operations use the explicit EEW encoding in the instruction to
-set the size of the indices used, and use SEW/LMUL to specify the data
-width.
+Vector memory unit-stride and constant-stride operations directly
+encode EEW of the data to be transferred statically in the instruction
+to reduce the number of `vtype` changes when accessing memory in a
+mixed-width routine.  Indexed operations use the explicit EEW encoding
+in the instruction to set the size of the indices used, and use
+SEW/LMUL to specify the data width.
 
 === Vector Load/Store Addressing Modes
 
@@ -1377,7 +1377,7 @@ contents of the `x` register named in `rs1`.
 Vector unit-stride operations access elements stored contiguously in
 memory starting from the base effective address.
 
-Vector strided operations access the first memory element at the base
+Vector constant-strided operations access the first memory element at the base
 effective address, and then access subsequent elements at address
 increments given by the byte offset contained in the `x` register
 specified by `rs2`.
@@ -1390,10 +1390,23 @@ register group has EEW encoding in the instruction and
 EMUL=(EEW/SEW)*LMUL.
 
 The vector offset operand is treated as a vector of byte-address
-offsets.  If the vector offset elements are narrower than XLEN, they
-are zero-extended to XLEN before adding to the base effective address.
-If the vector offset elements are wider than XLEN, the
-least-significant XLEN bits are used in the address calculation.
+offsets.
+
+NOTE: The indexed operations can also be used to access fields within
+a vector of objects, where the `vs2` vector holds pointers to the base
+of the objects and the scalar `x` register holds the offset of the
+member field in each object.  Supporting this case is why the indexed
+operations were not defined to scale the element indices by the data
+EEW.
+
+If the vector offset elements are narrower than XLEN, they are
+zero-extended to XLEN before adding to the base effective address.  If
+the vector offset elements are wider than XLEN, the least-significant
+XLEN bits are used in the address calculation.
+
+NOTE: A profile may place a upper limit on the maximum required index
+EEW (e..g, only up to XLEN) smaller than ELEN, in which case an
+illegal instruction can be raised if the EEW is not supported.
 
 The vector addressing modes are encoded using the 2-bit `mop[1:0]`
 field.
@@ -1427,8 +1440,10 @@ ordering on stores.
 NOTE: The indexed-unordered variant is provided as a potential
 implementation optimization.  Implementations are free to ignore the
 optimization and implement indexed-unordered identically to
-indexed-ordered.  For implementations with precise vector traps,
-exceptions on indexed-unordered stores are precise.
+indexed-ordered.
+
+For implementations with precise vector traps, exceptions on
+indexed-unordered stores are precise.
 
 Additional unit-stride vector addressing modes are encoded using the
 5-bit `lumop` and `sumop` fields in the unit-stride load and store
@@ -1476,12 +1491,17 @@ to transfer for the whole vector register load/store instructions.
 
 === Vector Load/Store Width Encoding
 
-Vector loads and stores have the EEW encoded directly in the
-instruction.  EMUL is calculated as EMUL = (EEW/SEW)*LMUL. If the EMUL
-would be out of range (EMUL>8 or EMUL<1/8), an illegal instruction
-exception is raised.  The vector register groups must have legal
-register specifiers for the selected EMUL, else an illegal instruction
-is raised.
+Vector loads and stores have an EEW encoded directly in the
+instruction.  The corresponding EMUL is calculated as EMUL =
+(EEW/SEW)*LMUL. If the EMUL would be out of range (EMUL>8 or
+EMUL<1/8), an illegal instruction exception is raised.  The vector
+register groups must have legal register specifiers for the selected
+EMUL, else an illegal instruction is raised.
+
+Vector unit-stride and constant-stride use the EEW/EMUL encoded in the
+instruction for the data values, while vector indexed loads and stores
+use the EEW/EMUL encoded in the instruction for the index values and
+the SEW/LMUL encoded in `vtype` for the data values.
 
 Vector loads and stores are encoded using width values that are not
 claimed by the standard scalar floating-point loads and stores.  The
@@ -1492,27 +1512,45 @@ Vector loads and stores up to EEW=ELEN must be supported in an
 implementation.  Using a vector load/store with an unsupported EEW
 raises an illegal instruction exception.
 
-[cols="4,1,1,1,1,3,3,3"]
+.Width encoding for vector loads and stores.
+[cols="4,1,1,1,1,3,3,3,3"]
 |===
-|                  | mew 3+| width [2:0] | Mem bits | Reg bits | Opcodes
+|                  | mew 3+| width [2:0] | Mem bits | Data Reg bits | Index bits | Opcodes
 
-| Standard scalar FP   | x |   0 | 0 | 1 |   16   | FLEN   | FLH/FSH
-| Standard scalar FP   | x |   0 | 1 | 0 |   32   | FLEN   | FLW/FSW
-| Standard scalar FP   | x |   0 | 1 | 1 |   64   | FLEN   | FLD/FSD
-| Standard scalar FP   | x |   1 | 0 | 0 |  128   | FLEN   | FLQ/FSQ
-| Vector 8b element    | 0 |   0 | 0 | 0 |    8   |    8   | VLxE8/VSxE8
-| Vector 16b element   | 0 |   1 | 0 | 1 |   16   |   16   | VLxE16/VSxE16
-| Vector 32b element   | 0 |   1 | 1 | 0 |   32   |   32   | VLxE32/VSxE32
-| Vector 64b element   | 0 |   1 | 1 | 1 |   64   |   64   | VLxE64/VSxE64
-| Vector 128b element  | 1 |   0 | 0 | 0 |  128   |  128   | VLxE128/VSxE128
-| Vector 256b element  | 1 |   1 | 0 | 1 |  256   |  256   | VLxE256/VSxE256
-| Vector 512b element  | 1 |   1 | 1 | 0 |  512   |  512   | VLxE512/VSxE512
-| Vector 1024b element | 1 |   1 | 1 | 1 | 1024   | 1024   | VLxE1024/VSxE1024
+| Standard scalar FP   | x |   0 | 0 | 1 |   16| FLEN | -  | FLH/FSH
+| Standard scalar FP   | x |   0 | 1 | 0 |   32| FLEN | -  | FLW/FSW
+| Standard scalar FP   | x |   0 | 1 | 1 |   64| FLEN | -  | FLD/FSD
+| Standard scalar FP   | x |   1 | 0 | 0 |  128| FLEN | -  | FLQ/FSQ
+| Vector 8b element    | 0 |   0 | 0 | 0 |    8|    8 | -  | VLxE8/VSxE8
+| Vector 16b element   | 0 |   1 | 0 | 1 |   16|   16 | -  | VLxE16/VSxE16
+| Vector 32b element   | 0 |   1 | 1 | 0 |   32|   32 | -  | VLxE32/VSxE32
+| Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64
+| Vector 128b element  | 1 |   0 | 0 | 0 |  128|  128 | -  | VLxE128/VSxE128
+| Vector 256b element  | 1 |   1 | 0 | 1 |  256|  256 | -  | VLxE256/VSxE256
+| Vector 512b element  | 1 |   1 | 1 | 0 |  512|  512 | -  | VLxE512/VSxE512
+| Vector 1024b element | 1 |   1 | 1 | 1 | 1024| 1024 | -  | VLxE1024/VSxE1024
+| Vector 8b index      | 0 |   0 | 0 | 0 | SEW | SEW  |  8 | VLxEI8/VSxEI8
+| Vector 16b index     | 0 |   1 | 0 | 1 | SEW | SEW  | 16 | VLxEI16/VSxEI16
+| Vector 32b index     | 0 |   1 | 1 | 0 | SEW | SEW  | 32 | VLxEI32/VSxEI32
+| Vector 64b index     | 0 |   1 | 1 | 1 | SEW | SEW  | 64 | VLxEI64/VSxEI64
 |===
 
-Mem bits is the size of each element accessed in memory
 
-Reg bits is the size of each element accessed in register
+Mem bits is the size of each element accessed in memory.
+
+Data reg bits is the size of each data element accessed in register.
+
+NOTE: In base V extension, only data elements widths up to
+max(XLEN,FLEN) must be supported.
+
+Index bits is the size of each index accessed in register.
+
+NOTE: In base V extension, only index widths up to XLEN must be
+supported.
+
+Index bit EEW encodings larger than 64b are currently reserved.
+
+NOTE: RV128 will require index EEW of 128.
 
 === Vector Unit-Stride Instructions
 
@@ -1520,10 +1558,24 @@ Reg bits is the size of each element accessed in register
     # Vector unit-stride loads and stores
 
     # vd destination, rs1 base address, vm is mask encoding (v0.t or <missing>)
-    vle32.v  vd, (rs1), vm # 32-bit loads
+    vle8.v    vd, (rs1), vm  #    8-bit unit-stride load
+    vle16.v   vd, (rs1), vm  #   16-bit unit-stride load
+    vle32.v   vd, (rs1), vm  #   32-bit unit-stride load
+    vle64.v   vd, (rs1), vm  #   64-bit unit-stride load
+    vle128.v  vd, (rs1), vm  #  128-bit unit-stride load
+    vle256.v  vd, (rs1), vm  #  256-bit unit-stride load
+    vle512.v  vd, (rs1), vm  #  512-bit unit-stride load
+    vle1024.v vd, (rs1), vm  # 1024-bit unit-stride load
 
     # vs3 store data, rs1 base address, vm is mask encoding (v0.t or <missing>)
-    vse64.v  vs3, (rs1), vm  # 64-bit stores
+    vse8.v    vs3, (rs1), vm  #    8-bit unit-stride store
+    vse16.v   vs3, (rs1), vm  #   16-bit unit-stride store
+    vse32.v   vs3, (rs1), vm  #   32-bit unit-stride store
+    vse64.v   vs3, (rs1), vm  #   64-bit unit-stride store
+    vse128.v  vs3, (rs1), vm  #  128-bit unit-stride store
+    vse256.v  vs3, (rs1), vm  #  256-bit unit-stride store
+    vse512.v  vs3, (rs1), vm  #  512-bit unit-stride store
+    vse1024.v vs3, (rs1), vm  # 1024-bit unit-stride store
 ----
 
 === Vector Strided Instructions
@@ -1532,13 +1584,31 @@ Reg bits is the size of each element accessed in register
     # Vector strided loads and stores
 
     # vd destination, rs1 base address, rs2 byte stride
-    vlse8.v  vd, (rs1), rs2, vm  # Load bytes separated by stride
+    vlse8.v    vd, (rs1), rs2, vm  #    8-bit strided load
+    vlse16.v   vd, (rs1), rs2, vm  #   16-bit strided load
+    vlse32.v   vd, (rs1), rs2, vm  #   32-bit strided load
+    vlse64.v   vd, (rs1), rs2, vm  #   64-bit strided load
+    vlse128.v  vd, (rs1), rs2, vm  #  128-bit strided load
+    vlse256.v  vd, (rs1), rs2, vm  #  256-bit strided load
+    vlse512.v  vd, (rs1), rs2, vm  #  512-bit strided load
+    vlse1024.v vd, (rs1), rs2, vm  # 1024-bit strided load
 
     # vs3 store data, rs1 base address, rs2 byte stride
-    vsse128.v vs3, (rs1), rs2, vm  # Store 128b values separated by stride.
+    vsse8.v    vs3, (rs1), rs2, vm  #    8-bit strided store
+    vsse16.v   vs3, (rs1), rs2, vm  #   16-bit strided store
+    vsse32.v   vs3, (rs1), rs2, vm  #   32-bit strided store
+    vsse64.v   vs3, (rs1), rs2, vm  #   64-bit strided store
+    vsse128.v  vs3, (rs1), rs2, vm  #  128-bit strided store
+    vsse256.v  vs3, (rs1), rs2, vm  #  256-bit strided store
+    vsse512.v  vs3, (rs1), rs2, vm  #  512-bit strided store
+    vsse1024.v vs3, (rs1), rs2, vm  # 1024-bit strided store
 ----
 
-NOTE: Negative and zero strides are supported.
+Negative and zero strides are supported.
+
+Where element stores overlap due to either zero stride, or strides
+smaller than the element size when misaligned elements are supported,
+element stores are performed in element order.
 
 === Vector Indexed Instructions
 
@@ -1546,28 +1616,51 @@ NOTE: Negative and zero strides are supported.
     # Vector indexed loads and stores
 
     # vd destination, rs1 base address, vs2 indices
-    vlxei16.v  vd, (rs1), vs2, vm  # vs2 data EEW = SEW, indices EEW = 16b
+    vlxei8.v    vd, (rs1), vs2, vm  #    8-bit indexed load of SEW data
+    vlxei16.v   vd, (rs1), vs2, vm  #   16-bit indexed load of SEW data
+    vlxei32.v   vd, (rs1), vs2, vm  #   32-bit indexed load of SEW data
+    vlxei64.v   vd, (rs1), vs2, vm  #   64-bit indexed load of SEW data
 
-    # Vector ordered-indexed store instructions
+    # Vector ordered indexed store instructions
     # vs3 store data, rs1 base address, vs2 indices
-    vsxei32.v vs3, (rs1), vs2, vm # SEW data, 32b indices
+    vsxei8.v    vs3, (rs1), vs2, vm  # ordered  8-bit indexed store of SEW data
+    vsxei16.v   vs3, (rs1), vs2, vm  # ordered 16-bit indexed store of SEW data
+    vsxei32.v   vs3, (rs1), vs2, vm  # ordered 32-bit indexed store of SEW data
+    vsxei64.v   vs3, (rs1), vs2, vm  # ordered 64-bit indexed store of SEW data
 
     # Vector unordered-indexed store instructions
-    vsuxei64.v vs3, (rs1), vs2, vm # SEW data, 64b indices
+    vsuxei8.v    vs3, (rs1), vs2, vm  # ordered  8-bit indexed store of SEW data
+    vsuxei16.v   vs3, (rs1), vs2, vm  # ordered 16-bit indexed store of SEW data
+    vsuxei32.v   vs3, (rs1), vs2, vm  # ordered 32-bit indexed store of SEW data
+    vsuxei64.v   vs3, (rs1), vs2, vm  # ordered 64-bit indexed store of SEW data
 ----
+
+NOTE: The assembler syntax for indexed loads and stores uses
+``ei``__x__ instead of ``e``__x__ to indicate the statically encoded EEW
+is of the index not the data.
 
 === Unit-stride Fault-Only-First Loads
 
-The unit-stride fault-only-first load instruction is used to vectorize
-loops with data-dependent exit conditions (while loops).  These
-instructions execute as a regular load except that they will only take
-a trap on element 0.  If an element > 0 raises an exception, that
-element and all following elements in the destination vector
-register are not modified, and the vector length `vl` is reduced to the
-number of elements processed without a trap.
+The unit-stride fault-only-first load instructions are used to
+vectorize loops with data-dependent exit conditions ("while" loops).
+These instructions execute as a regular load except that they will
+only take a trap on element 0.  If an element > 0 raises an exception,
+that element and all following elements in the destination vector
+register are not modified, and the vector length `vl` is reduced to
+the number of elements processed without a trap.
 
 ----
-    vle8ff.v  vd, (rs1), vm
+    # Vector unit-stride fault-only-first loads and stores
+
+    # vd destination, rs1 base address, vm is mask encoding (v0.t or <missing>)
+    vle8ff.v    vd, (rs1), vm  #    8-bit unit-stride fault-only-first load
+    vle16ff.v   vd, (rs1), vm  #   16-bit unit-stride fault-only-first load
+    vle32ff.v   vd, (rs1), vm  #   32-bit unit-stride fault-only-first load
+    vle64ff.v   vd, (rs1), vm  #   64-bit unit-stride fault-only-first load
+    vle128ff.v  vd, (rs1), vm  #  128-bit unit-stride fault-only-first load
+    vle256ff.v  vd, (rs1), vm  #  256-bit unit-stride fault-only-first load
+    vle512ff.v  vd, (rs1), vm  #  512-bit unit-stride fault-only-first load
+    vle1024ff.v vd, (rs1), vm  # 1024-bit unit-stride fault-only-first load
 ----
 
 ----
@@ -1577,20 +1670,22 @@ include::example/strlen.s[lines=4..-1]
 ----
 
 NOTE: Strided and scatter/gather fault-only-first instructions are not
-provided as they represent a large security hole, allowing software to
-check multiple random pages for accessibility without experiencing a
-trap. The unit-stride versions only allow probing a region immediately
-contiguous to a known region, and so do not appreciably impact
-security.  It is possible that security mitigations can be
-implemented to allow fault-only-first variants of non-contiguous accesses
-in future vector extensions.
+provided due to lack of encoding space, and they can also represent a
+larger security hole, allowing software to check multiple random pages
+for accessibility without experiencing a trap. The unit-stride
+versions only allow probing a region immediately contiguous to a known
+region, and so do not appreciably impact security.  It is possible
+that security mitigations can be implemented to allow fault-only-first
+variants of non-contiguous accesses in future vector extensions.
 
 Even when an exception is not raised, implementations are permitted to process
 fewer than `vl` elements and reduce `vl` accordingly, but if `vstart`=0 and
 `vl`>0, then at least one element must be processed.
 
 [[sec-aos]]
-=== Vector Load/Store Segment Instructions (`Zvlsseg`)
+=== Vector Load/Store Segment Instructions
+
+This instruction subset is given the ISA string name `Zvlsseg`.
 
 NOTE: This set of instructions is included in the base "V" extension
 used for the Unix profile.
@@ -1777,14 +1872,14 @@ appear to be written in element order.
 
 === Vector Load/Store Whole Register Instructions
 
-NOTE: These instructions are still under early consideration for inclusion.
-
 These instructions load and store whole vector registers (i.e., VLEN
-bits).  The instructions operate with an EEW=8 and effective vector
-length `evl`=VLEN/8, regardless of current settings in `vtype` and
-`vl`.  No elements are transferred if `vstart` {ge} VLEN/8.  The usual
-property that no elements are written if `vstart` {ge} `vl` does not
-apply to these instructions.
+bits), optionally as vector register groups.
+
+When transferring a single register, the instructions operate with an
+EEW=8 and effective vector length `evl`=VLEN/8, regardless of current
+settings in `vtype` and `vl`.  No elements are transferred if `vstart`
+{ge} VLEN/8.  The usual property that no elements are written if
+`vstart` {ge} `vl` does not apply to these instructions.
 
 NOTE: These instructions are intended to be used to save and restore
 vector registers when the type and length of the current contents of
@@ -1805,37 +1900,49 @@ Format for Vector Store Whole Register Instructions under STORE-FP major opcode
  nf  | 000 | 1 |   01000   |    rs1    |  000  |   vs3   |0100111| VS<nf>R
 ----
 
-
 The instructions operate similarly to unmasked unit-stride load and
 store instructions of elements, with the base address passed in the
 scalar `x` register specified by `rs1`.
 
-The instructions transfer a single vector register specified by `vd`
-for loads and `vs3` for stores.  The registers are transferred to and
-from memory with EEW=8 and EMUL=1.
+The `nf` field encodes how many vector registers to load and store.
+The encoded number of registers must be a power of 2, and the vector
+register numbers must be aligned as with a vector register group
+otherwise an illegal instruction exception is raised.  The `nf` field
+encodes the number of vector registers to transfer (1, 2, 4, 8),
+numbered successively after the base.  When multiple registers are
+transferred, the lowest-numbered vector register is held in the
+lowest-numbered memory addresses and successive vector register
+numbers are placed contiguously in memory. The base register plus the
+`nf` value cannot exceed 31, else an illegal instruction exception is
+raised.
 
-NOTE: The vector whole register load instructions are encoded similar
-to unmasked zero-extended unit-stride loads of elements, with the `nf`
-field encoding how many vector registers to load and store.  The
-vector whole register store instructions are encoded similar to
-unmasked unit-stride store of elements.  The current base
-specification mandates that only `nf`=0 is supported, with other values of
-`nf` reserved.  In a future extension, when multiple registers are
-transferred, the vector register contents are mapped to contiguous
-bytes in memory as if LMUL=1, with the lowest-numbered vector register
-held in the lowest-numbered memory addresses.  The `nf` field encodes
-the number of vector registers to transfer, numbered successively
-after the base.  The base register plus the `nf` value cannot exceed
-31, else an illegal instruction exception is raised.
+The vector whole register store instructions are encoded similar to
+unmasked unit-stride store of elements.
 
 ----
-   # Format
+   # Format of whole register move instructions.
    vl1r.v v3, (a0)      # Load v3 with VLEN/8 bytes held at address in a0
-
+   vl2r.v v2, (a0)      # Load v2-v3 with 2*VLEN/8 bytes from address in a0
+   vl4r.v v4, (a0)
+   vl8r.v v8, (a0)
+   
    vs1r.v v3, (a1)      # Store v3 to address in a1
+   vs2r.v v2, (a1)
+   vs4r.v v4, (a1)
+   vs8r.v v8, (a1)
 ----
 
-== Vector AMO Operations (`Zvamo`)
+NOTE: The task group has thus far agreed to include only the single
+register load/store variant with `nf`=0 in the base V extension, but
+is still discussing whether to mandate the multiple register version.
+
+NOTE: These instructions can be implemented as unit-stride
+loads/stores of vector register groups, where EEW is 8, `nf` encodes
+EMUL, and `vl` = VLMAX for EEW and EMUL.
+
+== Vector AMO Operations
+
+This instruction subset is given the ISA string `Zvamo`.
 
 NOTE: This set of instructions is included in the base "V" extension
 used for the Unix profile.
@@ -1882,7 +1989,7 @@ preserved.
 
 NOTE: The AMOs were defined to overwrite source data partly to reduce
 total memory pipeline read port count for implementations with
-register renaming.  Also, to support the same addressing mode as vector
+register renaming.  Also to support the same addressing mode as vector
 indexed operations, and because vector AMOs are less likely to need
 results given that the primary use is parallel in-memory reductions.
 
@@ -1918,8 +2025,9 @@ zero-extended to XLEN.  If index EEW is greater than XLEN, an illegal
 instruction exception is raised.
 
 Vector AMO instructions are only supported for the memory data element
-widths supported by AMOs in the implementation's scalar architecture.
-Other element widths raise an illegal instruction exception.
+widths (in SEW) supported by AMOs in the implementation's scalar
+architecture.  Other element widths raise an illegal instruction
+exception.
 
 The vector `amoop[4:0]` field uses the same encoding as the scalar
 5-bit AMO instruction field, except that LR and SC are not supported.
@@ -1944,6 +2052,62 @@ The assembly syntax uses `x0` in the destination register position to
 indicate the return value is not required (`wd=0`).
 
 ----
+# Vector AMOs for index EEW=8
+vamoswapei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoswapei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoaddei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoaddei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoxorei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoxorei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoandei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoandei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoorei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoorei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominuei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominuei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxuei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxuei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+# Vector AMOs for index EEW=16
+vamoswapei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoswapei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoaddei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoaddei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoxorei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoxorei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoandei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoandei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoorei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoorei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominuei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominuei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxuei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxuei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
 # Vector AMOs for index EEW=32
 vamoswapei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
 vamoswapei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
@@ -1971,6 +2135,34 @@ vamominuei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to regist
 
 vamomaxuei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
 vamomaxuei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+# Vector AMOs for index EEW=64
+vamoswapei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoswapei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoaddei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoaddei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoxorei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoxorei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoandei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoandei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoorei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoorei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominuei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominuei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxuei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxuei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
 ----
 
 == Vector Memory Alignment Constraints
