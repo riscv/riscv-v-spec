@@ -3099,6 +3099,13 @@ sequence `vmv.v.i vd, 0; vmerge.vim vd, vd, 1, v0`.
 NOTE: The vector integer move instructions share the encoding with the vector
 merge instructions, but with `vm=1` and `vs2=v0`.
 
+NOTE: The form `vmv.v.v vd, vd`, which does not change architectural
+state, is used as a HINT to indicate that the register will be used
+with an EEW equal to SEW.  Implementations that internally reorganize
+data according to EEW can shuffle the internal representation
+according to SEW.  Implementations that do not internally reorganize
+data can dynamically elide this instruction, and treat as a NOP.
+
 == Vector Fixed-Point Arithmetic Instructions
 
 A set of vector arithmetic instructions is provided to support
@@ -4618,7 +4625,10 @@ appropriately for the vector register group size.
 NOTE: A future extension may relax the vector register alignment
 restrictions.
 
-NOTE: If `vd` is equal to `vs2` the instruction is a NOP.
+NOTE: If `vd` is equal to `vs2` the instruction is an architectural
+NOP, but is treated as a HINT to implementations that rearrange data
+internally that the register group will next be accessed with an EEW
+equal to SEW.
 
 == Exception Handling
 
