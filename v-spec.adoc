@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 1.0-draft-20200516
+Version 1.0-draft-20200702
 :doctype: article
 :encoding: utf-8
 :lang: en
