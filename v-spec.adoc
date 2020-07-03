@@ -52,6 +52,9 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Added reciprocal and reciprocal square-root estimate instructions
 
+=== Defined HINT behavior on whole register moves and load/stores to
+enable microarchitectures with internal data rearrangement.
+
 :sectnums:
 
 == Introduction
@@ -1903,13 +1906,31 @@ appear to be written in element order.
 
 === Vector Load/Store Whole Register Instructions
 
+----
+Format for Vector Load Whole Register Instructions under LOAD-FP major opcode
+31 29  28  27 26  25 24   20 19       15 14   12 11      7 6     0
+ nf  | mew| mop  | 1| 01000 |    rs1    | width |    vd   |0000111| VL<nf>R
+
+Format for Vector Store Whole Register Instructions under STORE-FP major opcode
+31 29  28  27 26 25  24   20 19       15 14   12 11      7 6     0
+ nf  |  0 | mop |  1| 01000 |    rs1    |  000  |   vs3   |0100111| VS<nf>R
+----
+
 These instructions load and store whole vector registers (i.e., VLEN
 bits), optionally as vector register groups.
 
+The load instructions have an EEW encoded in the `mew` and `width`
+fields following the pattern of regular unit-stride loads, but this
+does not affect the architectural effect of these instructions.  The
+encoded EEW is used as a HINT to indicate to implementations that
+rearrange data internally that the destination register group will
+next be accessed with this EEW.  Implementations that do not rearrange
+data internally can ignore the EEW field.
+
 When transferring a single register, the instructions operate with an
-EEW=8 and effective vector length `evl`=VLEN/8, regardless of current
+`evl`=VLEN/EEW, regardless of current
 settings in `vtype` and `vl`.  No elements are transferred if `vstart`
-{ge} VLEN/8.  The usual property that no elements are written if
+{ge} VLEN/EEW.  The usual property that no elements are written if
 `vstart` {ge} `vl` does not apply to these instructions.
 
 NOTE: These instructions are intended to be used to save and restore
@@ -1920,16 +1941,6 @@ function calls where values are passed in vector registers, interrupt
 handlers, and OS context switches.
 Software can determine the number of bytes transferred by reading the
 `vlenb` register.
-
-----
-Format for Vector Load Whole Register Instructions under LOAD-FP major opcode
-31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
- nf  | 000 | 1 |   01000   |    rs1    |  000  |    vd   |0000111| VL<nf>R
-
-Format for Vector Store Whole Register Instructions under STORE-FP major opcode
-31 29 28 26  25  24      20 19       15 14   12 11      7 6     0
- nf  | 000 | 1 |   01000   |    rs1    |  000  |   vs3   |0100111| VS<nf>R
-----
 
 The instructions operate similarly to unmasked unit-stride load and
 store instructions of elements, with the base address passed in the
@@ -1948,20 +1959,66 @@ numbers are placed contiguously in memory. The base register plus the
 raised.
 
 The vector whole register store instructions are encoded similar to
-unmasked unit-stride store of elements.
+unmasked unit-stride store of elements with EEW=8.
+
+Pseudo-instructions are provide for whole register load instructions
+that correspond to EEW=8.
 
 ----
    # Format of whole register move instructions.
-   vl1r.v v3, (a0)      # Load v3 with VLEN/8 bytes held at address in a0
-   vl2r.v v2, (a0)      # Load v2-v3 with 2*VLEN/8 bytes from address in a0
-   vl4r.v v4, (a0)
-   vl8r.v v8, (a0)
+   vlr1.v v3, (a0)       # Pseudo instruction equal to vl1re8.v
+
+   vl1re8.v    v3, (a0)  # Load v3 with VLEN/8 bytes held at address in a0
+   vl1re16.v   v3, (a0)  # Load v3 with VLEN/16 halfwords held at address in a0
+   vl1re32.v   v3, (a0)  # Load v3 with VLEN/32 words held at address in a0
+   vl1re64.v   v3, (a0)  # Load v3 with VLEN/64 doublewords held at address in a0
+   vl1re128.v  v3, (a0)
+   vl1re256.v  v3, (a0)
+   vl1re512.v  v3, (a0)
+   vl1re1024.v v3, (a0)
+
+   vlr2.v v2, (a0)       # Pseudo instruction equal to vl2re8.v v2, (a0)
+
+   vl2re8.v    v2, (a0)  # Load v2-v3 with 2*VLEN/8 bytes from address in a0
+   vl2re16.v   v2, (a0)  # Load v2-v3 with 2*VLEN/16 halfwords held at address in a0
+   vl2re32.v   v2, (a0)  # Load v2-v3 with 2*VLEN/32 words held at address in a0
+   vl2re64.v   v2, (a0)  # Load v2-v3 with 2*VLEN/64 doublewords held at address in a0
+   vl2re128.v  v2, (a0)
+   vl2re256.v  v2, (a0)
+   vl2re512.v  v2, (a0)
+   vl2re1024.v v2, (a0)
+
+   vl4r.v v4, (a0)       # Pseudo instruction equal to vl4re8.v
+
+   vl4re8.v    v4, (a0)  # Load v4-v7 with 4*VLEN/8 bytes from address in a0
+   vl4re16.v   v4, (a0)
+   vl4re32.v   v4, (a0)
+   vl4re64.v   v4, (a0)
+   vl4re128.v  v4, (a0)
+   vl4re256.v  v4, (a0)
+   vl4re512.v  v4, (a0)
+   vl4re1024.v v4, (a0)
+
+   vl8r.v v8, (a0)       # Pseudo instruction equal to vl4re8.v
+
+   vl8re8.v    v8, (a0)  # Load v8-v15 with 4*VLEN/8 bytes from address in a0
+   vl8re16.v   v8, (a0)
+   vl8re32.v   v8, (a0)
+   vl8re64.v   v8, (a0)
+   vl8re128.v  v8, (a0)
+   vl8re256.v  v8, (a0)
+   vl8re512.v  v8, (a0)
+   vl8re1024.v v8, (a0)
    
    vs1r.v v3, (a1)      # Store v3 to address in a1
-   vs2r.v v2, (a1)
-   vs4r.v v4, (a1)
-   vs8r.v v8, (a1)
+   vs2r.v v2, (a1)      # Store v2-v3 to address in a1
+   vs4r.v v4, (a1)      # Store v4-v7 to address in a1
+   vs8r.v v8, (a1)      # Store v8-v15 to address in a1
 ----
+
+Implementations may raise illegal instruction exceptions on `vl<nf>r`
+instructions for EEW values that are not supported, or may treat them
+as a different EEW value (the architectural effect is the same).
 
 NOTE: The task group has thus far agreed to include only the single
 register load/store variant with `nf`=0 in the base V extension, but
