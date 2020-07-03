@@ -1195,6 +1195,19 @@ vector register.
 
 == Configuration-Setting Instructions
 
+One of the common approaches to handling a large number of elements is
+"stripmining" where each iteration of a loop handles some number of elements,
+and the iterations continue until all elements have been processed. The RISC-V
+vector specification provides direct, portable support for this approach.
+The application specifies the total number of elements to be processed as a
+candidate value for `vl`, and the hardware responds via a general-purpose
+register with the (frequently smaller) number of elements that the hardware
+will handle per iteration (stored in `vl`), based on the microarchitectural
+implementation and the `vtype` setting. A straightforward loop structure,
+shown in <<example-stripmine-sew>>, depicts the ease with which the code keeps
+track of the remaining number of elements and the amount per iteration handled
+by hardware.
+
 A set of instructions is provided to allow rapid configuration of the
 values in `vl` and `vtype` to match application needs.
 
@@ -1217,10 +1230,10 @@ length setting is based on the requested application vector length
 [cols="2,2,10,10"]
 [%autowidth]
 |===
-|  `rd` | `rs1` | AVL value         | Description/Usage
-|  0    |  0    | Value in `vl` register | Change `vtype` keeping existing `vl`
-| !0    |  0    | ~0                | Set `vl` to VLMAX
-|  -    | !0    | Value in `x[rs1]` | Normal stripmining
+|  `rd`  | `rs1`  | AVL value         | Effect on `vl`
+|  -     | !x0    | Value in `x[rs1]` | Normal stripmining
+| !x0    |  x0    | ~0                | Set `vl` to VLMAX
+|  x0    |  x0    | Value in `vl` register | Keep existing `vl` (of course, `vtype` may change)
 |===
 
 When `rs1` is not `x0`, the AVL is an unsigned integer held in the `x`
@@ -1232,9 +1245,9 @@ is used as the AVL, and the resulting VLMAX is written to `vl` and
 also to the `x` register specified by `rd`.
 
 When `rs1=x0` and `rd=x0`, the current vector length in `vl` is used
-as the AVL, and the resulting value is only written to `vl`.
+as the AVL, and the resulting value is written to `vl`, but not to a destination register.
 
-NOTE: This form of the instruction allows the `vtype` register to be
+NOTE: This last form of the instruction allows the `vtype` register to be
 changed while maintaining the current `vl`, provided VLMAX is not
 reduced.  The `vl` value can be reduced by this instruction if the
 SEW/LMUL ratio changes causes VLMAX to shrink.  This design was chosen
@@ -1325,29 +1338,34 @@ and when the `vtypei` field is too small to hold the desired setting.
 NOTE: Several active complex types can be held in different `x`
 registers and swapped in as needed using `vsetvl`.
 
-=== Examples
+[[example-stripmine-sew]]
+=== Example of stripmining and changes to SEW
 
 The SEW and LMUL settings can be changed dynamically to provide high
 throughput on mixed-width operations in a single loop.
-
 ----
 # Example: Load 16-bit values, widen multiply to 32b, shift 32b result
 # right by 3, store 32b values.
+# On entry:
+#  a0 holds the total number of elements to process
+#  a1 holds the address of the source array
+#  a2 holds the address of the destination array
 
 loop:
-    vsetvli a3, a0, e16,m4,ta,ma  # vtype = 16-bit integer vectors
+    vsetvli a3, a0, e16,m4,ta,ma  # vtype = 16-bit integer vectors;
+                                  # also update a3 with vl (# of elements this iteration)
     vle16.v v4, (a1)        # Get 16b vector
-      slli t1, a3, 1        # Multiply length by two bytes/element
-      add a1, a1, t1        # Bump pointer
-    vwmul.vx v8, v4, x10    # 32b in <v8--v15>
+    slli t1, a3, 1          # Multiply # elements this iteration by 2 bytes/source element
+    add a1, a1, t1          # Bump pointer
+    vwmul.vx v8, v4, x10    # Widening multiply into 32b in <v8--v15>
 
     vsetvli x0, a0, e32,m8,ta,ma  # Operate on 32b values
     vsrl.vi v8, v8, 3
     vse32.v v8, (a2)        # Store vector of 32b elements
-      slli t1, a3, 2        # Multiply length by four bytes/element
-      add a2, a2, t1        # Bump pointer
-      sub a0, a0, a3        # Decrement count
-      bnez a0, loop         # Any more?
+    slli t1, a3, 2          # Multiply # elements this iteration by 4 bytes/destination element
+    add a2, a2, t1          # Bump pointer
+    sub a0, a0, a3          # Decrement count by vl
+    bnez a0, loop           # Any more?
 ----
 
 == Vector Loads and Stores
