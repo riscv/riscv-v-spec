@@ -44,6 +44,12 @@ Specification was loosened to allow elements wider than a single
 vector register to be supported using a vector register group, but
 profiles can still mandate a minimum ELEN when LMUL = 1.
 
+=== Defined vector FP exception behavior
+
+=== Defined interaction of `misa.v` and `mstatus.vs`
+
+=== Defined integer narrowing pseudo-instruction `vncvt.x.x.v vd,vs,vm`
+
 :sectnums:
 
 == Introduction
@@ -2219,6 +2225,7 @@ used to define sub-categories of vector instructions.
 
 include::valu-format.adoc[]
 
+[[sec-arithmetic-encoding]]
 === Vector Arithmetic Instruction encoding
 
 The `funct3` field encodes the operand type and source locations.
@@ -2267,12 +2274,14 @@ in the `rs1` field.  The value is sign- or zero-extended to SEW bits.
 register specified by `rs1`.  If XLEN>SEW, the least-significant SEW bits
 of the `x` register are used.  If XLEN<SEW, the value from the `x`
 register is sign-extended to SEW bits.
-. For floating-point
-operations, the scalar can be taken from a scalar `f` register.  If
-FLEN>SEW, the value in the `f` registers is checked for a valid
-NaN-boxed value, in which case the least-significant SEW bits of the
-`f`register are used, else the canonical NaN value is used.  If
-FLEN<SEW, the value is NaN-boxed (one-extended) to SEW.
+. For floating-point operations, the scalar can be taken from a scalar
+`f` register.  If FLEN > SEW, the value in the `f` registers is checked
+for a valid NaN-boxed value, in which case the least-significant SEW
+bits of the `f` register are used, else the canonical NaN value is
+used.  If execution is attempted of a vector instruction where any
+floating-point vector operand's EEW is not a supported floating-point
+type width (which includes when FLEN < SEW), an illegal instruction
+exception is raised. 
 
 NOTE: The 5-bit immediate is unsigned when either providing a
 register index in vrgather or a count for shift, clip, or slide.
@@ -3272,10 +3281,8 @@ The vector floating-point instructions have the same behavior as the
 scalar floating-point instructions with regard to NaNs.
 
 Scalar values for vector-scalar operations can be sourced from the
-standard scalar `f` registers.
-
-NOTE: Scalar floating-point values will be sourced from the integer
-`x` registers in the proposed Zfinx variant.
+standard scalar `f` registers, as described in Section
+<<sec-arithmetic-encoding>>.
 
 === Vector Floating-Point Exception Flags
 
@@ -3556,10 +3563,6 @@ register value is copied to the destination element.
 vfmerge.vfm vd, vs2, rs1, v0  # vd[i] = v0.mask[i] ? f[rs1] : vs2[i]
 ----
 
-NOTE: Like the floating-point computational instructions, when FLEN > SEW,
-`vfmerge.vfm` substitutes a canonical NaN for `f[rs1]` if the latter is not
-properly NaN-boxed.
-
 === Vector Floating-Point Move Instruction
 
 The vector floating-point move instruction __splats__ a floating-point scalar
@@ -3574,10 +3577,6 @@ vfmv.v.f vd, rs1  # vd[i] = f[rs1]
 
 NOTE: The `vfmv.v.f` instruction shares the encoding with the `vfmerge.vfm`
 instruction, but with `vm=1` and `vs2=v0`.
-
-NOTE: Like the floating-point computational instructions, when FLEN > SEW,
-`vfmv.v.f` substitutes a canonical NaN for `f[rs1]` if the latter is not
-properly NaN-boxed.
 
 === Single-Width Floating-Point/Integer Type-Convert Instructions
 
@@ -4263,18 +4262,13 @@ vfmv.s.f vd, rs1  # vd[0] = f[rs1] (vs2=0)
 
 The `vfmv.f.s` instruction copies a single SEW-wide element from index
 0 of the source vector register to a destination scalar floating-point
-register.  If SEW > FLEN, `vfmv.f.s` substitutes an FLEN-bit canonical
-NaN if the element value is not correctly NaN-boxed for FLEN.  If SEW
-< FLEN, the value is NaN-boxed (1-extended) to FLEN bits.
+register.  
 
 The `vfmv.s.f` instruction copies the scalar floating-point register
-to element 0 of the destination vector register.  If SEW < FLEN and
-the value is not correctly NaN-boxed for SEW bits, an SEW-bit
-canonical NaN is substituted.  If SEW > FLEN, the value is NaN-boxed
-(1-extended) to SEW bits.  The other elements in the destination
-vector register ( 0 < index < VLEN/SEW) are unchanged.  If `vstart`
-{ge} `vl`, no operation is performed and the destination register is
-not updated.
+to element 0 of the destination vector register.  The other elements
+in the destination vector register ( 0 < index < VLEN/SEW) are
+unchanged.  If `vstart` {ge} `vl`, no operation is performed and the
+destination register is not updated.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
@@ -4407,9 +4401,6 @@ Otherwise, an illegal instruction exception is raised.
 
 The `vfslide1up` instruction is defined analogously, but sources its
 scalar argument from an `f` register.
-If SEW < FLEN and the value is not correctly NaN-boxed for SEW bits, an
-SEW-bit canonical NaN is substituted.
-If FLEN < SEW, the scalar value is NaN-boxed (one-extended) to SEW bits.
 
 ==== Vector Slide1down Instruction
 
@@ -4444,9 +4435,6 @@ SEW-XLEN bits are ignored.
 
 The `vfslide1down` instruction is defined analogously, but sources its
 scalar argument from an `f` register.
-If SEW < FLEN and the value is not correctly NaN-boxed for SEW bits, an
-SEW-bit canonical NaN is substituted.
-If FLEN < SEW, the scalar value is NaN-boxed (one-extended) to SEW bits.
 
 NOTE: The `vslide1down` instruction can be used to load values into a
 vector register without using memory and without disturbing other
