@@ -50,6 +50,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Defined integer narrowing pseudo-instruction `vncvt.x.x.v vd,vs,vm`
 
+=== Added reciprocal and reciprocal square-root estimate instructions
+
 :sectnums:
 
 == Introduction
@@ -3419,6 +3421,52 @@ This is a unary vector-vector instruction.
     # Floating-point square root
     vfsqrt.v vd, vs2, vm   # Vector-vector square root
 ----
+
+=== Vector Floating-Point Reciprocal Estimate Instruction
+
+----
+    # Floating-point reciprocal estimate to 7 bits.
+    vfrece7.v vd, vs2, vm
+----
+
+This is a unary vector-vector instruction that returns an estimate of
+1/x accurate to 7 bits.
+
+NOTE: This instruction's exact arithmetic properties are still being
+defined.  See github issue #235. 
+
+The instruction behaves identically to a full IEEE +1.0/x operation
+for values outside its domain.
+
+NOTE: Exceptional behavior needs fuller clarification.
+
+NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
+Newton-Raphson iterations to converge to close to bfloat16, FP16,
+FP32, FP64 accuracy respectively.   Future instructions can be defined
+with greater estimate accuracy.
+
+=== Vector Floating-Point Reciprocal Square-Root Estimate Instruction
+
+----
+    # Floating-point reciprocal square-root estimate to 7 bits.
+    vfrsqrte7.v vd, vs2, vm
+----
+
+This is a unary vector-vector instruction that returns an estimate of
+1/sqrt(x) accurate to 7 bits.
+
+NOTE: This instruction's exact arithmetic properties are still being
+defined.  See github issue #235.
+
+The instruction behaves identically to a full IEEE +1.0/sqrt(x)
+calculation for values outside its domain.
+
+NOTE: Exceptional behavior needs fuller clarification.
+
+NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
+Newton-Raphson iterations to converge to close to bfloat16, FP16,
+FP32, FP64 accuracy respectively.   Future instructions can be defined
+with greater estimate accuracy.
 
 === Vector Floating-Point MIN/MAX Instructions
 

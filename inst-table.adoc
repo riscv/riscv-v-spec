@@ -187,6 +187,8 @@
 |  vs1  | name
 
 | 00000 | vfsqrt.v
+| 00100 | vfrsqrte7.v
+| 00101 | vfrece7.v
 | 10000 | vfclass.v
 |===
 
