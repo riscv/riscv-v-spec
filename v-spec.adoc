@@ -2243,7 +2243,15 @@ signed integer arithmetic depending on the opcode.
 
 All standard vector floating-point arithmetic operations follow the
 IEEE-754/2008 standard.  All vector floating-point operations use the
-dynamic rounding mode in the `frm` register.
+dynamic rounding mode in the `frm` register.  If the `frm` field
+contains an invalid rounding mode, attempting to execute any vector
+floating-point instruction, even those that do not depend on the
+rounding mode, or when `vl`=0, or when `vstart` {ge} `vl`, will raise
+an illegal instruction exception.
+
+NOTE: All vector floating-point code will rely on a valid value in
+`frm`.  Making all vector FP instructions report exceptions when the
+rounding mode is invalid simplifies control logic.
 
 Vector-vector operations take two vectors of operands from vector
 register groups specified by `vs2` and `vs1` respectively.
