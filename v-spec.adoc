@@ -1153,44 +1153,44 @@ encode the use of a mask.
 === Prestart, Active, Inactive, Body, and Tail Element Definitions
 
 The element indices operated on during a vector instruction's execution can
-be divided into four disjoint subsets.
+be divided into three disjoint subsets.
 
-- The _prestart_ elements are those whose element index is less than the
+* The _prestart_ elements are those whose element index is less than the
 initial value in the `vstart` register.  The prestart elements do not
 raise exceptions and do not update the destination vector register.
 
-- The _active_ elements during a vector instruction's execution are the
-elements within the current vector length setting and where the
-current mask is enabled at that element position.  The active elements
-can raise exceptions and update the destination vector register group.
+* The _body_ elements are those whose element index is greater than or equal
+to the initial value in the `vstart` register, and less than the current
+vector length setting in `vl`. The body can be split into two disjoint subsets:
 
-- The _inactive_ elements are the elements within the current vector
-length setting but where the current mask is disabled at that element
+** The _active_ elements during a vector instruction's execution are the
+elements within the body and where the current mask is enabled at that element
+position.  The active elements can raise exceptions and update the destination
+vector register group.
+
+** The _inactive_ elements are the elements within the body
+but where the current mask is disabled at that element
 position.  The inactive elements do not raise exceptions and do not
 update any destination vector register group unless masked agnostic is
 specified (`vtype.vma`=1), in which case inactive elements may be
 overwritten with 1s.
 
-- The _tail_ elements during a vector instruction's execution are the
-elements past the current vector length setting.  The tail elements do
+* The _tail_ elements during a vector instruction's execution are the
+elements past the current vector length setting specified in `vl`.  The tail elements do
 not raise exceptions, and do not update any destination vector
 register group unless tail agnostic is specified (`vtype.vta`=1), in
 which case tail elements may be overwritten with 1s.  When LMUL < 1,
 the tail includes the elements past VLMAX that are held in the same
 vector register.
 
-- In addition, another term, _body_, is used for the set of elements
-that are either active or inactive, i.e., after prestart but before
-the tail.
-
 ----
     for element index x
     prestart    = (0 <= x < vstart)
-    mask(x)     = unmasked || v0[x].LSB == 1
-    active(x)   = (vstart <= x < vl) && mask(x)
-    inactive(x) = (vstart <= x < vl) && !mask(x)
-    body(x)     = active(x) || inactive(x)
+    body(x)     = (vstart <= x < vl)
     tail(x)     = (vl <= x < max(VLMAX,VLEN/SEW))
+    mask(x)     = unmasked || v0[x].LSB == 1
+    active(x)   = body(x) && mask(x)
+    inactive(x) = body(x) && !mask(x)
 ----
 
 == Configuration-Setting Instructions
