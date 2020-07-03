@@ -74,12 +74,13 @@ server and application-processor platform profiles.  The set of
 mandatory instructions and supported element widths will vary with the
 base ISA (RV32I, RV64I) as described below.
 
-Other platforms, including embedded platforms, may choose to implement
-subsets of these extensions.  The exact set of mandatory supported
-instructions for an implementation to be compliant with a given
-profile will only be determined when each profile spec is ratified.
-For convenience in defining subset profiles, vector instruction
-subsets are given ISA string names beginning with the "Zv" prefix.
+Other profiles, including embedded profiles, may choose to mandate
+only subsets of these extensions.  The exact set of mandatory
+supported instructions for an implementation to be compliant with a
+given profile will only be determined when each profile spec is
+ratified.  For convenience in defining subset profiles, vector
+instruction subsets are given ISA string names beginning with the "Zv"
+prefix.
 
 The document describes all the individual features to be included in
 the base vector extension.
@@ -213,7 +214,7 @@ The value in `vsew` sets the dynamic _selected_ _element_ _width_
 VLEN/SEW selected-width elements.
 
 NOTE: In the base vector "V" extension, only SEW up to ELEN =
-max(XLEN,FLEN) are required to be supported.  Other platforms may
+max(XLEN,FLEN) are required to be supported.  Other profiles may
 impose different constraints on ELEN.
 
 .vsew[2:0] (selected element width) encoding
@@ -3239,13 +3240,13 @@ supported IEEE floating-point type, an illegal instruction exception
 is raised.
 
 NOTE: The floating-point element widths that are supported depend on
-the platform.
+the profile.
 
 Vector floating-point instructions require the presence of base scalar
 floating-point extensions corresponding to the supported vector
 floating-point element widths.
 
-NOTE: Platforms supporting 16-bit half-precision floating-point values
+NOTE: Profiles supporting 16-bit half-precision floating-point values
 will also have to implement scalar half-precision floating-point
 support in the `f` registers.
 
@@ -4622,14 +4623,14 @@ Imprecise traps are primarily intended to be used in situations where
 reporting an error and terminating execution is the appropriate
 response.
 
-NOTE: A platform might specify that interrupts are precise while other
-traps are imprecise.  We assume many embedded platforms will only
-generate imprecise traps for vector instructions on fatal errors, so
-do not require resumable traps.
+NOTE: A profile might specify that interrupts are precise while other
+traps are imprecise.  We assume many embedded implementations will
+generate only imprecise traps for vector instructions on fatal errors,
+as they will not require resumable traps.
 
 === Selectable precise/imprecise traps
 
-Some platforms may choose to provide a privileged mode bit to select
+Some profiles may choose to provide a privileged mode bit to select
 between precise and imprecise vector traps.  Imprecise mode would run
 at high-performance but possibly make it difficult to discern error
 causes, while precise mode would run more slowly, but support
