@@ -2679,6 +2679,10 @@ supports shift amounts up to 31 only.
 NOTE: It could be useful to add support for `n4` variants, where the
 destination is 1/4 width of source.
 
+NOTE: An integer value can be halved in width using the narrowing integer
+shift instructions with a scalar operand of x0. Can define assembly
+pseudoinstructions vncvt.x.x.v vd,vs,vm = vnsrl.wx vd,vs,x0,vm.
+
 === Vector Integer Comparison Instructions
 
 The following integer compare instructions write 1 to the destination
