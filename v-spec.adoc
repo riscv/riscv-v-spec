@@ -1397,9 +1397,9 @@ include::vmem-format.adoc[]
 | vs2[4:0]   | specifies v register holding address offsets
 | vs3[4:0]   | specifies v register holding store data
 | vd[4:0]    | specifies v register destination of load
-| vm         | specifies vector mask
+| vm         | specifies whether vector masking is enabled (0 = mask enabled, 1 = mask disabled)
 | width[2:0] | specifies size of memory elements, and distinguishes from FP scalar
-| mew        | extended memory element size
+| mew        | extended memory element width. See <<sec-vector-loadstore-width-encoding>>
 | mop[1:0]   | specifies memory addressing mode
 | nf[2:0]    | specifies the number of fields in each segment, for segment load/stores
 | lumop[4:0]/sumop[4:0] | are additional fields encoding variants of unit-stride instructions
@@ -1480,7 +1480,7 @@ field.
 | 1 | 1 | indexed-ordered   | VSXEI<EEW>
 |===
 
-The vector indexed memory operations have two forms, ordered and
+The vector indexed store memory operations have two forms, ordered and
 unordered.  The indexed-unordered stores do not preserve element
 ordering on stores.
 
@@ -1536,6 +1536,7 @@ add more powerful primitives to move items to and from memory.
 The `nf[2:0]` field also encodes the number of whole vector registers
 to transfer for the whole vector register load/store instructions.
 
+[[sec-vector-loadstore-width-encoding]]
 === Vector Load/Store Width Encoding
 
 Vector loads and stores have an EEW encoded directly in the
