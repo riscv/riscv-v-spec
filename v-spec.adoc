@@ -3175,8 +3175,8 @@ sequence `vmv.v.i vd, 0; vmerge.vim vd, vd, 1, v0`.
 NOTE: The vector integer move instructions share the encoding with the vector
 merge instructions, but with `vm=1` and `vs2=v0`.
 
-NOTE: The form `vmv.v.v vd, vd`, which does not change architectural
-state, is used as a HINT to indicate that the register will be used
+NOTE: The form `vmv.v.v vd, vd`, which leaves body elements unchanged,
+is used as a hint to indicate that the register will be used
 with an EEW equal to SEW.  Implementations that internally reorganize
 data according to EEW can shuffle the internal representation
 according to SEW.  Implementations that do not internally reorganize
