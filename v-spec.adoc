@@ -1928,11 +1928,11 @@ appear to be written in element order.
 ----
 Format for Vector Load Whole Register Instructions under LOAD-FP major opcode
 31 29  28  27 26  25 24   20 19       15 14   12 11      7 6     0
- nf  | mew| mop  | 1| 01000 |    rs1    | width |    vd   |0000111| VL<nf>R
+ nf  | mew|  00  | 1| 01000 |    rs1    | width |    vd   |0000111| VL<nf>R
 
 Format for Vector Store Whole Register Instructions under STORE-FP major opcode
-31 29  28  27 26 25  24   20 19       15 14   12 11      7 6     0
- nf  |  0 | mop |  1| 01000 |    rs1    |  000  |   vs3   |0100111| VS<nf>R
+31 29  28  27 26  25  24  20 19       15 14   12 11      7 6     0
+ nf  |  0 |  00  | 1| 01000 |    rs1    |  000  |   vs3   |0100111| VS<nf>R
 ----
 
 These instructions load and store whole vector registers (i.e., VLEN
