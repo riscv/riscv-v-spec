@@ -1695,8 +1695,8 @@ These instructions execute as a regular load except that they will
 only take a trap caused by a synchronous exception on element 0.  If
 an element > 0 raises an exception, that element and all following
 elements in the destination vector register are not modified, and the
-vector length `vl` is reduced to the number of elements processed
-without a trap.
+vector length `vl` is reduced to the index of the element that would
+have raised an exception.
 
 ----
     # Vector unit-stride fault-only-first loads and stores
