@@ -52,8 +52,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Added reciprocal and reciprocal square-root estimate instructions
 
-=== Defined HINT behavior on whole register moves and load/stores to
-enable microarchitectures with internal data rearrangement.
+=== Defined hint behavior on whole register moves and load/stores to enable microarchitectures with internal data rearrangement.
 
 :sectnums:
 
