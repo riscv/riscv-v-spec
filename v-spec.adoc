@@ -3519,8 +3519,35 @@ defined.  See github issue #235.
 
 The instruction behaves identically to a full IEEE +1.0/x operation
 for values outside its domain.
+The following table describes the instruction's behavior for all
+classes of floating-point inputs, where _B_ is the exponent bias:
 
-NOTE: Exceptional behavior needs fuller clarification.
+[cols="1,1,1,1"]
+[%autowidth]
+|===
+| Input | Rounding Mode | Output | Exceptions raised
+
+| -{inf}                      | _any_         | -0.0                      |
+| -{inf} < _x_ {le} -2^-B-1^  | _any_         | _estimate of 1/x_         |
+| -2^-B-1^ < _x_ < -0.0       | RUP, RTZ      | greatest-mag. negative finite value | NX, OF
+| -2^-B-1^ < _x_ < -0.0       | RDN, RNE, RMM | -{inf}                    | NX, OF
+| -0.0                        | _any_         | -{inf}                    | DZ
+| +0.0                        | _any_         | +{inf}                    | DZ
+| +0.0 < _x_ < 2^-B-1^        | RUP, RNE, RMM | +{inf}                    | NX, OF
+| +0.0 < _x_ < 2^-B-1^        | RDN, RTZ      | greatest finite value     | NX, OF
+| 2^-B-1^ {le} _x_ < +{inf}   | _any_         | _estimate of 1/x_         |
+| +{inf}                      | _any_         | +0.0                      |
+| qNaN                        | _any_         | canonical NaN             |
+| sNaN                        | _any_         | canonical NaN             | NV
+|===
+
+NOTE: Subnormal inputs with magnitude at least 2^-B-1^ produce normal outputs;
+other subnormal inputs produce infinite outputs.
+Normal inputs with magnitude at least 2^B-1^ produce subnormal outputs;
+other normal inputs produce normal outputs.
+
+NOTE: The output value depends on the dynamic rounding mode when
+the overflow exception is raised.
 
 NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
 Newton-Raphson iterations to converge to close to bfloat16, FP16,
@@ -3542,8 +3569,26 @@ defined.  See github issue #235.
 
 The instruction behaves identically to a full IEEE +1.0/sqrt(x)
 calculation for values outside its domain.
+The following table describes the instruction's behavior for all
+classes of floating-point inputs:
 
-NOTE: Exceptional behavior needs fuller clarification.
+[cols="1,1,1"]
+[%autowidth]
+|===
+| Input | Output | Exceptions raised
+
+| -{inf} {le} _x_ < -0.0     | canonical NaN           | NV
+| -0.0                       | -{inf}                  | DZ
+| +0.0                       | +{inf}                  | DZ
+| +0.0 < _x_ < +{inf}        | _estimate of 1/sqrt(x)_ |
+| +{inf}                     | +0.0                    |
+| qNaN                       | canonical NaN           |
+| sNaN                       | canonical NaN           | NV
+|===
+
+NOTE: All positive normal and subnormal inputs produce normal outputs.
+
+NOTE: The output value is independent of the dynamic rounding mode.
 
 NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
 Newton-Raphson iterations to converge to close to bfloat16, FP16,
