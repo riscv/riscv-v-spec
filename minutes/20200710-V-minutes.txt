@@ -1,37 +1,59 @@
-Date: 2020/7/03
+Date: 2020/7/10
 Task Group: Vector Extension
 Chair: Krste Asanovic
 Co-Chair: Roger Espasa
-Number of Attendees: ~6
+Number of Attendees: ~22
 Current issues on github: https://github.com/riscv/riscv-v-spec
 
-This call was sparsely attended due to US Independence day holiday.
 
 Issues discussed:
 
-#373 reserve encodings where rs1=0 and .vx and .vi instructions reduce to simpler 
+#235 reciprocal/square root approximation
 
-Meeting agreed with reserving these encodings, while acknowledging
-implementers might treat as non-conforming variants of existing
-instructions.  Assemblers should check for reserved usages of these
-opcodes.
+Group discussed the new proposal, and will study accuracy and
+performance issues on the mailing list.
 
-#365 should vsetvli x0, x0, imm that changes vl set vill?
+#533 Mandating VLEN>=128 on application processor profiles
 
-Consensus at meeting was to leave instruction definition as is.
+The proposal would provide a guarantee on minimum VLEN to simplify
+code that used short vectors.  This also ensures some instructions
+that rely on more than one element in a vector operate correctly in
+all cases.  The discussion contemplated a larger value of 256, but
+consensus seemed that VLEN>=128 would include common design points.
 
-However, we may want to define assembler syntax for different intended
-use cases to help precision of warning/error reporting.
+#392/#520 vrgather index size
 
-#427 unsigned scalar integer in widening instructions 2*SEW ?
+The group discussed the problem that vrgather indices when SEW=8 would
+not allow byte permutation of even relatively short vector register
+groups (at LMUL=8, VLEN=256 is the largest size fully supported).  The
+proposal was to add a variant vrgatherei16 that would fix EEW of the
+indices to 16b.
 
-It was felt this proposal needed more justification.
+#529/516 Alignment of whole-register load/store instructions
 
-#503 Return of cast operations
+The EEW given as a hint in whole-register load/store instructions is
+currently ignored, but it would simplify implementations to be able to
+report misalignment exceptions when the effective base address was not
+aligned to an element boundary.  Much of the discussion was around
+what alignment the code using the instruction could rely on, but the
+point was made that the whole-register alignment was usually very well
+controlled and the main point of this relaxation was to simplify
+implementations.
 
-There was consensus that this resolution of the casting issue seemed
-elegant, imposing no burden on implementations that do not internally
-reorganize data while supporting wide machines that optimize internal
-data placement.
+#365 should vsetvli x0, x0, imm set vill if vl changes?
 
+Discussion over the behavior in this case focused on whether the cases
+when vl changes could ever be useful, in which case the vill setting
+would remove functionality.  Also, on when errors could be reported.
+
+# Reserving custom space for encodings/vtype
+
+A question was whether 1.0 spec should reserve vector custom space
+within current encoding.  For now, any unused encoding is reserved.
+Discussion will continue on list.
+
+# Categorizing issues
+
+The group was to continue categorizing issues that must be resolved
+for V 1.0, versus those for a future extension.
 
