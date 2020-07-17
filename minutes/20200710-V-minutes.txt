@@ -1,0 +1,37 @@
+Date: 2020/7/03
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~6
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+This call was sparsely attended due to US Independence day holiday.
+
+Issues discussed:
+
+#373 reserve encodings where rs1=0 and .vx and .vi instructions reduce to simpler 
+
+Meeting agreed with reserving these encodings, while acknowledging
+implementers might treat as non-conforming variants of existing
+instructions.  Assemblers should check for reserved usages of these
+opcodes.
+
+#365 should vsetvli x0, x0, imm that changes vl set vill?
+
+Consensus at meeting was to leave instruction definition as is.
+
+However, we may want to define assembler syntax for different intended
+use cases to help precision of warning/error reporting.
+
+#427 unsigned scalar integer in widening instructions 2*SEW ?
+
+It was felt this proposal needed more justification.
+
+#503 Return of cast operations
+
+There was consensus that this resolution of the casting issue seemed
+elegant, imposing no burden on implementations that do not internally
+reorganize data while supporting wide machines that optimize internal
+data placement.
+
+
