@@ -1,0 +1,65 @@
+Date: 2020/7/17
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~20
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+
+Issues discussed:
+
+#392/#520 vrgather index size
+
+The group reviewed the proposed instruction encoding for new
+instruction vrgatherei16.  This will be part of v1.0.
+
+#235 reciprocal/square root approximation
+
+The proposed table contents for the 7b approximations are being
+reviewed for possible improvements.  The consensus was to retain the
+bit-exact requirement given the small size of these tables.
+
+The group also continued discussion of the various proposals presented
+on mailing list for iteration-step instructions.  There was agreement
+that the 1.0-product forms should give greater accuracy than the
+2-product forms, but members were considering a formal proof of this
+property.  The step instructions might be delayed until after v1.0, as
+they represent an optimization and will require further study.
+
+#533 Mandating VLEN>=128 on application processor profiles
+
+The group reviewed the proposal to require the "V" application
+processor base vector extension to require VLEN>=128.  The general
+consensus was that it was a useful constraint.
+
+#529/516 Alignment of whole-register load/store instructions
+
+We reviewed this decision, with objections being around having any
+hint rather than the details of this particular hint.  However, the
+consensus was that the hint provides clear advantages for machines
+with internal data rearrangement, and comes at almost no cost to other
+designs.
+
+#365 should vsetvli x0, x0, imm set vill if vl changes?
+
+Discussion over the behavior in this case focused on whether the cases
+when vl changes could ever be useful, in which case the vill setting
+would remove functionality.  Also, on when errors could be reported.
+
+We discussed a proposal to "reserve" the behavior when the new setting
+would change vl but this was dismissed with the concern that this
+would prevent forwards compatibility with no path for emulation.  The
+decision was to require a new vsetvl{i} encoding for a new behavior on
+vsetvl{i} operation.
+
+The conclusion was to retain the existing PoR, with vl possibly
+changing if the new SEW/LMUL setting alters VLMAX.
+
+# Reserving custom space for encodings/vtype
+
+The discussion centered around what should be freed for custom use in
+v1.0.  The consensus was that no instruction encoding (particularly
+vsetvl{i}) should be freed but that some fields in vtype could be
+allocated for custom.  The consensus was that the custom fields should
+be in a constant bit position regardless of XLEN.
+
