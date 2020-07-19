@@ -1151,8 +1151,8 @@ encode the use of a mask.
 [[sec-inactive-defs]]
 === Prestart, Active, Inactive, Body, and Tail Element Definitions
 
-The element indices operated on during a vector instruction's execution can
-be divided into three disjoint subsets.
+The destination element indices operated on during a vector
+instruction's execution can be divided into three disjoint subsets.
 
 * The _prestart_ elements are those whose element index is less than the
 initial value in the `vstart` register.  The prestart elements do not
@@ -1191,6 +1191,11 @@ vector register.
     active(x)   = body(x) && mask(x)
     inactive(x) = body(x) && !mask(x)
 ----
+
+NOTE: Some instructions such as `vslidedown` and `vrgather` may read
+indices past `vl` or even VLMAX in source vector register groups.  The
+general policy is to return the value 0 when the index is greater than
+VLMAX in the source vector register group.
 
 == Configuration-Setting Instructions
 
