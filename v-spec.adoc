@@ -2296,6 +2296,16 @@ within a single vector store instruction.
 
 NOTE: Need to flesh out details.
 
+For masked vector instructions, the instruction has a control dependency
+on the source mask register, rather than a data dependency.
+
+NOTE: Treating the mask as control rather than data typically matches the
+semantics of the corresponding scalar code, where a branch instruction
+ordinarily would have been used.
+This approach allows masked vector load instructions to access memory before
+the mask value is known, without the need for a misspeculation-recovery
+mechanism.
+
 == Vector Arithmetic Instruction Formats
 
 The vector arithmetic instructions use a new major opcode (OP-V =
