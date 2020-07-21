@@ -1104,6 +1104,11 @@ instruction exception is raised.
 
 NOTE: This constraint supports restart with a non-zero `vstart` value.
 
+NOTE: Some masked instructions that target `v0` which were legal in
+v0.8 are illegal with the new MLEN=1 mask layout for v1.0. For
+example, `vadd.vv v0, v1, v2, v0.m` is now always illegal; previously,
+it was legal for LMUL=1.
+
 Other vector registers can be used to hold working mask values, and
 mask vector logical operations are provided to perform predicate
 calculations. [[sec-mask-vector-logical]]
@@ -2578,7 +2583,8 @@ pseudoinstructions `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and
 The vector integer extension instructions zero- or sign-extend a
 source vector integer operand with EEW less than SEW to fill SEW-sized
 elements in the destination.  The EEW of the source is 1/2, 1/4, or
-1/8 of the destination, while EMUL of the source is (EEW/SEW)*LMUL.
+1/8 of SEW, while EMUL of the source is (EEW/SEW)*LMUL.  The
+destination has EEW equal to SEW and EMUL equal to LMUL.
 
 ----
 vzext.vf2 vd, vs2, vm  # Zero-extend SEW/2 source to SEW destination
@@ -2589,8 +2595,9 @@ vzext.vf8 vd, vs2, vm  # Zero-extend SEW/8 source to SEW destination
 vsext.vf8 vd, vs2, vm  # Sign-extend SEW/8 source to SEW destination
 ----
 
-If the source EEW is not a supported width or the source EMUL is not a
-supported LMUL, an illegal instruction exception is raised.
+If the source EEW is not a supported width, or source EMUL would be 
+below the minimum legal LMUL, an illegal instruction exception is
+raised.
 
 === Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 
