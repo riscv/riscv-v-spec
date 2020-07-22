@@ -9,7 +9,6 @@
 |      9:8 | vediv[1:0] | Used by EDIV extension
 |        7 | vma        | Mask agnostic
 |        6 | vta        | Tail agnostic
-|        5 | vlmul[2]   | Vector register group multiplier (LMUL) setting (fractional)
-|      4:2 | vsew[2:0]  | Selected element width (SEW) setting
-|      1:0 | vlmul[1:0] | Vector register group multiplier (LMUL) setting
+|      5:3 | vsew[2:0]  | Selected element width (SEW) setting
+|      2:0 | vlmul[2:0] | Vector register group multiplier (LMUL) setting
 |===
