@@ -1996,7 +1996,7 @@ that correspond to EEW=8.
 
 ----
    # Format of whole register move instructions.
-   vlr1.v v3, (a0)       # Pseudo instruction equal to vl1re8.v
+   vl1r.v v3, (a0)       # Pseudo instruction equal to vl1re8.v
 
    vl1re8.v    v3, (a0)  # Load v3 with VLEN/8 bytes held at address in a0
    vl1re16.v   v3, (a0)  # Load v3 with VLEN/16 halfwords held at address in a0
@@ -2007,7 +2007,7 @@ that correspond to EEW=8.
    vl1re512.v  v3, (a0)
    vl1re1024.v v3, (a0)
 
-   vlr2.v v2, (a0)       # Pseudo instruction equal to vl2re8.v v2, (a0)
+   vl2r.v v2, (a0)       # Pseudo instruction equal to vl2re8.v v2, (a0)
 
    vl2re8.v    v2, (a0)  # Load v2-v3 with 2*VLEN/8 bytes from address in a0
    vl2re16.v   v2, (a0)  # Load v2-v3 with 2*VLEN/16 halfwords held at address in a0
@@ -2029,9 +2029,9 @@ that correspond to EEW=8.
    vl4re512.v  v4, (a0)
    vl4re1024.v v4, (a0)
 
-   vl8r.v v8, (a0)       # Pseudo instruction equal to vl4re8.v
+   vl8r.v v8, (a0)       # Pseudo instruction equal to vl8re8.v
 
-   vl8re8.v    v8, (a0)  # Load v8-v15 with 4*VLEN/8 bytes from address in a0
+   vl8re8.v    v8, (a0)  # Load v8-v15 with 8*VLEN/8 bytes from address in a0
    vl8re16.v   v8, (a0)
    vl8re32.v   v8, (a0)
    vl8re64.v   v8, (a0)
