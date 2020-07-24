@@ -1,0 +1,33 @@
+Date: 2020/7/24
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~18
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+
+Issues discussed:
+
+# Better figures in final documents
+
+We review a proposal to add better figures to the ISA document outputs
+(html and pdf).  The group was in agreement this would be a great
+improvement.  A proposed reformatting will be pushed to the repo.
+
+#365 should vsetvli x0, x0, imm set vill if vl changes?
+
+There has been extensive discussion on the mailing list about this
+issue, and also on behavior of vsetvl form when vtype.vill is set.
+The consensus is that vill should be set if vl would change.  Other
+issues need more discussion.
+
+#427 Make scalar input 2*SEW on integer widening operations
+
+We discussed proposal to widen scalar input to widening operations to
+2*SEW.  For widening multiplies, this would double the size of
+multiplier arrays required.  The group discussed using a
+microarchitectural check on scalar width to select a narrower
+multiplier, but group consensus was that this information should be
+supplied through a different opcode.  Given that multiplies would
+provide the larger benefit, and that adds would then have a
+non-uniform format, the descision was made to stay with the PoR.
