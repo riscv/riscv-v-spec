@@ -54,6 +54,11 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Defined hint behavior on whole register moves and load/stores to enable microarchitectures with internal data rearrangement.
 
+=== Added `vrgatherei16` instruction
+
+=== Rearranged bits in `vtype` to make `vlmul` bits into a contiguous field
+
+
 :sectnums:
 
 == Introduction
