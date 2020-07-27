@@ -10,7 +10,7 @@ Format for Vector Load Instructions under LOAD-FP major opcode
 
 ```wavedrom
 {reg: [
-  {bits: 7, name: 0b0000111, attr: 'VL* unit-stride'},
+  {bits: 7, name: 0x7, attr: 'VL* unit-stride'},
   {bits: 5, name: 'vd', attr: 'destination of load', type: 2},
   {bits: 3, name: 'width'},
   {bits: 5, name: 'rs1', attr: 'base address', type: 4},
@@ -24,7 +24,7 @@ Format for Vector Load Instructions under LOAD-FP major opcode
 
 ```wavedrom
 {reg: [
-  {bits: 7, name: 0b0000111, attr: 'VLS* strided'},
+  {bits: 7, name: 0x7, attr: 'VLS* strided'},
   {bits: 5, name: 'vd', attr: 'destination of load', type: 2},
   {bits: 3, name: 'width'},
   {bits: 5, name: 'rs1', attr: 'base address', type: 4},
@@ -38,7 +38,7 @@ Format for Vector Load Instructions under LOAD-FP major opcode
 
 ```wavedrom
 {reg: [
-  {bits: 7, name: 0b0000111, attr: 'VLX* indexed'},
+  {bits: 7, name: 0x7, attr: 'VLX* indexed'},
   {bits: 5, name: 'vd', attr: 'destination of load', type: 2},
   {bits: 3, name: 'width'},
   {bits: 5, name: 'rs1', attr: 'base address', type: 4},
@@ -61,7 +61,7 @@ Format for Vector Store Instructions under STORE-FP major opcode
 
 ```wavedrom
 {reg: [
-  {bits: 7, name: 0b0100111, attr: 'VS* unit-stride'},
+  {bits: 7, name: 0x27, attr: 'VS* unit-stride'},
   {bits: 5, name: 'vs3', attr: 'store data', type: 2},
   {bits: 3, name: 'width'},
   {bits: 5, name: 'rs1', attr: 'base address', type: 4},
@@ -75,7 +75,7 @@ Format for Vector Store Instructions under STORE-FP major opcode
 
 ```wavedrom
 {reg: [
-  {bits: 7, name: 0b0100111, attr: 'VSS* strided'},
+  {bits: 7, name: 0x27, attr: 'VSS* strided'},
   {bits: 5, name: 'vs3', attr: 'store data', type: 2},
   {bits: 3, name: 'width'},
   {bits: 5, name: 'rs1', attr: 'base address', type: 4},
@@ -89,7 +89,7 @@ Format for Vector Store Instructions under STORE-FP major opcode
 
 ```wavedrom
 {reg: [
-  {bits: 7, name: 0b0100111, attr: 'VSX* indexed'},
+  {bits: 7, name: 0x27, attr: 'VSX* indexed'},
   {bits: 5, name: 'vs3', attr: 'store data', type: 2},
   {bits: 3, name: 'width'},
   {bits: 5, name: 'rs1', attr: 'base address', type: 4},
