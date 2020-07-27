@@ -25,7 +25,7 @@ Formats for Vector Configuration Instructions under OP-V major opcode
   {bits: 3,  name: 7},
   {bits: 5,  name: 'rs1', type: 4},
   {bits: 5,  name: 'rs2', type: 4},
-  {bits: 6,  name: 0b1000000},
+  {bits: 6,  name: 0x1000},
   {bits: 1,  name: 1},
 ]}
 ```
