@@ -1,6 +1,20 @@
-----
 Format for Vector AMO Instructions under AMO major opcode
+
+////
 31    27 26  25  24      20 19       15 14   12 11      7 6     0
  amoop  |wd| vm |   vs2    |    rs1    | width | vs3/vd  |0101111| VAMO*
    5      1   1      5           5         3        5        7
-----
+////
+
+```wavedrom
+{reg:[
+  {bits: 7, name: 0b0101111, attr: 'VAMO*'},
+  {bits: 5, name: 'vs3 / vd', attr: 'source / destination', type: 2},
+  {bits: 3, name: 'width'},
+  {bits: 5, name: 'rs1', attr: 'base', type: 4},
+  {bits: 5, name: 'vs2', attr: 'address', type: 2},
+  {bits: 1, name: 'vm'},
+  {bits: 1, name: 'wd'},
+  {bits: 5, name: 'amoop'},
+]}
+```
