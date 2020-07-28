@@ -1691,10 +1691,10 @@ element stores are performed in element order.
     vsxei64.v   vs3, (rs1), vs2, vm  # ordered 64-bit indexed store of SEW data
 
     # Vector unordered-indexed store instructions
-    vsuxei8.v    vs3, (rs1), vs2, vm  # ordered  8-bit indexed store of SEW data
-    vsuxei16.v   vs3, (rs1), vs2, vm  # ordered 16-bit indexed store of SEW data
-    vsuxei32.v   vs3, (rs1), vs2, vm  # ordered 32-bit indexed store of SEW data
-    vsuxei64.v   vs3, (rs1), vs2, vm  # ordered 64-bit indexed store of SEW data
+    vsuxei8.v   vs3, (rs1), vs2, vm # unordered  8-bit indexed store of SEW data
+    vsuxei16.v  vs3, (rs1), vs2, vm # unordered 16-bit indexed store of SEW data
+    vsuxei32.v  vs3, (rs1), vs2, vm # unordered 32-bit indexed store of SEW data
+    vsuxei64.v  vs3, (rs1), vs2, vm # unordered 64-bit indexed store of SEW data
 ----
 
 NOTE: The assembler syntax for indexed loads and stores uses
