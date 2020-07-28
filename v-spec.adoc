@@ -891,13 +891,13 @@ holding the lowest-addressed bytes from the memory layout.
 
  Byte         3 2 1 0
  v8*n               0
- v8*n+1
+ v8*n+1             
  v8*n+2             1
- v8*n+3
+ v8*n+3              
  v8*n+4             2
- v8*n+5
+ v8*n+5             
  v8*n+6             3
- v8*n+7
+ v8*n+7             
 ----
 
 [[sec-mask-register-layout]]
@@ -2044,7 +2044,7 @@ that correspond to EEW=8.
    vl8re256.v  v8, (a0)
    vl8re512.v  v8, (a0)
    vl8re1024.v v8, (a0)
-
+   
    vs1r.v v3, (a1)      # Store v3 to address in a1
    vs2r.v v2, (a1)      # Store v2-v3 to address in a1
    vs4r.v v4, (a1)      # Store v4-v7 to address in a1
@@ -2375,7 +2375,7 @@ bits of the `f` register are used, else the canonical NaN value is
 used.  If execution is attempted of a vector instruction where any
 floating-point vector operand's EEW is not a supported floating-point
 type width (which includes when FLEN < SEW), an illegal instruction
-exception is raised.
+exception is raised. 
 
 NOTE: The 5-bit immediate is unsigned when either providing a
 register index in vrgather or a count for shift, clip, or slide.
@@ -2600,7 +2600,7 @@ vzext.vf8 vd, vs2, vm  # Zero-extend SEW/8 source to SEW destination
 vsext.vf8 vd, vs2, vm  # Sign-extend SEW/8 source to SEW destination
 ----
 
-If the source EEW is not a supported width, or source EMUL would be
+If the source EEW is not a supported width, or source EMUL would be 
 below the minimum legal LMUL, an illegal instruction exception is
 raised.
 
@@ -3534,7 +3534,7 @@ This is a unary vector-vector instruction that returns an estimate of
 1/x accurate to 7 bits.
 
 NOTE: This instruction's exact arithmetic properties are still being
-defined.  See github issue #235.
+defined.  See github issue #235. 
 
 The instruction behaves identically to a full IEEE +1.0/x operation
 for values outside its domain.
@@ -4409,7 +4409,7 @@ vfmv.s.f vd, rs1  # vd[0] = f[rs1] (vs2=0)
 
 The `vfmv.f.s` instruction copies a single SEW-wide element from index
 0 of the source vector register to a destination scalar floating-point
-register.
+register.  
 
 The `vfmv.s.f` instruction copies the scalar floating-point register
 to element 0 of the destination vector register.  The other elements
