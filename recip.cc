@@ -200,7 +200,7 @@ float recip(float a)
     }
   }
 
-  f32_union res = (out_exp << S) | out_sig;
+  f32_union res = ((uint32_t)sign << (E+S)) | (out_exp << S) | out_sig;
   return res.f;
 }
 
