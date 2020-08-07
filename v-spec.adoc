@@ -52,7 +52,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Added reciprocal and reciprocal square-root estimate instructions
 
-=== Defined hint behavior on whole register moves and load/stores to enable microarchitectures with internal data rearrangement.
+=== Added EEW encoding to whole register moves and load/stores to support microarchitectures with internal data rearrangement.
 
 === Added `vrgatherei16` instruction
 
@@ -1954,13 +1954,35 @@ Format for Vector Store Whole Register Instructions under STORE-FP major opcode
 These instructions load and store whole vector registers (i.e., VLEN
 bits), optionally as vector register groups.
 
+NOTE: These instructions are intended to be used to save and restore
+vector registers when the type or length of the current contents of
+the vector register is not known, or where modifying `vl` and `vtype`
+would be costly. Examples include compiler register spills, vector
+function calls where values are passed in vector registers, interrupt
+handlers, and OS context switches.  Software can determine the number
+of bytes transferred by reading the `vlenb` register.
+
 The load instructions have an EEW encoded in the `mew` and `width`
-fields following the pattern of regular unit-stride loads, but this
-does not affect the architectural effect of these instructions.  The
-encoded EEW is used as a HINT to indicate to implementations that
-rearrange data internally that the destination register group will
-next be accessed with this EEW.  Implementations that do not rearrange
-data internally can ignore the EEW field.
+fields following the pattern of regular unit-stride loads.  However,
+the instructions are defined to always move vectors of bytes as if
+SEW=8, regardless of EEW encoding.  Pseudo-instructions are provide
+for whole register load instructions that correspond to EEW=8.  The
+vector whole register store instructions are encoded similar to
+unmasked unit-stride store of elements with EEW=8.
+
+NOTE: For the purposes of opaque save and restore of register state,
+the instructions have been defined as only moving byte vectors (SEW=8)
+between registers and memory.  For little-endian machines, EEW does
+not change how bytes are moved between architectural vector register
+locations and memory locations, and so these instructions can reuse
+the regular unit-stride load implementation for EEW.  For
+little-endian machines, the encoded EEW can be used as a HINT to
+indicate the destination register group will next be accessed with
+this EEW, which aids implementations that rearrange data internally.
+Big-endian machines are affected by EEW, so must always treat
+whole-register loads as SEW=8 load as stores always use SEW=8.
+Big-endian machines that rearrange internal data internally will not
+be able to exploit the hint.
 
 When transferring a single register, the instructions operate with an
 `evl`=VLEN/EEW, regardless of current
@@ -1968,36 +1990,28 @@ settings in `vtype` and `vl`.  No elements are transferred if `vstart`
 {ge} VLEN/EEW.  The usual property that no elements are written if
 `vstart` {ge} `vl` does not apply to these instructions.
 
-NOTE: These instructions are intended to be used to save and restore
-vector registers when the type and length of the current contents of
-the vector register is not known, or where modifying `vl` and `vtype`
-would be costly. Examples include compiler register spills, vector
-function calls where values are passed in vector registers, interrupt
-handlers, and OS context switches.
-Software can determine the number of bytes transferred by reading the
-`vlenb` register.
-
 The instructions operate similarly to unmasked unit-stride load and
 store instructions of elements, with the base address passed in the
 scalar `x` register specified by `rs1`.
 
 The `nf` field encodes how many vector registers to load and store.
-The encoded number of registers must be a power of 2, and the vector
-register numbers must be aligned as with a vector register group
+The encoded number of registers must be a power of 2 and the vector
+register numbers must be aligned as with a vector register group,
 otherwise an illegal instruction exception is raised.  The `nf` field
 encodes the number of vector registers to transfer (1, 2, 4, 8),
 numbered successively after the base.  When multiple registers are
 transferred, the lowest-numbered vector register is held in the
 lowest-numbered memory addresses and successive vector register
-numbers are placed contiguously in memory. The base register plus the
-`nf` value cannot exceed 31, else an illegal instruction exception is
-raised.
+numbers are placed contiguously in memory.
 
-The vector whole register store instructions are encoded similar to
-unmasked unit-stride store of elements with EEW=8.
+Implementations are allowed to raise a misaligned address exception if
+the base address is not naturally aligned to the encoded EEW.
 
-Pseudo-instructions are provide for whole register load instructions
-that correspond to EEW=8.
+NOTE: Allowing misaligned exceptions to be raised simplifies the
+implementation of these instructions.  Software that uses whole
+register moves will generally use a much larger alignment than the
+minimum required, so this does not complicate software use cases.
+
 
 ----
    # Format of whole register move instructions.
@@ -2051,9 +2065,8 @@ that correspond to EEW=8.
    vs8r.v v8, (a1)      # Store v8-v15 to address in a1
 ----
 
-Implementations may raise illegal instruction exceptions on `vl<nf>r`
-instructions for EEW values that are not supported, or may treat them
-as a different EEW value (the architectural effect is the same).
+Implementations should raise illegal instruction exceptions on `vl<nf>r`
+instructions for EEW values that are not supported.
 
 NOTE: The task group has thus far agreed to include only the single
 register load/store variant with `nf`=0 in the base V extension, but
