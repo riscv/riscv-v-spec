@@ -58,6 +58,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Rearranged bits in `vtype` to make `vlmul` bits into a contiguous field
 
+=== Moved EDIV to appendix and removed instruction encoding for dot instructions to make clear not part of v1.0
 
 :sectnums:
 
