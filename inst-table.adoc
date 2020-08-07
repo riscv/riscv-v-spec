@@ -94,10 +94,10 @@
 | 111001 | | | |            | 111001 | | |             | 111001 | | |      
 | 111010 | | | |            | 111010 |V|X| vwmulsu     | 111010 | | |
 | 111011 | | | |            | 111011 |V|X| vwmul       | 111011 | | |
-| 111100 |V|X| | vqmaccu    | 111100 |V|X| vwmaccu     | 111100 |V|F| vfwmacc
-| 111101 |V|X| | vqmacc     | 111101 |V|X| vwmacc      | 111101 |V|F| vfwnmacc
-| 111110 | |X| | vqmaccus   | 111110 | |X| vwmaccus    | 111110 |V|F| vfwmsac
-| 111111 |V|X| | vqmaccsu   | 111111 |V|X| vwmaccsu    | 111111 |V|F| vfwnmsac
+| 111100 | | | |            | 111100 |V|X| vwmaccu     | 111100 |V|F| vfwmacc
+| 111101 | | | |            | 111101 |V|X| vwmacc      | 111101 |V|F| vfwnmacc
+| 111110 | | | |            | 111110 | |X| vwmaccus    | 111110 |V|F| vfwmsac
+| 111111 | | | |            | 111111 |V|X| vwmaccsu    | 111111 |V|F| vfwnmsac
 |===
 
 <<<

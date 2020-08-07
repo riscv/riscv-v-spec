@@ -1,5 +1,5 @@
 [appendix]
-== Divided Element Extension ('Zvediv')
+== Divided Element Extension (Extension `Zvediv`)
 
 NOTE: The EDIV extension is currently not planned to be part of the
 base "V" extension, and will change substantially from this current

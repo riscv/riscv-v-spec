@@ -60,6 +60,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Moved EDIV to appendix and removed instruction encoding for dot instructions to make clear not part of v1.0
 
+=== Moved quad-widening mulacc to appendix and removed instruction encodings to make clear not part of v1.0
+
 :sectnums:
 
 == Introduction
@@ -3130,37 +3132,6 @@ vwmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) +
 vwmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
 ----
 
-=== Vector Quad-Widening Integer Multiply-Add Instructions (Extension `Zvqmac`)
-
-The quad-widening integer multiply-add instructions add a SEW-bit*SEW-bit
-multiply result to (from) a 4*SEW-bit value and produce a 4*SEW-bit
-result.  All combinations of signed and unsigned multiply operands are
-supported.
-
-NOTE: These instructions are currently not planned to be part of the
-base V extension.
-
-NOTE: On ELEN=32 machines, only 8b * 8b = 16b products accumulated in
-a 32b accumulator would be supported.  Machines with ELEN=64 would
-also add 16b * 16b = 32b products accumulated in 64b.
-
-----
-# Quad-widening unsigned-integer multiply-add, overwrite addend
-vqmaccu.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
-vqmaccu.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
-
-# Quad-widening signed-integer multiply-add, overwrite addend
-vqmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
-vqmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
-
-# Quad-widening signed-unsigned-integer multiply-add, overwrite addend
-vqmaccsu.vv vd, vs1, vs2, vm    # vd[i] = +(signed(vs1[i]) * unsigned(vs2[i])) + vd[i]
-vqmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
-
-# Quad-widening unsigned-signed-integer multiply-add, overwrite addend
-vqmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
-----
-
 === Vector Integer Merge Instructions
 
 The vector integer merge instructions combine two source operands
@@ -4827,4 +4798,7 @@ include::vector-examples.adoc[]
 
 include::calling-convention.adoc[]
 
+include::quad-mul.adoc[]
+
 include::ediv.adoc[]
+
