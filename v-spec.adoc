@@ -3187,9 +3187,13 @@ data can dynamically elide this instruction, and treat as a NOP.
 
 == Vector Fixed-Point Arithmetic Instructions
 
-A set of vector arithmetic instructions is provided to support
+The preceding set of integer arithmetic instructions is extended to support
 fixed-point arithmetic.
 
+A fixed-point number is a two's-complement signed or unsigned integer 
+interpreted as the numerator in a fraction with an implicit denominator.
+The fixed-point instructions are intended to be applied to the numerators; 
+it is the responsibility of software to manage the denominators. 
 An N-bit element can hold two's-complement signed integers in the
 range -2^N-1^...+2^N-1^-1, and unsigned integers in the range 0
 ... +2^N^-1.  The fixed-point instructions help preserve precision in
