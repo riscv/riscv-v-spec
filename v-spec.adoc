@@ -3514,9 +3514,6 @@ This is a unary vector-vector instruction.
 This is a unary vector-vector instruction that returns an estimate of
 1/x accurate to 7 bits.
 
-NOTE: This instruction's exact arithmetic properties are still being
-defined.  See github issue #235. 
-
 The instruction behaves identically to a full IEEE +1.0/x operation
 for values outside its domain.
 The following table describes the instruction's behavior for all
@@ -3549,6 +3546,32 @@ other normal inputs produce normal outputs.
 NOTE: The output value depends on the dynamic rounding mode when
 the overflow exception is raised.
 
+For the non-exceptional cases, the result is computed as follows.
+Let the normalized input exponent be equal to the input exponent if the input
+is normal, or 0 minus the number of leading zeros in the significand
+otherwise.
+The normalized output exponent equals (2*B - 1 - the normalized input exponent).
+If the normalized output exponent is outside the range [-1, 2*B], the result
+corresponds to one of the exceptional cases in the table above.
+
+If the input is subnormal, the normalized input significand is given by
+shifting the input significand left by 1 minus the normalized input exponent,
+discarding the leading 1 bit.
+Otherwise, the normalized input significand equals the input significand.
+The following table gives the seven MSBs of the normalized output significand
+as a function of the seven MSBs of the normalized input significand; the other
+bits of the normalized output significand are zero.
+
+include::vfrece7.adoc[]
+
+If the normalized output exponent is 0 or -1, the result is subnormal: the
+output exponent is 0, and the output significand is given by concatenating
+a 1 bit to the left of the normalized output significand, then shifting that
+quantity right by 1 minus the normalized output exponent.
+Otherwise, the output exponent equals the normalized output exponent, and the
+output significand equals the normalized output significand.
+The output sign equals the input sign.
+
 NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
 Newton-Raphson iterations to converge to close to bfloat16, FP16,
 FP32, FP64 accuracy respectively.   Future instructions can be defined
@@ -3563,9 +3586,6 @@ with greater estimate accuracy.
 
 This is a unary vector-vector instruction that returns an estimate of
 1/sqrt(x) accurate to 7 bits.
-
-NOTE: This instruction's exact arithmetic properties are still being
-defined.  See github issue #235.
 
 The instruction behaves identically to a full IEEE +1.0/sqrt(x)
 calculation for values outside its domain.
@@ -3589,6 +3609,22 @@ classes of floating-point inputs:
 NOTE: All positive normal and subnormal inputs produce normal outputs.
 
 NOTE: The output value is independent of the dynamic rounding mode.
+
+For the non-exceptional cases, the result is computed as follows.
+Let the normalized input exponent be equal to the input exponent if the input
+is normal, or 0 minus the number of leading zeros in the significand
+otherwise.
+If the input is subnormal, the normalized input significand is given by
+shifting the input significand left by 1 minus the normalized input exponent,
+discarding the leading 1 bit.
+The output exponent equals floor((3*B - 1 - the normalized input exponent) / 2).
+The output sign equals the input sign.
+
+The following table gives the seven MSBs of the output significand as a
+function of the LSB of the normalized input exponent and the six MSBs of the
+normalized input significand; the other bits of the output significand are zero.
+
+include::vfrsqrte7.adoc[]
 
 NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
 Newton-Raphson iterations to converge to close to bfloat16, FP16,
