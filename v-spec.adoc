@@ -3514,31 +3514,37 @@ This is a unary vector-vector instruction.
 This is a unary vector-vector instruction that returns an estimate of
 1/x accurate to 7 bits.
 
-The instruction behaves identically to a full IEEE +1.0/x operation
-for values outside its domain.
 The following table describes the instruction's behavior for all
 classes of floating-point inputs, where _B_ is the exponent bias:
 
 [cols="1,1,1,1"]
 [%autowidth]
 |===
-| Input | Rounding Mode | Output | Exceptions raised
+| Input (_x_) | Rounding Mode | Output (_y_) | Exceptions raised
 
-| -{inf}                      | _any_         | -0.0                      |
-| -{inf} < _x_ {le} -2^-B-1^  | _any_         | _estimate of 1/x_         |
-| -2^-B-1^ < _x_ < -0.0       | RUP, RTZ      | greatest-mag. negative finite value | NX, OF
-| -2^-B-1^ < _x_ < -0.0       | RDN, RNE, RMM | -{inf}                    | NX, OF
-| -0.0                        | _any_         | -{inf}                    | DZ
-| +0.0                        | _any_         | +{inf}                    | DZ
-| +0.0 < _x_ < 2^-B-1^        | RUP, RNE, RMM | +{inf}                    | NX, OF
-| +0.0 < _x_ < 2^-B-1^        | RDN, RTZ      | greatest finite value     | NX, OF
-| 2^-B-1^ {le} _x_ < +{inf}   | _any_         | _estimate of 1/x_         |
-| +{inf}                      | _any_         | +0.0                      |
-| qNaN                        | _any_         | canonical NaN             |
-| sNaN                        | _any_         | canonical NaN             | NV
+| -{inf}                                                      | _any_         | -0.0                      |
+| -2^B+1^ < _x_ {le} -2^B^ (normal)                           | _any_         | -2^-(B+1)^ > _y_ > -2^-B^ (subnormal, sig[MSB:MSB-1]=01) |
+| -2^B^ < _x_ {le} -2^B-1^ (normal)                           | _any_         | -2^-B^ > _y_ > -2^-B+1^ (subnormal, sig[MSB]=1) |
+| -2^B-1^ < _x_ {le} -2^-B+1^ (normal)                        | _any_         | -2^-B+1^ > _y_ > -2^B-1^ (normal) |
+| -2^-B+1^ < _x_ {le} -2^-B^ (subnormal, sig[MSB]=1)          | _any_         | -2^B-1^ > _y_ > -2^B^ (normal) |
+| -2^-B^ < _x_ {le} -2^-(B+1)^ (subnormal, sig[MSB:MSB-1]=01) | _any_         | -2^B^ > _y_ > -2^B+1^ (normal) |
+| -2^-(B+1)^ < _x_ < -0.0 (subnormal, sig[MSB:MSB-1]=00)      | RUP, RTZ      | greatest-mag. negative finite value | NX, OF
+| -2^-(B+1)^ < _x_ < -0.0 (subnormal, sig[MSB:MSB-1]=00)      | RDN, RNE, RMM | -{inf}                    | NX, OF
+| -0.0                                                        | _any_         | -{inf}                    | DZ
+| +0.0                                                        | _any_         | +{inf}                    | DZ
+| +0.0 < _x_ < 2^-(B+1)^ (subnormal, sig[MSB:MSB-1]=00)       | RUP, RNE, RMM | +{inf}                    | NX, OF
+| +0.0 < _x_ < 2^-(B+1)^ (subnormal, sig[MSB:MSB-1]=00)       | RDN, RTZ      | greatest finite value     | NX, OF
+| 2^-(B+1)^ {le} _x_ < 2^-B^ (subnormal, sig[MSB:MSB-1]=01)   | _any_         | 2^B+1^ > _y_ > 2^B^ (normal) |
+| 2^-B^ {le} _x_ < 2^-B+1^ (subnormal, sig[MSB]=1)            | _any_         | 2^B^ > _y_ > 2^B-1^ (normal) |
+| 2^-B+1^ {le} _x_ < 2^B-1^ (normal)                          | _any_         | 2^B-1^ > _y_ > 2^-B+1^ (normal) |
+| 2^B-1^ {le} _x_ < 2^B^ (normal)                             | _any_         | 2^-B+1^ > _y_ > 2^-B^ (subnormal, sig[MSB]=1) |
+| 2^B^ {le} _x_ < 2^B+1^ (normal)                             | _any_         | 2^-B^ > _y_ > 2^-(B+1)^ (subnormal, sig[MSB:MSB-1]=01) |
+| +{inf}                                                      | _any_         | +0.0                      |
+| qNaN                                                        | _any_         | canonical NaN             |
+| sNaN                                                        | _any_         | canonical NaN             | NV
 |===
 
-NOTE: Subnormal inputs with magnitude at least 2^-B-1^ produce normal outputs;
+NOTE: Subnormal inputs with magnitude at least 2^-(B+1)^ produce normal outputs;
 other subnormal inputs produce infinite outputs.
 Normal inputs with magnitude at least 2^B-1^ produce subnormal outputs;
 other normal inputs produce normal outputs.
@@ -3587,8 +3593,6 @@ with greater estimate accuracy.
 This is a unary vector-vector instruction that returns an estimate of
 1/sqrt(x) accurate to 7 bits.
 
-The instruction behaves identically to a full IEEE +1.0/sqrt(x)
-calculation for values outside its domain.
 The following table describes the instruction's behavior for all
 classes of floating-point inputs:
 
