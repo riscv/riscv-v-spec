@@ -3620,7 +3620,7 @@ NOTE: The output value depends on the dynamic rounding mode when
 the overflow exception is raised.
 
 For the non-exceptional cases, the seven high bits of significand (after the
-leading one) are concatenated and used to address the following table.
+leading one) are used to address the following table.
 The output of the table becomes the seven high bits of the result significand
 (after the leading one); the remainder of the result signifcand is zero.
 Subnormal inputs are normalized and the exponent adjusted appropriately before
