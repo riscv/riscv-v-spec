@@ -3536,7 +3536,17 @@ NOTE: All positive normal and subnormal inputs produce normal outputs.
 
 NOTE: The output value is independent of the dynamic rounding mode.
 
-For the non-exceptional cases, the result is computed as follows.
+For the non-exceptional cases, the low bit of the exponent and the six high
+bits of significand (after the leading one) are concatenated and used to
+address the following table.
+The output of the table becomes the seven high bits of the result significand
+(after the leading one); the remainder of the result signifcand is zero.
+Subnormal inputs are normalized and the exponent adjusted appropriately before
+the lookup.
+The output exponent is chosen to make the result approximate the reciprocal of
+the square root of the argument.
+
+More precisely, the result is computed as follows.
 Let the normalized input exponent be equal to the input exponent if the input
 is normal, or 0 minus the number of leading zeros in the significand
 otherwise.
@@ -3609,7 +3619,16 @@ other normal inputs produce normal outputs.
 NOTE: The output value depends on the dynamic rounding mode when
 the overflow exception is raised.
 
-For the non-exceptional cases, the result is computed as follows.
+For the non-exceptional cases, the seven high bits of significand (after the
+leading one) are concatenated and used to address the following table.
+The output of the table becomes the seven high bits of the result significand
+(after the leading one); the remainder of the result signifcand is zero.
+Subnormal inputs are normalized and the exponent adjusted appropriately before
+the lookup.
+The output exponent is chosen to make the result approximate the reciprocal of
+the argument, and subnormal outputs are denormalized accordingly.
+
+More precisely, the result is computed as follows.
 Let the normalized input exponent be equal to the input exponent if the input
 is normal, or 0 minus the number of leading zeros in the significand
 otherwise.
