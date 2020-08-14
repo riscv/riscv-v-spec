@@ -187,7 +187,7 @@ NOTE: Implementations may also change `VS` field to Dirty at any time,
 even when there is no change in vector state.  Accurate setting of the
 `VS` field is an optimization.
 
-Implementations may have a writeable `misa.v` field.  Analogous to the
+Implementations may have a writable `misa.v` field.  Analogous to the
 way in which the floating-point unit is handled, the `mstatus.vs`
 field may exist even if `misa.v` is clear.
 
@@ -400,7 +400,7 @@ undisturbed or overwritten with 1s, in any combination, and the
 pattern of undisturbed or overwritten with 1s is not required to be
 deterministic when the instruction is executed with the same inputs.
 
-NOTE: The agnostic policy was added to accomodate machines with vector
+NOTE: The agnostic policy was added to accommodate machines with vector
 register renaming, and/or that have deeply temporal vector registers.
 With an undisturbed policy, all elements would have to be read from
 the old physical destination vector register to be copied into the new
@@ -409,7 +409,7 @@ when these inactive or tail values are not required for subsequent
 calculations.
 
 NOTE: The intent is for software to select the option that reduces
-micorarchitectural work by selecting agnostic when the value in the
+microarchitectural work by selecting agnostic when the value in the
 respective set does not matter.
 
 NOTE: The value of all 1s instead of all 0s was chosen for the
@@ -419,14 +419,14 @@ the value written.
 NOTE: A simple in-order implementation can ignore the setting and
 simply execute all vector instructions using the undisturbed
 policy. The `vta` and `vma` state bits must still be provided in
-`vtype` for compatibilty and to support thread migration.
+`vtype` for compatibility and to support thread migration.
 
 NOTE: An out-of-order implementation can choose to implement
 tail-agnostic + mask-agnostic using tail-agnostic + mask-undisturbed
 to reduce implementation complexity.
 
 NOTE: The definition of agnostic result policy is left loose to
-accomodate migrating application threads between harts on a small
+accommodate migrating application threads between harts on a small
 in-order core (which probably leaves agnostic regions undisturbed) and
 harts on a larger out-of-order core with register renaming (which
 probably overwrites agnostic elements with 1s).  As it might be
@@ -1085,7 +1085,7 @@ have EMUL=1.
 
 NOTE: Current reduction operations are defined to hold input and
 output values in a single vector register, with implicit EMUL of 1, so
-cannot accomodate using a vector register group to hold a wide scalar
+cannot accommodate using a vector register group to hold a wide scalar
 reduction result.  This would require an independent parameter to give
 the EMUL for the scalar reduction element.
 
@@ -3544,7 +3544,7 @@ For the non-exceptional cases, the low bit of the exponent and the six high
 bits of significand (after the leading one) are concatenated and used to
 address the following table.
 The output of the table becomes the seven high bits of the result significand
-(after the leading one); the remainder of the result signifcand is zero.
+(after the leading one); the remainder of the result significand is zero.
 Subnormal inputs are normalized and the exponent adjusted appropriately before
 the lookup.
 The output exponent is chosen to make the result approximate the reciprocal of
@@ -3626,7 +3626,7 @@ the overflow exception is raised.
 For the non-exceptional cases, the seven high bits of significand (after the
 leading one) are used to address the following table.
 The output of the table becomes the seven high bits of the result significand
-(after the leading one); the remainder of the result signifcand is zero.
+(after the leading one); the remainder of the result significand is zero.
 Subnormal inputs are normalized and the exponent adjusted appropriately before
 the lookup.
 The output exponent is chosen to make the result approximate the reciprocal of
@@ -4128,7 +4128,7 @@ common uses of mask logical operations:
 NOTE: The vmmv.m instruction was previously called vmcpy.m, but with
 new layout it is more consistent to name as a "mv" because bits are
 copied without interpretation.  The vmcpy.m assembler
-psuedo-instruction can be retained for compatibility.
+pseudo-instruction can be retained for compatibility.
 
 The set of eight mask logical instructions can generate any of the 16
 possibly binary logical functions of the two input masks:
