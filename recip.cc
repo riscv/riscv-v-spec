@@ -118,22 +118,22 @@ float rsqrt(float a)
   uint32_t exp = (in.i >> S) & ((1UL<<E)-1);
   uint32_t sig = in.i & ((1UL<<S)-1);
 
-  if (exp == ((1UL<<E)-1) && sig == 0) {
-    // inf => zero of same sign
-    return copysignf(0, a);
-  } else if (exp == ((1UL<<E)-1)) {
+  if (exp == 0 && sig == 0) {
+    // zero => inf of same sign; raise divide-by-zero
+    feraiseexcept(FE_DIVBYZERO);
+    return copysignf(INFINITY, a);
+  } else if (exp == ((1UL<<E)-1) && sig != 0) {
     // NaN => canonical NaN
     if (!(sig >> (S-1))) // raise invalid on sNaN
       feraiseexcept(FE_INVALID);
     return NAN;
-  } else if (exp == 0 && sig == 0) {
-    // zero => inf of same sign; raise divide-by-zero
-    feraiseexcept(FE_DIVBYZERO);
-    return copysignf(INFINITY, a);
   } else if (sign) {
     // nonzero negative => NaN; raise invalid
     feraiseexcept(FE_INVALID);
     return NAN;
+  } else if (exp == ((1UL<<E)-1)) {
+    // +inf => +zero
+    return copysignf(0, a);
   } else if (exp == 0) {
     // normalize the subnormal
     while ((sig & (1UL<<(S-1))) == 0)
