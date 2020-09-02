@@ -2360,6 +2360,9 @@ The `funct3` field encodes the operand type and source locations.
 Integer operations are performed using unsigned or two's-complement
 signed integer arithmetic depending on the opcode.
 
+NOTE: In this discussion, fixed-point operations are
+considered to be integer operations.
+
 All standard vector floating-point arithmetic operations follow the
 IEEE-754/2008 standard.  All vector floating-point operations use the
 dynamic rounding mode in the `frm` register.  If the `frm` field
@@ -2381,11 +2384,12 @@ specified by `vs2` and a second scalar source operand from one of
 three alternative sources.
 
 . For integer operations, the scalar can be a 5-bit immediate encoded
-in the `rs1` field.  The value is sign- or zero-extended to SEW bits.
+in the `rs1` field.  The value is sign-extended to SEW bits, unless otherwise
+specified.
 . For integer operations, the scalar can be taken from the scalar `x`
 register specified by `rs1`.  If XLEN>SEW, the least-significant SEW bits
-of the `x` register are used.  If XLEN<SEW, the value from the `x`
-register is sign-extended to SEW bits.
+of the `x` register are used, unless otherwise specified.  
+If XLEN<SEW, the value from the `x` register is sign-extended to SEW bits.
 . For floating-point operations, the scalar can be taken from a scalar
 `f` register.  If FLEN > SEW, the value in the `f` registers is checked
 for a valid NaN-boxed value, in which case the least-significant SEW
@@ -2395,10 +2399,8 @@ floating-point vector operand's EEW is not a supported floating-point
 type width (which includes when FLEN < SEW), an illegal instruction
 exception is raised. 
 
-NOTE: The 5-bit immediate is unsigned when either providing a
-register index in vrgather or a count for shift, clip, or slide.
-In all other cases it is signed and sign extended to SEW bits,
-even for bitwise and unsigned instructions, notably compare and add.
+NOTE: Some instructions _zero_-extend the 5-bit immediate, and denote this
+by naming the immediate `uimm` in the assembly syntax.
 
 NOTE: The proposed Zfinx variants will take the floating-point scalar
 argument from the `x` registers.
@@ -2772,11 +2774,9 @@ vsra.vx vd, vs2, rs1, vm   # vector-scalar
 vsra.vi vd, vs2, uimm, vm   # vector-immediate
 ----
 
-Only the low lg2(SEW) bits are read to obtain the shift amount from a register value.
-
-The immediate is treated as an unsigned shift amount, with a maximum
-shift amount of 31.
-
+The low lg2(SEW) bits of the vector or scalar shift amount value are used;
+immediates are zero-extended.
+ 
 === Vector Narrowing Integer Right Shift Instructions
 
 The narrowing right shifts extract a smaller field from a wider
@@ -2784,8 +2784,8 @@ operand and have both zero-extending (`srl`) and sign-extending
 (`sra`) forms.  The shift amount can come from a vector or a scalar
 `x` register or a 5-bit immediate.  The low lg2(2*SEW) bits of the
 vector or scalar shift amount value are used (e.g., the low 6 bits for
-a SEW=64-bit to SEW=32-bit narrowing operation).  The unsigned immediate form
-supports shift amounts up to 31 only.
+a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate forms
+zero-extend their immediate operand.
 
 ----
  # Narrowing shift right logical, SEW = (2*SEW) >> SEW
@@ -3289,9 +3289,9 @@ precision by one bit for all other products.
 
 These instructions shift the input value right, and round off the
 shifted out bits according to `vxrm`.  The scaling right shifts have
-both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. The
-low lg2(SEW) bits of the vector or scalar shift amount value are used.
-The immediate form supports shift amounts up to 31 only.
+both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. 
+The low lg2(SEW) bits of the vector or scalar shift amount value are used;
+immediates are zero-extended.
 
 ----
  # Scaling shift right logical
@@ -3316,7 +3316,7 @@ gives the amount to right shift the source as in the narrowing shift
 instructions, which provides the scaling.  The low lg2(2*SEW) bits of
 the vector or scalar shift amount value are used (e.g., the low 6 bits
 for a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate
-form supports shift amounts up to 31 only.
+forms zero-extend their immediate operand.
 
 ----
 # Narrowing unsigned clip
@@ -4557,8 +4557,7 @@ _destination_ element _i_ is written.
 For `vslideup`, the value in `vl` specifies the maximum number of destination
 elements that are written.  The start index (_OFFSET_) for the
 destination can be either specified using an unsigned integer in the
-`x` register specified by `rs1`, or a 5-bit immediate treated as an
-unsigned 5-bit quantity.
+`x` register specified by `rs1`, or a 5-bit immediate, zero-extended to XLEN bits.
 If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
 Destination elements _OFFSET_ through `vl`-1 are written if unmasked and
 if _OFFSET_ < `vl`.
@@ -4594,7 +4593,7 @@ destination elements that are written.
 
 The start index (_OFFSET_) for the source can be either specified
 using an unsigned integer in the `x` register specified by `rs1`, or a
-5-bit immediate treated as an unsigned 5-bit quantity.
+5-bit immediate, zero-extended to XLEN bits.
 If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
 
 ----
@@ -4724,7 +4723,7 @@ Vector-scalar and vector-immediate forms of the register gather are
 also provided.  These read one element from the source vector at the
 given index, and write this value to the `vl` elements at the start of
 the destination vector register. The index value in the scalar register
-and the immediate are treated as unsigned integers.
+and the immediate, zero-extended to XLEN bits, are treated as unsigned integers.
 If XLEN > SEW, the index value is _not_ truncated to SEW bits.
 
 NOTE: These forms allow any vector element to be "splatted" to an entire vector.
