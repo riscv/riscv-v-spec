@@ -15,7 +15,8 @@ Version 1.0-draft-20200703
 Contributors include: Alon Amid, Krste Asanovic, Allen Baum, Alex
 Bradbury, Tony Brewer, Chris Celio, Aliaksei Chapyzhenka, Silviu
 Chiricescu, Ken Dockser, Bob Dreyer, Roger Espasa, Sean Halle, John
-Hauser, David Horner, Bruce Hoult, Bill Huffman, Constantine Korikov,
+Hauser, David Horner, Bruce Hoult, Bill Huffman, Nicholas Knight,
+Constantine Korikov,
 Ben Korpan, Hanna Kruppe, Yunsup Lee, Guy Lemieux, Grigorios Magklis,
 Filip Moc, Rich Newell, Albert Ou, David Patterson, Colin Schmidt,
 Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
