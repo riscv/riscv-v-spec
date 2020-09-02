@@ -2359,6 +2359,9 @@ The `funct3` field encodes the operand type and source locations.
 Integer operations are performed using unsigned or two's-complement
 signed integer arithmetic depending on the opcode.
 
+NOTE: In this discussion, fixed-point operations are
+considered to be integer operations.
+
 All standard vector floating-point arithmetic operations follow the
 IEEE-754/2008 standard.  All vector floating-point operations use the
 dynamic rounding mode in the `frm` register.  If the `frm` field
