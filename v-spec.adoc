@@ -2383,11 +2383,12 @@ specified by `vs2` and a second scalar source operand from one of
 three alternative sources.
 
 . For integer operations, the scalar can be a 5-bit immediate encoded
-in the `rs1` field.  The value is sign- or zero-extended to SEW bits.
+in the `rs1` field.  The value is sign-extended to SEW bits, unless otherwise
+specified.
 . For integer operations, the scalar can be taken from the scalar `x`
 register specified by `rs1`.  If XLEN>SEW, the least-significant SEW bits
-of the `x` register are used.  If XLEN<SEW, the value from the `x`
-register is sign-extended to SEW bits.
+of the `x` register are used, unless otherwise specified.  
+If XLEN<SEW, the value from the `x` register is sign-extended to SEW bits.
 . For floating-point operations, the scalar can be taken from a scalar
 `f` register.  If FLEN > SEW, the value in the `f` registers is checked
 for a valid NaN-boxed value, in which case the least-significant SEW
@@ -2397,10 +2398,8 @@ floating-point vector operand's EEW is not a supported floating-point
 type width (which includes when FLEN < SEW), an illegal instruction
 exception is raised. 
 
-NOTE: The 5-bit immediate is unsigned when either providing a
-register index in vrgather or a count for shift, clip, or slide.
-In all other cases it is sign extended to SEW bits,
-even for bitwise and unsigned instructions, notably compare and add.
+NOTE: Some instructions _zero_-extend the 5-bit immediate, and denote this
+by naming the immediate `uimm` in the assembly syntax.
 
 NOTE: The proposed Zfinx variants will take the floating-point scalar
 argument from the `x` registers.
