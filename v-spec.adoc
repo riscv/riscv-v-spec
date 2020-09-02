@@ -3291,9 +3291,9 @@ precision by one bit for all other products.
 
 These instructions shift the input value right, and round off the
 shifted out bits according to `vxrm`.  The scaling right shifts have
-both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. The
-low lg2(SEW) bits of the vector or scalar shift amount value are used.
-The immediate form supports shift amounts up to 31 only.
+both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. 
+The low lg2(SEW) bits of the vector or scalar shift amount value are used;
+immediates are zero-extended.
 
 ----
  # Scaling shift right logical
