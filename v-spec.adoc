@@ -2399,7 +2399,7 @@ exception is raised.
 
 NOTE: The 5-bit immediate is unsigned when either providing a
 register index in vrgather or a count for shift, clip, or slide.
-In all other cases it is signed and sign extended to SEW bits,
+In all other cases it is sign extended to SEW bits,
 even for bitwise and unsigned instructions, notably compare and add.
 
 NOTE: The proposed Zfinx variants will take the floating-point scalar
