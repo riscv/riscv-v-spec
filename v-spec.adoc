@@ -9,12 +9,14 @@ Version 1.0-draft-20200703
 :le: &#8804;
 :ge: &#8805;
 :ne: &#8800;
+:approx: &#8776;
 :inf: &#8734;
 
 Contributors include: Alon Amid, Krste Asanovic, Allen Baum, Alex
 Bradbury, Tony Brewer, Chris Celio, Aliaksei Chapyzhenka, Silviu
 Chiricescu, Ken Dockser, Bob Dreyer, Roger Espasa, Sean Halle, John
-Hauser, David Horner, Bruce Hoult, Bill Huffman, Constantine Korikov,
+Hauser, David Horner, Bruce Hoult, Bill Huffman, Nicholas Knight,
+Constantine Korikov,
 Ben Korpan, Hanna Kruppe, Yunsup Lee, Guy Lemieux, Grigorios Magklis,
 Filip Moc, Rich Newell, Albert Ou, David Patterson, Colin Schmidt,
 Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
@@ -52,12 +54,15 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Added reciprocal and reciprocal square-root estimate instructions
 
-=== Defined hint behavior on whole register moves and load/stores to enable microarchitectures with internal data rearrangement.
+=== Added EEW encoding to whole register moves and load/stores to support microarchitectures with internal data rearrangement.
 
 === Added `vrgatherei16` instruction
 
 === Rearranged bits in `vtype` to make `vlmul` bits into a contiguous field
 
+=== Moved EDIV to appendix and removed instruction encoding for dot instructions to make clear not part of v1.0
+
+=== Moved quad-widening mulacc to appendix and removed instruction encodings to make clear not part of v1.0
 
 :sectnums:
 
@@ -183,7 +188,7 @@ NOTE: Implementations may also change `VS` field to Dirty at any time,
 even when there is no change in vector state.  Accurate setting of the
 `VS` field is an optimization.
 
-Implementations may have a writeable `misa.v` field.  Analogous to the
+Implementations may have a writable `misa.v` field.  Analogous to the
 way in which the floating-point unit is handled, the `mstatus.vs`
 field may exist even if `misa.v` is clear.
 
@@ -396,7 +401,7 @@ undisturbed or overwritten with 1s, in any combination, and the
 pattern of undisturbed or overwritten with 1s is not required to be
 deterministic when the instruction is executed with the same inputs.
 
-NOTE: The agnostic policy was added to accomodate machines with vector
+NOTE: The agnostic policy was added to accommodate machines with vector
 register renaming, and/or that have deeply temporal vector registers.
 With an undisturbed policy, all elements would have to be read from
 the old physical destination vector register to be copied into the new
@@ -405,7 +410,7 @@ when these inactive or tail values are not required for subsequent
 calculations.
 
 NOTE: The intent is for software to select the option that reduces
-micorarchitectural work by selecting agnostic when the value in the
+microarchitectural work by selecting agnostic when the value in the
 respective set does not matter.
 
 NOTE: The value of all 1s instead of all 0s was chosen for the
@@ -415,14 +420,14 @@ the value written.
 NOTE: A simple in-order implementation can ignore the setting and
 simply execute all vector instructions using the undisturbed
 policy. The `vta` and `vma` state bits must still be provided in
-`vtype` for compatibilty and to support thread migration.
+`vtype` for compatibility and to support thread migration.
 
 NOTE: An out-of-order implementation can choose to implement
 tail-agnostic + mask-agnostic using tail-agnostic + mask-undisturbed
 to reduce implementation complexity.
 
 NOTE: The definition of agnostic result policy is left loose to
-accomodate migrating application threads between harts on a small
+accommodate migrating application threads between harts on a small
 in-order core (which probably leaves agnostic regions undisturbed) and
 harts on a larger out-of-order core with register renaming (which
 probably overwrites agnostic elements with 1s).  As it might be
@@ -1081,7 +1086,7 @@ have EMUL=1.
 
 NOTE: Current reduction operations are defined to hold input and
 output values in a single vector register, with implicit EMUL of 1, so
-cannot accomodate using a vector register group to hold a wide scalar
+cannot accommodate using a vector register group to hold a wide scalar
 reduction result.  This would require an independent parameter to give
 the EMUL for the scalar reduction element.
 
@@ -1691,10 +1696,10 @@ element stores are performed in element order.
     vsxei64.v   vs3, (rs1), vs2, vm  # ordered 64-bit indexed store of SEW data
 
     # Vector unordered-indexed store instructions
-    vsuxei8.v    vs3, (rs1), vs2, vm  # ordered  8-bit indexed store of SEW data
-    vsuxei16.v   vs3, (rs1), vs2, vm  # ordered 16-bit indexed store of SEW data
-    vsuxei32.v   vs3, (rs1), vs2, vm  # ordered 32-bit indexed store of SEW data
-    vsuxei64.v   vs3, (rs1), vs2, vm  # ordered 64-bit indexed store of SEW data
+    vsuxei8.v   vs3, (rs1), vs2, vm # unordered  8-bit indexed store of SEW data
+    vsuxei16.v  vs3, (rs1), vs2, vm # unordered 16-bit indexed store of SEW data
+    vsuxei32.v  vs3, (rs1), vs2, vm # unordered 32-bit indexed store of SEW data
+    vsuxei64.v  vs3, (rs1), vs2, vm # unordered 64-bit indexed store of SEW data
 ----
 
 NOTE: The assembler syntax for indexed loads and stores uses
@@ -1985,13 +1990,35 @@ Format for Vector Store Whole Register Instructions under STORE-FP major opcode
 These instructions load and store whole vector registers (i.e., VLEN
 bits), optionally as vector register groups.
 
+NOTE: These instructions are intended to be used to save and restore
+vector registers when the type or length of the current contents of
+the vector register is not known, or where modifying `vl` and `vtype`
+would be costly. Examples include compiler register spills, vector
+function calls where values are passed in vector registers, interrupt
+handlers, and OS context switches.  Software can determine the number
+of bytes transferred by reading the `vlenb` register.
+
 The load instructions have an EEW encoded in the `mew` and `width`
-fields following the pattern of regular unit-stride loads, but this
-does not affect the architectural effect of these instructions.  The
-encoded EEW is used as a HINT to indicate to implementations that
-rearrange data internally that the destination register group will
-next be accessed with this EEW.  Implementations that do not rearrange
-data internally can ignore the EEW field.
+fields following the pattern of regular unit-stride loads.  However,
+the instructions are defined to always move vectors of bytes as if
+SEW=8, regardless of EEW encoding.  Pseudo-instructions are provide
+for whole register load instructions that correspond to EEW=8.  The
+vector whole register store instructions are encoded similar to
+unmasked unit-stride store of elements with EEW=8.
+
+NOTE: For the purposes of opaque save and restore of register state,
+the instructions have been defined as only moving byte vectors (SEW=8)
+between registers and memory.  For little-endian machines, EEW does
+not change how bytes are moved between architectural vector register
+locations and memory locations, and so these instructions can reuse
+the regular unit-stride load implementation for EEW.  For
+little-endian machines, the encoded EEW can be used as a HINT to
+indicate the destination register group will next be accessed with
+this EEW, which aids implementations that rearrange data internally.
+Big-endian machines are affected by EEW, so must always treat
+whole-register loads as SEW=8 load as stores always use SEW=8.
+Big-endian machines that rearrange internal data internally will not
+be able to exploit the hint.
 
 When transferring a single register, the instructions operate with an
 `evl`=VLEN/EEW, regardless of current
@@ -1999,36 +2026,28 @@ settings in `vtype` and `vl`.  No elements are transferred if `vstart`
 {ge} VLEN/EEW.  The usual property that no elements are written if
 `vstart` {ge} `vl` does not apply to these instructions.
 
-NOTE: These instructions are intended to be used to save and restore
-vector registers when the type and length of the current contents of
-the vector register is not known, or where modifying `vl` and `vtype`
-would be costly. Examples include compiler register spills, vector
-function calls where values are passed in vector registers, interrupt
-handlers, and OS context switches.
-Software can determine the number of bytes transferred by reading the
-`vlenb` register.
-
 The instructions operate similarly to unmasked unit-stride load and
 store instructions of elements, with the base address passed in the
 scalar `x` register specified by `rs1`.
 
 The `nf` field encodes how many vector registers to load and store.
-The encoded number of registers must be a power of 2, and the vector
-register numbers must be aligned as with a vector register group
+The encoded number of registers must be a power of 2 and the vector
+register numbers must be aligned as with a vector register group,
 otherwise an illegal instruction exception is raised.  The `nf` field
 encodes the number of vector registers to transfer (1, 2, 4, 8),
 numbered successively after the base.  When multiple registers are
 transferred, the lowest-numbered vector register is held in the
 lowest-numbered memory addresses and successive vector register
-numbers are placed contiguously in memory. The base register plus the
-`nf` value cannot exceed 31, else an illegal instruction exception is
-raised.
+numbers are placed contiguously in memory.
 
-The vector whole register store instructions are encoded similar to
-unmasked unit-stride store of elements with EEW=8.
+Implementations are allowed to raise a misaligned address exception if
+the base address is not naturally aligned to the encoded EEW.
 
-Pseudo-instructions are provide for whole register load instructions
-that correspond to EEW=8.
+NOTE: Allowing misaligned exceptions to be raised simplifies the
+implementation of these instructions.  Software that uses whole
+register moves will generally use a much larger alignment than the
+minimum required, so this does not complicate software use cases.
+
 
 ----
    # Format of whole register move instructions.
@@ -2082,9 +2101,8 @@ that correspond to EEW=8.
    vs8r.v v8, (a1)      # Store v8-v15 to address in a1
 ----
 
-Implementations may raise illegal instruction exceptions on `vl<nf>r`
-instructions for EEW values that are not supported, or may treat them
-as a different EEW value (the architectural effect is the same).
+Implementations should raise illegal instruction exceptions on `vl<nf>r`
+instructions for EEW values that are not supported.
 
 NOTE: The task group has thus far agreed to include only the single
 register load/store variant with `nf`=0 in the base V extension, but
@@ -2373,6 +2391,9 @@ The `funct3` field encodes the operand type and source locations.
 Integer operations are performed using unsigned or two's-complement
 signed integer arithmetic depending on the opcode.
 
+NOTE: In this discussion, fixed-point operations are
+considered to be integer operations.
+
 All standard vector floating-point arithmetic operations follow the
 IEEE-754/2008 standard.  All vector floating-point operations use the
 dynamic rounding mode in the `frm` register.  If the `frm` field
@@ -2394,11 +2415,12 @@ specified by `vs2` and a second scalar source operand from one of
 three alternative sources.
 
 . For integer operations, the scalar can be a 5-bit immediate encoded
-in the `rs1` field.  The value is sign- or zero-extended to SEW bits.
+in the `rs1` field.  The value is sign-extended to SEW bits, unless otherwise
+specified.
 . For integer operations, the scalar can be taken from the scalar `x`
 register specified by `rs1`.  If XLEN>SEW, the least-significant SEW bits
-of the `x` register are used.  If XLEN<SEW, the value from the `x`
-register is sign-extended to SEW bits.
+of the `x` register are used, unless otherwise specified.  
+If XLEN<SEW, the value from the `x` register is sign-extended to SEW bits.
 . For floating-point operations, the scalar can be taken from a scalar
 `f` register.  If FLEN > SEW, the value in the `f` registers is checked
 for a valid NaN-boxed value, in which case the least-significant SEW
@@ -2408,10 +2430,8 @@ floating-point vector operand's EEW is not a supported floating-point
 type width (which includes when FLEN < SEW), an illegal instruction
 exception is raised.
 
-NOTE: The 5-bit immediate is unsigned when either providing a
-register index in vrgather or a count for shift, clip, or slide.
-In all other cases it is signed and sign extended to SEW bits,
-even for bitwise and unsigned instructions, notably compare and add.
+NOTE: Some instructions _zero_-extend the 5-bit immediate, and denote this
+by naming the immediate `uimm` in the assembly syntax.
 
 NOTE: The proposed Zfinx variants will take the floating-point scalar
 argument from the `x` registers.
@@ -2785,11 +2805,9 @@ vsra.vx vd, vs2, rs1, vm   # vector-scalar
 vsra.vi vd, vs2, uimm, vm   # vector-immediate
 ----
 
-Only the low lg2(SEW) bits are read to obtain the shift amount from a register value.
-
-The immediate is treated as an unsigned shift amount, with a maximum
-shift amount of 31.
-
+The low lg2(SEW) bits of the vector or scalar shift amount value are used;
+immediates are zero-extended.
+ 
 === Vector Narrowing Integer Right Shift Instructions
 
 The narrowing right shifts extract a smaller field from a wider
@@ -2797,8 +2815,8 @@ operand and have both zero-extending (`srl`) and sign-extending
 (`sra`) forms.  The shift amount can come from a vector or a scalar
 `x` register or a 5-bit immediate.  The low lg2(2*SEW) bits of the
 vector or scalar shift amount value are used (e.g., the low 6 bits for
-a SEW=64-bit to SEW=32-bit narrowing operation).  The unsigned immediate form
-supports shift amounts up to 31 only.
+a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate forms
+zero-extend their immediate operand.
 
 ----
  # Narrowing shift right logical, SEW = (2*SEW) >> SEW
@@ -3147,37 +3165,6 @@ vwmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) +
 vwmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
 ----
 
-=== Vector Quad-Widening Integer Multiply-Add Instructions (Extension `Zvqmac`)
-
-The quad-widening integer multiply-add instructions add a SEW-bit*SEW-bit
-multiply result to (from) a 4*SEW-bit value and produce a 4*SEW-bit
-result.  All combinations of signed and unsigned multiply operands are
-supported.
-
-NOTE: These instructions are currently not planned to be part of the
-base V extension.
-
-NOTE: On ELEN=32 machines, only 8b * 8b = 16b products accumulated in
-a 32b accumulator would be supported.  Machines with ELEN=64 would
-also add 16b * 16b = 32b products accumulated in 64b.
-
-----
-# Quad-widening unsigned-integer multiply-add, overwrite addend
-vqmaccu.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
-vqmaccu.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
-
-# Quad-widening signed-integer multiply-add, overwrite addend
-vqmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
-vqmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
-
-# Quad-widening signed-unsigned-integer multiply-add, overwrite addend
-vqmaccsu.vv vd, vs1, vs2, vm    # vd[i] = +(signed(vs1[i]) * unsigned(vs2[i])) + vd[i]
-vqmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
-
-# Quad-widening unsigned-signed-integer multiply-add, overwrite addend
-vqmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
-----
-
 === Vector Integer Merge Instructions
 
 The vector integer merge instructions combine two source operands
@@ -3233,9 +3220,13 @@ data can dynamically elide this instruction, and treat as a NOP.
 
 == Vector Fixed-Point Arithmetic Instructions
 
-A set of vector arithmetic instructions is provided to support
+The preceding set of integer arithmetic instructions is extended to support
 fixed-point arithmetic.
 
+A fixed-point number is a two's-complement signed or unsigned integer 
+interpreted as the numerator in a fraction with an implicit denominator.
+The fixed-point instructions are intended to be applied to the numerators; 
+it is the responsibility of software to manage the denominators. 
 An N-bit element can hold two's-complement signed integers in the
 range -2^N-1^...+2^N-1^-1, and unsigned integers in the range 0
 ... +2^N^-1.  The fixed-point instructions help preserve precision in
@@ -3329,9 +3320,9 @@ precision by one bit for all other products.
 
 These instructions shift the input value right, and round off the
 shifted out bits according to `vxrm`.  The scaling right shifts have
-both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. The
-low lg2(SEW) bits of the vector or scalar shift amount value are used.
-The immediate form supports shift amounts up to 31 only.
+both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. 
+The low lg2(SEW) bits of the vector or scalar shift amount value are used;
+immediates are zero-extended.
 
 ----
  # Scaling shift right logical
@@ -3356,7 +3347,7 @@ gives the amount to right shift the source as in the narrowing shift
 instructions, which provides the scaling.  The low lg2(2*SEW) bits of
 the vector or scalar shift amount value are used (e.g., the low 6 bits
 for a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate
-form supports shift amounts up to 31 only.
+forms zero-extend their immediate operand.
 
 ----
 # Narrowing unsigned clip
@@ -3554,29 +3545,6 @@ This is a unary vector-vector instruction.
     vfsqrt.v vd, vs2, vm   # Vector-vector square root
 ----
 
-=== Vector Floating-Point Reciprocal Estimate Instruction
-
-----
-    # Floating-point reciprocal estimate to 7 bits.
-    vfrece7.v vd, vs2, vm
-----
-
-This is a unary vector-vector instruction that returns an estimate of
-1/x accurate to 7 bits.
-
-NOTE: This instruction's exact arithmetic properties are still being
-defined.  See github issue #235.
-
-The instruction behaves identically to a full IEEE +1.0/x operation
-for values outside its domain.
-
-NOTE: Exceptional behavior needs fuller clarification.
-
-NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
-Newton-Raphson iterations to converge to close to bfloat16, FP16,
-FP32, FP64 accuracy respectively.   Future instructions can be defined
-with greater estimate accuracy.
-
 === Vector Floating-Point Reciprocal Square-Root Estimate Instruction
 
 ----
@@ -3587,13 +3555,148 @@ with greater estimate accuracy.
 This is a unary vector-vector instruction that returns an estimate of
 1/sqrt(x) accurate to 7 bits.
 
-NOTE: This instruction's exact arithmetic properties are still being
-defined.  See github issue #235.
+The following table describes the instruction's behavior for all
+classes of floating-point inputs:
 
-The instruction behaves identically to a full IEEE +1.0/sqrt(x)
-calculation for values outside its domain.
+[cols="1,1,1"]
+[%autowidth]
+|===
+| Input | Output | Exceptions raised
 
-NOTE: Exceptional behavior needs fuller clarification.
+| -{inf} {le} _x_ < -0.0     | canonical NaN           | NV
+| -0.0                       | -{inf}                  | DZ
+| +0.0                       | +{inf}                  | DZ
+| +0.0 < _x_ < +{inf}        | _estimate of 1/sqrt(x)_ |
+| +{inf}                     | +0.0                    |
+| qNaN                       | canonical NaN           |
+| sNaN                       | canonical NaN           | NV
+|===
+
+NOTE: All positive normal and subnormal inputs produce normal outputs.
+
+NOTE: The output value is independent of the dynamic rounding mode.
+
+For the non-exceptional cases, the low bit of the exponent and the six high
+bits of significand (after the leading one) are concatenated and used to
+address the following table.
+The output of the table becomes the seven high bits of the result significand
+(after the leading one); the remainder of the result significand is zero.
+Subnormal inputs are normalized and the exponent adjusted appropriately before
+the lookup.
+The output exponent is chosen to make the result approximate the reciprocal of
+the square root of the argument.
+
+More precisely, the result is computed as follows.
+Let the normalized input exponent be equal to the input exponent if the input
+is normal, or 0 minus the number of leading zeros in the significand
+otherwise.
+If the input is subnormal, the normalized input significand is given by
+shifting the input significand left by 1 minus the normalized input exponent,
+discarding the leading 1 bit.
+The output exponent equals floor((3*B - 1 - the normalized input exponent) / 2).
+The output sign equals the input sign.
+
+The following table gives the seven MSBs of the output significand as a
+function of the LSB of the normalized input exponent and the six MSBs of the
+normalized input significand; the other bits of the output significand are zero.
+
+include::vfrsqrte7.adoc[]
+
+NOTE: For example, when SEW=32, vfrsqrte7(0x00718abc ({approx} 1.043e-38))
+= 0x5f080000 ({approx} 9.800e18), and vfrsqrte7(0x7f765432 ({approx} 3.274e38))
+= 0x1f820000 ({approx} 5.506e-20).
+
+NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
+Newton-Raphson iterations to converge to close to bfloat16, FP16,
+FP32, FP64 accuracy respectively.   Future instructions can be defined
+with greater estimate accuracy.
+
+=== Vector Floating-Point Reciprocal Estimate Instruction
+
+----
+    # Floating-point reciprocal estimate to 7 bits.
+    vfrece7.v vd, vs2, vm
+----
+
+This is a unary vector-vector instruction that returns an estimate of
+1/x accurate to 7 bits.
+
+The following table describes the instruction's behavior for all
+classes of floating-point inputs, where _B_ is the exponent bias:
+
+[cols="1,1,1,1"]
+[%autowidth]
+|===
+| Input (_x_) | Rounding Mode | Output (_y_ {approx} _1/x_) | Exceptions raised
+
+| -{inf}                                              | _any_         | -0.0                      |
+| -2^B+1^ < _x_ {le} -2^B^ (normal)                   | _any_         | -2^-(B+1)^ {ge} _y_ > -2^-B^ (subnormal, sig=01...) |
+| -2^B^ < _x_ {le} -2^B-1^ (normal)                   | _any_         | -2^-B^ {ge} _y_ > -2^-B+1^ (subnormal, sig=1...) |
+| -2^B-1^ < _x_ {le} -2^-B+1^ (normal)                | _any_         | -2^-B+1^ {ge} _y_ > -2^B-1^ (normal) |
+| -2^-B+1^ < _x_ {le} -2^-B^ (subnormal, sig=1...)    | _any_         | -2^B-1^ {ge} _y_ > -2^B^ (normal) |
+| -2^-B^ < _x_ {le} -2^-(B+1)^ (subnormal, sig=01...) | _any_         | -2^B^ {ge} _y_ > -2^B+1^ (normal) |
+| -2^-(B+1)^ < _x_ < -0.0 (subnormal, sig=00...)      | RUP, RTZ      | greatest-mag. negative finite value | NX, OF
+| -2^-(B+1)^ < _x_ < -0.0 (subnormal, sig=00...)      | RDN, RNE, RMM | -{inf}                    | NX, OF
+| -0.0                                                | _any_         | -{inf}                    | DZ
+| +0.0                                                | _any_         | +{inf}                    | DZ
+| +0.0 < _x_ < 2^-(B+1)^ (subnormal, sig=00...)       | RUP, RNE, RMM | +{inf}                    | NX, OF
+| +0.0 < _x_ < 2^-(B+1)^ (subnormal, sig=00...)       | RDN, RTZ      | greatest finite value     | NX, OF
+| 2^-(B+1)^ {le} _x_ < 2^-B^ (subnormal, sig=01...)   | _any_         | 2^B+1^ > _y_ {ge} 2^B^ (normal) |
+| 2^-B^ {le} _x_ < 2^-B+1^ (subnormal, sig=1...)      | _any_         | 2^B^ > _y_ {ge} 2^B-1^ (normal) |
+| 2^-B+1^ {le} _x_ < 2^B-1^ (normal)                  | _any_         | 2^B-1^ > _y_ {ge} 2^-B+1^ (normal) |
+| 2^B-1^ {le} _x_ < 2^B^ (normal)                     | _any_         | 2^-B+1^ > _y_ {ge} 2^-B^ (subnormal, sig=1...) |
+| 2^B^ {le} _x_ < 2^B+1^ (normal)                     | _any_         | 2^-B^ > _y_ {ge} 2^-(B+1)^ (subnormal, sig=01...) |
+| +{inf}                                              | _any_         | +0.0                      |
+| qNaN                                                | _any_         | canonical NaN             |
+| sNaN                                                | _any_         | canonical NaN             | NV
+|===
+
+NOTE: Subnormal inputs with magnitude at least 2^-(B+1)^ produce normal outputs;
+other subnormal inputs produce infinite outputs.
+Normal inputs with magnitude at least 2^B-1^ produce subnormal outputs;
+other normal inputs produce normal outputs.
+
+NOTE: The output value depends on the dynamic rounding mode when
+the overflow exception is raised.
+
+For the non-exceptional cases, the seven high bits of significand (after the
+leading one) are used to address the following table.
+The output of the table becomes the seven high bits of the result significand
+(after the leading one); the remainder of the result significand is zero.
+Subnormal inputs are normalized and the exponent adjusted appropriately before
+the lookup.
+The output exponent is chosen to make the result approximate the reciprocal of
+the argument, and subnormal outputs are denormalized accordingly.
+
+More precisely, the result is computed as follows.
+Let the normalized input exponent be equal to the input exponent if the input
+is normal, or 0 minus the number of leading zeros in the significand
+otherwise.
+The normalized output exponent equals (2*B - 1 - the normalized input exponent).
+If the normalized output exponent is outside the range [-1, 2*B], the result
+corresponds to one of the exceptional cases in the table above.
+
+If the input is subnormal, the normalized input significand is given by
+shifting the input significand left by 1 minus the normalized input exponent,
+discarding the leading 1 bit.
+Otherwise, the normalized input significand equals the input significand.
+The following table gives the seven MSBs of the normalized output significand
+as a function of the seven MSBs of the normalized input significand; the other
+bits of the normalized output significand are zero.
+
+include::vfrece7.adoc[]
+
+If the normalized output exponent is 0 or -1, the result is subnormal: the
+output exponent is 0, and the output significand is given by concatenating
+a 1 bit to the left of the normalized output significand, then shifting that
+quantity right by 1 minus the normalized output exponent.
+Otherwise, the output exponent equals the normalized output exponent, and the
+output significand equals the normalized output significand.
+The output sign equals the input sign.
+
+NOTE: For example, when SEW=32, vfrece7(0x00718abc ({approx} 1.043e-38))
+= 0x7e900000 ({approx} 9.570e37), and vfrece7(0x7f765432 ({approx} 3.274e38))
+= 0x00214000 ({approx} 3.053e-39).
 
 NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
 Newton-Raphson iterations to converge to close to bfloat16, FP16,
@@ -4061,7 +4164,7 @@ common uses of mask logical operations:
 NOTE: The vmmv.m instruction was previously called vmcpy.m, but with
 new layout it is more consistent to name as a "mv" because bits are
 copied without interpretation.  The vmcpy.m assembler
-psuedo-instruction can be retained for compatibility.
+pseudo-instruction can be retained for compatibility.
 
 The set of eight mask logical instructions can generate any of the 16
 possibly binary logical functions of the two input masks:
@@ -4485,8 +4588,7 @@ _destination_ element _i_ is written.
 For `vslideup`, the value in `vl` specifies the maximum number of destination
 elements that are written.  The start index (_OFFSET_) for the
 destination can be either specified using an unsigned integer in the
-`x` register specified by `rs1`, or a 5-bit immediate treated as an
-unsigned 5-bit quantity.
+`x` register specified by `rs1`, or a 5-bit immediate, zero-extended to XLEN bits.
 If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
 Destination elements _OFFSET_ through `vl`-1 are written if unmasked and
 if _OFFSET_ < `vl`.
@@ -4522,7 +4624,7 @@ destination elements that are written.
 
 The start index (_OFFSET_) for the source can be either specified
 using an unsigned integer in the `x` register specified by `rs1`, or a
-5-bit immediate treated as an unsigned 5-bit quantity.
+5-bit immediate, zero-extended to XLEN bits.
 If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
 
 ----
@@ -4652,7 +4754,7 @@ Vector-scalar and vector-immediate forms of the register gather are
 also provided.  These read one element from the source vector at the
 given index, and write this value to the `vl` elements at the start of
 the destination vector register. The index value in the scalar register
-and the immediate are treated as unsigned integers.
+and the immediate, zero-extended to XLEN bits, are treated as unsigned integers.
 If XLEN > SEW, the index value is _not_ truncated to SEW bits.
 
 NOTE: These forms allow any vector element to be "splatted" to an entire vector.
@@ -4835,264 +4937,6 @@ correctly around imprecise traps.
 
 This mechanism is not defined in the base vector ISA.
 
-== Divided Element Extension ('Zvediv')
-
-NOTE: The EDIV extension is currently not planned to be part of the
-base "V" extension, and will change substantially from the current
-sketch.
-
-NOTE: This section has not been updated to account for new mask format
-in v0.9.
-
-The divided element extension allows each element to be treated as a
-packed sub-vector of narrower elements. This provides efficient
-support for some forms of narrow-width and mixed-width arithmetic, and
-also to allow outer-loop vectorization of short vector and matrix
-operations.  In addition to modifying the behavior of some existing
-instructions, a few new instructions are provided to operate on
-vectors when EDIV > 1.
-
-The divided element extension adds a two-bit field, `vediv[1:0]` to
-the `vtype` register.
-
-include::vtype-ediv-format.adoc[]
-
-The `vediv` field encodes the number of ways, _EDIV_, into which each
-SEW-bit element is subdivided into equal sub-elements.  A vector
-register group is now considered to hold a vector of sub-vectors.
-
-[cols="1,1,1,13"]
-|===
-3+| vediv [1:0] | Division EDIV
-
-| 0 | 0 | 1 | (undivided, as in base)
-| 0 | 1 | 2 | two equal sub-elements
-| 1 | 0 | 4 | four equal sub-elements
-| 1 | 1 | 8 | eight equal sub-elements
-|===
-
-
-The assembly syntax for vsetvli has additional options added to encode
-the EDIV options.
-
-----
- d1   # EDIV 1, assumed if d setting absent
- d2   # EDIV 2
- d4   # EDIV 4
- d8   # EDIV 8
-
- vsetvli t0, a0, e32,m2,d4   # SEW=32, LMUL=2, EDIV=4
-----
-
-|===
-.2+| SEW .2+| EDIV .2+| Sub-element 2+| Integer accumulator 3+| FP sum/dot accumulator
-| sum | dot | FLEN=32 | FLEN=64 | FLEN=128
-
-|   8b | 2 |   4b |   8b |   8b | -   | -   |  -
-|   8b | 4 |   2b |   8b |   8b | -   | -   |  -
-|   8b | 8 |   1b |   8b |   8b | -   | -   |  -
-|  16b | 2 |   8b |  16b |  16b | -   | -   |  -
-|  16b | 4 |   4b |   8b |  16b | -   | -   |  -
-|  16b | 8 |   2b |   8b |   8b | -   | -   |  -
-|  32b | 2 |  16b |  32b |  32b | 32b | 32b |  32b
-|  32b | 4 |   8b |  16b |  32b |  -  |  -  |   -
-|  32b | 8 |   4b |   8b |  16b |  -  |  -  |   -
-|  64b | 2 |  32b |  64b |  64b | 32b | 64b |  64b
-|  64b | 4 |  16b |  32b |  64b | 32b | 32b |  32b
-|  64b | 8 |   8b |  16b |  32b |  -  |  -  |   -
-| 128b | 2 |  64b | 128b | 128b | 32b | 64b | 128b
-| 128b | 4 |  32b |  64b | 128b | 32b | 64b |  64b
-| 128b | 8 |  16b |  32b |  64b | 32b | 32b |  32b
-| 256b | 2 | 128b | 256b | 256b | 32b | 64b | 128b
-| 256b | 4 |  64b | 128b | 256b | 32b | 64b | 128b
-| 256b | 8 |  32b |  64b | 128b | 32b | 64b |  64b
-|===
-
-Each implementation defines a minimum size for a sub-element, _SELEN_,
-which must be at most 8 bits.
-
-NOTE: While _SELEN_ is a fourth implementation-specific parameter,
-values smaller than 8 would be considered an additional extension.
-
-=== Instructions not affected by EDIV
-
-The vector start register `vstart` and exception reporting continue to
-work as before.
-
-The vector length `vl` control and vector masking continue to operate
-at the element level.
-
-Vector masking continues to operate at the element level, so
-sub-elements cannot be individually masked.
-
-NOTE: SEW can be changed dynamically to enabled per-element masking
-for sub-elements of 8 bits and greater.
-
-Vector load/store and AMO instructions are unaffected by EDIV, and
-continue to move whole elements.
-
-Vector mask logical operations are unchanged by EDIV setting, and
-continue to operate on vector registers containing element masks.
-
-Vector mask population count (`vpopc`), find-first and related
-instructions (`vfirst`, `vmsbf`, `vmsif`, `vmsof`), iota (`viota`),
-and element index (`vid`) instructions are unaffected by EDIV.
-
-Vector integer bit insert/extract, and integer and floating-point
-scalar move instruction are unaffected by EDIV.
-
-Vector slide-up/slide-down are unaffected by EDIV.
-
-Vector compress instructions are unaffected by EDIV.
-
-=== Instructions Affected by EDIV
-
-==== Regular Vector Arithmetic Instructions under EDIV
-
-Most vector arithmetic operations are modified to operate on the
-individual sub-elements, so effective SEW is SEW/EDIV and effective
-vector length is `vl` * EDIV.  For example, a vector add of 32-bit
-elements with a `vl` of 5 and EDIV of 4, operates identically to a
-vector add of 8-bit elements with a vector length of 20.
-
-----
-vsetvli t0, a0, e32,m1,d4  # Vectors of 32-bit elements, divided into byte sub-elements
-vadd.vv v1,v2,v3                     # Performs a vector of 4*vl 8-bit additions.
-vsll.vx v1,v2,x1                     # Performs a vector of 4*vl 8-bit shifts.
-----
-
-==== Vector Add with Carry/Subtract with Borrow Reserved under EDIV>1
-
-For EDIV > 1, `vadc`, `vmadc`, `vsbc`, `vmsbc` are reserved.
-
-==== Vector Reduction Instructions under EDIV
-
-Vector single-width integer sum reduction instructions are reserved
-under EDIV>1.  Other vector single-width reductions and vector
-widening integer sum reduction instructions now operate independently
-on all elements in a vector, reducing sub-element values within an
-element to an element-wide result.
-
-The scalar input is taken from the least-significant bits of the
-second operand, with the number of bits equal to the number of
-significant result bits (i.e., for sum and dot reductions, the number
-of bits are given in table above, for non-sum and non-dot reductions,
-equal to the element size).
-
-----
-# Sum each sub-vector of four bytes into a 16-bit result.
-vsetvli t0, a0, e32,d4  # Vectors of 32-bit elements, divided into byte sub-elements
-vwredsum.vs v1, v2, v3 # v1[i][15:0] = v2[i][31:24] + v2[i][23:16]
-                       #              + v2[i][15:8] + v2[i][7:0] + v3[i][15:0]
-
-# Find maximum among sub-elements
-vredmax.vs v5, v6, v7 # v5[i][7:0] = max(v6[i][31:24], v6[i][23:16],
-                      #                    v6[i][15:8], v6[i][7:0], v7[i][7:0])
-----
-
-Integer sub-element non-sum reductions produce a final result that is
-max(8,SEW/EDIV) bits wide, sign- or zero-extended to full SEW if
-necessary.
-
-Integer sub-element widening sum reductions produce a final result
-that is max(8,min(SEW,2*SEW/EDIV)) bits wide, sign- or zero-extended
-to full SEW if necessary.
-
-Single-width floating-point reductions produce a final result that is
-SEW/EDIV bits wide.
-
-Widening floating-point sum reductions produce a final result that is
-min(2*SEW/EDIV,FLEN) bits wide, NaN-boxed to the full SEW width if
-necessary.
-
-==== Vector Register Gather Instructions under EDIV
-
-Vector register gather instructions under non-zero EDIV only gather
-sub-elements within the element.  The source and index values are
-interpreted as relative to the enclosing element only.  Index values
-{ge} EDIV write a zero value into the result sub-element.
-
-----
-
-       |       |       |  SEW = 32b, EDIV=4
-        7 6 5 4 3 2 1 0  bytes
-        d e a d b e e f  v1
-        0 1 9 2 0 2 3 2  v2
-                            vrgather.vv v3, v1, v2
-        d a 0 e f e b e  v3
-                            vrgather.vi v4, v1, 1
-        a a a a e e e e  v4
-----
-
-NOTE: Vector register gathers with scalar or immediate arguments can
-"splat" values across sub-elements within an element.
-
-NOTE: Implementations can provide fast implementations of register
-gathers constrained within a single element width.
-
-=== Vector Integer Dot-Product Instruction
-
-The integer dot-product reduction `vdot.vv` performs an element-wise
-multiplication between the source sub-elements then accumulates the
-results into the destination vector element.  Note the assembler syntax
-uses a `.vv` suffix since both inputs are vectors of elements.
-
-Sub-element integer dot reductions produce a final result
-that is max(8,min(SEW,4*SEW/EDIV)) bits wide, sign- or zero-extended
-to full SEW if necessary.
-
-----
-# Unsigned dot-product
-vdotu.vv vd, vs2, vs1, vm  # Vector-vector
-
-# Signed dot-product
-vdot.vv vd, vs2, vs1, vm   # Vector-vector
-----
-
-----
-  # Dot product, SEW=32, EDIV=1
-  vdot.vv  vd, vs2, vs1, vm   # vd[i][31:0] += vs2[i][31:0] * vs1[i][31:0]
-
-  # Dot product, SEW=32, EDIV=2
-  vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
-                                            + vs2[i][15:0] * vs1[i][15:0]
-
-  # Dot product, SEW=32, EDIV=4
-  vdot.vv vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:24] * vs1[i][31:24]
-                                            + vs2[i][23:16] * vs1[i][23:16]
-                                            + vs2[i][15:8] * vs1[i][15:8]
-                                            + vs2[i][7:0] * vs1[i][7:0]
-----
-
-=== Vector Floating-Point Dot Product Instruction
-
-The floating-point dot-product reduction `vfdot.vv` performs an element-wise
-multiplication between the source sub-elements then accumulates the
-results into the destination vector element.  Note the assembler syntax
-uses a `.vv` suffix since both inputs are vectors of elements.
-
-----
-# Signed dot-product
-vfdot.vv vd, vs2, vs1, vm   # Vector-vector
-----
-
-----
-# Dot product. SEW=32, EDIV=2
-vfdot.vv  vd, vs2, vs1, vm # vd[i][31:0] += vs2[i][31:16] * vs1[i][31:16]
-                                           + vs2[i][15:0] * vs1[i][15:0]
-
-# Floating-point sub-vectors of two half-precision floats packed into 32-bit elements.
-vsetvli t0, a0, e32,m1,d2  # Vectors of 32-bit elements, divided into 16b sub-elements
-vfdot.vv v1, v2, v3   # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0]
-
-# Floating-point sub-vectors of four half-precision floats packed into 64-bit elements.
-vsetvli t0, a0, e64,m1,d4  # Vectors of 64-bit elements, divided into 16b sub-elements
-vfdot.vv v1, v2, v3
-                 # v1[i][31:0] +=  v2[i][31:16]*v3[i][31:16] + v2[i][16:0]*v3[i][16:0] +
-                 #                 v2[i][63:48]*v3[i][63:48] + v2[i][47:32]*v3[i][47:32];
-                 # v1[i][63:32] = ~0 (NaN boxing)
-
-----
 
 == Vector Instruction Listing
 
@@ -5101,3 +4945,8 @@ include::inst-table.adoc[]
 include::vector-examples.adoc[]
 
 include::calling-convention.adoc[]
+
+include::quad-mul.adoc[]
+
+include::ediv.adoc[]
+

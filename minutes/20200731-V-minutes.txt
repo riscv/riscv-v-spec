@@ -1,0 +1,26 @@
+Date: 2020/7/31
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~12
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+
+Issues discussed:
+
+# ISA document formatting
+
+For a large part of the meeting, we discussed the pull request to add
+better register diagrams.  The consensus was that attendees preferred
+the improved formatting, and would like to see similar formatting
+across RISC-V specs.  We will merge the changes in to vector spec once
+the table-of-contents facility is added to the html and pdf build
+flows.
+
+# "V" profile, #533 VLEN>=128 for V
+
+We had extensive discussion around requiring "V base for application
+processors to have VLEN>=128.  Some argued for a larger size, 256, but
+there was general agreeement that 128 would match current expectations
+for application processors.
+

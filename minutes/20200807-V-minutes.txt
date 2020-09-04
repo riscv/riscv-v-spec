@@ -1,0 +1,39 @@
+Date: 2020/8/7
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~22
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+#549 Whole register move under big-endian memory system
+
+Discussion was around whether we needed to add EEW to whole-register
+vector store also to help with big-endian register spills/fills on
+wider vector machines with internal data rearrangment, which otherwise
+might have to always use bytes then rearrange on use.  It was noted
+that current whole-register move instructions are asymmetric with only
+loads having EEW encoded.  Extensive discussion was around how much to
+accomodate big-endian in design.  The group was to review how
+big-endian worked in general to see if alternative might reduce this
+impact.
+
+#550 "V" versus embedded profiles
+
+Group discussed a proposal on how to provide abbreviated Z instruction
+subset names to accomodate common ISA configurations in embedded
+platforms.  Group expressed a desire to separate integer max element
+width from floating-point max element width.  Also, some
+configurations might not want to support all operations at the widest
+element width (e.g., no multiply/divide at largest integer width,
+only add/sub/accumulate).  Group also have general discussion about
+whether more general ISA profile format was needed.
+
+# Categorizing issues
+
+The group reviewed the list of outstanding issues and categorized into
+before 1.0, and after 1.0, and also tagged some as toolchain issues.
+Group encourages all to review the tags, and to also help close out
+issues that are for 1.0 release.
+
