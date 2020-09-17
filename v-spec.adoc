@@ -4490,9 +4490,6 @@ The result value is zero-extended to fill the destination element if
 SEW is wider than the result.  If the result value would overflow the
 destination SEW, the least-significant SEW bits are retained.
 
-NOTE: This constraint is to avoid WAR hazards in long vector
-implementations without register renaming, and to support restart.
-
 NOTE: Microarchitectures can implement `vid.v` instruction using the
 same datapath as `viota.m` but with an implicit set mask source.
 
