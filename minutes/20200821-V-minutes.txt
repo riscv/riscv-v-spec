@@ -1,0 +1,38 @@
+Date: 2020/8/21
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~12
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+#501 Ordering of element loads
+
+Discussion was around vector memory access ordering and interaction
+with global memory consistency model.  The original proposal for
+vector memory ordering was that it behaved like a scalar loop over the
+elements, however this would imply that a vector load that accessed
+the same address would have to access that address in element order.
+This only affects stride-0 loads and indexed gathers.  The proposal
+was to relax indexed gathers to always be unordered, and to use vl=1
+if the program required ordering between loop iterations.
+
+Another dicussion was on access to ordered and/or non-idempotent
+memory regions, where initiating memory accessed out-of-order would
+not give expected semantics, and restarting instructions once this was
+detected could be problematic for implementations without load buffers
+or renamed registers, and when having to maintain
+precise-to-the-element exception semantics.  One proposal was to
+weaken precise-to-element semantics and forbid overlap of source index
+and destination vector on gathers.
+
+Implementing debug data watchpoints with unordered accesses also is
+problematic if watchpoints have to be triggered in element.  A
+proposal was to allow watchpoints to be reported out of element order.
+
+Currently, strided segment stores where segments overlap are defined
+to occur in element order.  Discussion was around loosening this
+constraint to out-of-order writes, or to trap if the overlap was
+detected.
+

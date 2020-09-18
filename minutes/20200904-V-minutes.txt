@@ -1,0 +1,17 @@
+Date: 2020/8/4
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~20
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+Spec formatting.  The new formatting has been merged in, and the new
+build flow was discussed.
+
+#551 Memory orderings scalar-vector
+#534/5 Element ordering
+
+Discussion continued around memory ordering and determing the correct
+set of instructions to provide- with discussion to continue on list.
