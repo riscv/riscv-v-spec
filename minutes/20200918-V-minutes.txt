@@ -1,0 +1,99 @@
+Date: 2020/9/18
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~17
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+#551 Memory orderings scalar-vector
+#534/5 Element ordering
+-----------------------------------
+
+The following proposal was put forward and was agreeable to group.
+
+Vector unit-stride and constant vector memory accesses (both load and
+store) would always be unordered by element.  Indexed accesses would
+be supplied in both ordered and unordered forms.  Where ordering is
+required, software has to use an indexed instruction.
+
+Existing encoding is retained in mop[1:0], with the previously
+reserved load mop[1:0] encoding now allocated to unordered gather.
+Strided operations now treated as unordered.
+
+Loads           Old                           New
+mop[1:0] 
+0 0 unit-stride (ordered)    VLE     unit-stride (unordered) VLE
+0 1 reserved                 ---     indexed (unordered)     VLUXEI
+1 0 strided (ordered)        VLSE    strided (unordered)     VLSE
+1 1 indexed (ordered)        VLXEI   indexed (ordered)       VLOXEI
+
+Stores          Old                           New
+mop[1:0] 
+0 0 unit-stride (unordered)  VSE     unit-stride (unordered)  VSE  
+0 1 indexed (unordered)      VSUXEI  indexed (unordered)      VSUXEI
+1 0 strided (unordered)      VSSE    strided (unordered)      VSSE 
+1 1 indexed (ordered)        VSXEI   indexed (ordered)        VSOXEI
+
+(The mnemonics were not discussed at length in meeting, and a slightly
+different scheme is given here.  The indexed operations have a "U" or
+"O" to distinguish between unordered and ordered.  This is a little
+less consistent, as could argue that unordered indexed operations
+don't need a U to match others, but this approach minimizes disruption
+to existing software.)
+
+For unordered instructions (mop!=11) there is no guarantee on element
+access order.  For segment loads and stores, the individual element
+accesses within each segement are unordered with respect to each other.
+If the accesses are to a strongly ordered IO region, the element
+accesses can happen in any order.
+
+Stride-0 Optimizations
+----------------------
+
+We also discussed stride-0 optimizations. The proposed scheme is that
+if rs1=x0, then an implementation is allowed to only perform one
+memory read and replicate the value to all
+destination elements but may the read the location more than once.
+Similarly, a store might combine one or more elements and do fewer
+writes to memory.  With a zero-valued stride in a register rs1!=x0,
+i.e., x[rs1]==0, the implementation must perform all accesses (but
+these will be unordered).  It was noted the compiler must be aware not
+to convert a known stride of 0 into use of x0 if all memory accesses
+are required.
+
+If it is desired to perform multiple repeated ordered accesses to a
+non-idempotent memory region (e.g., popping a memory-mapped FIFO),
+then an ordered gather should be used targeting the single address.
+
+When a segment straddles a PMA boundary, the segment accesses must
+obey the PMA constraints associated with each constituent element's
+address for accesses to that element.
+
+Ordered AMOs
+------------
+
+The current PoR only has unordered AMOs.  If was discussed whether
+ordered AMOs are desirable, but there were few clear examples where
+this would be useful, and so these are not planned for v1.0.
+
+Element-Precise Exception Reporting
+-----------------------------------
+
+There was discussion around allowing vector stores to have updated
+some locations in memory corresponding to elements before the element
+that raises a synchronous exception.  The proposal was to allow these
+additional stores in idempotent memory regions.  Stores to
+non-idempotent memory regions must not occur for elements past an
+element reporting an exception.
+
+#493/510/532 Opaque vstart
+--------------------------
+
+There was brief discussion around opaque vstart. Given the relaxation
+of memory access ordering, it was felt less critical to support opaque
+vstart, but was suggested to allow this in a subset of the base
+architecure (treating non-opaque vstart in V as an extension).
+However, it was also noted that opaque vstart alone will rarely be
+sufficient to support resumable traps, and in general additional
+mechanism will be required to save and restore microarchitectural
+state in complex processors with imprecise traps.
