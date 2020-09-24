@@ -4108,6 +4108,10 @@ NOTE: Floating-point max and min reductions should return the same
 final value and raise the same exception flags regardless of operation
 order.
 
+NOTE: If no elements are active, the scalar in `vs1[0]` is simply copied to
+the destination register, without canonicalizing NaN values and without
+setting any exception flags.
+
 === Vector Widening Floating-Point Reduction Instructions
 
 Widening forms of the sum reductions are provided that
@@ -4122,6 +4126,9 @@ read and write a double-width reduction result.
 The reduction of the SEW-width elements is performed as in the
 single-width reduction case, with the elements in `vs2` promoted
 to 2*SEW bits before adding to the 2*SEW-bit accumulator.
+
+NOTE: `vfwredosum.vs` handles inactive elements and NaN payloads analogously
+to `vfredosum.vs`; `vfwredsum.vs` does so analogously to `vfredsum.vs`.
 
 == Vector Mask Instructions
 
