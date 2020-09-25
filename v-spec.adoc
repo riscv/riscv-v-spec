@@ -2601,6 +2601,10 @@ vrsub.vx vd, vs2, rs1, vm   # vd[i] = rs1 - vs2[i]
 vrsub.vi vd, vs2, imm, vm   # vd[i] = imm - vs2[i]
 ----
 
+NOTE: An integer value can be negative by reverse subtract instruction
+with a scalar operand of x0. Can define assembly pseudoinstructions
+vneg.v vd,vs = vrsub vd, x0, vs.
+
 === Vector Widening Integer Add/Subtract
 
 The widening add/subtract instructions are provided in both signed and
@@ -3738,6 +3742,10 @@ takes all bits except the sign bit from the vector `vs2` operands.
     vfsgnjx.vv vd, vs2, vs1, vm   # Vector-vector
     vfsgnjx.vf vd, vs2, rs1, vm   # vector-scalar
 ----
+
+NOTE: A floating value can be negative by sign-injection instructions
+with both same source operands. Can define assembly pseudoinstructions
+vfneg.v vd,vs = vfsgnjn.s vd,vs,vs.
 
 === Vector Floating-Point Compare Instructions
 
