@@ -1,0 +1,69 @@
+Date: 2020/9/25
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~14
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed
+
+#551 Memory consistency model for scalar loads and vector loads
+
+In current PoR, RVWMO memory model requires that scalar loads and
+vector loads from same hart to same address are ordered following
+program order.  Proposal is to weaken this requirement so that scalar
+loads and vector loads to the same address can be reordered,
+simplifying implementations, except for ordered gathers.  In
+particular, the requirement for a younger scalar load to not occur
+before an older vector gather to same address requires that the scalar
+load wait (or speculates) to determine vector gather addresses.
+
+Discussion centered around how much of an impact this would have on
+software, and on constructing a case where the change would impact
+software.  In almost all cases where the scalar access is used to read
+a signaling value from another hart, a FENCE would anyway be required
+for correct operation as the synchronization would be associated with
+the communication of more than one atomic word of memory.  Only in the
+case where the signal is part of an atomically written word of memory
+(8 bytes max in current spec), and where the vector read is used to
+read the same word (perhaps as a vector of bytes) might this cause an
+issue.  This was felt to be relatively rare.
+
+Another worry is when a routine with a sync operation based on a
+scalar read of a signaling variable then calls a routine, where the
+subroutine is separately compiled and reads the data including the
+signaling variable using vectors, there is a possibility that the
+vector read will return inconsistent data.  In general the caller is
+unaware of whether the routine uses scalar or vecor reads, and the
+subroutine is unaware that the variable was used to communicate
+between threads.
+
+While modern programing languages require that access to variables
+used to communicate between harts be annotated to ensure correct
+compilation, in practice legacy code and incorrect code might fail to
+include the correct annotations and have a latent bug.
+
+It was noted there are two directions for the ordering.
+
+sl -> vl: Older scalar load before newer vector load, and
+vl -> sl: older vector load before newer scalar load
+
+The sl->vl direction represents the signaling-value-check before
+vector computation case and is easiest to implement in hardware as
+vector instructions typically access memory later in the pipeline than
+scalar instructions.
+
+The vl->sl case is the difficult one to implement at high-performance
+but is also easier for software to work around with some form of read
+fence (either FENCE or ordered vector access or just scalar read of
+affected address).
+
+The sentiment was in favor of weakening the memory ordering constraint
+but more discussion was needed.  Potentially only the vl->sl
+constraint could be weakened.
+
+# Imprecise Traps
+
+Ways to support imprecise traps were also discussed, matching the very
+brief descriptions in the spec 18.2-18.4, which will need expansion
+and elaboration.
