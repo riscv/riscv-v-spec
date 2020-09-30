@@ -1830,6 +1830,8 @@ equal to the number of elements transferred to each vector register
 group.  Masking is also applied at the level of whole structures.
 
 If a trap is taken, `vstart` is in units of structures.
+If a trap occurs partway through accessing a structure, it is
+implementation-defined whether a subset of the structure access is performed.
 
 ==== Vector Unit-Stride Segment Loads and Stores
 
