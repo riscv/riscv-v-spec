@@ -1,0 +1,35 @@
+Date: 2020/10/2
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~12
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed;
+
+# Imprecise traps
+
+There was extensive discussion on handling of how to allow imprecise
+traps in some implementations.
+
+For application processors, the general 'V' extension will mandate
+traps precise to the vector element, with vstart pointing at the
+faulting element (and for memory traps, badvaddr pointing to faulting
+memory address).
+
+For embedded processors, precise traps can be expensive and
+unnecessary to support.  There was extensive discussion on the
+possible spectrum of less-than-precise trap models.
+
+One point in the design space supports "swappable" traps, where the
+microarchitectural state can be saved and restored around a trap
+handler using special instructions, but it was decided to postpone
+defining this model until later.
+
+The consensus was to define the simplest imprecise model that does not
+allow restart but does indicate the faulting instruction (epc/cause).
+
+An open question was around debug watchpoints, and whether these
+needed to be precise or whether two run modes should be supported
+(slow but precise watchpoints, or fast but imprecise watchpoint
+traps).
