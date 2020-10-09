@@ -529,7 +529,7 @@ the trap was taken (either a synchronous exception or an asynchronous
 interrupt), and at which execution should resume after a resumable
 trap is handled.
 
-All vector instructions are defined to begin execution with the
+Vector instructions begin execution with the
 element number given in the `vstart` CSR, leaving earlier elements in
 the destination vector undisturbed, and to reset the `vstart` CSR to
 zero at the end of execution.
@@ -545,20 +545,27 @@ by `vl`, if the value in the `vstart` register is greater than or
 equal to the vector length `vl` then no element operations are
 performed.  The `vstart` register is then reset to zero.
 
-The `vstart` CSR is defined to have only enough writable bits to hold
+The `vstart` CSR is required to have enough writable low bits to hold
 the largest element index (one less than the maximum VLMAX) or
-lg2(VLEN) bits.  The upper bits of the `vstart` CSR are hardwired to
-zero (reads zero, writes ignored).
+lg2(VLEN) bits. The remaining upper bits determine the type
+of index in use.
 
 NOTE: The maximum vector length is obtained with the largest LMUL
 setting (8) and the smallest SEW setting (8), so VLMAX_max = 8*VLEN/8
 = VLEN.  For example, for VLEN=256, `vstart` would have 8 bits to
 represent indices from 0 through 255.
 
+Indexes are represented in "vstart" as either plain text or opaque.
+When the upper bits of the `vstart` CSR are zero the index is in plaintext.
+These upper bits, (XLEN-1:lg2(VLEN)-1) can be either hardwired
+(reads zero, writes ignored)or writable to zero.
+When the upper bits are not all zero all the bits in "vstart" define
+an opaque identifier for the restart element.
+
 The `vstart` CSR is writable by unprivileged code, but non-zero
 `vstart` values may cause vector instructions to run substantially
 slower on some implementations, so `vstart` should not be used by
-application programmers.  A few vector instructions cannot be
+application programmers.  Some vector instructions cannot be
 executed with a non-zero `vstart` value and will raise an illegal
 instruction exception as defined below.
 
@@ -570,11 +577,12 @@ attempting to execute a vector instruction with a value of `vstart` that the
 implementation can never produce when executing that same instruction with
 the same `vtype` setting.
 
-NOTE: For example, some implementations will never take interrupts during
-execution of a vector arithmetic instruction, instead waiting until the
-instruction completes to take the interrupt.  Such implementations are
+NOTE: For example, some implementations will defer take interrupts during
+processing of physical register in a vector arithmetic instruction, instead waiting until the
+instruction completes to the physical register complete synch point to take the interrupt.  
+Such implementations are
 permitted to raise an illegal instruction exception when attempting to execute
-a vector arithmetic instruction when `vstart` is nonzero.
+a vector arithmetic instruction when `vstart` is not at a synch point.
 
 NOTE: When migrating a software thread between two harts with
 different microarchitectures, the `vstart` value might not be
