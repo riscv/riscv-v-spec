@@ -7,6 +7,9 @@ Current issues on github: https://github.com/riscv/riscv-v-spec
 
 Issues discussed;
 
+# Implementation availability - discussion around when FPGA RTL
+  implementations could be made available to software community
+
 # Imprecise traps
 
 There was extensive discussion on handling of how to allow imprecise

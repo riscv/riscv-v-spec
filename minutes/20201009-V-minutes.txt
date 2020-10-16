@@ -1,0 +1,43 @@
+Date: 2020/10/9
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~12
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+# 576 vlsegff exception behavior
+
+Proposal is to allow updates of destination registers with portions of
+a segment even if fault occurs that causes vl be trimmed to start of segment.
+This simplifies implementation executing portions of a segment
+
+It was noted that software cannot in general rely on no modification past trimmed
+vl anyway, only in contrived cases relying on non-zero vstart and known
+protection boundaries.
+
+Unaligned elements within non-segment unit-stride fault-on-first are
+handled in same way as partial segment.  If we later add indexed
+segment fault-on-first (longer encoding), could have issue with
+overlap (though usually would redo stripmine loop from new start
+point).
+
+Discussion continued on to interaction with debug watchpoints.
+Consensus was that watchpoints shall not cause vl trimming, as this
+would change behavior of code.  Instead the debug trap is taken, and
+debug mode figures out what to do, possibly just restarting
+instruction at vstart with untrimmed vl.
+
+Also, decided that shouldn't trim on interrupt trap, as should go handle
+the interrupt and resume at vstart.  Interrupt can always be deferred
+until instruction end (module concerns on interrupt latency).
+
+Another case was whether to allow VL-trimming on cache misses.  This
+would allow stripmine loop to continue with elements already available
+in cache while waiting for rest of vector to arrive from memory.
+
+Also, if ECC error detected should this trap or trim VL?
+
+General consensus was to allow vl-trimming to any random location to
+give implementations flexibility, except that element 0 must always be
+processed to ensure forward progress.
+
