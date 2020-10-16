@@ -24,7 +24,7 @@ include::example/vvaddint32.s[lines=4..-1]
       add a1, a1, a4              # Bump pointer.
     vmslt.vi v0, v1, 5            # a[i] < 5?
 
-    vsetvli x0, a0, e32,m4.ta,mu  # Vector of 32-bit values.
+    vsetvli x0, a0, e32,m4,ta,mu  # Vector of 32-bit values.
       sub a0, a0, a4              # Decrement count
     vmv.v.i v4, 1                 # Splat immediate to destination
     vle32.v v4, (a3), v0.t        # Load requested elements of C, others undisturbed
