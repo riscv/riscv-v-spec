@@ -1,0 +1,46 @@
+Date: 2020/10/16
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~16
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+# Definition of Done checklist
+
+We discussed what items on the "definitions of done" checklist are not
+currently underway, including the architectural compliance tests and
+the SAIL formal model.
+
+# 550 Names/contents of initial vector subsets.
+
+We discussed the proposals for initial vector subsets for
+microcontroller/embedded use cases. The proposed five subsets are
+Zve32x, Zve32f, Zve64x, Zve64f, Zve64d.
+
+The consensus was to not include Zvamo in these, as some embedded
+memory systems do not have caches, and many interconnects do not
+support atomics.
+
+vrgather instruction was discussed for omission, but the consensus was
+that if indexed memory accesses were to be supported (which had
+agreement), then vrgather was relatively easy to add and was very
+useful, especially in low-ended embedded systems with limited memory
+systems.
+
+reductions were discussed for omission, but it was felt that they're
+commonly used and they would fragment the software base too much if
+left out.
+
+There was some discussion about supporting only LMUL=1, but was noted
+this would not allow use of the widening and narrowing instructions.
+Another proposal was to support only LMUL<=1, as this would simplify
+some implementations while still supporting the full instruction set.
+This would form an even more minimal base.
+
+There was no clear consensus on requiring a minimum VLEN>ELEN.  This
+would interact with a proposal to allow LMUL<=1, in that a longer VLEN
+might be mandated if LMUL<=1 since larger LMULs could not be used to
+hold longer vectors.
+
+We did not reach agreement on whether 64b integer multiplies should be
+included in Zve64f subset.
