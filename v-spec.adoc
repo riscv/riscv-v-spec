@@ -497,7 +497,7 @@ no elements are updated in any destination vector register group.
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
 
-NOTE: Instructions that write a scalar integer or floating-point register
+Instructions that write an `x` register or `f` register
 do so even when `vstart` {ge} `vl`.
 
 NOTE: The number of bits implemented in `vl` depends on the
