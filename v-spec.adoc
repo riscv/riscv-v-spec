@@ -305,27 +305,32 @@ values can occupy a single vector register and narrower values can
 occupy a fraction of a vector register.
 
 Implementations must support fractional LMUL settings for LMUL {ge}
-SEW/ELEN, for the ELEN value at LMUL=1.  An attempt to set an
-unsupported SEW and LMUL configuration sets the `vill` bit in `vtype`.
+SEW~LMUL1MAX~/ELEN, where SEW~LMUL1MAX~ is the largest supported SEW
+value at LMUL=1.  An attempt to set an unsupported SEW and LMUL
+configuration sets the `vill` bit in `vtype`.
 
-NOTE: Requiring LMUL {ge} SEW/ELEN allows software operating on
+NOTE: Requiring LMUL {ge} SEW~LMUL1MAX~/ELEN allows software operating on
 mixed-width elements to only use a single vector register to hold the
-widest (ELEN) elements, with fractional LMUL used to hold narrower
-elements.  When LMUL < SEW/ELEN, there is no guarantee an
+wider elements, with fractional LMUL used to hold narrower
+elements.  When LMUL < SEW~LMUL1MAX~/ELEN, there is no guarantee an
 implementation would have enough bits in the fractional vector
 register to store at least one element, as VLEN=ELEN is a valid
 implementation choice.
 
-The behavior of an implementation when LMUL < SEW/ELEN and the `vill`
-bit is not set is __reserved__.
+NOTE: The constraint is written using SEW~LMUL1MAX and not ELEN
+because some systems might only support larger SEW values for LMUL>1.
+
+The use of `vtype` encodings with LMUL < SEW~LMUL1MAX~/ELEN is
+__reserved__, but implementations can set `vill` if they do not
+support these configurations.
 
 NOTE: Requiring all implementations to set `vill` in this case would
 prohibit future use of this encoding in an extension, so to allow for
-a future definition of LMUL<SEW/ELEN behavior, we consider the
-behavior in this case when `vill` is not set to be __reserved__.
+a future definition of LMUL<SEW~LMUL1MAX~/ELEN behavior, we consider
+the use of this case to be __reserved__.
 
 NOTE: It is recommended that assemblers provide a warning (not an
-error) if a `vsetvli` instruction attempts to write an LMUL < SEW/ELEN.
+error) if a `vsetvli` instruction attempts to write an LMUL < SEW~LMUL1MAX~/ELEN.
 
 LMUL is set by the signed `vlmul` field in `vtype` (LMUL =
 2^`vlmul[2:0]`^).
