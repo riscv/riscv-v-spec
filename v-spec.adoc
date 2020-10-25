@@ -66,6 +66,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Added `vneg` and `vfneg` pseudo-instructions.
 
+=== Changed mandatory illegal instruction exceptions on unsupported encodings to reserved, to allow future use of these encodings.  Implementations are still recommended to trap on unsupported reserved encodings.
+
 :sectnums:
 
 == Introduction
@@ -357,18 +359,15 @@ given the current SEW and LMUL settings as shown in the table below.
 When LMUL=2, the vector register group contains vector register `v`
 __n__ and vector register `v` __n__+1, providing twice the vector
 length in bits.  Instructions specifying a vector register group with
-an odd-numbered vector register will raise an illegal instruction
-exception.
+an odd-numbered vector register are reserved.
 
 When LMUL=4, the vector register group contains four vector registers,
 and instructions specifying vector register groups using vector
-register numbers that are not multiples of four will raise an illegal
-instruction exception.
+register numbers that are not multiples of four are reserved.
 
 When LMUL=8, the vector register group contains eight vector
 registers, and instructions specifying vector register groups using
-register numbers that are not multiples of eight will raise an illegal
-instruction exception.
+register numbers that are not multiples of eight are reserved.
 
 Mask registers are always contained in a single vector register,
 regardless of LMUL.
@@ -1060,8 +1059,7 @@ EEW=2*SEW and EMUL=2*LMUL but destination where EEW=SEW and EMUL=LMUL.
 Vector operands or results may occupy one or more vector registers
 depending on EMUL, but are always specified using the lowest-numbered
 vector register in the group.  Using other than the lowest-numbered
-vector register to specify a vector register group will result in an
-illegal instruction exception.
+vector register to specify a vector register group is reserved..
 
 A destination vector register group can overlap a source vector register
 group only if one of the following holds:
@@ -1081,10 +1079,9 @@ EEW=1.
 The largest vector register group used by an instruction can not be
 greater than 8 vector registers (i.e., EMUL{le}}8), and if a vector
 instruction would require greater than 8 vector registers in a group,
-an illegal instruction exception is raised.  For example, attempting a
-widening operation producing a widened vector register group result
-when LMUL=8 will raise an illegal instruction exception as this would
-imply a result EMUL=16.
+the instruction encoding is reserved.  For example, a widening
+operation that produces a widened vector register group result when
+LMUL=8 is reserved as this would imply a result EMUL=16.
 
 Widened scalar values, e.g., results from widening reduction
 operations, are held in the first element of a vector register and
@@ -1115,8 +1112,8 @@ encodings with space for a full mask register specifier.
 The destination vector register group for a masked vector instruction
 cannot overlap the source mask register (`v0`), unless the destination
 vector register is being written with a mask value (e.g., comparisons)
-or the scalar result of a reduction.  Otherwise, an illegal
-instruction exception is raised.
+or the scalar result of a reduction.  These instruction encodings are
+reserved.
 
 NOTE: This constraint supports restart with a non-zero `vstart` value.
 
@@ -1482,7 +1479,7 @@ XLEN bits are used in the address calculation.
 
 NOTE: A profile may place a upper limit on the maximum required index
 EEW (e..g, only up to XLEN) smaller than ELEN, in which case an
-illegal instruction can be raised if the EEW is not supported.
+illegal instruction exception can be raised if the EEW is not supported.
 
 The vector addressing modes are encoded using the 2-bit `mop[1:0]`
 field.
@@ -1571,9 +1568,9 @@ to transfer for the whole vector register load/store instructions.
 Vector loads and stores have an EEW encoded directly in the
 instruction.  The corresponding EMUL is calculated as EMUL =
 (EEW/SEW)*LMUL. If the EMUL would be out of range (EMUL>8 or
-EMUL<1/8), an illegal instruction exception is raised.  The vector
-register groups must have legal register specifiers for the selected
-EMUL, else an illegal instruction is raised.
+EMUL<1/8), the instruction encoding is reserved.  The vector register
+groups must have legal register specifiers for the selected EMUL, else
+the instruction encoding is reserved.
 
 Vector unit-stride and constant-stride use the EEW/EMUL encoded in the
 instruction for the data values, while vector indexed loads and stores
@@ -1587,7 +1584,7 @@ above.
 
 Vector loads and stores up to EEW=ELEN must be supported in an
 implementation.  Using a vector load/store with an unsupported EEW
-raises an illegal instruction exception.
+is reserved.
 
 .Width encoding for vector loads and stores.
 [cols="4,1,1,1,1,3,3,3,3"]
@@ -1799,8 +1796,8 @@ segment, _NFIELDS_.
 | 1 | 1 | 1 | 8
 |===
 
-The EMUL setting must be such that EMUL * NFIELDS {le} 8, otherwise an
-illegal instruction exception is raised.
+The EMUL setting must be such that EMUL * NFIELDS {le} 8, otherwise
+the instruction encoding is reserved.
 
 NOTE: The product EMUL * NFIELDS represents the number of underlying
 vector registers that will be touched by a segmented load or store
@@ -1822,8 +1819,7 @@ but this decreased ability to make use of all registers when NFIELDS
 was not a power of 2.
 
 If the vector register numbers accessed by the segment load or store
-would increment past 31, then an illegal instruction exception is
-raised.
+would increment past 31, then the instruction encoding is reserved.
 
 NOTE: This constraint is to help provide forward-compatibility with a
 future longer instruction encoding that has more addressable vector
@@ -1948,7 +1944,7 @@ EMUL=(EEW/SEW)*LMUL.
 
 For vector indexed segment loads, the destination vector register
 groups cannot overlap the source vector register group (specified by
-`vs2`), else an illegal instruction exception is raised.
+`vs2`), else the instruction encoding is reserved.
 
 NOTE: This constraint supports restart of indexed segment loads
 that raise exceptions partway through loading a structure.
@@ -2045,7 +2041,7 @@ scalar `x` register specified by `rs1`.
 The `nf` field encodes how many vector registers to load and store.
 The encoded number of registers must be a power of 2 and the vector
 register numbers must be aligned as with a vector register group,
-otherwise an illegal instruction exception is raised.  The `nf` field
+otherwise the instruction encoding is reserved.  The `nf` field
 encodes the number of vector registers to transfer (1, 2, 4, 8),
 numbered successively after the base.  When multiple registers are
 transferred, the lowest-numbered vector register is held in the
@@ -2113,8 +2109,8 @@ minimum required, so this does not complicate software use cases.
    vs8r.v v8, (a1)      # Store v8-v15 to address in a1
 ----
 
-Implementations should raise illegal instruction exceptions on `vl<nf>r`
-instructions for EEW values that are not supported.
+NOTE: Implementations should raise illegal instruction exceptions on
+`vl<nf>r` instructions for EEW values that are not supported.
 
 NOTE: The task group has thus far agreed to include only the single
 register load/store variant with `nf`=0 in the base V extension, but
@@ -2205,13 +2201,12 @@ Mem bits is the size of element accessed in memory
 Reg bits is the size of element accessed in register
 
 If index EEW is less than XLEN, then addresses in the vector `vs2` are
-zero-extended to XLEN.  If index EEW is greater than XLEN, an illegal
-instruction exception is raised.
+zero-extended to XLEN.  If index EEW is greater than XLEN, the
+instruction encoding is reserved.
 
 Vector AMO instructions are only supported for the memory data element
 widths (in SEW) supported by AMOs in the implementation's scalar
-architecture.  Other element widths raise an illegal instruction
-exception.
+architecture.  Other element width encodings are reserved.
 
 The vector `amoop[4:0]` field uses the same encoding as the scalar
 5-bit AMO instruction field, except that LR and SC are not supported.
@@ -2408,15 +2403,15 @@ considered to be integer operations.
 
 All standard vector floating-point arithmetic operations follow the
 IEEE-754/2008 standard.  All vector floating-point operations use the
-dynamic rounding mode in the `frm` register.  If the `frm` field
-contains an invalid rounding mode, attempting to execute any vector
-floating-point instruction, even those that do not depend on the
-rounding mode, or when `vl`=0, or when `vstart` {ge} `vl`, will raise
-an illegal instruction exception.
+dynamic rounding mode in the `frm` register.  Use of the `frm` field
+when it contains an invalid rounding mode by any vector floating-point
+instruction, even those that do not depend on the rounding mode, or
+when `vl`=0, or when `vstart` {ge} `vl`, is reserved.
 
 NOTE: All vector floating-point code will rely on a valid value in
-`frm`.  Making all vector FP instructions report exceptions when the
-rounding mode is invalid simplifies control logic.
+`frm`.  Implementations can make all vector FP instructions report
+exceptions when the rounding mode is invalid to simplify control
+logic.
 
 Vector-vector operations take two vectors of operands from vector
 register groups specified by `vs2` and `vs1` respectively.
@@ -2427,20 +2422,19 @@ specified by `vs2` and a second scalar source operand from one of
 three alternative sources.
 
 . For integer operations, the scalar can be a 5-bit immediate encoded
-in the `rs1` field.  The value is sign-extended to SEW bits, unless otherwise
-specified.
-. For integer operations, the scalar can be taken from the scalar `x`
-register specified by `rs1`.  If XLEN>SEW, the least-significant SEW bits
-of the `x` register are used, unless otherwise specified.  
-If XLEN<SEW, the value from the `x` register is sign-extended to SEW bits.
-. For floating-point operations, the scalar can be taken from a scalar
-`f` register.  If FLEN > SEW, the value in the `f` registers is checked
-for a valid NaN-boxed value, in which case the least-significant SEW
-bits of the `f` register are used, else the canonical NaN value is
-used.  If execution is attempted of a vector instruction where any
-floating-point vector operand's EEW is not a supported floating-point
-type width (which includes when FLEN < SEW), an illegal instruction
-exception is raised.
+in the `rs1` field.  The value is sign-extended to SEW bits, unless
+otherwise specified.  . For integer operations, the scalar can be
+taken from the scalar `x` register specified by `rs1`.  If XLEN>SEW,
+the least-significant SEW bits of the `x` register are used, unless
+otherwise specified.  If XLEN<SEW, the value from the `x` register is
+sign-extended to SEW bits.  . For floating-point operations, the
+scalar can be taken from a scalar `f` register.  If FLEN > SEW, the
+value in the `f` registers is checked for a valid NaN-boxed value, in
+which case the least-significant SEW bits of the `f` register are
+used, else the canonical NaN value is used.  Vector instructions where
+any floating-point vector operand's EEW is not a supported
+floating-point type width (which includes when FLEN < SEW) are
+reserved.
 
 NOTE: Some instructions _zero_-extend the 5-bit immediate, and denote this
 by naming the immediate `uimm` in the assembly syntax.
@@ -2537,12 +2531,12 @@ SEW and LMUL were at twice their current settings (i.e., EEW=2*SEW,
 EMUL=2*LMUL).
 
 For all widening instructions, the destination EEW and EMUL values
-must be a supported configuration, otherwise an illegal instruction
-exception is raised.
+must be a supported configuration, otherwise the instruction encoding
+is reserved.
 
 The destination vector register group must be specified using a vector
-register number that is valid for the destination's EMUL, otherwise an
-illegal instruction exception is raised.
+register number that is valid for the destination's EMUL, otherwise the
+instruction encoding is reserved.
 
 NOTE: This constraint is necessary to support restart with non-zero
 `vstart`.
@@ -2558,7 +2552,7 @@ into single-width destination vectors.  These instructions convert a
 vector register group with EEW/EMUL=2*SEW/2*LMUL to a vector register
 group with the current LMUL/SEW vectors/elements.
 
-If EEW > ELEN or EMUL > 8, an illegal instruction exception is raised.
+If EEW > ELEN or EMUL > 8, the instruction encoding is reserved.
 
 NOTE: An alternative design decision would have been to treat LMUL as
 defining the size of the source vector register group.  The choice
@@ -2567,8 +2561,8 @@ LMUL changes.
 
 The source and destination vector register groups have to be specified
 with a vector register number that is legal for the source and
-destination EMUL values respectively, otherwise an illegal instruction
-exception is raised.
+destination EMUL values respectively, otherwise the instruction
+encoding is reserved.
 
 Where there is a second source vector register group (specified by
 `vs1`), this has the same (narrower) width as the result (i.e.,
@@ -2668,8 +2662,7 @@ vsext.vf8 vd, vs2, vm  # Sign-extend SEW/8 source to SEW destination
 ----
 
 If the source EEW is not a supported width, or source EMUL would be
-below the minimum legal LMUL, an illegal instruction exception is
-raised.
+below the minimum legal LMUL, the instruction encoding is reserved.
 
 === Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 
@@ -2773,8 +2766,8 @@ no subtract with immediate instructions.
 For `vmsbc`, the borrow is defined to be 1 iff the difference, prior to
 truncation, is negative.
 
-For `vadc` and `vsbc`, an illegal instruction exception is raised
-if the destination vector register is `v0`.
+For `vadc` and `vsbc`, the instruction encoding is reserved if the
+destination vector register is `v0`.
 
 NOTE: This constraint corresponds to the constraint on masked vector
 operations that overwrite the mask register.
@@ -3398,8 +3391,8 @@ If any destination element is saturated, the `vxsat` bit is set in the
 The standard vector floating-point instructions treat 16-bit, 32-bit,
 64-bit, and 128-bit elements as IEEE-754/2008-compatible values.  If
 the EEW of a vector floating-point operand does not correspond to a
-supported IEEE floating-point type, an illegal instruction exception
-is raised.
+supported IEEE floating-point type, the instruction encoding is
+reserved.
 
 NOTE: The floating-point element widths that are supported depend on
 the profile.
@@ -4630,8 +4623,8 @@ if _OFFSET_ < `vl`.
 ----
 
 The destination vector register group for `vslideup` cannot overlap
-the source vector register group, otherwise an
-illegal instruction exception is raised.
+the source vector register group, otherwise the instruction encoding
+is reserved.
 
 NOTE: The non-overlap constraint avoids WAR hazards on the
 input vectors during execution, and enables restart with non-zero
@@ -4702,7 +4695,7 @@ elements are unchanged.
 
 The `vslide1up` instruction requires that the destination vector
 register group does not overlap the source vector register group.
-Otherwise, an illegal instruction exception is raised.
+Otherwise, the instruction encoding is reserved.
 
 The `vfslide1up` instruction is defined analogously, but sources its
 scalar argument from an `f` register.
@@ -4790,8 +4783,8 @@ vrgather.vi vd, vs2, uimm, vm # vd[i] = (uimm >= VLMAX) ? 0 : vs2[uimm]
 ----
 
 For any `vrgather` instruction, the destination vector register group
-cannot overlap with the source vector register groups, otherwise an
-illegal instruction exception is raised.
+cannot overlap with the source vector register groups, otherwise the
+instruction encoding is reserved.
 
 === Vector Compress Instruction
 
@@ -4826,8 +4819,8 @@ elements according to the current tail policy (Section
 masked instruction (`vm=0`) is reserved.
 
 The destination vector register group cannot overlap the source vector
-register group or the source mask register, otherwise an illegal
-instruction exception is raised.
+register group or the source mask register, otherwise the instruction
+encoding is reserved.
 
 A trap on a `vcompress` instruction is always reported with a
 `vstart` of 0.  Executing a `vcompress` instruction with a non-zero
