@@ -232,7 +232,7 @@ encoding.
 
 The value in `vsew` sets the dynamic _selected_ _element_ _width_
 (SEW).  By default, a vector register is viewed as being divided into
-VLEN/SEW selected-width elements.
+VLEN/SEW elements.
 
 NOTE: In the base vector "V" extension, only SEW up to ELEN =
 max(XLEN,FLEN) are required to be supported.  Other profiles may
@@ -269,17 +269,17 @@ impose different constraints on ELEN.
 The supported element width may vary with LMUL, but profiles may
 mandate the minimum SEW that must be supported with LMUL=1.
 
-NOTE: Some implementations may support larger SEWs only when bits from
-multiple vector registers are combined.  The base V vector standard
-requires that SEW=max(XLEN,FLEN) is supported with LMUL=1.
+NOTE: The standard base V vector extension requires that
+SEW=max(XLEN,FLEN) is supported with LMUL=1.
 
-NOTE: Software that relies on large EEW should attempt to use the
-largest LMUL, and hence the fewest vector register groups, to increase
-the number of implementations on which the code will run. The `vill`
-bit in `vtype` should be checked to see if the configuration is
-supported, and an alternate code path provided if it is
-not. Alternatively, a profile can mandate the minimum SEW at each LMUL
-setting.
+NOTE: Some implementations may support larger SEWs only when bits from
+multiple vector registers are combined.  Software that relies on large
+SEW should attempt to use the largest LMUL, and hence the fewest
+vector register groups, to increase the number of implementations on
+which the code will run. The `vill` bit in `vtype` should be checked
+after setting `vtype` to see if the configuration is supported, and an
+alternate code path should be provided if it is not. Alternatively, a
+profile can mandate the minimum SEW at each LMUL setting.
 
 ==== Vector Register Grouping (`vlmul[2:0]`)
 
