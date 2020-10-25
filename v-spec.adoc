@@ -169,8 +169,7 @@ Each vector register has a fixed VLEN bits of state.
 
 NOTE: Zfinx ("F in X") is a new ISA option under consideration where
 floating-point instructions take their arguments from the integer
-register file.  The 0.9 vector extension is also compatible with this
-option.
+register file.  The 1.0 vector extension is also compatible with Zfinx.
 
 === Vector Context Status in `mstatus`
 
