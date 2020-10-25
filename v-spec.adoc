@@ -214,12 +214,12 @@ In the base vector extension, the `vtype` register has five fields,
 
 include::vtype-format.adoc[]
 
-NOTE: The smallest base implementation supporting ELEN=32 requires
-storage for only seven bits of storage in `vtype`, two bits for `ma`
-and `ta`, two bits for `vsew[1:0]` and three bits for `vlmul[2:0]`.
-The illegal value represented by `vill` can be encoded using the
-illegal 64-bit combination in `vsew[1:0]` without requiring an
-additional storage bit.
+NOTE: A small implementation supporting ELEN=32 requires only seven
+bits of state in `vtype`: two bits for `ma` and `ta`, two bits for
+`vsew[1:0]` and three bits for `vlmul[2:0]`.  The illegal value
+represented by `vill` can be internally encoded using the illegal 64-bit
+combination in `vsew[1:0]` without requiring an additional storage
+bit to hold `vill`.
 
 NOTE: Further standard and custom extensions to the vector base will
 extend these fields to support a greater variety of data types.
