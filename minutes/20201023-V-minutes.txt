@@ -1,0 +1,48 @@
+Date: 2020/10/23
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~12
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+There is no task group meeting next week (October 30).
+
+We have identified potential resource for building SAIL model for V
+extension.
+
+We will investigate various paths to building compliance suite,
+including Imperas released suite.
+
+Issues discussed:
+
+#575 Are the reserved bits of vtype WARL?
+
+No.  Implementation can set vill if not a supported configuration.
+While implementations are allowed to trap on reserved values, we don't
+want to mandate data-dependent traps.  vsetvli instructions have a 11b
+value written to vtype (the sign bit of the 12b imm field selects
+immediate/register forms of vsetvl).  For future extension, we could
+view vtype as an 11b CSR, with additional CSRs added for more bits
+later.
+
+#519 Reserve wider EEW
+
+Proposal to reserve EEW of 128-1024 for v1.0 ratification, with
+anticipation to use these encodings later as proposed.  Agreed.
+
+#522 Forbid register overlap in reductions?
+
+This issue was closed, as agreed that there were no additional
+constraints above those needed for regular renaming or restart.
+
+#544 Proposal to add a "addvl" instruction
+
+This would include a multiply immediate to scale vlenb by number of
+vector registers to be saved/restored to reduce code size.
+
+It was noted that Zba will reduce the cost in some cases as
+shift-and-add instructions can perform some small immediate
+multiplies.
+
+The consensus was that more experience was needed with software use
+cases before adding any new instruction.
