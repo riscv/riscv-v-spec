@@ -135,9 +135,9 @@ parameters.
 NOTE: Code can be written that will expose differences in
 implementation parameters.
 
-NOTE: Thread contexts with active vector state cannot be migrated
-during execution between harts that have any difference in VLEN or
-ELEN parameters.
+NOTE: In general, thread contexts with active vector state cannot be
+migrated during execution between harts that have any difference in
+VLEN or ELEN parameters.
 
 == Vector Extension Programmer's Model
 
