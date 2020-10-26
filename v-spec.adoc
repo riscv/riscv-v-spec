@@ -72,6 +72,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Clarified support for precise/imprecise traps.  Require `vstart` to report location of faulting element.
 
+=== Define whole register move instructions in terms of SEW instead of EEW=8 to allow definition to apply to machines with no support for EEW=8, and to help describe how these provide a hint to implementations with internal rearrangement of data.  Functionality has not changed.
+
 :sectnums:
 
 == Introduction
@@ -4854,9 +4856,8 @@ element 0.  This does mean elements in destination register after
 
 The `vmv<nr>r.v` instructions copy whole vector registers (i.e., all
 VLEN bits) and can copy whole vector register groups.  The
-instructions operate as if EEW=8, EMUL = `nr`, effective length
-`evl`=VLEN/8 * EMUL, regardless of current settings in `vtype` and
-`vl`.
+instructions operate as if EEW=SEW, EMUL = `nr`, effective length
+`evl`= EMUL * VLEN/SEW.
 
 NOTE: These instructions are intended to aid compilers to shuffle
 vector registers without needing to know or change `vl` or `vtype`.
@@ -4864,11 +4865,16 @@ vector registers without needing to know or change `vl` or `vtype`.
 NOTE: The usual property that no elements are written if `vstart` {ge} `vl`
 does not apply to these instructions.
 
+NOTE: If `vd` is equal to `vs2` the instruction is an architectural
+NOP, but is treated as a HINT to implementations that rearrange data
+internally that the register group will next be accessed with an EEW
+equal to SEW.
+
 The instruction is encoded as an OPIVI instruction.  The number of
 vector registers to copy is encoded in the low three bits of the
 `simm` field using the same encoding as the `nf` field for memory
 instructions, i.e., `simm` = `nr-1`.
-`nr` must be 1, 2, 4, or 8.
+The value of the `nr` field must be 1, 2, 4, or 8, with other values reserved.
 
 NOTE: A future extension may support other numbers of registers to be moved.
 Values of `simm` other than 0, 1, 3, and 7 are currently reserved.
@@ -4889,15 +4895,11 @@ would benefit from an immediate form.
 ----
 
 The source and destination vector register numbers must be aligned
-appropriately for the vector register group size.
+appropriately for the vector register group size, and encodings with
+other vector register numbers are reserved.
 
 NOTE: A future extension may relax the vector register alignment
 restrictions.
-
-NOTE: If `vd` is equal to `vs2` the instruction is an architectural
-NOP, but is treated as a HINT to implementations that rearrange data
-internally that the register group will next be accessed with an EEW
-equal to SEW.
 
 == Exception Handling
 
