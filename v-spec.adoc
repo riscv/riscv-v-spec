@@ -1237,7 +1237,7 @@ One of the common approaches to handling a large number of elements is
 "stripmining" where each iteration of a loop handles some number of elements,
 and the iterations continue until all elements have been processed. The RISC-V
 vector specification provides direct, portable support for this approach.
-The application specifies the total number of elements to be processed as a
+The application specifies the total number of elements to be processed (the application vector length or AVL) as a
 candidate value for `vl`, and the hardware responds via a general-purpose
 register with the (frequently smaller) number of elements that the hardware
 will handle per iteration (stored in `vl`), based on the microarchitectural
@@ -1261,8 +1261,8 @@ arguments, and writes the new value of `vl` into `rd`.
 
 The new `vtype` setting is encoded in the immediate fields of
 `vsetvli` and in the `rs2` register for `vsetvl`.  The new vector
-length setting is based on the requested application vector length
-(AVL), which is encoded in the `rs1` and `rd` fields as follows:
+length setting is based on AVL, which is encoded in the `rs1` and `rd`
+fields as follows:
 
 .AVL used in `vsetvli` and `vsetvl` instructions
 [cols="2,2,10,10"]
@@ -1329,9 +1329,13 @@ set to zero, and the `vl` register is also set to zero.
 NOTE: Earlier drafts required a trap when setting `vtype` to an
 illegal value.  However, this would have added the first
 data-dependent trap on a CSR write to the ISA.  The current scheme
-also supports light-weight runtime interrogation of the supported
+supports light-weight runtime interrogation of the supported
 vector unit configurations by checking if `vill` is clear for a given
 setting.
+
+NOTE: Implementations may choose to trap when illegal values are
+written to `vtype` instead of setting `vill`, to allow emulation to
+support new configurations for forward-compatibility.
 
 === Constraints on Setting `vl`
 
