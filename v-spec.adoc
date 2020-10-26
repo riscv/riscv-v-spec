@@ -1295,15 +1295,21 @@ When `rs1=x0` but `rd!=x0`, the maximum unsigned integer value (`~0`)
 is used as the AVL, and the resulting VLMAX is written to `vl` and
 also to the `x` register specified by `rd`.
 
-When `rs1=x0` and `rd=x0`, the current vector length in `vl` is used
-as the AVL, and the resulting value is written to `vl`, but not to a destination register.
+When `rs1=x0` and `rd=x0`, the instruction operates as if the current
+vector length in `vl` is used as the AVL, and the resulting value is
+written to `vl`, but not to a destination register.  This form can
+only be used when VLMAX and hence `vl` is not actually changed by the
+new SEW/LMUL ratio, otherwise the instruction encoding is reserved.
 
-NOTE: This last form of the instruction allows the `vtype` register to be
-changed while maintaining the current `vl`, provided VLMAX is not
-reduced.  The `vl` value can be reduced by this instruction if the
-SEW/LMUL ratio changes causes VLMAX to shrink.  This design was chosen
-to ensure `vl` would always hold a legal value for current `vtype`
-setting.  The current `vl` value can be read from the `vl` CSR.
+NOTE: This last form of the instruction allows the `vtype` register to
+be changed while maintaining the current `vl`, provided VLMAX is not
+reduced.  This design was chosen to ensure `vl` would always hold a
+legal value for current `vtype` setting.  The current `vl` value can
+be read from the `vl` CSR.  The `vl` value could be reduced by this
+instruction if the new SEW/LMUL ratio causes VLMAX to shrink, and so
+this case has been reserved as it is not clear this is a generally
+useful operation, and implementations can otherwise assume `vl` is not
+changed by this instruction to optimize their microarchitecture.
 
 include::vcfg-format.adoc[]
 
