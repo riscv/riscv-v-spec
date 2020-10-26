@@ -74,6 +74,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Define whole register move instructions in terms of SEW instead of EEW=8 to allow definition to apply to machines with no support for EEW=8, and to help describe how these provide a hint to implementations with internal rearrangement of data.  Functionality has not changed.
 
+=== Specified minimum VLEN=128 for the base "V" vector extension.
+
 :sectnums:
 
 == Introduction
@@ -135,6 +137,17 @@ be a power of 2.
 NOTE: Profiles may set further constraints on these parameters, for
 example, requiring that ELEN {ge} max(XLEN,FLEN), or requiring a
 minimum VLEN value.
+
+The base "V" vector extension requires that VLEN{ge}128.
+
+NOTE: The value of 128 was chosen as a compromise for application
+processors. Providing a larger VLEN allows stripmining code to be
+elided in some cases for short vectors, but also increases the size of
+the minimum implementation.  Note that larger LMUL can be used to
+avoid stripmining for longer known-size application vectors at the
+cost of having fewer available vector register groups. For example, an
+LMUL of 8 allows vectors of up to sixteen 64-bit elements to be
+processed without stripmining using four vector register groups.
 
 The ISA supports writing binary code that under certain constraints
 will execute portably on harts with different values for these
