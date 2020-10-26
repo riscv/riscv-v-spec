@@ -68,6 +68,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Changed mandatory illegal instruction exceptions on unsupported encodings to reserved, to allow future use of these encodings.  Implementations are still recommended to trap on unsupported reserved encodings.
 
+=== Clarified that support for vector misaligned memory accesses is independent of support for scalar misaligned memory accessses.
+
 :sectnums:
 
 == Introduction
@@ -2352,13 +2354,21 @@ vamomaxuei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to regist
 
 == Vector Memory Alignment Constraints
 
-If the elements accessed by a vector memory instruction are not
-naturally aligned to the memory element size, either an address
-misaligned exception is raised on that element or the element is
-transferred successfully.
+If an element accessed by a vector memory instruction is not naturally
+aligned to the size of the element, either the element is transferred
+successfully or an address misaligned exception is raised on that
+element.
 
-Vector memory accesses follow the same rules for atomicity as scalar
-memory accesses.
+Support for misaligned vector memory accesses is independent of an
+implementation's support for misaligned scalar memory accesses.
+
+NOTE: An implementation may have neither, one, or both scalar and
+vector memory accesses support some or all misaligned accesses in
+hardware.  A separate PMA should be defined to determine if vector
+misaligned accesses are supported in the associated address range.
+
+Vector misaligned memory accesses follow the same rules for atomicity
+as scalar misaligned memory accesses.
 
 == Vector Memory Consistency Model
 
