@@ -4864,6 +4864,7 @@ vector registers without needing to know or change `vl` or `vtype`.
 
 NOTE: The usual property that no elements are written if `vstart` {ge} `vl`
 does not apply to these instructions.
+Instead, no elements are written if `vstart` {ge} `evl`.
 
 NOTE: If `vd` is equal to `vs2` the instruction is an architectural
 NOP, but is treated as a HINT to implementations that rearrange data
