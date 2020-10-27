@@ -1266,8 +1266,8 @@ values in `vl` and `vtype` to match application needs.
 
 === `vsetvli`/`vsetvl` instructions
 
-The `vsetvli` instruction sets the `vtype` and `vl` CSRs based on its
-arguments, and writes the new value of `vl` into `rd`.
+The `vsetvl{i}` instructions set the `vtype` and `vl` CSRs based on
+their arguments, and write the new value of `vl` into `rd`.
 
 ----
  vsetvli rd, rs1, vtypei # rd = new vl, rs1 = AVL, vtypei = new vtype setting
@@ -1303,7 +1303,7 @@ written to `vl`, but not to a destination register.  This form can
 only be used when VLMAX and hence `vl` is not actually changed by the
 new SEW/LMUL ratio, otherwise the instruction encoding is reserved.
 
-NOTE: This last form of the instruction allows the `vtype` register to
+NOTE: This last form of the instructions allows the `vtype` register to
 be changed while maintaining the current `vl`, provided VLMAX is not
 reduced.  This design was chosen to ensure `vl` would always hold a
 legal value for current `vtype` setting.  The current `vl` value can
@@ -1342,6 +1342,13 @@ Examples:
     vsetvli t0, a0, e8,m2       # SEW= 8, LMUL=2
     vsetvli t0, a0, e32,mf2     # SEW=32, LMUL=1/2
 ----
+
+The `vsetvl` variant operates similarly to `vsetvli` except that it
+takes a `vtype` value from `rs2` and can be used for context restore,
+and when the `vtypei` field is too small to hold the desired setting.
+
+NOTE: Several active complex types can be held in different `x`
+registers and swapped in as needed using `vsetvl`.
 
 If the `vtype` setting is not supported by the implementation, then
 the `vill` bit is set in `vtype`, the remaining bits in `vtype` are
@@ -1391,15 +1398,6 @@ of `AVL < 2*VLMAX`.
 This allows software to avoid needing to explicitly calculate a running
 maximum of vector lengths observed during a stripmined loop.
 --
-
-=== `vsetvl` Instruction
-
-The `vsetvl` variant operates similarly to `vsetvli` except that it
-takes a `vtype` value from `rs2` and can be used for context restore,
-and when the `vtypei` field is too small to hold the desired setting.
-
-NOTE: Several active complex types can be held in different `x`
-registers and swapped in as needed using `vsetvl`.
 
 [[example-stripmine-sew]]
 === Example of stripmining and changes to SEW
