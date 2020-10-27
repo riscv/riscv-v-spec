@@ -1416,7 +1416,7 @@ loop:
     add a1, a1, t1          # Bump pointer
     vwmul.vx v8, v4, x10    # Widening multiply into 32b in <v8--v15>
 
-    vsetvli x0, a0, e32,m8,ta,ma  # Operate on 32b values
+    vsetvli x0, x0, e32,m8,ta,ma  # Operate on 32b values
     vsrl.vi v8, v8, 3
     vse32.v v8, (a2)        # Store vector of 32b elements
     slli t1, a3, 2          # Multiply # elements this iteration by 4 bytes/destination element
