@@ -1344,11 +1344,7 @@ Examples:
 ----
 
 The `vsetvl` variant operates similarly to `vsetvli` except that it
-takes a `vtype` value from `rs2` and can be used for context restore,
-and when the `vtypei` field is too small to hold the desired setting.
-
-NOTE: Several active complex types can be held in different `x`
-registers and swapped in as needed using `vsetvl`.
+takes a `vtype` value from `rs2` and can be used for context restore.
 
 If the `vtype` setting is not supported by the implementation, then
 the `vill` bit is set in `vtype`, the remaining bits in `vtype` are
