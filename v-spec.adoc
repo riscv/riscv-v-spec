@@ -2082,17 +2082,20 @@ The instructions operate similarly to unmasked unit-stride load and
 store instructions of elements, with the base address passed in the
 scalar `x` register specified by `rs1`.
 
-Implementations are allowed to raise a misaligned address exception if the
-base address, in bits, is not naturally aligned to the lesser of XLEN and
-the greatest supported SEW.
+Implementations are allowed to raise a misaligned address exception on
+whole register loads and stores if the base address is not naturally
+aligned to the larger of the size of the encoded EEW in bytes (EEW/8)
+or the implementation's smallest supported SEW size in bytes
+(SEW~MIN~/8).
 
-NOTE: Allowing misaligned exceptions to be raised simplifies the
-implementation of these instructions.  Some implementations might not
-support SEW=8, so it is allowed to report misaligned exceptions for
-the smallest supported size even if larger.  Software that uses whole
-register moves will generally use a much larger alignment than the
-minimum required, so this does not complicate software use cases.
-
+NOTE: Allowing misaligned exceptions to be raised based on
+non-alignment to encoded EEW simplifies the implementation of these
+instructions.  Some implementations might not support smaller SEW
+widths, so are allowed to report misaligned exceptions for the
+smallest supported SEW even if larger than encoded EEW.  An extreme
+implementation might have SEW~MIN~>XLEN for example.  Software
+environments can mandate the minimum alignment requirements to support
+an ABI.  The base V extension mandates support for SEW=8.
 
 ----
    # Format of whole register move instructions.
