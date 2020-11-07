@@ -78,6 +78,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Clarified whole register moves, including existence of register group save/restore, and allowed misaligned to be signaled for smallest supported size instead of encoded EEW to support implementations without SEW=8 load/store.
 
+=== Changed default for vector memory instructions to be "unordered", and added ordered/unordered vector indexed instructions.
+
 :sectnums:
 
 == Introduction
@@ -1520,10 +1522,10 @@ field.
 |===
 2+| mop [1:0] | Description | Opcodes
 
-| 0 | 0 | unit-stride   | VLE<EEW>
-| 0 | 1 | reserved      | -
-| 1 | 0 | strided       | VLSE<EEW>
-| 1 | 1 | indexed       | VLXEI<EEW>
+| 0 | 0 | unit-stride       | VLE<EEW>
+| 0 | 1 | indexed-unordered | VLUXEI<EEW>
+| 1 | 0 | strided           | VLSE<EEW>
+| 1 | 1 | indexed-ordered   | VLOXEI<EEW>
 |===
 
 .encoding for stores
@@ -1534,17 +1536,21 @@ field.
 | 0 | 0 | unit-stride       | VSE<EEW>
 | 0 | 1 | indexed-unordered | VSUXEI<EEW>
 | 1 | 0 | strided           | VSSE<EEW>
-| 1 | 1 | indexed-ordered   | VSXEI<EEW>
+| 1 | 1 | indexed-ordered   | VSOXEI<EEW>
 |===
 
-The vector indexed store memory operations have two forms, ordered and
-unordered.  The indexed-unordered stores do not preserve element
-ordering on stores.
+Vector unit-stride and constant-stride memory accesses do not
+guarantee ordering between individual element accesses.  The vector
+indexed load and store memory operations have two forms, ordered and
+unordered.  The indexed-ordered variants preserve element ordering on
+memory accesses.
 
-NOTE: The indexed-unordered variant is provided as a potential
-implementation optimization.  Implementations are free to ignore the
-optimization and implement indexed-unordered identically to
-indexed-ordered.
+For unordered instructions (`mop`!=11) there is no guarantee on
+element access order.  If the accesses are to a strongly ordered IO
+region, the element accesses can be initiated in any order.
+
+NOTE: To provide ordered vector accesses to a strongly ordered IO
+region, the ordered indexed instructions should be used.
 
 For implementations with precise vector traps, exceptions on
 indexed-unordered stores are precise.
@@ -1720,29 +1726,46 @@ element stores are performed in element order.
 ----
     # Vector indexed loads and stores
 
+    # Vector unordered indexed load instructions
     # vd destination, rs1 base address, vs2 indices
-    vlxei8.v    vd, (rs1), vs2, vm  #    8-bit indexed load of SEW data
-    vlxei16.v   vd, (rs1), vs2, vm  #   16-bit indexed load of SEW data
-    vlxei32.v   vd, (rs1), vs2, vm  #   32-bit indexed load of SEW data
-    vlxei64.v   vd, (rs1), vs2, vm  #   64-bit indexed load of SEW data
+    vluxei8.v    vd, (rs1), vs2, vm  # unordered  8-bit indexed load of SEW data
+    vluxei16.v   vd, (rs1), vs2, vm  # unordered 16-bit indexed load of SEW data
+    vluxei32.v   vd, (rs1), vs2, vm  # unordered 32-bit indexed load of SEW data
+    vluxei64.v   vd, (rs1), vs2, vm  # unordered 64-bit indexed load of SEW data
 
-    # Vector ordered indexed store instructions
-    # vs3 store data, rs1 base address, vs2 indices
-    vsxei8.v    vs3, (rs1), vs2, vm  # ordered  8-bit indexed store of SEW data
-    vsxei16.v   vs3, (rs1), vs2, vm  # ordered 16-bit indexed store of SEW data
-    vsxei32.v   vs3, (rs1), vs2, vm  # ordered 32-bit indexed store of SEW data
-    vsxei64.v   vs3, (rs1), vs2, vm  # ordered 64-bit indexed store of SEW data
+    # Vector ordered indexed load instructions
+    # vd destination, rs1 base address, vs2 indices
+    vloxei8.v    vd, (rs1), vs2, vm  # ordered  8-bit indexed load of SEW data
+    vloxei16.v   vd, (rs1), vs2, vm  # ordered 16-bit indexed load of SEW data
+    vloxei32.v   vd, (rs1), vs2, vm  # ordered 32-bit indexed load of SEW data
+    vloxei64.v   vd, (rs1), vs2, vm  # ordered 64-bit indexed load of SEW data
 
     # Vector unordered-indexed store instructions
+    # vs3 store data, rs1 base address, vs2 indices
     vsuxei8.v   vs3, (rs1), vs2, vm # unordered  8-bit indexed store of SEW data
     vsuxei16.v  vs3, (rs1), vs2, vm # unordered 16-bit indexed store of SEW data
     vsuxei32.v  vs3, (rs1), vs2, vm # unordered 32-bit indexed store of SEW data
     vsuxei64.v  vs3, (rs1), vs2, vm # unordered 64-bit indexed store of SEW data
+
+    # Vector ordered indexed store instructions
+    # vs3 store data, rs1 base address, vs2 indices
+    vsoxei8.v    vs3, (rs1), vs2, vm  # ordered  8-bit indexed store of SEW data
+    vsoxei16.v   vs3, (rs1), vs2, vm  # ordered 16-bit indexed store of SEW data
+    vsoxei32.v   vs3, (rs1), vs2, vm  # ordered 32-bit indexed store of SEW data
+    vsoxei64.v   vs3, (rs1), vs2, vm  # ordered 64-bit indexed store of SEW data
+
 ----
 
 NOTE: The assembler syntax for indexed loads and stores uses
 ``ei``__x__ instead of ``e``__x__ to indicate the statically encoded EEW
 is of the index not the data.
+
+NOTE: The indexed operations mnemonics have a "U" or "O" to
+distinguish between unordered and ordered, while the other vector
+addressing modes have no character. While this is perhaps a little
+less consistent, this approach minimizes disruption to existing
+software, as VSXEI previously meant "ordered" - and the opcode can be
+retained as an alias during transition to help reduce software churn.
 
 === Unit-stride Fault-Only-First Loads
 
@@ -1860,6 +1883,10 @@ The `vl` register gives the number of structures to move, which is
 equal to the number of elements transferred to each vector register
 group.  Masking is also applied at the level of whole structures.
 
+For segment loads and stores, the individual memory accesses within
+each segment are unordered with respect to each other even for ordered
+indexed segment loads and stores.
+
 If a trap is taken, `vstart` is in units of structures.
 If a trap occurs partway through accessing a structure, it is
 implementation-defined whether a subset of the structure access is performed.
@@ -1941,16 +1968,17 @@ NOTE: Negative and zero strides are supported.
                                 #   and words from v3[i] to address x5+i*x6+4
 ----
 
-For strided segment stores where the byte stride is such that segments
-could overlap in memory, the segments must appear to be written in
-element order.
-
+For strided segment loads and stores where the byte stride is such
+that segments would overlap in memory, the individual element accesses
+can occur in any order.
 
 ==== Vector Indexed Segment Loads and Stores
 
 Vector indexed segment loads and stores move contiguous segments where
 each segment is located at an address given by adding the scalar base
 address in the `rs1` field to byte offsets in vector register `vs2`.
+Both ordered and unordered forms are provided, where the ordered forms
+access segments in element order.
 
 The data vector register group has EEW=SEW, EMUL=LMUL, while the index
 vector register group has EEW encoded in the instruction with
@@ -1958,18 +1986,20 @@ EMUL=(EEW/SEW)*LMUL.
 
 ----
     # Format
-    vlxseg<nf>ei<eew>.v vd, (rs1), vs2, vm          # Indexed segment loads
-    vsxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm         # Indexed segment stores
+    vluxseg<nf>ei<eew>.v vd, (rs1), vs2, vm   # Unordered indexed segment loads
+    vloxseg<nf>ei<eew>.v vd, (rs1), vs2, vm   # Ordered indexed segment loads
+    vsuxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm  # Unordered indexed segment stores
+    vsoseg<nf>ei<eew>.v vs3, (rs1), vs2, vm   # Ordered indexed segment stores
 
     # Examples
     vsetvli a1, t0, e8, ta,ma
-    vlxseg3ei32.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
+    vluxseg3ei32.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
                               #  and bytes at addresses x5+v3[i]+1 into v5[i],
                               #  and bytes at addresses x5+v3[i]+2 into v6[i].
 
     # Examples
     vsetvli a1, t0, e32, ta,ma
-    vsxseg2ei32.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
+    vsuxseg2ei32.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
                               #   and words from v3[i] to address x5+v5[i]+4
 ----
 
@@ -1979,9 +2009,6 @@ groups cannot overlap the source vector register group (specified by
 
 NOTE: This constraint supports restart of indexed segment loads
 that raise exceptions partway through loading a structure.
-
-Only ordered indexed segment stores are provided. The segments must
-appear to be written in element order.
 
 === Vector Load/Store Whole Register Instructions
 
