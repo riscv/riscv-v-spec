@@ -2209,7 +2209,7 @@ while the `vs3` vector register supplies the source data for the
 atomic memory operation.
 
 AMOs have the same index EEW scheme as indexed operations, except
-without the `mew` bit, which is is assumed to be zero, so offsets can
+without the `mew` bit, which is required to be zero, so offsets can
 have EEW=8,16,32,64 only.  A vector of byte offsets in register `vs2`
 is added to the scalar base register in `rs1` to give the addresses
 of the AMO operations.
