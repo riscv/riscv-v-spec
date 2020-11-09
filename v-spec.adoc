@@ -70,8 +70,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Clarified that support for vector misaligned memory accesses is independent of support for scalar misaligned memory accessses.
 
-=== Clarified support for precise/imprecise traps.  Require `vstart`
-to report location of faulting element. 
+=== Clarified support for precise/imprecise traps.  Require `vstart` to report location of faulting element. 
 
 === Define whole register move instructions in terms of SEW instead of EEW=8 to allow definition to apply to machines with no support for EEW=8, and to help describe how these provide a hint to implementations with internal rearrangement of data.  Functionality has not changed.
 
@@ -82,6 +81,8 @@ to report location of faulting element.
 === Changed default for vector memory instructions to be "unordered", and added ordered/unordered vector indexed instructions.
 
 === Clarified that for precise traps, vector store instructions can update idempotent memory for elements past the location of an element raising a trap.
+
+=== Reserved vstart values greater than maximum element index.
 
 :sectnums:
 
@@ -582,13 +583,15 @@ performed.  The `vstart` register is then reset to zero.
 
 The `vstart` CSR is defined to have only enough writable bits to hold
 the largest element index (one less than the maximum VLMAX) or
-lg2(VLEN) bits.  The upper bits of the `vstart` CSR are hardwired to
-zero (reads zero, writes ignored).
+lg2(VLEN) bits.
 
 NOTE: The maximum vector length is obtained with the largest LMUL
 setting (8) and the smallest SEW setting (8), so VLMAX_max = 8*VLEN/8
 = VLEN.  For example, for VLEN=256, `vstart` would have 8 bits to
 represent indices from 0 through 255.
+
+The use of `vstart` values greater than the largest element index is
+reserved.
 
 The `vstart` CSR is writable by unprivileged code, but non-zero
 `vstart` values may cause vector instructions to run substantially
@@ -5032,6 +5035,10 @@ unit microarchitectural state, to allow execution to continue
 correctly around imprecise traps.
 
 This mechanism is not defined in the base vector ISA.
+
+NOTE: A future extension might define a standard way of saving and
+restoring opaque microarchitectural state from a vector unit
+implementation to support context switching with imprecise traps.
 
 
 == Vector Instruction Listing
