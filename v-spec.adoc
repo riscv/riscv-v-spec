@@ -84,7 +84,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Reserved vstart values greater than maximum element index.
 
-=== Allow vector strided instruction to perform fewer memory accesses when `rs1=x0`.
+=== Allow vector strided instruction to perform fewer memory accesses when `rs2=x0`.
 
 :sectnums:
 
@@ -1728,16 +1728,16 @@ Negative and zero strides are supported.
 Element accesses within a strided instruction are unordered with
 respect to each other.
 
-When `rs1`=`x0`, then an implementation is allowed, but not required,
+When `rs2`=`x0`, then an implementation is allowed, but not required,
 to perform fewer memory operations than the number of active elements,
 and may perform different numbers of memory operations across
 different dynamic executions of the same static instruction.
 
-NOTE: Compilers must be aware to not use the `x0` form for rs1 when
+NOTE: Compilers must be aware to not use the `x0` form for rs2 when
 the immediate stride is `0` if the intent to is to require all memory
 accesses are performed.
 
-When `rs1!=x0` and the value of `x[rs1]=0`, the implementation must
+When `rs2!=x0` and the value of `x[rs2]=0`, the implementation must
 perform one memory access for each active element (but these accesses
 will not be ordered).
 
