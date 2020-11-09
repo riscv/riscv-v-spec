@@ -70,7 +70,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Clarified that support for vector misaligned memory accesses is independent of support for scalar misaligned memory accessses.
 
-=== Clarified support for precise/imprecise traps.  Require `vstart` to report location of faulting element.
+=== Clarified support for precise/imprecise traps.  Require `vstart`
+to report location of faulting element. 
 
 === Define whole register move instructions in terms of SEW instead of EEW=8 to allow definition to apply to machines with no support for EEW=8, and to help describe how these provide a hint to implementations with internal rearrangement of data.  Functionality has not changed.
 
@@ -79,6 +80,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 === Clarified whole register moves, including existence of register group save/restore, and allowed misaligned to be signaled for smallest supported size instead of encoded EEW to support implementations without SEW=8 load/store.
 
 === Changed default for vector memory instructions to be "unordered", and added ordered/unordered vector indexed instructions.
+
+=== Clarified that for precise traps, vector store instructions can update idempotent memory for elements past the location of an element raising a trap.
 
 :sectnums:
 
@@ -4967,6 +4970,9 @@ virtual memory.
 
 === Precise vector traps
 
+NOTE: We assume most supervisor-mode environments with demand-paging
+will require precise vector traps.
+
 Precise vector traps require that:
 
 . all instructions older than the trapping vector instruction have committed their results
@@ -4979,8 +4985,11 @@ have been updated at the time the trap is reported, provided that
 re-executing the instruction from the given `vstart` will correctly
 overwrite those elements.
 
-NOTE: We assume most supervisor-mode environments with demand-paging
-will require precise vector traps.
+In idempotent memory regions, vector store instructions may have
+updated elements in memory past the element causing a synchronous
+trap.  Non-idempotent memory regions must not have been updated for
+indices equal to or greater than the element that caused a synchronous
+trap during a vector store instruction.
 
 Except where noted above, vector instructions are allowed to overwrite
 their inputs, and so in most cases, the vector instruction restart
