@@ -1,0 +1,34 @@
+Date: 2020/11/06
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~18
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+#592 "Heritage" - old prior art
+
+We discussed how to add notes showing known older designs that had
+same features as included in spec, and spent some time covering all
+details in spec.  We cannot discuss live patents in meetings, but we
+can describe public domain techniques from 20+ years ago.  Proposal is
+to accept pull requests with details incorporated as NOTE comments for
+now.  Should ideally format differently than other commentary, but
+this can be done later.
+
+(#529) Whole register load/store misalignment exceptions
+
+While we had previously agreed (#529) that whole register load/stores
+could report misalignment exceptions if the base address was not
+aligned with the encoded hint EEW, we had not considered cases where
+the machine did not support smaller EEWs. In particular, stores are
+always encoded with EEW=8.
+
+We rejected allowing machines to report exceptions if not
+VLEN-aligned, as this would complicate stack save/restore in ABIs with
+smaller stack alignments.
+
+We decided to stay with current text that allows misaligned exceptions
+to be reported according to greater of the smallest supported EEW or
+the encoded EEW.  Profiles can mandate support for certain EEWs.
