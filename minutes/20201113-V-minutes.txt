@@ -1,0 +1,43 @@
+Date: 2020/11/13
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~22
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed:
+
+# Removing half-precision FP as mandate in V extension.
+
+The group discussed a proposal to remove half-precision floating-point
+operations as part of mandated set for V extension, moving FP16
+support to an additional standard extension.  BF16 support could be
+added in same way at later date.  For both 16b FP formats, a standard
+subextension supporting only conversion up/down to/from FP32 was
+agreed to be defined (no integer conversions, and no .rod. variant).
+This approach enables implementations to support either, both, or
+neither of these 16-bit floating-point formats.  The expected impact
+on software stack is expected to be small given that half-precision FP
+use is not yet standard.
+
+Related, there is a discussion on what level of support should be
+mandated in next application-processor profile (RVA21).  There were
+three options considered:
+1) no FP16 supported mandate
+2) RVA21 mandates FP16 convert operations only
+3) V mandates FP16 convert operations only
+
+This is to be discussed further, but group seemed to favor option 1 or
+2.
+
+# Mask handling
+
+There was initial discussion of concerns over mask handling for wide
+spatial implementations and/or implementations with vector register
+renaming.
+
+One proposal was to not allow "tail undisturbed" on mask results, as
+this complicated renamed implementations and those with specialized
+mask handling, while not being particularly useful to software.
+Created new issue #602 for this proposal.
+

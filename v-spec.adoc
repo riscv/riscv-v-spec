@@ -86,7 +86,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Allow vector strided instruction to perform fewer memory accesses when `rs2=x0`.
 
-=== Clarified that `vsetvl{i} x0, x0, ...` form instructions may set `vill` when new SEW/LMUL ratio is changed.
+=== Clarified that `vsetvl{i} x0, x0, ...` form instructions may set `vill` when new SEW/LMUL ratio would change VLMAX.
 
 :sectnums:
 
