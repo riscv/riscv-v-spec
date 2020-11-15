@@ -86,6 +86,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Allow vector strided instruction to perform fewer memory accesses when `rs2=x0`.
 
+=== Clarified that `vsetvl{i} x0, x0, ...` form instructions may set `vill` when new SEW/LMUL ratio is changed.
+
 :sectnums:
 
 == Introduction
@@ -1311,7 +1313,11 @@ When `rs1=x0` and `rd=x0`, the instruction operates as if the current
 vector length in `vl` is used as the AVL, and the resulting value is
 written to `vl`, but not to a destination register.  This form can
 only be used when VLMAX and hence `vl` is not actually changed by the
-new SEW/LMUL ratio, otherwise the instruction encoding is reserved.
+new SEW/LMUL ratio.
+
+Use of the instruction with a new SEW/LMUL ratio that would result in
+a change of VLMAX is reserved.  Implementations may set `vill` in this
+case.
 
 NOTE: This last form of the instructions allows the `vtype` register to
 be changed while maintaining the current `vl`, provided VLMAX is not
