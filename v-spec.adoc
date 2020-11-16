@@ -88,6 +88,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Clarified that `vsetvl{i} x0, x0, ...` form instructions may set `vill` when new SEW/LMUL ratio would change VLMAX.
 
+=== Made clear that implementations must support LMUL 1,2,4,8.
+
 :sectnums:
 
 == Introduction
@@ -327,7 +329,7 @@ longer application vectors.
 
 The vector length multiplier, _LMUL_, when greater than 1, represents
 the default number of vector registers that are combined to form a
-vector register group.  LMUL can have integer values 1,2,4,8.
+vector register group.  Implementations must support LMUL integer values of 1,2,4,8.
 
 LMUL can also be a fractional value, reducing the number of bits used
 in a vector register.  LMUL can have fractional values 1/2, 1/4, 1/8.
