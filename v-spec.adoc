@@ -4926,6 +4926,39 @@ implementations will choose not do that but will instead restart from
 element 0.  This does mean elements in destination register after
 `vstart` will already have been updated.
 
+==== Synthesizing `vdecompress`
+
+There is no inverse `vdecompress` provided, as this operation can be
+readily synthesized using iota and a masked vrgather:
+
+----
+    Desired functionality of 'vdecompress'
+      7 6 5 4 3 2 1 0     # vid
+
+            e d c b a     # packed vector of 5 elements
+      1 0 0 1 1 1 0 1     # mask vector of 8 elements
+
+      e 0 0 d c b 0 a     # result of vdecompress 
+----
+
+----
+      1 0 0 1 1 1 0 1     # mask vector
+      4 4 4 3 2 1 1 0     # viota.m
+      0 0 0 0 0 0 0 0     # zero result register
+      e 0 0 d c b 0 a     # vrgather using viota.m under mask
+----
+----
+     # v0 holds mask
+     # v1 holds packed data
+     # v11 holds decompressed data
+     viota.m v10, v0                 # Calc iota from mask in v0
+     vmv.v.i v11, 0                  # Clear destination
+     vrgather.vv v11, v1, v10, v0.t  # Expand into destination
+----
+
+The destination zeroing can be omitted if the decompressed elements
+are overwriting elements in an existng vector.
+
 === Whole Vector Register Move
 
 The `vmv<nr>r.v` instructions copy whole vector registers (i.e., all
