@@ -2020,7 +2020,7 @@ EMUL=(EEW/SEW)*LMUL.
     vluxseg<nf>ei<eew>.v vd, (rs1), vs2, vm   # Unordered indexed segment loads
     vloxseg<nf>ei<eew>.v vd, (rs1), vs2, vm   # Ordered indexed segment loads
     vsuxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm  # Unordered indexed segment stores
-    vsoseg<nf>ei<eew>.v vs3, (rs1), vs2, vm   # Ordered indexed segment stores
+    vsoxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm  # Ordered indexed segment stores
 
     # Examples
     vsetvli a1, t0, e8, ta,ma
