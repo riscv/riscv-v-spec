@@ -1,0 +1,29 @@
+Date: 2020/11/20
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~17
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+No meeting Nov 27 due to US Thanksgiving.
+
+Issues discussed:
+
+# Mask handling
+
+We discussed the challenges of distributing mask register values for
+machines with spatial wide datapaths.  Machines that perform dynamic
+microarchitectural striping to reduce datapath wiring can do the same
+for masks when it is known that a mask value is being written.
+Currently mask writes are explicit in the ISA, except for loads from
+memory (e.g., in a mask register spill/refill sequence).
+
+One suggestion was that a heuristic could be used for loads, where it
+would be assumed to not be a mask if LMUL>1 or not SEW=8, but this
+would not work for many cases.
+
+Another suggestion was to add new instructions to support load/store
+of masks.  This could be encoded as unit-stride instructions using
+reserved space in lumop[4:0].  These would look like EEW=8 load/stores
+except with vector length of ceil(vl/8) (implying effectively
+EMUL<=1).  The detailed behavior was not discussed.
