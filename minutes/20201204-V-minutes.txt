@@ -1,0 +1,85 @@
+Date: 2020/12/04
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~12
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Note: No meeting week Dec 11 due to Summit week.
+
+Issues discussed:
+
+# Memory ordering
+
+Most of the meeting was spent discussing a strategy to handle vector
+memory ordering wrt to the RISC-V MCM (RVWMO, RVTSO), i.e., ordering
+as observed/influenced by other harts in the system.
+
+A big concern is ordering of younger scalar loads after older vector
+loads when both are the same address, as this complicates
+high-performance in-order implementations (OoO implementations already
+have to deal with ordering around unknown addresses in any case, so
+not considered a significant additional burden there).  This load-load
+ordering is required for the existing MCM, and the discussion was
+around how it would be difficult to remove this ordering guarantee on
+current vector load instructions while preserve existing software view
+of memory, possibly either complicating mapping of standard languages
+or requiring software to add fences that would hurt performance on a
+large class of machines.
+
+One possible approach that was discussed was to add separate vector
+memory instructions with weaker memory ordering, either encoded as new
+opcodes or with some CSR field that modifies behavior of existing
+instruction encodings.  This might only be required for gather
+operations, but some discussion was whether even greater weakening,
+including intra-thread ordering should be considered.
+
+It was felt defining and experimenting with these variants on
+memory ordering would delay the vector spec even further, and so the
+consensus was to enter public review with the current PoR that follows
+standard RVWMO (or really, the standard MCM including TSO) at the
+instruction level with the current instructions (intra-instruction
+ordering was already relaxed per current draft spec), and consider
+weaker instruction forms as a later extension.
+
+# Mask handling
+
+We further discussed the challenges of distributing mask register
+values for machines with spatial wide datapaths using internal dynamic
+data striping.  In particular, all common instructions used to produce
+mask values are explicitly encoded in the ISA, except for loads from
+memory.  Machines with internal dynamic data striping will therefore require
+hiccups (additional microops) in the pipeline to rearrange load data
+whenever used as a mask (heuristics/predictors might be possible to
+reduce hiccups).
+
+The most important case is that of mask register spill/refill, but
+another important case is loading of packed bit vectors from memory
+for use as masks.
+
+Oblivious context save/restore would still likely require hiccups as
+the save/restore code would not know data type assumption for next use
+of a register, but these hiccups would be rare.
+
+To help reduce these hiccups, we discussed the addition of new
+unit-stride loads and stores that would use the lumop/sumop field to
+encode EEW=1, and also use effective vl = ceil(vl/8) (implying
+effectively EMUL<=1).  Proposed instructions would be:
+
+       vle1.v vd, (rs1)    # Byte load with effective vl = ceil(vl/8)
+       vse1.v vs2, (rs1)   # Byte store with effective vl = ceil(vl/8)
+
+For context
+switch, or where multiple vector lengths are present in a loop, whole
+register versions would also be useful, and might be simpler to
+provide and could be only alternative.
+
+       vl1re1.v vd, (rs1) # Whole register load
+
+These options, and whether any should be added to v1.0 for public
+review to be discussed further on email.  How to treat the extra bits
+in a byte loaded from memory is an open issue (1) 0s, or 2) 1s to match
+tail-agnostic, or 3) use whole byte from memory - 3) is probably simplest for
+implementations).
+
+
