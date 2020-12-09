@@ -16,14 +16,10 @@
 
 using namespace std;
 
-union f32_union {
+typedef union{
   float f;
   uint32_t i;
-
-  f32_union(uint32_t i) : i(i) {}
-  f32_union(unsigned long i) : i(uint32_t(i)) {}
-  f32_union(float f) : f(f) {}
-};
+} f32_union;
 
 #define P 7                // precision of approximation
 #define S 23               // significand bits in binary32
@@ -47,11 +43,11 @@ uint32_t estimate_rsqrt_sig(uint32_t idx)
 
   // sqrt(leftmost point on interval)
   // (If P is increased substantially, need to increase precision beyond double.)
-  f32_union in = (exp << S) | sig;
+  f32_union in = {.i = (exp << S) | sig};
   double left = sqrt(in.f);
 
   // sqrt(rightmost point on interval)
-  f32_union in1 = in.i + (1UL<<(S-ip+1));
+  f32_union in1 = {.i = in.i + (1UL<<(S-ip+1))};
   double right = sqrt(nextafter(double(in1.f), 0.0));
 
   // Naively search the space of 2^P output values for the one that minimizes
@@ -59,8 +55,8 @@ uint32_t estimate_rsqrt_sig(uint32_t idx)
   // evaluating the error on the extremes of the interval suffices.
   // (This could obviously be done more efficiently, but 2^P is small.)
   double best_error = INFINITY;
-  f32_union best = 0.0f;
-  f32_union base = B << S; // [1.0, 2.0)
+  f32_union best = {.f = 0.0f};
+  f32_union base = {.i = B << S}; // [1.0, 2.0)
   for (f32_union cand = base; cand.i < base.i + (1UL<<S); cand.i += 1UL<<(S-op)) {
     double error = max(fabs(1.0 - double(cand.f) * left),
                        fabs(1.0 - double(cand.f) * right));
@@ -83,11 +79,11 @@ uint32_t estimate_recip_sig(uint32_t idx)
   uint32_t exp = B-1; // [0.5, 1.0)
 
   // Leftmost point on interval
-  f32_union in = (exp << S) | sig;
+  f32_union in = {.i = (exp << S) | sig};
   double left = in.f;
 
   // Rightmost point on interval
-  f32_union in1 = in.i + (1UL<<(S-ip));
+  f32_union in1 = {.i = in.i + (1UL<<(S-ip))};
   double right = nextafter(double(in1.f), 0.0);
 
   // Naively search the space of 2^P output values for the one that minimizes
@@ -95,8 +91,8 @@ uint32_t estimate_recip_sig(uint32_t idx)
   // evaluating the error on the extremes of the interval suffices.
   // (This could obviously be done more efficiently, but 2^P is small.)
   double best_error = INFINITY;
-  f32_union best = 0.0f;
-  f32_union base = B << S; // [1.0, 2.0)
+  f32_union best = {.f = 0.0f};
+  f32_union base = {.i = B << S}; // [1.0, 2.0)
   for (f32_union cand = base; cand.i < base.i + (1UL<<S); cand.i += 1UL<<(S-op)) {
     double error = max(fabs(1.0 - double(cand.f) * left),
                        fabs(1.0 - double(cand.f) * right));
@@ -112,7 +108,7 @@ uint32_t estimate_recip_sig(uint32_t idx)
 
 float rsqrt(float a)
 {
-  f32_union in = a;
+  f32_union in = {.f = a};
 
   bool sign = in.i >> (S+E);
   uint32_t exp = (in.i >> S) & ((1UL<<E)-1);
@@ -143,13 +139,13 @@ float rsqrt(float a)
 
   uint32_t out_sig = rsqrt_lut[rsqrt_lut_idx(sig, exp)] << (S-P);
   uint32_t out_exp = (3 * B + ~exp) / 2;
-  f32_union res = (out_exp << S) | out_sig;
+  f32_union res = {.i = (out_exp << S) | out_sig};
   return res.f;
 }
 
 float recip(float a)
 {
-  f32_union in = a;
+  f32_union in = {.f = a};
 
   bool sign = in.i >> (S+E);
   uint32_t exp = (in.i >> S) & ((1UL<<E)-1);
@@ -200,7 +196,7 @@ float recip(float a)
     }
   }
 
-  f32_union res = ((uint32_t)sign << (E+S)) | (out_exp << S) | out_sig;
+  f32_union res = {.i = ((uint32_t)sign << (E+S)) | (out_exp << S) | out_sig};
   return res.f;
 }
 
@@ -240,7 +236,7 @@ void test()
   double max_error = 0;
 
   for (uint32_t i = 0x3F000000; i <= 0x3F800000; i++) {
-    f32_union r = i;
+    f32_union r = {.i = i};
     double error = 1.0 - recip(r.f) * r.f;
     max_error = fmax(fabs(error), max_error);
   }
@@ -248,7 +244,7 @@ void test()
 
   max_error = 0;
   for (uint32_t i = 0x3E800000; i <= 0x3F800000; i++) {
-    f32_union r = i;
+    f32_union r = {.i = i};
     double error = 1.0 - rsqrt(r.f) * sqrt(r.f);
     max_error = fmax(fabs(error), max_error);
   }
@@ -260,7 +256,7 @@ void test_slow()
   double max_error = 0;
 
   for (uint32_t i = 0x0; i <= 0x7f7fffff; i++) {
-    f32_union r = i;
+    f32_union r = {.i = i};
     float rcp = recip(r.f);
     double error = 1.0 - rcp * r.f;
 
@@ -274,7 +270,7 @@ void test_slow()
 
   max_error = 0;
   for (uint32_t i = 0; i <= 0x7f7fffff; i++) {
-    f32_union r = i;
+    f32_union r = {.i = i};
     double error = 1.0 - rsqrt(r.f) * sqrt(r.f);
     max_error = fmax(fabs(error), max_error);
   }
