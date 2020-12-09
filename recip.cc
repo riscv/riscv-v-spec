@@ -8,13 +8,10 @@
 #include <string.h>
 #include <fenv.h>
 #include <float.h>
-#include <algorithm>
 
 #if !defined(__STDC_IEC_559__) && !defined(__APPLE__)
 # error Need IEEE 754 FP
 #endif
-
-using namespace std;
 
 typedef union{
   float f;
@@ -58,8 +55,8 @@ uint32_t estimate_rsqrt_sig(uint32_t idx)
   f32_union best = {.f = 0.0f};
   f32_union base = {.i = B << S}; // [1.0, 2.0)
   for (f32_union cand = base; cand.i < base.i + (1UL<<S); cand.i += 1UL<<(S-op)) {
-    double error = max(fabs(1.0 - ((double)(cand.f)) * left),
-                       fabs(1.0 - ((double)(cand.f)) * right));
+    double error = fmax(fabs(1.0 - ((double)(cand.f)) * left),
+                        fabs(1.0 - ((double)(cand.f)) * right));
     if (error < best_error) {
       best_error = error;
       best = cand;
@@ -94,8 +91,8 @@ uint32_t estimate_recip_sig(uint32_t idx)
   f32_union best = {.f = 0.0f};
   f32_union base = {.i = B << S}; // [1.0, 2.0)
   for (f32_union cand = base; cand.i < base.i + (1UL<<S); cand.i += 1UL<<(S-op)) {
-    double error = max(fabs(1.0 - (double)(cand.f) * left),
-                       fabs(1.0 - (double)(cand.f) * right));
+    double error = fmax(fabs(1.0 - (double)(cand.f) * left),
+                        fabs(1.0 - (double)(cand.f) * right));
     if (error < best_error) {
       best_error = error;
       best = cand;
