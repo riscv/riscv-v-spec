@@ -48,7 +48,7 @@ uint32_t estimate_rsqrt_sig(uint32_t idx)
 
   // sqrt(rightmost point on interval)
   f32_union in1 = {.i = in.i + (1UL<<(S-ip+1))};
-  double right = sqrt(nextafter(double(in1.f), 0.0));
+  double right = sqrt(nextafter((double)(in1.f), 0.0));
 
   // Naively search the space of 2^P output values for the one that minimizes
   // the maximum error on the interval.  Since the function is monotonic,
@@ -58,8 +58,8 @@ uint32_t estimate_rsqrt_sig(uint32_t idx)
   f32_union best = {.f = 0.0f};
   f32_union base = {.i = B << S}; // [1.0, 2.0)
   for (f32_union cand = base; cand.i < base.i + (1UL<<S); cand.i += 1UL<<(S-op)) {
-    double error = max(fabs(1.0 - double(cand.f) * left),
-                       fabs(1.0 - double(cand.f) * right));
+    double error = max(fabs(1.0 - ((double)(cand.f)) * left),
+                       fabs(1.0 - ((double)(cand.f)) * right));
     if (error < best_error) {
       best_error = error;
       best = cand;
@@ -84,7 +84,7 @@ uint32_t estimate_recip_sig(uint32_t idx)
 
   // Rightmost point on interval
   f32_union in1 = {.i = in.i + (1UL<<(S-ip))};
-  double right = nextafter(double(in1.f), 0.0);
+  double right = nextafter((double)(in1.f), 0.0);
 
   // Naively search the space of 2^P output values for the one that minimizes
   // the maximum error on the interval.  Since the function is monotonic,
@@ -94,8 +94,8 @@ uint32_t estimate_recip_sig(uint32_t idx)
   f32_union best = {.f = 0.0f};
   f32_union base = {.i = B << S}; // [1.0, 2.0)
   for (f32_union cand = base; cand.i < base.i + (1UL<<S); cand.i += 1UL<<(S-op)) {
-    double error = max(fabs(1.0 - double(cand.f) * left),
-                       fabs(1.0 - double(cand.f) * right));
+    double error = max(fabs(1.0 - (double)(cand.f) * left),
+                       fabs(1.0 - (double)(cand.f) * right));
     if (error < best_error) {
       best_error = error;
       best = cand;
