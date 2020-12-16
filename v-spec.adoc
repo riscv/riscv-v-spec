@@ -345,6 +345,9 @@ supported SEW value at LMUL=1 and SEW~LMUL1MAX~ is the widest
 supported SEW value at LMUL=1.  An attempt to set an unsupported SEW
 and LMUL configuration sets the `vill` bit in `vtype`.
 
+For a given supported fractional LMUL, implementations must support SEW
+settings between SEW~LMUL1MIN~ and LMUL * SEW~LMUL1MAX~, inclusive.
+
 NOTE: Requiring LMUL {ge} SEW~LMUL1MIN~/SEW~LMUL1MAX~ allows software
 operating on mixed-width elements to only use a single vector register
 to hold the wider elements, with fractional
