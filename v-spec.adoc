@@ -1813,7 +1813,7 @@ vector length `vl` is reduced to the index of the element that would
 have raised an exception.
 
 ----
-    # Vector unit-stride fault-only-first loads and stores
+    # Vector unit-stride fault-only-first loads
 
     # vd destination, rs1 base address, vm is mask encoding (v0.t or <missing>)
     vle8ff.v    vd, (rs1), vm  #    8-bit unit-stride fault-only-first load
@@ -2153,7 +2153,7 @@ environments can mandate the minimum alignment requirements to support
 an ABI.  The base V extension mandates support for SEW=8.
 
 ----
-   # Format of whole register move instructions.
+   # Format of whole register load and store instructions.
    vl1r.v v3, (a0)       # Pseudo instruction equal to vl1re8.v
 
    vl1re8.v    v3, (a0)  # Load v3 with VLEN/8 bytes held at address in a0
