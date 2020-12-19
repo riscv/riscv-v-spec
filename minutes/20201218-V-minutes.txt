@@ -1,0 +1,63 @@
+Date: 2020/12/18
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Co-Chair: Roger Espasa
+Number of Attendees: ~10
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Note: No more meetings schedule until next year.  Time slot may have
+to change.
+
+Issues discussed:
+
+# Freeze process
+
+We are close to freezing the spec.  There is a waiver from chairs for
+SAIL model and compatibility tests, but we will need to complete these
+before ratification.
+
+# auto pdf generation
+
+There was a request to have the repo automatically generate a pdf
+version on commits to avoid users having to install formatting tools.
+
+# Mask handling
+
+Continuing discussion, the concrete proposal is to add new unit-stride
+loads and stores that would use the lumop/sumop field to encode byte
+load/stores used for masks, and also use effective vl = ceil(vl/8)
+(implying effectively EMUL<=1).  Proposed instructions would be:
+
+       vle1.v vd, (rs1)    # Byte load with effective vl = ceil(vl/8)
+       vse1.v vs2, (rs1)   # Byte store with effective vl = ceil(vl/8)
+
+Encoded with lumop/sumop = 00011.
+
+We discussed adding whole vector register load version with
+lumop=01011, which would only be a mask hint, but for now, this seems
+less necessary so is not on PoR.
+
+       vl1re1.v vd, (rs1) # Whole register load
+
+# vsetivli
+
+A new variant of vsetvl was proposed providing an immediate as the AVL
+in rs1[4:0].  The immediate encoding is the same as for CSR immediate
+instructions. The instruction would have bit 31:30 = 11 and bits 29:20
+would be encoded same as vsetvli.
+
+This would be used when AVL was statically known, and known to fit
+inside vector register group.  Compared with existing PoR, it removes
+need to load immediate into a spare scalar register before executing
+vsetvli, and is useful for handling scalar values in vector register
+(vl=1) and other cases where short fixed-sized vectors are the
+datatype (e.g., graphics).
+
+There was discussion on whether uimm=00000 should represent 32 or be
+reserved.  32 is more useful, but adds a little complexity to
+hardware.
+
+There was also discussion on whether instruction should set vill if
+selected AVL is not supported, or whether should clip vl to VLMAX as
+with other instructions, or if behavior should be reserved.  Group
+generally favored writing vill to expose software errors.
