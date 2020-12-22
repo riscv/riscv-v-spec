@@ -2831,7 +2831,7 @@ require an additional move to obtain correct results.
   # Example multi-word arithmetic sequence, accumulating into v4
   vmadc.vvm v1, v4, v8, v0  # Get carry into temp register v1
   vadc.vvm v4, v4, v8, v0   # Calc new sum
-  vmcpy.m v0, v1             # Move temp carry into v0 for next word
+  vmmv.m v0, v1             # Move temp carry into v0 for next word
 ----
 
 The subtract with borrow instruction `vsbc` performs the equivalent
@@ -4311,9 +4311,9 @@ possibly binary logical functions of the two input masks:
 | 1 | 1 | 1 | 0 | vmnand.mm vd, src1, src2    |
 | 0 | 0 | 0 | 1 | vmand.mm vd, src1, src2     |
 | 1 | 0 | 0 | 1 | vmxnor.mm vd, src1, src2    |
-| 0 | 1 | 0 | 1 | vmand.mm vd, src2, src2     | vmcpy.m vd, src2
+| 0 | 1 | 0 | 1 | vmand.mm vd, src2, src2     | vmmv.m vd, src2
 | 1 | 1 | 0 | 1 | vmornot.mm vd, src2, src1   |
-| 0 | 0 | 1 | 1 | vmand.mm vd, src1, src1     | vmcpy.m vd, src1
+| 0 | 0 | 1 | 1 | vmand.mm vd, src1, src1     | vmmv.m vd, src1
 | 1 | 0 | 1 | 1 | vmornot.mm vd, src1, src2   |
 | 1 | 1 | 1 | 1 | vmxnor.mm vd, vd, vd        | vmset.m vd
 |===
