@@ -1973,7 +1973,7 @@ field to be stored in each segment.
 There are also fault-only-first versions of the unit-stride instructions.
 
 ----
-    # Template for vector fault-only-first unit-stride segment loads and stores.
+    # Template for vector fault-only-first unit-stride segment loads.
     vlseg<nf>e<eew>ff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
 ----
 
