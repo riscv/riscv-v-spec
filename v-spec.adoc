@@ -1901,8 +1901,7 @@ NOTE: The product EMUL * NFIELDS represents the number of underlying
 vector registers that will be touched by a segmented load or store
 instruction.  This constraint makes this total no larger than 1/4 of
 the architectural register file, and the same as for regular
-operations with EMUL=8. This constraint could be weakened in a future
-draft.
+operations with EMUL=8.
 
 Each field will be held in successively numbered vector register
 groups.  When EMUL>1, each field will occupy a vector register group
@@ -1912,24 +1911,20 @@ register alignment constraints (e.g., when EMUL=2 and NFIELDS=4, each
 field's vector register group must start at an even vector register,
 but does not have to start at a multiple of 8 vector register number).
 
-NOTE: An earlier version imposed a vector register number constraint,
-but this decreased ability to make use of all registers when NFIELDS
-was not a power of 2.
-
 If the vector register numbers accessed by the segment load or store
 would increment past 31, then the instruction encoding is reserved.
 
-NOTE: This constraint is to help provide forward-compatibility with a
-future longer instruction encoding that has more addressable vector
-registers.
+NOTE: This constraint is to help allow for forward-compatibility with
+a possible future longer instruction encoding that has more
+addressable vector registers.
 
 The `vl` register gives the number of structures to move, which is
 equal to the number of elements transferred to each vector register
 group.  Masking is also applied at the level of whole structures.
 
-For segment loads and stores, the individual memory accesses within
-each segment are unordered with respect to each other even for ordered
-indexed segment loads and stores.
+For segment loads and stores, the individual memory accesses used to
+access fields within each segment are unordered with respect to each
+other even for ordered indexed segment loads and stores.
 
 If a trap is taken, `vstart` is in units of structures.
 If a trap occurs partway through accessing a structure, it is
@@ -1941,9 +1936,10 @@ The vector unit-stride load and store segment instructions move packed
 contiguous segments ("array-of-structures") into multiple destination
 vector register groups.
 
-NOTE: For segments with heterogeneous-sized fields, software can later
-unpack fields using additional instructions after the segment load
-brings the values into the separate vector registers.
+NOTE: For structures with heterogeneous-sized fields, software can
+later unpack structure fields from a segment using additional
+instructions after the segment load brings data into the vector
+registers.
 
 The assembler prefixes `vlseg`/`vsseg` are used for unit-stride
 segment loads and stores respectively.
@@ -2012,9 +2008,9 @@ NOTE: Negative and zero strides are supported.
                                 #   and words from v3[i] to address x5+i*x6+4
 ----
 
-For strided segment loads and stores where the byte stride is such
-that segments would overlap in memory, the individual element accesses
-can occur in any order.
+Accesses to the fields within each segment can occur in any order,
+including the case where the byte stride is such that segments overlap
+in memory.
 
 ==== Vector Indexed Segment Loads and Stores
 
@@ -2022,7 +2018,9 @@ Vector indexed segment loads and stores move contiguous segments where
 each segment is located at an address given by adding the scalar base
 address in the `rs1` field to byte offsets in vector register `vs2`.
 Both ordered and unordered forms are provided, where the ordered forms
-access segments in element order.
+access segments in element order.  However, even for the ordered form,
+accesses to the fields within an individual segment are not ordered
+with respect to each other.
 
 The data vector register group has EEW=SEW, EMUL=LMUL, while the index
 vector register group has EEW encoded in the instruction with
