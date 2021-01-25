@@ -1815,10 +1815,12 @@ The unit-stride fault-only-first load instructions are used to
 vectorize loops with data-dependent exit conditions ("while" loops).
 These instructions execute as a regular load except that they will
 only take a trap caused by a synchronous exception on element 0.  If
-an element > 0 raises an exception, that element and all following
-elements in the destination vector register are not modified, and the
-vector length `vl` is reduced to the index of the element that would
-have raised an exception.
+element 0 raises an exception, `vl` and the destination elements are
+not modified, and the trap is taken.  If an element > 0 raises an
+exception, the corresponding trap is not taken, that element and all
+following elements in the destination vector register are not
+modified, and the vector length `vl` is reduced to the index of the
+element that would have raised an exception.
 
 ----
     # Vector unit-stride fault-only-first loads
@@ -1840,20 +1842,20 @@ strlen example using unit-stride fault-only-first instruction
 include::example/strlen.s[lines=4..-1]
 ----
 
-NOTE: Strided and scatter/gather fault-only-first instructions are not
-provided due to lack of encoding space, and they can also represent a
-larger security hole, allowing software to check multiple random pages
-for accessibility without experiencing a trap. The unit-stride
-versions only allow probing a region immediately contiguous to a known
-region, and so do not appreciably impact security.  It is possible
-that security mitigations can be implemented to allow fault-only-first
+NOTE: There is a security concern with fault-on-first loads, as they
+can be used to probe for valid effective addresses.  Strided and
+scatter/gather fault-only-first instructions are not provided due to
+lack of encoding space, and they can also represent a larger security
+hole, allowing software to easily check multiple random pages for
+accessibility without experiencing a trap. The unit-stride versions
+only allow probing a region immediately contiguous to a known region,
+and so do not appreciably impact security.  It is possible that
+security mitigations can be implemented to allow fault-only-first
 variants of non-contiguous accesses in future vector extensions.
 
 Even when an exception is not raised, implementations are permitted to process
 fewer than `vl` elements and reduce `vl` accordingly, but if `vstart`=0 and
 `vl`>0, then at least one element must be processed.
-
-NOTE: `vl` is not modified if element 0 raises an exception.
 
 Implementations should not reduce `vl` and instead set a non-zero
 `vstart` value when the fault-only-first instruction takes a trap due
