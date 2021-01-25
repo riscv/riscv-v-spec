@@ -1633,8 +1633,8 @@ Vector loads and stores have an EEW encoded directly in the
 instruction.  The corresponding EMUL is calculated as EMUL =
 (EEW/SEW)*LMUL. If the EMUL would be out of range (EMUL>8 or
 EMUL<1/8), the instruction encoding is reserved.  The vector register
-groups must have legal register specifiers for the selected EMUL, else
-the instruction encoding is reserved.
+groups must have legal register specifiers for the selected EMUL;
+the instruction encoding is otherwise considered reserved.
 
 Vector unit-stride and constant-stride use the EEW/EMUL encoded in the
 instruction for the data values, while vector indexed loads and stores
@@ -1646,9 +1646,9 @@ claimed by the standard scalar floating-point loads and stores.  The
 `mew` bit (`inst[28]`) encodes expanded memory sizes of 128 bits and
 above.
 
-Vector loads and stores up to EEW=ELEN must be supported in an
-implementation.  Using a vector load/store with an unsupported EEW
-is reserved.
+Vector loads and stores for EEWs of all supported SEW settings must be
+provided in an implementation.  Vector load/store encodings for
+unsupported EEW widths are reserved.
 
 .Width encoding for vector loads and stores.
 [cols="4,1,1,1,1,3,3,3,3"]
