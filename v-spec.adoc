@@ -653,7 +653,7 @@ mode as specified in the following table.
 [cols="1,1,4,10,5"]
 [%autowidth]
 |===
-2+| Bits [1:0] | Abbreviation | Rounding Mode | Rounding increment, `r`
+2+| `vxrm[1:0]` | Abbreviation | Rounding Mode | Rounding increment, `r`
 
 | 0 | 0 | rnu | round-to-nearest-up (add +0.5 LSB)          | `v[d-1]`
 | 0 | 1 | rne | round-to-nearest-even                       | `v[d-1] & (v[d-2:0]{ne}0 \| v[d])`
@@ -668,9 +668,10 @@ roundoff_signed(v, d) = (signed(v) >> d) + r
 ----
 are used to represent this operation in the instruction descriptions below.
 
-Bits[XLEN-1:2] should be written as zeros.
+`vxrm[XLEN-1:2]` should be written as zeros.
 
-NOTE: The rounding mode can be set with a single `csrwi` instruction.
+NOTE: A new rounding mode can be set while saving the original
+rounding mode using a single `csrwi` instruction.
 
 === Vector Fixed-Point Saturation Flag `vxsat`
 
