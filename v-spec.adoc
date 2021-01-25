@@ -593,8 +593,7 @@ equal to the vector length `vl` then no element operations are
 performed.  The `vstart` register is then reset to zero.
 
 The `vstart` CSR is defined to have only enough writable bits to hold
-the largest element index (one less than the maximum VLMAX) or
-lg2(VLEN) bits.
+the largest element index (one less than the maximum VLMAX).
 
 NOTE: The maximum vector length is obtained with the largest LMUL
 setting (8) and the smallest SEW setting (8), so VLMAX_max = 8*VLEN/8
