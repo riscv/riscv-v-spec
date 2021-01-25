@@ -386,7 +386,7 @@ given the current SEW and LMUL settings as shown in the table below.
 [cols="1,1,1,2,2,5,5"]
 [%autowidth]
 |===
-  3+| vlmul | LMUL | #groups | VLMAX      | Registers grouped with register __n__
+  3+| vlmul[2:0] | LMUL | #groups | VLMAX      | Registers grouped with register __n__
 
 | 1 | 0 | 0 |   -  |     -   |     -      | reserved
 | 1 | 0 | 1 |   1/8|     32  | VLEN/SEW/8 | `v` __n__ (single register in group)
@@ -456,15 +456,15 @@ physical destination vector register.  This causes an inefficiency
 when these inactive or tail values are not required for subsequent
 calculations.
 
-NOTE: The intent is for software to select the option that reduces
-microarchitectural work by selecting agnostic when the value in the
-respective set does not matter.
+NOTE: The intent is for software to reduce microarchitectural work by
+selecting agnostic when the value in the respective set does not
+matter.
 
 NOTE: The value of all 1s instead of all 0s was chosen for the
 overwrite value to discourage software developers from depending on
 the value written.
 
-NOTE: A simple in-order implementation can ignore the setting and
+NOTE: A simple in-order implementation can ignore the settings and
 simply execute all vector instructions using the undisturbed
 policy. The `vta` and `vma` state bits must still be provided in
 `vtype` for compatibility and to support thread migration.
@@ -534,22 +534,24 @@ The _XLEN_-bit-wide read-only `vl` CSR can only be updated by the
 instruction variants.
 
 The `vl` register holds an unsigned integer specifying the number of
-elements to be updated by a vector instruction.  Elements in any
-destination vector register group with indices {ge} `vl` are unmodified during
-execution of a vector instruction.  When `vstart` {ge} `vl`,
-no elements are updated in any destination vector register group.
+elements to be updated by a vector instruction.
+
+NOTE: The number of bits implemented in `vl` depends on the
+implementation's maximum vector length of the smallest supported
+type. The smallest vector implementation, RV32IV, would need at least
+six bits in `vl` to hold the values 0-32 (VLEN=32, with LMUL=8 and
+SEW=8, yields VLMAX=32).
+
+Elements in any destination vector register group with indices {ge}
+`vl` are unmodified during execution of a vector instruction.  When
+`vstart` {ge} `vl`, no elements are updated in any destination vector
+register group.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
 
 Instructions that write an `x` register or `f` register
 do so even when `vstart` {ge} `vl`.
-
-NOTE: The number of bits implemented in `vl` depends on the
-implementation's maximum vector length of the smallest supported
-type. The smallest vector implementation, RV32IV, would need at least
-six bits in `vl` to hold the values 0-32 (with VLEN=32, LMUL=8 and
-SEW=8 results in VLMAX of 32).
 
 === Vector Byte Length `vlenb`
 
