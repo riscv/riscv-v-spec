@@ -722,7 +722,7 @@ SEW and LMUL settings, as well as implementation VLEN.  Elements are
 packed into each vector register with the least-significant byte in
 the lowest-numbered bits.
 
-=== Mapping for LMUL {le} 1
+=== Mapping for LMUL = 1
 
 When LMUL=1, elements are simply packed in order from the
 least-significant to most-significant bits of the vector register.
@@ -777,6 +777,8 @@ least-significant byte of the stored element.
  SEW=64b                 3               2               1               0
  SEW=128b                                1                               0
 ----
+
+=== Mapping for LMUL < 1
 
 When LMUL < 1, only the first LMUL*VLEN/SEW elements in the vector
 register are used.  The remaining space in the vector register is
@@ -864,9 +866,9 @@ register in the group once each vector register is filled.
 
 The vector ISA is designed to support mixed-width operations without
 requiring explicit additional rearrangement instructions.  The
-recommended software strategy is to modify `vtype` dynamically to keep
-SEW/LMUL constant (and hence VLMAX constant) when operating on vectors
-of different precision values.
+recommended software strategy when operating on vectors of different
+precision values is to modify `vtype` dynamically to keep SEW/LMUL
+constant (and hence VLMAX constant).
 
 The following example shows four different packed element widths (8b,
 16b, 32b, 64b) in a VLEN=128b implementation.  The vector register
