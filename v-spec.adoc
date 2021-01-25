@@ -2128,18 +2128,18 @@ The `nf` field encodes how many vector registers to load and store.
 The encoded number of registers must be a power of 2 and the vector
 register numbers must be aligned as with a vector register group,
 otherwise the instruction encoding is reserved.  The `nf` field
-encodes the number of vector registers to transfer numbered
+encodes the number of vector registers to transfer, numbered
 successively after the base.  Only `nf` values of 1, 2, 4, 8 are
 supported, with other values reserved.  When multiple registers are
 transferred, the lowest-numbered vector register is held in the
 lowest-numbered memory addresses and successive vector register
 numbers are placed contiguously in memory.
 
-The instructions operate with an `evl`=`nf`*VLEN/EEW, regardless of
-current settings in `vtype` and `vl`.  The usual property that no
-elements are written if `vstart` {ge} `vl` does not apply to these
-instructions.  Instead, no elements are written if `vstart` {ge}
-`evl`.
+The instructions operate with an effective vector length,
+`evl`=`nf`*VLEN/EEW, regardless of current settings in `vtype` and
+`vl`.  The usual property that no elements are written if `vstart`
+{ge} `vl` does not apply to these instructions.  Instead, no elements
+are written if `vstart` {ge} `evl`.
 
 The instructions operate similarly to unmasked unit-stride load and
 store instructions of elements, with the base address passed in the
@@ -2256,7 +2256,8 @@ have EEW=8,16,32,64 only.  A vector of byte offsets in register `vs2`
 is added to the scalar base register in `rs1` to give the addresses
 of the AMO operations.
 
-The data register `vs3` used dynamic SEW and MUL setting.
+The data register `vs3` used the dynamic SEW and LMUL settings in
+`vtype`.
 
 If the `wd` bit is set, the `vd` register is written with the initial
 value of the memory element.  If the `wd` bit is clear, the `vd`
@@ -2468,11 +2469,12 @@ local hart.  Vector memory instructions follow RVWMO at the
 instruction level, and element operations are ordered within the
 instruction as if performed by an element-ordered sequence of
 syntactically independent scalar instructions.  Vector indexed-ordered
-stores write elements to memory in element order.  Vector
-indexed-unordered stores do not preserve element order for writes
-within a single vector store instruction.
+loads and stores read and write elements from/to memory in element
+order respectively.  Vector indexed-unordered loads and stores do not
+preserve element order for reads and writes within a single vector
+load or store instruction respectively.
 
-NOTE: Need to flesh out details.
+NOTE: More formal definitions required.
 
 == Vector Arithmetic Instruction Formats
 
