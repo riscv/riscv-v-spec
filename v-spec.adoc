@@ -1382,14 +1382,12 @@ set to zero, and the `vl` register is also set to zero.
 
 NOTE: Earlier drafts required a trap when setting `vtype` to an
 illegal value.  However, this would have added the first
-data-dependent trap on a CSR write to the ISA.  The current scheme
-supports light-weight runtime interrogation of the supported
-vector unit configurations by checking if `vill` is clear for a given
-setting.
-
-NOTE: Implementations may choose to trap when illegal values are
-written to `vtype` instead of setting `vill`, to allow emulation to
-support new configurations for forward-compatibility.
+data-dependent trap on a CSR write to the ISA.  Implementations may
+choose to trap when illegal values are written to `vtype` instead of
+setting `vill`, to allow emulation to support new configurations for
+forward-compatibility.  The current scheme supports light-weight
+runtime interrogation of the supported vector unit configurations by
+checking if `vill` is clear for a given setting.
 
 === Constraints on Setting `vl`
 
