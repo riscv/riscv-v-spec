@@ -1050,7 +1050,7 @@ register, independent of SEW or LMUL.
 The instructions in the vector extension fit under three existing major
 opcodes (LOAD-FP, STORE-FP, AMO) and one new major opcode (OP-V).
 
-Vector loads and stores are encoding within the scalar floating-point
+Vector loads and stores are encoded within the scalar floating-point
 load and store major opcodes (LOAD-FP/STORE-FP).  The vector load and
 store encodings repurpose a portion of the standard scalar
 floating-point load/store 12-bit immediate field to provide further
@@ -1111,7 +1111,8 @@ EEW=2*SEW and EMUL=2*LMUL but destination where EEW=SEW and EMUL=LMUL.
 Vector operands or results may occupy one or more vector registers
 depending on EMUL, but are always specified using the lowest-numbered
 vector register in the group.  Using other than the lowest-numbered
-vector register to specify a vector register group is reserved..
+vector register to specify a vector register group is a reserved
+encoding.
 
 A destination vector register group can overlap a source vector register
 group only if one of the following holds:
