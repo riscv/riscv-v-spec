@@ -1458,9 +1458,10 @@ loop:
 Vector loads and stores move values between vector registers and
 memory.  Vector loads and stores are masked and do not raise
 exceptions on inactive elements.  Masked vector loads do not update
-inactive elements in the destination vector register group.  Masked
-vector stores only update active memory elements.  All vector loads
-and stores may generate and accept a non-zero `vstart` value.
+inactive elements in the destination vector register group, unless
+masked agnostic is specified (`vtype.vma`=1).  Masked vector stores
+only update active memory elements.  All vector loads and stores may
+generate and accept a non-zero `vstart` value.
 
 === Vector Load/Store Instruction Encoding
 
