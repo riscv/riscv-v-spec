@@ -218,11 +218,10 @@ set to Off.
 
 When the `VS` field is set to Initial or Clean, executing any
 instruction that changes vector state, including the vector CSRs, will
-change `VS` to Dirty.
+change `VS` to Dirty.  Implementations may also change `VS` field to
+Dirty at any time, even when there is no change in vector state.
 
-NOTE: Implementations may also change `VS` field to Dirty at any time,
-even when there is no change in vector state.  Accurate setting of the
-`VS` field is an optimization.
+NOTE: Accurate setting of the `VS` field is an optimization.
 
 Implementations may have a writable `misa.v` field.  Analogous to the
 way in which the floating-point unit is handled, the `mstatus.vs`
