@@ -1,0 +1,259 @@
+       AVL
+00000   0
+00001   1
+00010   2
+00011   3
+00100   4
+00101   5
+00110   6
+00111   7
+01000   8
+01001   9
+01010  10
+01011  11
+01100  12
+01101  13
+01110  14
+01111  15
+10000  16       uimm[4:3] << uimm[2:0]
+10001  32
+10010  64
+10011  128
+10100  256
+10101  512
+10110  1024
+10111  2048
+11000  24        
+11001  48
+11010  96
+11011  192
+11100  384
+11101  768
+11110  1536
+11111  3072
+
+if (uimm[4])
+   AVL = uimm[4:3] << (uimm[2:0] + 3)
+else
+   AVL = uimm[3:0]
+
+
+SLEN=VLEN=32b
+
+
+          Byte    3   2   1   0
+ LMUL=1,SEW=8b
+                  3   2   1   0  Element
+                 [3] [2] [1] [0] Mask bit position in decimal
+
+ LMUL=2,SEW=16b
+                      1       0
+                    [01]    [00]
+                      3       2
+                    [03]    [02]
+
+ LMUL=4,SEW=32b               0
+                            [00]
+                              1
+                            [01]
+                              2
+                            [02]
+                              3
+                            [03]
+----
+
+----
+ LMUL=2,SEW=8b
+                  3   2   1   0
+                [12][08][04][00]
+                  7   6   5   4
+                [28][24][20][16]
+
+ LMUL=8,SEW=32b
+                              0
+                            [00]
+                              1
+                            [04]
+                              2
+                            [08]
+                              3
+                            [12]
+                              4
+                            [16]
+                              5
+                            [20]
+                              6
+                            [24]
+                              7
+                            [28]
+
+ LMUL=8,SEW=8b
+                  3   2   1   0
+                [03][02][01][00]
+                  7   6   5   4
+                [07][06][05][04]
+                  B   A   9   8
+                [11][10][09][08]
+                  F   E   D   C
+                [15][14][13][12]
+                 13  12  11  10
+                [19][18][17][16]
+                 17  16  15  14
+                [23][22][21][20]
+                 1B  1A  19  18
+                [27][26][25][24]
+                 1F  1E  1D  1C
+                [31][30][29][28]
+----
+
+When LMUL < 1, the mask elements are accessed as if LMUL=1 and the
+vector length was reduced.
+
+
+=== Mask Element Locations for SLEN < VLEN
+
+In systems with SLEN < VLEN, the mask elements are striped across the
+VLEN/SLEN sections of the vector mask register.  Mask element 0 is in
+least-significant bits of section 0, and mask element 1 is in
+least-significant bits of section 1, etc.  In general, the
+least-significant bit of the mask element for element __i__ is located
+at bit:
+
+mask_LSB_index(__i__) = (__i__ % (VLEN / SLEN)) * SLEN + floor(__i__ / (VLEN / SLEN)) * MLEN
+
+----
+ Mask register element location examples for SLEN < VLEN
+ The bit position of the LSB of each mask element is in decimal inside [] braces.
+
+ VLEN=256b, SLEN=128b, SEW=32b, LMUL=2, MLEN=16b
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ v2*n            7       5       3       1|       6       4       2       0
+                [7]     [5]     [3]     [1]      [6]     [4]     [2]     [0]
+
+ v2*n+1          F       D       B       9|       E       C       A       8
+              [240]   [224]   [208]   [192]    [112]     [96]   [80]    [64]
+
+
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ v2*n            7       5       3       1|       6       4       2       0
+              [131]   [130]   [129]   [128]      [3]     [2]     [1]     [0]
+
+ v2*n+1          F       D       B       9|       E       C       A       8
+              [135]   [134]   [133]   [132]      [7]     [6]     [5]     [4]
+
+
+SEW=8b, LMUL=1/2
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ v2*n      - - - - - - - - F D B 9 7 5 3 1| - - - - - - - - E C A B 6 4 2 0
+                        [135].........[128]                [7[6[5[4[3[2[1[0]
+
+ v2*n+1          F       D       B       9|       E       C       A       8
+              [135]   [134]   [133]   [132]      [7]     [6]     [5]     [4]
+
+
+
+
+ VLEN=256b, SLEN=128b, SEW=64b, LMUL=1, MLEN=64b
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ vn                      3               1|               2               0
+                      [129]           [128]              [1]             [0]
+
+
+
+ VLEN=256b, SLEN=128b, SEW=32b, LMUL=1/2, MLEN=64b
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ vn              -       -       3       1|       -       -       2       0
+                              [129]   [128]                      [1]     [0]
+
+ VLEN=256b, SLEN=128b, SEW=64b, LMUL=1, MLEN=64b
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ vn                      3               1|               2               0
+                      [192]           [128]             [64]             [0]
+----
+
+
+----------------------------------------------------------------------
+
+VLEN=256b, SLEN=128b, SEW=32b, LMUL=2
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ v2*n            7       5       3       1|       6       4       2       0
+
+ v2*n+1          F       D       B       9|       E       C       A       8
+
+
+
+
+VLEN=512b, SLEN=128b, SEW=32b, LMUL=1
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ v2              D       9       5       1|       C       8       4       0
+
+                          3                                2
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+ v2              F       B       7       3|       E       A       6       2
+
+
+VLEN=512b, SLEN=128b, SEW=64b, LMUL=1
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ v2               [A,B]  5        [2,3]  1|       [8,9]   4      [0,1]    0
+
+                          3                                2
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+ v2               [E,F]  7        [6,7]  3|       [C,D]   6      [4,5]    2
+
+----------------------------------------------------------------------
+
+fix SLEN=128b, DLEN>=128
+
+
+VLEN=512b, SLEN=128, DLEN=256, EEW=16b
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ v2              7       5       3       1|       6       4           2   0
+ v2              F       D       B       9|       E       C       A       8
+
+VLEN=512b, SLEN=128, DLEN=256, EEW=32b
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ v2              7       5       3       1|       6       4       2       0
+ v2              F       D       B       9|       E       C       A       8
+                                                                                                 
+VLEN=512b, SLEN=128, DLEN=256, EEW=64b                                                                             
+
+ Section                  1               |                0
+ Byte     1F1E1D1C1B1A19181716151413121110| F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ v2                      3               1|               2               0
+ v2                      7               5|               6               4
+                                                     
+
+                                                                                            

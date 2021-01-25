@@ -164,8 +164,8 @@ LMUL of 8 allows vectors of up to sixteen 64-bit elements to be
 processed without stripmining using four vector register groups.
 
 The ISA supports writing binary code that under certain constraints
-will execute portably on harts with different values for these
-parameters.
+will execute portably on harts with different values for the VLEN
+parameter, provided both support the required element types.
 
 NOTE: Code can be written that will expose differences in
 implementation parameters.
