@@ -2536,7 +2536,7 @@ otherwise specified.  . For integer operations, the scalar can be
 taken from the scalar `x` register specified by `rs1`.  If XLEN>SEW,
 the least-significant SEW bits of the `x` register are used, unless
 otherwise specified.  If XLEN<SEW, the value from the `x` register is
-sign-extended to SEW bits.  . For floating-point operations, the
+sign-extended to SEW bits.  For floating-point operations, the
 scalar can be taken from a scalar `f` register.  If FLEN > SEW, the
 value in the `f` registers is checked for a valid NaN-boxed value, in
 which case the least-significant SEW bits of the `f` register are
@@ -2602,12 +2602,12 @@ operands are always next to each other.
 === Widening Vector Arithmetic Instructions
 
 A few vector arithmetic instructions are defined to be __widening__
-operations where the destination elements have EEW=2*SEW and
+operations where the destination vector register group has EEW=2*SEW and
 EMUL=2*LMUL.
 
-The first operand can be either single or double-width. These are
-generally written with a `vw*` prefix on the opcode or `vfw*` for
-vector floating-point operations.
+The first vector register group operand can be either single or
+double-width. These are generally written with a `vw*` prefix on the
+opcode or `vfw*` for vector floating-point operations.
 
 ----
 Assembly syntax pattern for vector widening arithmetic instructions
@@ -2631,13 +2631,9 @@ floating-point operations that will be written as `fw*`.
 
 NOTE: For integer multiply-add, another possible widening option
 increases the size of the accumulator to EEW=4*SEW (i.e., 4*SEW +=
-SEW*SEW).  These would be distinguished by a `vw4*` prefix on the
-opcode.  These are not included at this time, but are a possible
-addition to spec.
-
-The destination vector register group results are arranged as if both
-SEW and LMUL were at twice their current settings (i.e., EEW=2*SEW,
-EMUL=2*LMUL).
+SEW*SEW).  These would be distinguished by a `vq*` prefix on the
+opcode, for quad-widening.  These are not included at this time, but
+are a possible addition in a future extension.
 
 For all widening instructions, the destination EEW and EMUL values
 must be a supported configuration, otherwise the instruction encoding
@@ -2659,14 +2655,14 @@ for vd to equal vs2.
 A few instructions are provided to convert double-width source vectors
 into single-width destination vectors.  These instructions convert a
 vector register group with EEW/EMUL=2*SEW/2*LMUL to a vector register
-group with the current LMUL/SEW vectors/elements.
+group with the current SEW/LMUL setting.
 
 If EEW > ELEN or EMUL > 8, the instruction encoding is reserved.
 
-NOTE: An alternative design decision would have been to treat LMUL as
-defining the size of the source vector register group.  The choice
+NOTE: An alternative design decision would have been to treat SEW/LMUL
+as defining the size of the source vector register group.  The choice
 here is motivated by the belief the chosen approach will require fewer
-LMUL changes.
+`vtype` changes.
 
 The source and destination vector register groups have to be specified
 with a vector register number that is legal for the source and
@@ -2678,7 +2674,7 @@ Where there is a second source vector register group (specified by
 EEW=SEW).
 
 NOTE: It is safe to overwrite a second source vector register group
-with the same LMUL and element width as the result.
+with the same EEW and EMUL as the result.
 
 A `vn*` prefix on the opcode is used to distinguish these instructions
 in the assembler, or a `vfn*` prefix for narrowing floating-point
@@ -2923,8 +2919,8 @@ vsra.vx vd, vs2, rs1, vm   # vector-scalar
 vsra.vi vd, vs2, uimm, vm   # vector-immediate
 ----
 
-The low lg2(SEW) bits of the vector or scalar shift amount value are used;
-immediates are zero-extended.
+The low lg2(SEW) bits of the vector or scalar shift-amount value are used,
+and shift-amount immediates are zero-extended.
  
 === Vector Narrowing Integer Right Shift Instructions
 
@@ -2932,9 +2928,9 @@ The narrowing right shifts extract a smaller field from a wider
 operand and have both zero-extending (`srl`) and sign-extending
 (`sra`) forms.  The shift amount can come from a vector or a scalar
 `x` register or a 5-bit immediate.  The low lg2(2*SEW) bits of the
-vector or scalar shift amount value are used (e.g., the low 6 bits for
+vector or scalar shift-amount value are used (e.g., the low 6 bits for
 a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate forms
-zero-extend their immediate operand.
+zero-extend their shift-amount immediate operand.
 
 ----
  # Narrowing shift right logical, SEW = (2*SEW) >> SEW
@@ -3215,7 +3211,7 @@ product from an SEW-bit*SEW-bit multiply.
 
 ----
 # Widening signed-integer multiply
-vwmul.vv  vd, vs2, vs1, vm# vector-vector
+vwmul.vv  vd, vs2, vs1, vm # vector-vector
 vwmul.vx  vd, vs2, rs1, vm # vector-scalar
 
 # Widening unsigned-integer multiply
@@ -3236,10 +3232,10 @@ in two forms, one that overwrites the addend or minuend
 
 The low half of the product is added or subtracted from the third operand.
 
-NOTE: "sac" is intended to be read as "subtract from accumulator". The
-opcode is "vnmsac" to match the (unfortunately counterintuitive)
+NOTE: `sac` is intended to be read as "subtract from accumulator". The
+opcode is `vnmsac` to match the (unfortunately counterintuitive)
 floating-point `fnmsub` instruction definition.  Similarly for the
-"vnmsub" opcode.
+`vnmsub` opcode.
 
 ----
 # Integer multiply-add, overwrite addend
@@ -3276,11 +3272,11 @@ vwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
 vwmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
 
 # Widening signed-unsigned-integer multiply-add, overwrite addend
-vwmaccsu.vv vd, vs1, vs2, vm    # vd[i] = +(signed(vs1[i]) * unsigned(vs2[i])) + vd[i]
-vwmaccsu.vx vd, rs1, vs2, vm    # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
+vwmaccsu.vv vd, vs1, vs2, vm  # vd[i] = +(signed(vs1[i]) * unsigned(vs2[i])) + vd[i]
+vwmaccsu.vx vd, rs1, vs2, vm  # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
 
 # Widening unsigned-signed-integer multiply-add, overwrite addend
-vwmaccus.vx vd, rs1, vs2, vm    # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
+vwmaccus.vx vd, rs1, vs2, vm  # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
 ----
 
 === Vector Integer Merge Instructions
@@ -3439,19 +3435,19 @@ precision by one bit for all other products.
 These instructions shift the input value right, and round off the
 shifted out bits according to `vxrm`.  The scaling right shifts have
 both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. 
-The low lg2(SEW) bits of the vector or scalar shift amount value are used;
-immediates are zero-extended.
+The low lg2(SEW) bits of the vector or scalar shift-amount value are used;
+shift-amount immediates are zero-extended.
 
 ----
  # Scaling shift right logical
  vssrl.vv vd, vs2, vs1, vm   # vd[i] = roundoff_unsigned(vs2[i], vs1[i])
  vssrl.vx vd, vs2, rs1, vm   # vd[i] = roundoff_unsigned(vs2[i], x[rs1])
- vssrl.vi vd, vs2, uimm, vm   # vd[i] = roundoff_unsigned(vs2[i], uimm)
+ vssrl.vi vd, vs2, uimm, vm  # vd[i] = roundoff_unsigned(vs2[i], uimm)
 
  # Scaling shift right arithmetic
  vssra.vv vd, vs2, vs1, vm   # vd[i] = roundoff_signed(vs2[i],vs1[i])
  vssra.vx vd, vs2, rs1, vm   # vd[i] = roundoff_signed(vs2[i], x[rs1])
- vssra.vi vd, vs2, uimm, vm   # vd[i] = roundoff_signed(vs2[i], uimm)
+ vssra.vi vd, vs2, uimm, vm  # vd[i] = roundoff_signed(vs2[i], uimm)
 ----
 
 === Vector Narrowing Fixed-Point Clip Instructions
@@ -3463,16 +3459,16 @@ saturation into the final destination format.
 The second argument (vector element, scalar value, immediate value)
 gives the amount to right shift the source as in the narrowing shift
 instructions, which provides the scaling.  The low lg2(2*SEW) bits of
-the vector or scalar shift amount value are used (e.g., the low 6 bits
+the vector or scalar shift-amount value are used (e.g., the low 6 bits
 for a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate
-forms zero-extend their immediate operand.
+forms zero-extend their shift-amount immediate operand.
 
 ----
 # Narrowing unsigned clip
 #                                SEW                            2*SEW   SEW
- vnclipu.wv vd, vs2, vs1, vm   # vd[i] = clip(roundoff_unsigned(vs2[i], vs1[i]))
- vnclipu.wx vd, vs2, rs1, vm   # vd[i] = clip(roundoff_unsigned(vs2[i], x[rs1]))
- vnclipu.wi vd, vs2, uimm, vm  # vd[i] = clip(roundoff_unsigned(vs2[i], uimm5))
+ vnclipu.wv vd, vs2, vs1, vm  # vd[i] = clip(roundoff_unsigned(vs2[i], vs1[i]))
+ vnclipu.wx vd, vs2, rs1, vm  # vd[i] = clip(roundoff_unsigned(vs2[i], x[rs1]))
+ vnclipu.wi vd, vs2, uimm, vm # vd[i] = clip(roundoff_unsigned(vs2[i], uimm5))
 
 # Narrowing signed clip
  vnclip.wv vd, vs2, vs1, vm   # vd[i] = clip(roundoff_signed(vs2[i], vs1[i]))
