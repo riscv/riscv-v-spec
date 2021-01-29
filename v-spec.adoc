@@ -1818,12 +1818,21 @@ The unit-stride fault-only-first load instructions are used to
 vectorize loops with data-dependent exit conditions ("while" loops).
 These instructions execute as a regular load except that they will
 only take a trap caused by a synchronous exception on element 0.  If
-element 0 raises an exception, `vl` and the destination elements are
-not modified, and the trap is taken.  If an element > 0 raises an
-exception, the corresponding trap is not taken, that element and all
-following elements in the destination vector register are not
-modified, and the vector length `vl` is reduced to the index of the
-element that would have raised an exception.
+element 0 raises an exception, `vl` is not modified, and the trap is
+taken.  If an element > 0 raises an exception, the corresponding trap
+is not taken, and the vector length `vl` is reduced to the index of
+the element that would have raised an exception.
+
+Load instructions may overwrite active destination vector register
+group elements past the element index at which the trap is reported.
+Similarly, fault-only-first load instructions may update destination
+elements past the element that causes trimming of the vector length
+(but not past the original vector length).  The values of these
+spurious updates do not have to correspond to the values in memory at
+the addressed memory locations.  Non-idempotent memory locations can
+only be accessed when it is known the corresponding element load
+operation will not be restarted due to a trap or vector length
+trimming.
 
 ----
     # Vector unit-stride fault-only-first loads
@@ -1990,6 +1999,10 @@ There are also fault-only-first versions of the unit-stride instructions.
     # Template for vector fault-only-first unit-stride segment loads.
     vlseg<nf>e<eew>ff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
 ----
+
+These instructions may overwrite destination vector register group
+elements past the point at which a trap is reported or past the point
+at which vector length is trimmed.
 
 ==== Vector Strided Segment Loads and Stores
 
