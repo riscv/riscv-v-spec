@@ -1860,9 +1860,14 @@ Even when an exception is not raised, implementations are permitted to process
 fewer than `vl` elements and reduce `vl` accordingly, but if `vstart`=0 and
 `vl`>0, then at least one element must be processed.
 
-Implementations should not reduce `vl` and instead set a non-zero
-`vstart` value when the fault-only-first instruction takes a trap due
-to an interrupt.
+When the fault-only-first instruction takes a trap due to an
+interrupt, implementations should not reduce `vl` and should instead
+set a `vstart` value.
+
+NOTE: When the fault-only-first instruction would trigger a debug
+data-watchpoint trap on an element after the first, implementations
+should not reduce `vl` but instead should trigger the debug trap as
+otherwise the event might be lost.
 
 [[sec-aos]]
 === Vector Load/Store Segment Instructions
