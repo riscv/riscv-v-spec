@@ -3523,9 +3523,9 @@ Vector floating-point instructions require the presence of base scalar
 floating-point extensions corresponding to the supported vector
 floating-point element widths.
 
-NOTE: Profiles supporting 16-bit half-precision floating-point values
-will also have to implement scalar half-precision floating-point
-support in the `f` registers.
+NOTE: In particular, vector profiles supporting 16-bit half-precision
+floating-point values will also have to implement scalar
+half-precision floating-point support in the `f` registers.
 
 If the floating-point unit status field `mstatus.FS` is `Off` then any
 attempt to execute a vector floating-point instruction will raise an
@@ -3859,11 +3859,11 @@ takes all bits except the sign bit from the vector `vs2` operands.
     vfsgnj.vv vd, vs2, vs1, vm   # Vector-vector
     vfsgnj.vf vd, vs2, rs1, vm   # vector-scalar
 
-    vfsgnjn.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsgnjn.vf vd, vs2, rs1, vm   # vector-scalar
+    vfsgnjn.vv vd, vs2, vs1, vm  # Vector-vector
+    vfsgnjn.vf vd, vs2, rs1, vm  # vector-scalar
 
-    vfsgnjx.vv vd, vs2, vs1, vm   # Vector-vector
-    vfsgnjx.vf vd, vs2, rs1, vm   # vector-scalar
+    vfsgnjx.vv vd, vs2, vs1, vm  # Vector-vector
+    vfsgnjx.vf vd, vs2, rs1, vm  # vector-scalar
 ----
 
 NOTE: A vector of floating-point values can be negated using a
@@ -3973,7 +3973,7 @@ A vector-scalar floating-point merge instruction is provided, which
 operates on all body elements, from `vstart` up to the current vector
 length in `vl` regardless of mask value.
 
-The `vfmerge.vfm` instruction is always masked (`vm=0`).
+The `vfmerge.vfm` instruction is encoded as a masked instruction (`vm=0`).
 At elements where the mask value is zero, the first vector operand is
 copied to the destination element, otherwise a scalar floating-point
 register value is copied to the destination element.
@@ -3984,11 +3984,12 @@ vfmerge.vfm vd, vs2, rs1, v0  # vd[i] = v0.mask[i] ? f[rs1] : vs2[i]
 
 === Vector Floating-Point Move Instruction
 
-The vector floating-point move instruction __splats__ a floating-point scalar
-operand to a vector register group.  The instruction copies a scalar `f`
-register value to all active elements of a vector register group.  This
-instruction is always unmasked (`vm=1`).  The instruction must have the `vs2`
-field set to `v0`, with all other values for `vs2` reserved.
+The vector floating-point move instruction __splats__ a floating-point
+scalar operand to a vector register group.  The instruction copies a
+scalar `f` register value to all active elements of a vector register
+group.  This instruction is encoded as a masked instruction (`vm=1`).
+The instruction must have the `vs2` field set to `v0`, with all other
+values for `vs2` reserved.
 
 ----
 vfmv.v.f vd, rs1  # vd[i] = f[rs1]
@@ -4084,9 +4085,6 @@ a sequence of halving steps.  Results are equivalently rounded and
 the same exception flags are raised if all but the last halving step
 use round-towards-odd (`vfncvt.rod.f.f.w`).  Only the final step
 should use the desired rounding mode.
-
-NOTE: An integer value can be halved in width using the narrowing
-integer shift instructions with a shift amount of 0.
 
 == Vector Reduction Operations
 
