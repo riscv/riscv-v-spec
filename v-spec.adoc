@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 1.0-draft-20200703
+Version 0.10 (also 1.0-draft-20210129)
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -20,12 +20,6 @@ Constantine Korikov,
 Ben Korpan, Hanna Kruppe, Yunsup Lee, Guy Lemieux, Grigorios Magklis,
 Filip Moc, Rich Newell, Albert Ou, David Patterson, Colin Schmidt,
 Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
-
-Known issues with current version:
-
-- encoding needs better formatting
-- vector memory consistency model needs to be clarified
-- interaction with privileged architectures
 
 :sectnums!:
 
