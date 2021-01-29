@@ -5078,7 +5078,7 @@ Precise vector traps require that:
 . all instructions older than the trapping vector instruction have committed their results
 . no instructions newer than the trapping vector instruction have altered architectural state
 . any operations within the trapping vector instruction affecting result elements preceding the index in the `vstart` CSR have committed their results
-. no operations within the trapping vector instruction affecting elements at or following the `vstart` CSR have altered architectural state except if restarting and completing the affected vector instruction will recover the correct state.
+. no operations within the trapping vector instruction affecting elements at or following the `vstart` CSR have altered architectural state except if restarting and completing the affected vector instruction will nevertheless produce the correct final state.
 
 We relax the last requirement to allow elements following `vstart` to
 have been updated at the time the trap is reported, provided that
