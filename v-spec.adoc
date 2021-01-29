@@ -98,6 +98,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Added mask register load/store instructions `vle1.v`/`vse1.v`, to provide hint that values are masks and to reduce `vl` manipulation around mask spill/fill code.
 
+=== Added `vsetivli` instruction with immediate AVL value.
+
 :sectnums:
 
 == Introduction
@@ -244,12 +246,12 @@ with writable `misa.v`.
 
 The read-only XLEN-wide _vector_ _type_ CSR, `vtype` provides the
 default type used to interpret the contents of the vector register
-file, and can only be updated by `vsetvl{i}` instructions. The vector
+file, and can only be updated by `vset{i}vl{i}` instructions. The vector
 type also determines the organization of elements in each vector
 register, and how multiple vector registers are grouped.
 
 NOTE: Earlier drafts allowed the `vtype` register to be written using
-regular CSR writes.  Allowing updates only via the `vsetvl{i}`
+regular CSR writes.  Allowing updates only via the `vset{i}vl{i}`
 instructions simplifies maintenance of the `vtype` register state.
 
 In the base vector extension, the `vtype` register has five fields,
@@ -530,7 +532,7 @@ to always require them in future assembly code.
 
 ==== Vector Type Illegal `vill`
 
-The `vill` bit is used to encode that a previous `vsetvl{i}`
+The `vill` bit is used to encode that a previous `vset{i}vl{i}`
 instruction attempted to write an unsupported value to `vtype`.
 
 NOTE: The `vill` bit is held in bit XLEN-1 of the CSR to support
@@ -539,7 +541,7 @@ checking for illegal values with a branch on the sign bit.
 If the `vill` bit is set, then any attempt to execute a vector instruction
 that depends upon `vtype` will raise an illegal-instruction exception.
 
-NOTE: `vsetvl{i}` and whole-register loads, stores, and moves do not depend
+NOTE: `vset{i}vl{i}` and whole-register loads, stores, and moves do not depend
 upon `vtype`.
 
 When the `vill` bit is set, the other XLEN-1 bits in `vtype` shall be
@@ -548,7 +550,7 @@ zero.
 === Vector Length Register `vl`
 
 The _XLEN_-bit-wide read-only `vl` CSR can only be updated by the
-`vsetvli` and `vsetvl` instructions, and the _fault-only-first_ vector load
+`vset{i}vl{i}` instructions, and the _fault-only-first_ vector load
 instruction variants.
 
 The `vl` register holds an unsigned integer specifying the number of
@@ -599,7 +601,7 @@ element number given in the `vstart` CSR, leaving earlier elements in
 the destination vector undisturbed, and to reset the `vstart` CSR to
 zero at the end of execution.
 
-NOTE: All vector instructions, including `vsetvl{i}`, reset the `vstart`
+NOTE: All vector instructions, including `vset{i}vl{i}`, reset the `vstart`
 CSR to zero.
 
 `vstart` is not modified by vector instructions that raise illegal-instruction
@@ -726,7 +728,7 @@ remaining bits in `vtype` are zero, and `vl` is set to zero.
 
 The `vstart`, `vxrm`, `vxsat` CSRs can have arbitrary values at reset.
 
-NOTE: Any use of the vector unit will require an initial `vsetvl{i}`,
+NOTE: Any use of the vector unit will require an initial `vset{i}vl{i}`,
 which will reset `vstart`.  The `vxrm` and `vxsat` fields should be
 reset explicitly in software before use.
 
@@ -1308,19 +1310,20 @@ by hardware.
 A set of instructions is provided to allow rapid configuration of the
 values in `vl` and `vtype` to match application needs.
 
-=== `vsetvli`/`vsetvl` instructions
+=== `vsetvli`/`vsetivl`/`vsetvl` instructions
 
-The `vsetvl{i}` instructions set the `vtype` and `vl` CSRs based on
+The `vset{i}vl{i}` instructions set the `vtype` and `vl` CSRs based on
 their arguments, and write the new value of `vl` into `rd`.
 
 ----
- vsetvli rd, rs1, vtypei # rd = new vl, rs1 = AVL, vtypei = new vtype setting
- vsetvl  rd, rs1, rs2    # rd = new vl, rs1 = AVL, rs2 = new vtype value
+ vsetvli rd, rs1, vtypei   # rd = new vl, rs1 = AVL, vtypei = new vtype setting
+ vsetivli rd, uimm, vtypei # rd = new vl, uimm = AVL, vtypei = new vtype setting
+ vsetvl  rd, rs1, rs2      # rd = new vl, rs1 = AVL, rs2 = new vtype value
 ----
 
 The new `vtype` setting is encoded in the immediate fields of
-`vsetvli` and in the `rs2` register for `vsetvl`.  The new vector
-length setting is based on AVL, which is encoded in the `rs1` and `rd`
+`vsetvli` and`vsetivli`,  and in the `rs2` register for `vsetvl`.  The new vector
+length setting is based on AVL, which for `vsetvli` and `vsetvl` is encoded in the `rs1` and `rd`
 fields as follows:
 
 .AVL used in `vsetvli` and `vsetvl` instructions
@@ -1346,6 +1349,16 @@ vector length in `vl` is used as the AVL, and the resulting value is
 written to `vl`, but not to a destination register.  This form can
 only be used when VLMAX and hence `vl` is not actually changed by the
 new SEW/LMUL ratio.
+
+For the `vsetivli` instruction, the AVL is encoded as a 5-bit
+zero-extended immediate (0--31) in the `rs1` field.
+
+NOTE: The encoding of AVL for `vsetivli` is the same as for regular
+CSR immediate values.
+
+NOTE: The `vsetivli` instruction provides more compact code when the
+dimensions of vectors are small, and known to fit inside the vector
+registers, so do not need stripmining overhead.
 
 Use of the instruction with a new SEW/LMUL ratio that would result in
 a change of VLMAX is reserved.  Implementations may set `vill` in this
@@ -1409,7 +1422,7 @@ checking if `vill` is clear for a given setting.
 
 === Constraints on Setting `vl`
 
-The `vsetvl{i}` instructions first set VLMAX according to the `vtype`
+The `vset{i}vl{i}` instructions first set VLMAX according to the `vtype`
 argument, then set `vl` obeying the following constraints:
 
 . `vl = AVL` if `AVL {le} VLMAX`
@@ -1421,7 +1434,7 @@ argument, then set `vl` obeying the following constraints:
 .. `vl > 0` if `AVL > 0`
 .. `vl {le} VLMAX`
 .. `vl {le} AVL`
-.. a value read from `vl` when used as the AVL argument to `vsetvl{i}` results in the same
+.. a value read from `vl` when used as the AVL argument to `vset{i}vl{i}` results in the same
 value in `vl`, provided the resultant VLMAX equals the value of VLMAX at the time that `vl` was read
 
 [NOTE]
