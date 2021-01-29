@@ -90,6 +90,9 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Made clear that implementations must support LMUL 1,2,4,8.
 
+=== Clarified that permutation instructions also obey tail/mask
+agnostic/undisturbed where appropriate.
+
 :sectnums:
 
 == Introduction
@@ -4663,7 +4666,7 @@ The `vmv.s.x` instruction copies the scalar integer register to element 0 of
 the destination vector register.  If SEW < XLEN, the least-significant bits
 are copied and the upper XLEN-SEW bits are ignored.  If SEW > XLEN, the value
 is sign-extended to SEW bits.  The other elements in the destination vector
-register ( 0 < index < VLEN/SEW) are unchanged.  If `vstart` {ge} `vl`, no
+register ( 0 < index < VLEN/SEW) are treated as tail elements using the current tail agnostic/undisturbed policy.  If `vstart` {ge} `vl`, no
 operation is performed and the destination register is not updated.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
@@ -4689,9 +4692,10 @@ register.
 
 The `vfmv.s.f` instruction copies the scalar floating-point register
 to element 0 of the destination vector register.  The other elements
-in the destination vector register ( 0 < index < VLEN/SEW) are
-unchanged.  If `vstart` {ge} `vl`, no operation is performed and the
-destination register is not updated.
+in the destination vector register ( 0 < index < VLEN/SEW) are treated
+as tail elements using the current tail agnostic/undisturbed policy.
+If `vstart` {ge} `vl`, no operation is performed and the destination
+register is not updated.
 
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
@@ -4717,8 +4721,11 @@ operation and leaves the destination vector register unchanged.
 NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
 
-The slide instructions may be masked, with mask element _i_ controlling whether
-_destination_ element _i_ is written.
+The tail agnostic/undisturbed policy is followed for tail elements.
+
+The slide instructions may be masked, with mask element _i_
+controlling whether _destination_ element _i_ is written.  The mask
+undisturbed/agnostic policy is followed for inactive elements.
 
 ==== Vector Slideup Instructions
 
@@ -4741,9 +4748,8 @@ if _OFFSET_ < `vl`.
    OFFSET is amount to slideup, either from x register or a 5-bit immediate
 
                     0 <  i < max(vstart, OFFSET)  Unchanged
-  max(vstart, OFFSET) <= i < vl                   vd[i] = vs2[i-OFFSET] if v0.mask[i] enabled,
-                                                   unchanged if not
-                   vl <= i < VLMAX                Tail elements, unchanged
+  max(vstart, OFFSET) <= i < vl                   vd[i] = vs2[i-OFFSET] if v0.mask[i] enabled
+                   vl <= i < VLMAX                Follow tail policy
 ----
 
 The destination vector register group for `vslideup` cannot overlap
@@ -4761,8 +4767,10 @@ input vectors during execution, and enables restart with non-zero
  vslidedown.vi vd, vs2, uimm[4:0], vm # vd[i] = vs2[i+uimm]
 ----
 
-For `vslidedown`, the value in `vl` specifies the number of
-destination elements that are written.
+For `vslidedown`, the value in `vl` specifies the maximum number of
+destination elements that are written.  The remaining elements past
+`vl` are handled according to the current tail policy (Section
+<<sec-agnostic>>).
 
 The start index (_OFFSET_) for the source can be either specified
 using an unsigned integer in the `x` register specified by `rs1`, or a
@@ -4770,14 +4778,14 @@ using an unsigned integer in the `x` register specified by `rs1`, or a
 If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
 
 ----
-    vslidedown behavior for source elements for element i in slide
-                     0 <= i+OFFSET < VLMAX   Read vs2[i+OFFSET]
-                 VLMAX <= i+OFFSET           Read as 0
+  vslidedown behavior for source elements for element i in slide
+                   0 <= i+OFFSET < VLMAX   src[i] = vs2[i+OFFSET]
+               VLMAX <= i+OFFSET           src[i] = 0
 
-    vslidedown behavior for destination element i in slide
-                     0 <  i < vstart         Unchanged
-                vstart <= i < vl             Updated if v0.mask[i] enabled, unchanged if not
-                    vl <= i < VLMAX          Unchanged
+  vslidedown behavior for destination element i in slide
+                   0 <  i < vstart         Unchanged
+              vstart <= i < vl             vd[i] = src[i] if v0.mask[i] enabled
+                  vl <= i < VLMAX          Follow tail policy
 
 ----
 
@@ -4794,27 +4802,28 @@ element position.
 
 The `vslide1up` instruction places the `x` register argument at
 location 0 of the destination vector register group, provided that
-element 0 is active, otherwise the destination element is unchanged.
-If XLEN < SEW, the value is sign-extended to SEW bits.  If XLEN > SEW,
-the least-significant bits are copied over and the high SEW-XLEN bits
-are ignored.
+element 0 is active, otherwise the destination element update follows the
+current mask agnostic/undisturbed policy.  If XLEN < SEW, the value is
+sign-extended to SEW bits.  If XLEN > SEW, the least-significant bits
+are copied over and the high SEW-XLEN bits are ignored.
 
 The remaining active `vl`-1 elements are copied over from index _i_ in
 the source vector register group to index _i_+1 in the destination
 vector register group.
 
-The `vl` register specifies how many of the destination vector
-register elements are written with source values, and all tail
-elements are unchanged.
+The `vl` register specifies the maximum number of destination vector
+register elements updated with source values, and remaining elements
+past `vl` are handled according to the current tail policy (Section
+<<sec-agnostic>>).
 
 
 ----
    vslide1up behavior
 
                     i < vstart  unchanged
-                0 = i = vstart  vd[i] = x[rs1] if v0.mask[i] enabled, unchanged if not
-  max(vstart, 1) <= i < vl      vd[i] = vs2[i-1] if v0.mask[i] enabled, unchanged if not
-              vl <= i < VLMAX   unchanged
+                0 = i = vstart  vd[i] = x[rs1] if v0.mask[i] enabled
+  max(vstart, 1) <= i < vl      vd[i] = vs2[i-1] if v0.mask[i] enabled
+              vl <= i < VLMAX   Follow tail policy
 ----
 
 The `vslide1up` instruction requires that the destination vector
@@ -4830,9 +4839,10 @@ The `vslide1down` instruction copies the first `vl`-1 active elements
 values from index _i_+1 in the source vector register group to index
 _i_ in the destination vector register group.
 
-The `vl` register specifies how many of the destination vector
-register elements are written with source values, and all tail
-elements are unchanged.
+The `vl` register specifies the maximum number of destination vector
+register elements written with source values, and remaining elements
+past `vl` are handled according to the current tail policy (Section
+<<sec-agnostic>>).
 
 ----
  vslide1down.vx  vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
@@ -4850,9 +4860,9 @@ SEW-XLEN bits are ignored.
    vslide1down behavior
 
                        i < vstart  unchanged
-             vstart <= i < vl-1    vd[i] = vs2[i+1] if v0.mask[i] enabled, unchanged if not
-             vstart <= i = vl-1    vd[vl-1] = x[rs1] if v0.mask[i] enabled, unchanged if not
-                 vl <= i < VLMAX   unchanged
+             vstart <= i < vl-1    vd[i] = vs2[i+1] if v0.mask[i] enabled
+             vstart <= i = vl-1    vd[vl-1] = x[rs1] if v0.mask[i] enabled
+                 vl <= i < VLMAX   Follow tail policy
 ----
 
 The `vfslide1down` instruction is defined analogously, but sources its
@@ -4870,10 +4880,11 @@ The vector register gather instructions read elements from a first
 source vector register group at locations given by a second source
 vector register group.  The index values in the second vector are
 treated as unsigned integers.  The source vector can be read at any
-index < VLMAX regardless of `vl`.  The number of elements to write to
+index < VLMAX regardless of `vl`.  The maximum number of elements to write to
 the destination register is given by `vl`, and the remaining elements
 past `vl` are handled according to the current tail policy
-(Section <<sec-agnostic>>).  The operation can be masked.
+(Section <<sec-agnostic>>).  The operation can be masked, and the mask
+undisturbed/agnostic policy is followed for inactive elements.
 
 ----
 vrgather.vv vd, vs2, vs1, vm # vd[i] = (vs1[i] >= VLMAX) ? 0 : vs2[vs1[i]];
@@ -4886,18 +4897,19 @@ indices. The `vrgatherei16.vv` form uses SEW/LMUL for the data in
 
 NOTE: When SEW=8, `vrgather.vv` can only reference vector elements
 0-255.  The `vrgatherei16` form can index 64K elements, and can also
-be used to reduce the register capacity needed to hold indices for
-wider SEW data.
+be used to reduce the register capacity needed to hold indices when
+SEW > 16.
 
-If the element indices are out of range ( `vs1[i]` {ge} VLMAX )
+If an element index is out of range ( `vs1[i]` {ge} VLMAX )
 then zero is returned for the element value.
 
 Vector-scalar and vector-immediate forms of the register gather are
 also provided.  These read one element from the source vector at the
-given index, and write this value to the `vl` elements at the start of
-the destination vector register. The index value in the scalar register
-and the immediate, zero-extended to XLEN bits, are treated as unsigned integers.
-If XLEN > SEW, the index value is _not_ truncated to SEW bits.
+given index, and write this value to the active elements at the start
+of the destination vector register. The index value in the scalar
+register and the immediate, zero-extended to XLEN bits, are treated as
+unsigned integers.  If XLEN > SEW, the index value is _not_ truncated
+to SEW bits.
 
 NOTE: These forms allow any vector element to be "splatted" to an entire vector.
 
@@ -4967,27 +4979,26 @@ readily synthesized using iota and a masked vrgather:
 
             e d c b a     # packed vector of 5 elements
       1 0 0 1 1 1 0 1     # mask vector of 8 elements
+      p q r s t u v w     # destination register before vdecompress
 
-      e 0 0 d c b 0 a     # result of vdecompress 
+      e q r d c b v a     # result of vdecompress 
 ----
 
-----
-      1 0 0 1 1 1 0 1     # mask vector
-      4 4 4 3 2 1 1 0     # viota.m
-      0 0 0 0 0 0 0 0     # zero result register
-      e 0 0 d c b 0 a     # vrgather using viota.m under mask
-----
 ----
      # v0 holds mask
      # v1 holds packed data
-     # v11 holds decompressed data
+     # v11 holds input expanded vector and result
      viota.m v10, v0                 # Calc iota from mask in v0
-     vmv.v.i v11, 0                  # Clear destination
      vrgather.vv v11, v1, v10, v0.t  # Expand into destination
 ----
+----
+   p q r s t u v w    # v11 destination register
+         e d c b a    # v1 source vector
+   1 0 0 1 1 1 0 1    # v0 mask vector
 
-The destination zeroing can be omitted if the decompressed elements
-are overwriting elements in an existng vector.
+   4 4 4 3 2 1 1 0    # v10 result of viota.m
+   e q r d c b v a    # v11 destination after vrgather using viota.m under mask
+----
 
 === Whole Vector Register Move
 
