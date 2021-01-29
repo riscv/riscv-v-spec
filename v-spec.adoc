@@ -90,12 +90,11 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Made clear that implementations must support LMUL 1,2,4,8.
 
-=== Clarified that permutation instructions also obey tail/mask
-agnostic/undisturbed where appropriate.
+=== Clarified that permutation instructions also obey tail/mask agnostic/undisturbed where appropriate.
 
-=== Specified that reduction instructions also obey tail
-agnostic/undisturbed for destination vector register for elements past
-first.
+=== Specified that reduction instructions also obey tail agnostic/undisturbed for destination vector register for elements past first.
+
+=== Mask register tail elements are always updated according to a tail-agnostic policy, regardless of `vta` setting.
 
 :sectnums:
 
@@ -448,11 +447,17 @@ All systems must support all four options:
 |===
 
 When a set is marked undisturbed, the corresponding set of destination
-elements in any vector or mask destination operand retain the value
-they previously held.
+elements in a vector register group retain the value they previously
+held.   Mask destination values are always treated as tail-agnostic,
+regardless of the setting of `vta`.
+
+NOTE: Mask tails are always treated as agnostic to reduce complexity
+of managing mask data, which can be written at bit granularity.  There
+appears to be little software need to support tail-undisturbed for
+mask register values.
 
 When a set is marked agnostic, the corresponding set of destination
-elements in any vector or mask destination operand can either retain
+elements in any vector destination operand can either retain
 the value they previously held, or are overwritten with 1s.  Within a
 single vector instruction, each destination element can be either left
 undisturbed or overwritten with 1s, in any combination, and the
@@ -1191,9 +1196,9 @@ mask vector logical operations are provided to perform predicate
 calculations. [[sec-mask-vector-logical]]
 
 When a mask is written with a compare result, destination mask bits
-past the end of the current vector length are handled according to the
-tail policy (undisturbed or agnostic) set by the `vta` bit in `vtype
-(Section <<sec-agnostic>>).
+past the end of the current vector length are always handled according
+to a tail-agnostic policy regardless of the setting of the `vta` bit
+in `vtype (Section <<sec-agnostic>>).
 
 [[sec-vector-mask-encoding]]
 ==== Mask Encoding
@@ -2820,12 +2825,13 @@ These instructions are encoded as masked instructions (`vm=0`), but they operate
 on and write back all body elements.
 Encodings corresponding to the unmasked versions (`vm=1`) are reserved.
 
-`vmadc` and `vmsbc` add or subtract the source operands, optionally add the
-carry-in or subtract the borrow-in if masked (`vm=0`), and write the result back
-to mask register `vd`.
-If unmasked (`vm=1`), there is no carry-in or borrow-in.
-These instructions operate on and write back all body elements, even if
-masked.
+`vmadc` and `vmsbc` add or subtract the source operands, optionally
+add the carry-in or subtract the borrow-in if masked (`vm=0`), and
+write the result back to mask register `vd`.  If unmasked (`vm=1`),
+there is no carry-in or borrow-in.  These instructions operate on and
+write back all body elements, even if masked.  Because these
+instructions produce a mask value, they always operate with a
+tail-agnostic policy.
 
 ----
  # Produce sum with carry.
@@ -3138,13 +3144,16 @@ masked va >= x, any vd
   not same as vd and which will be clobbered by the pseudoinstruction
 ----
 
-Comparisons effectively AND in the mask, e.g,
+Comparisons effectively AND in the mask under a mask-undisturbed policy e.g,
 
 ----
-    # (a < b) && (b < c) in two instructions
+    # (a < b) && (b < c) in two instructions when mask-undisturbed
     vmslt.vv    v0, va, vb        # All body elements written
     vmslt.vv    v0, vb, vc, v0.t  # Only update at set mask
 ----
+
+Comparisons write mask registers, and so always operate under a
+tail-agnostic policy.
 
 === Vector Integer Min/Max Instructions
 
@@ -3919,7 +3928,8 @@ write the comparison result to a mask register.  The destination mask
 vector is always held in a single vector register, with a layout of
 elements as described in Section <<sec-mask-register-layout>>.  The
 destination mask vector register may be the same as the source vector
-mask register (`v0`).
+mask register (`v0`).  Comparisons write mask registers, and so always
+operate under a tail-agnostic policy.
 
 The compare instructions follow the semantics of the scalar
 floating-point compare instructions.  `vmfeq` and `vmfne` raise the invalid
@@ -4325,8 +4335,7 @@ As with other vector instructions, the elements with indices less than
 `vstart` are unchanged, and `vstart` is reset to zero after execution.
 Vector mask logical instructions are always unmasked so there are no
 inactive elements.  Mask elements past `vl`, the tail elements, are
-handled according to the setting of `vta` in `vtype` (Section
-<<sec-agnostic>>).
+always updated with a tail-agnostic policy.
 
 ----
     vmand.mm vd, vs2, vs1     # vd.mask[i] =   vs2.mask[i] &&  vs1.mask[i]
@@ -4467,9 +4476,8 @@ writes a 0 to that element and all following active elements.  If
 there is no set bit in the source vector, then all active elements in
 the destination are written with a 1.
 
-The tail elements in the destination mask register are handled
-according to the setting of the `vta` bit in `vtype` (Section
-<<sec-agnostic>>).
+The tail elements in the destination mask register are updated under a
+tail-agnostic policy.
 
 Traps on `vmsbf.m` are always reported with a `vstart` of 0.  The
 `vmsbf` instruction will raise an illegal instruction exception if
@@ -4504,9 +4512,8 @@ set-before-first, except it also includes the element with a set bit.
      1 1 x x x x 1 1   v2 contents
 ----
 
-The tail elements in the destination mask register are handled
-according to the setting of the `vta` bit in `vtype` (Section
-<<sec-agnostic>>).
+The tail elements in the destination mask register are updated under a
+tail-agnostic policy.
 
 Traps on `vmsif.m` are always reported with a `vstart` of 0.  The
 `vmsif` instruction will raise an illegal instruction exception if
@@ -4542,9 +4549,8 @@ set, if any.
      0 1 x x x x 0 0   v2 contents
 ----
 
-The tail elements in the destination mask register are handled
-according to the setting of the `vta` bit in `vtype` (Section
-<<sec-agnostic>>).
+The tail elements in the destination mask register are updated under a
+tail-agnostic policy.
 
 Traps on `vmsof.m` are always reported with a `vstart` of 0.  The
 `vmsof` instruction will raise an illegal instruction exception if
