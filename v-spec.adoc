@@ -277,20 +277,24 @@ max(XLEN,FLEN) are required to be supported.  Other profiles may
 impose different constraints on ELEN.
 
 .vsew[2:0] (selected element width) encoding
-[cols="1,1,1,>13"]
+[cols="1,1,1,1,>13"]
 [%autowidth]
 |===
-3+| vsew[2:0] | SEW
+3+| vsew[2:0] | SEW |
 
-| 0 | 0 | 0 |    8
-| 0 | 0 | 1 |   16
-| 0 | 1 | 0 |   32
-| 0 | 1 | 1 |   64
-| 1 | 0 | 0 |  128
-| 1 | 0 | 1 |  256
-| 1 | 1 | 0 |  512
-| 1 | 1 | 1 | 1024
+| 0 | 0 | 0 |    8 |
+| 0 | 0 | 1 |   16 |
+| 0 | 1 | 0 |   32 |
+| 0 | 1 | 1 |   64 |
+| 1 | 0 | 0 |  128 | _Reserved_
+| 1 | 0 | 1 |  256 | _Reserved_
+| 1 | 1 | 0 |  512 | _Reserved_
+| 1 | 1 | 1 | 1024 | _Reserved_
 |===
+
+NOTE: While it is anticipated the larger `vsew[2:0]` encodings
+(`100`-`111`) will be used to encode larger SEW as shown in table, the
+encodings are formally _reserved_ at this point.
 
 .Example VLEN = 128 bits
 [cols=">,>"]
@@ -1645,35 +1649,37 @@ use the EEW/EMUL encoded in the instruction for the index values and
 the SEW/LMUL encoded in `vtype` for the data values.
 
 Vector loads and stores are encoded using width values that are not
-claimed by the standard scalar floating-point loads and stores.  The
-`mew` bit (`inst[28]`) encodes expanded memory sizes of 128 bits and
-above.
+claimed by the standard scalar floating-point loads and stores.
+
+The `mew` bit (`inst[28]`) is expected to be used to encode expanded
+memory sizes of 128 bits and above, but these encodings are _reserved_
+at this point.
 
 Vector loads and stores for EEWs of all supported SEW settings must be
 provided in an implementation.  Vector load/store encodings for
 unsupported EEW widths are reserved.
 
 .Width encoding for vector loads and stores.
-[cols="4,1,1,1,1,3,3,3,3"]
+[cols="5,1,1,1,1,>3,>3,>3,3,2"]
 |===
-|                  | mew 3+| width [2:0] | Mem bits | Data Reg bits | Index bits | Opcodes
+|                  | mew 3+| width [2:0] | Mem bits | Data Reg bits | Index bits | Opcodes |
 
-| Standard scalar FP   | x |   0 | 0 | 1 |   16| FLEN | -  | FLH/FSH
-| Standard scalar FP   | x |   0 | 1 | 0 |   32| FLEN | -  | FLW/FSW
-| Standard scalar FP   | x |   0 | 1 | 1 |   64| FLEN | -  | FLD/FSD
-| Standard scalar FP   | x |   1 | 0 | 0 |  128| FLEN | -  | FLQ/FSQ
-| Vector 8b element    | 0 |   0 | 0 | 0 |    8|    8 | -  | VLxE8/VSxE8
-| Vector 16b element   | 0 |   1 | 0 | 1 |   16|   16 | -  | VLxE16/VSxE16
-| Vector 32b element   | 0 |   1 | 1 | 0 |   32|   32 | -  | VLxE32/VSxE32
-| Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64
-| Vector 128b element  | 1 |   0 | 0 | 0 |  128|  128 | -  | VLxE128/VSxE128
-| Vector 256b element  | 1 |   1 | 0 | 1 |  256|  256 | -  | VLxE256/VSxE256
-| Vector 512b element  | 1 |   1 | 1 | 0 |  512|  512 | -  | VLxE512/VSxE512
-| Vector 1024b element | 1 |   1 | 1 | 1 | 1024| 1024 | -  | VLxE1024/VSxE1024
-| Vector 8b index      | 0 |   0 | 0 | 0 | SEW | SEW  |  8 | VLxEI8/VSxEI8
-| Vector 16b index     | 0 |   1 | 0 | 1 | SEW | SEW  | 16 | VLxEI16/VSxEI16
-| Vector 32b index     | 0 |   1 | 1 | 0 | SEW | SEW  | 32 | VLxEI32/VSxEI32
-| Vector 64b index     | 0 |   1 | 1 | 1 | SEW | SEW  | 64 | VLxEI64/VSxEI64
+| Standard scalar FP   | x |   0 | 0 | 1 |   16| FLEN | -  | FLH/FSH             |
+| Standard scalar FP   | x |   0 | 1 | 0 |   32| FLEN | -  | FLW/FSW             |
+| Standard scalar FP   | x |   0 | 1 | 1 |   64| FLEN | -  | FLD/FSD             |
+| Standard scalar FP   | x |   1 | 0 | 0 |  128| FLEN | -  | FLQ/FSQ             |    
+| Vector 8b element    | 0 |   0 | 0 | 0 |    8|    8 | -  | VLxE8/VSxE8         |
+| Vector 16b element   | 0 |   1 | 0 | 1 |   16|   16 | -  | VLxE16/VSxE16       |
+| Vector 32b element   | 0 |   1 | 1 | 0 |   32|   32 | -  | VLxE32/VSxE32       |
+| Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64       |     
+| Vector 128b element  | 1 |   0 | 0 | 0 |  128|  128 | -  | VLxE128/VSxE128     | _Reserved_
+| Vector 256b element  | 1 |   1 | 0 | 1 |  256|  256 | -  | VLxE256/VSxE256     | _Reserved_
+| Vector 512b element  | 1 |   1 | 1 | 0 |  512|  512 | -  | VLxE512/VSxE512     | _Reserved_
+| Vector 1024b element | 1 |   1 | 1 | 1 | 1024| 1024 | -  | VLxE1024/VSxE1024   | _Reserved_
+| Vector 8b index      | 0 |   0 | 0 | 0 | SEW | SEW  |  8 | VLxEI8/VSxEI8       |
+| Vector 16b index     | 0 |   1 | 0 | 1 | SEW | SEW  | 16 | VLxEI16/VSxEI16     |
+| Vector 32b index     | 0 |   1 | 1 | 0 | SEW | SEW  | 32 | VLxEI32/VSxEI32     |
+| Vector 64b index     | 0 |   1 | 1 | 1 | SEW | SEW  | 64 | VLxEI64/VSxEI64     |
 |===
 
 
@@ -1689,9 +1695,9 @@ Index bits is the size of each index accessed in register.
 NOTE: In base V extension, only index widths up to XLEN must be
 supported.
 
-Index bit EEW encodings larger than 64b are currently reserved.
+Data and index bit EEW encodings larger than 64b are currently reserved.
 
-NOTE: RV128 will require index EEW of 128.
+NOTE: RV128 will require data and index EEW of 128.
 
 === Vector Unit-Stride Instructions
 
@@ -1703,20 +1709,20 @@ NOTE: RV128 will require index EEW of 128.
     vle16.v   vd, (rs1), vm  #   16-bit unit-stride load
     vle32.v   vd, (rs1), vm  #   32-bit unit-stride load
     vle64.v   vd, (rs1), vm  #   64-bit unit-stride load
-    vle128.v  vd, (rs1), vm  #  128-bit unit-stride load
-    vle256.v  vd, (rs1), vm  #  256-bit unit-stride load
-    vle512.v  vd, (rs1), vm  #  512-bit unit-stride load
-    vle1024.v vd, (rs1), vm  # 1024-bit unit-stride load
+    # vle128.v  vd, (rs1), vm  #  128-bit unit-stride load. Reserved
+    # vle256.v  vd, (rs1), vm  #  256-bit unit-stride load. Reserved
+    # vle512.v  vd, (rs1), vm  #  512-bit unit-stride load. Reserved
+    # vle1024.v vd, (rs1), vm  # 1024-bit unit-stride load. Reserved
 
     # vs3 store data, rs1 base address, vm is mask encoding (v0.t or <missing>)
     vse8.v    vs3, (rs1), vm  #    8-bit unit-stride store
     vse16.v   vs3, (rs1), vm  #   16-bit unit-stride store
     vse32.v   vs3, (rs1), vm  #   32-bit unit-stride store
     vse64.v   vs3, (rs1), vm  #   64-bit unit-stride store
-    vse128.v  vs3, (rs1), vm  #  128-bit unit-stride store
-    vse256.v  vs3, (rs1), vm  #  256-bit unit-stride store
-    vse512.v  vs3, (rs1), vm  #  512-bit unit-stride store
-    vse1024.v vs3, (rs1), vm  # 1024-bit unit-stride store
+    # vse128.v  vs3, (rs1), vm  #  128-bit unit-stride store. Reserved
+    # vse256.v  vs3, (rs1), vm  #  256-bit unit-stride store. Reserved
+    # vse512.v  vs3, (rs1), vm  #  512-bit unit-stride store. Reserved
+    # vse1024.v vs3, (rs1), vm  # 1024-bit unit-stride store. Reserved
 ----
 
 === Vector Strided Instructions
@@ -1729,20 +1735,20 @@ NOTE: RV128 will require index EEW of 128.
     vlse16.v   vd, (rs1), rs2, vm  #   16-bit strided load
     vlse32.v   vd, (rs1), rs2, vm  #   32-bit strided load
     vlse64.v   vd, (rs1), rs2, vm  #   64-bit strided load
-    vlse128.v  vd, (rs1), rs2, vm  #  128-bit strided load
-    vlse256.v  vd, (rs1), rs2, vm  #  256-bit strided load
-    vlse512.v  vd, (rs1), rs2, vm  #  512-bit strided load
-    vlse1024.v vd, (rs1), rs2, vm  # 1024-bit strided load
+    # vlse128.v  vd, (rs1), rs2, vm  #  128-bit strided load. Reserved
+    # vlse256.v  vd, (rs1), rs2, vm  #  256-bit strided load. Reserved
+    # vlse512.v  vd, (rs1), rs2, vm  #  512-bit strided load. Reserved
+    # vlse1024.v vd, (rs1), rs2, vm  # 1024-bit strided load. Reserved
 
     # vs3 store data, rs1 base address, rs2 byte stride
     vsse8.v    vs3, (rs1), rs2, vm  #    8-bit strided store
     vsse16.v   vs3, (rs1), rs2, vm  #   16-bit strided store
     vsse32.v   vs3, (rs1), rs2, vm  #   32-bit strided store
     vsse64.v   vs3, (rs1), rs2, vm  #   64-bit strided store
-    vsse128.v  vs3, (rs1), rs2, vm  #  128-bit strided store
-    vsse256.v  vs3, (rs1), rs2, vm  #  256-bit strided store
-    vsse512.v  vs3, (rs1), rs2, vm  #  512-bit strided store
-    vsse1024.v vs3, (rs1), rs2, vm  # 1024-bit strided store
+    # vsse128.v  vs3, (rs1), rs2, vm  #  128-bit strided store. Reserved
+    # vsse256.v  vs3, (rs1), rs2, vm  #  256-bit strided store. Reserved
+    # vsse512.v  vs3, (rs1), rs2, vm  #  512-bit strided store. Reserved
+    # vsse1024.v vs3, (rs1), rs2, vm  # 1024-bit strided store. Reserved
 ----
 
 Negative and zero strides are supported.
@@ -1842,10 +1848,10 @@ trimming.
     vle16ff.v   vd, (rs1), vm  #   16-bit unit-stride fault-only-first load
     vle32ff.v   vd, (rs1), vm  #   32-bit unit-stride fault-only-first load
     vle64ff.v   vd, (rs1), vm  #   64-bit unit-stride fault-only-first load
-    vle128ff.v  vd, (rs1), vm  #  128-bit unit-stride fault-only-first load
-    vle256ff.v  vd, (rs1), vm  #  256-bit unit-stride fault-only-first load
-    vle512ff.v  vd, (rs1), vm  #  512-bit unit-stride fault-only-first load
-    vle1024ff.v vd, (rs1), vm  # 1024-bit unit-stride fault-only-first load
+    # vle128ff.v  vd, (rs1), vm  #  128-bit unit-stride fault-only-first load. Reserved
+    # vle256ff.v  vd, (rs1), vm  #  256-bit unit-stride fault-only-first load. Reserved
+    # vle512ff.v  vd, (rs1), vm  #  512-bit unit-stride fault-only-first load. Reserved
+    # vle1024ff.v vd, (rs1), vm  # 1024-bit unit-stride fault-only-first load. Reserved
 ----
 
 ----
@@ -2189,10 +2195,10 @@ an ABI.  The base V extension mandates support for SEW=8.
    vl1re16.v   v3, (a0)  # Load v3 with VLEN/16 halfwords held at address in a0
    vl1re32.v   v3, (a0)  # Load v3 with VLEN/32 words held at address in a0
    vl1re64.v   v3, (a0)  # Load v3 with VLEN/64 doublewords held at address in a0
-   vl1re128.v  v3, (a0)
-   vl1re256.v  v3, (a0)
-   vl1re512.v  v3, (a0)
-   vl1re1024.v v3, (a0)
+   # vl1re128.v  v3, (a0) 
+   # vl1re256.v  v3, (a0)
+   # vl1re512.v  v3, (a0)
+   # vl1re1024.v v3, (a0)
 
    vl2r.v v2, (a0)       # Pseudo instruction equal to vl2re8.v v2, (a0)
 
@@ -2200,10 +2206,10 @@ an ABI.  The base V extension mandates support for SEW=8.
    vl2re16.v   v2, (a0)  # Load v2-v3 with 2*VLEN/16 halfwords held at address in a0
    vl2re32.v   v2, (a0)  # Load v2-v3 with 2*VLEN/32 words held at address in a0
    vl2re64.v   v2, (a0)  # Load v2-v3 with 2*VLEN/64 doublewords held at address in a0
-   vl2re128.v  v2, (a0)
-   vl2re256.v  v2, (a0)
-   vl2re512.v  v2, (a0)
-   vl2re1024.v v2, (a0)
+   # vl2re128.v  v2, (a0)
+   # vl2re256.v  v2, (a0)
+   # vl2re512.v  v2, (a0)
+   # vl2re1024.v v2, (a0)
 
    vl4r.v v4, (a0)       # Pseudo instruction equal to vl4re8.v
 
@@ -2211,10 +2217,10 @@ an ABI.  The base V extension mandates support for SEW=8.
    vl4re16.v   v4, (a0)
    vl4re32.v   v4, (a0)
    vl4re64.v   v4, (a0)
-   vl4re128.v  v4, (a0)
-   vl4re256.v  v4, (a0)
-   vl4re512.v  v4, (a0)
-   vl4re1024.v v4, (a0)
+   # vl4re128.v  v4, (a0)
+   # vl4re256.v  v4, (a0)
+   # vl4re512.v  v4, (a0)
+   # vl4re1024.v v4, (a0)
 
    vl8r.v v8, (a0)       # Pseudo instruction equal to vl8re8.v
 
@@ -2222,10 +2228,10 @@ an ABI.  The base V extension mandates support for SEW=8.
    vl8re16.v   v8, (a0)
    vl8re32.v   v8, (a0)
    vl8re64.v   v8, (a0)
-   vl8re128.v  v8, (a0)
-   vl8re256.v  v8, (a0)
-   vl8re512.v  v8, (a0)
-   vl8re1024.v v8, (a0)
+   # vl8re128.v  v8, (a0)
+   # vl8re256.v  v8, (a0)
+   # vl8re512.v  v8, (a0)
+   # vl8re1024.v v8, (a0)
 
    vs1r.v v3, (a1)      # Store v3 to address in a1
    vs2r.v v2, (a1)      # Store v2-v3 to address in a1
