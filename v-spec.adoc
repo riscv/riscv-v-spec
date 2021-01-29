@@ -4172,10 +4172,14 @@ elements before summing them.
 
 The `vfredosum` instruction must sum the floating-point values in
 element order, starting with the scalar in `vs1[0]`--that is, it
-performs the computation: `(((vs1[0] + vs2[0]) + vs2[1]) + ...) +
-vs2[vl-1]`, where each addition operates identically to the scalar
-floating-point instructions in terms of raising exception flags and
-generating or propagating special values.
+performs the computation:
+
+----
+ vd[0] = `(((vs1[0] + vs2[0]) + vs2[1]) + ...) + vs2[vl-1]`
+----
+where each addition operates identically to the scalar floating-point
+instructions in terms of raising exception flags and generating or
+propagating special values.
 
 NOTE: The ordered reduction supports compiler autovectorization, while
 the unordered FP sum allows for faster implementations.
@@ -4232,7 +4236,7 @@ permitted to pass through the original NaN and set no exception flags, as with
 NOTE: The `vfredosum` instruction is a valid implementation of the
 `vfredsum` instruction.
 
-==== Vector Single-Width Floating Max and Min Reductions
+==== Vector Single-Width Floating-Point Max and Min Reductions
 
 NOTE: Floating-point max and min reductions should return the same
 final value and raise the same exception flags regardless of operation
