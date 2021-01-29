@@ -5143,6 +5143,9 @@ cases where this overwrite is prohibited to enable execution of the
 vector instructions to be idempotent and hence restartable from any
 location.
 
+Implementations must ensure forward progress can be eventually
+guaranteed for the element or segment reported by `vstart`.
+
 === Imprecise vector traps
 
 Imprecise vector traps are traps that are not precise.  In particular,
