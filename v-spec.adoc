@@ -3167,9 +3167,10 @@ unsigned-vector * signed-scalar product.
 
 NOTE: The current `vmulh*` opcodes perform simple fractional
 multiplies, but with no option to scale, round, and/or saturate the
-result.  Can consider changing definition of `vmulh`, `vmulhu`,
-`vmulhsu` to use `vxrm` rounding mode when discarding low half of
-product.  There is no possibility of overflow in this case.
+result.  A possible extension can consider variants of `vmulh`,
+`vmulhu`, `vmulhsu` that use the `vxrm` rounding mode when discarding
+low half of product.  There is no possibility of overflow in these
+cases.
 
 === Vector Integer Divide Instructions
 
@@ -3350,7 +3351,7 @@ narrow operands by supporting scaling and rounding, and can handle
 overflow by saturating results into the destination format range.
 
 NOTE: The widening integer operations described above can also be used
-to remove the possibility of overflow.
+to avoid overflow.
 
 === Vector Single-Width Saturating Add and Subtract
 
@@ -3385,7 +3386,7 @@ The averaging add and subtract instructions right shift the result by
 one bit and round off the result according to the setting in `vxrm`.
 Both unsigned and signed versions are provided.
 For `vaaddu`, `vaadd`, and `vasub`, there can be no overflow in the result.
-For `vasubu`, overflow is ignored.
+For `vasubu`, overflow is ignored and the result wraps around.
 
 ----
 # Averaging add
@@ -3431,6 +3432,12 @@ have two sign bits in 2N bits.  To retain greater precision in N
 result bits, the product is shifted right by one bit less than N,
 saturating the largest magnitude result but increasing result
 precision by one bit for all other products.
+
+NOTE: We do not provide an equivalent fractional multiply where one
+input is unsigned, as these would retain all upper SEW bits and would
+not need to saturate.  This operation is partly covered by the
+`vmulhu` and `vmulhsu` instructions, for the case where rounding is
+simply truncation (`rdn`).
 
 === Vector Single-Width Scaling Shift Instructions
 
