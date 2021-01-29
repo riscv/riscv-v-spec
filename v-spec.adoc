@@ -93,6 +93,10 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 === Clarified that permutation instructions also obey tail/mask
 agnostic/undisturbed where appropriate.
 
+=== Specified that reduction instructions also obey tail
+agnostic/undisturbed for destination vector register for elements past
+first.
+
 :sectnums:
 
 == Introduction
@@ -4146,7 +4150,8 @@ from the reduction, but the scalar operand is always included
 regardless of the mask values.
 
 The other elements in the destination vector register ( 0 < index <
-VLEN/SEW) are left unchanged.
+VLEN/SEW) are considered the tail and are managed with the current
+tail agnostic/undisturbed policy.
 
 If `vl`=0, no operation is performed and the destination register is
 not updated.
