@@ -1,4 +1,4 @@
-.vfrece7.v common-case lookup table contents
+.vfrec7.v common-case lookup table contents
 [%autowidth]
 |===
 

@@ -1,4 +1,4 @@
-.vfrsqrte7.v common-case lookup table contents
+.vfrsqrt7.v common-case lookup table contents
 [%autowidth]
 |===
 

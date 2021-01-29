@@ -81,7 +81,7 @@ include::example/sgemm.S[lines=4..-1]
 ----
 # v1 = v1 / v2 to almost 23 bits of precision.
 
-vfrece7.v v3, v2            # Estimate 1/v2
+vfrec7.v v3, v2             # Estimate 1/v2
   li t0, 0x40000000
 vmv.v.x v4, t0              # Splat 2.0
 vfnmsac.vv v4, v2, v3       # 2.0 - v2 * est(1/v2)
@@ -99,7 +99,7 @@ vfmul.vv v1, v1, v3         # Estimate of v1/v2
 
   fmv.w.x ft0, x0           # Mask off zero inputs
 vmfne.vf v0, v1, ft0        #   to avoid div by zero
-vfrsqrte7.v v2, v1, v0.t    # Estimate 1/sqrt(x)
+vfrsqrt7.v v2, v1, v0.t     # Estimate 1/sqrt(x)
 vmfne.vf v0, v2, ft0, v0.t  # Additionally mask off +inf inputs
   li t0, 0xbf000000
   fmv.w.x ft0, t0           # -0.5
