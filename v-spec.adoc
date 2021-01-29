@@ -3286,7 +3286,7 @@ based on a mask.  Unlike regular arithmetic instructions, the
 merge operates on all body elements (i.e., the set of elements from
 `vstart` up to the current vector length in `vl`).
 
-The `vmerge` instructions are always masked (`vm=0`).
+The `vmerge` instructions are encoded as masked instruction (`vm=0`).
 The instructions combine two
 sources as follows.  At elements where the mask value is zero, the
 first operand is copied to the destination element, otherwise the
@@ -3309,7 +3309,7 @@ register group.
 The `vmv.v.v` variant copies a vector register group, whereas the `vmv.v.x`
 and `vmv.v.i` variants __splat__ a scalar register or immediate to all active
 elements of the destination vector register group.
-These instructions are always unmasked (`vm=1`).
+These instructions are encoded as unmasked instructions (`vm=1`).
 The first operand specifier (`vs2`) must contain `v0`, and any other vector
 register number in `vs2` is _reserved_.
 
@@ -3325,12 +3325,14 @@ sequence `vmv.v.i vd, 0; vmerge.vim vd, vd, 1, v0`.
 NOTE: The vector integer move instructions share the encoding with the vector
 merge instructions, but with `vm=1` and `vs2=v0`.
 
-NOTE: The form `vmv.v.v vd, vd`, which leaves body elements unchanged,
-is used as a hint to indicate that the register will be used
-with an EEW equal to SEW.  Implementations that internally reorganize
-data according to EEW can shuffle the internal representation
-according to SEW.  Implementations that do not internally reorganize
-data can dynamically elide this instruction, and treat as a NOP.
+The form `vmv.v.v vd, vd`, which leaves body elements unchanged,
+is used as a HINT to indicate that the register will next be used
+with an EEW equal to SEW.
+
+NOTE: Implementations that internally reorganize data according to EEW
+can shuffle the internal representation according to SEW.
+Implementations that do not internally reorganize data can dynamically
+elide this instruction, and treat as a NOP.
 
 == Vector Fixed-Point Arithmetic Instructions
 
