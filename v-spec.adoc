@@ -96,6 +96,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Mask register tail elements are always updated according to a tail-agnostic policy, regardless of `vta` setting.
 
+=== Added mask register load/store instructions `vle1.v`/`vse1.v`, to provide hint that values are masks and to reduce `vl` manipulation around mask spill/fill code.
+
 :sectnums:
 
 == Introduction
@@ -1608,7 +1610,9 @@ instruction encodings respectively.
 5+| lumop[4:0] | Description
 
 | 0 | 0 | 0 | 0 | 0 | unit-stride
-| 0 | 0 | x | x | x | reserved, x !=0
+| 0 | 0 | x | 0 | 1 | reserved
+| 0 | 0 | x | 1 | 0 | reserved
+| 0 | 1 | 0 | 1 | 1 | unit-stride, mask load, EEW=1
 | 0 | 1 | 0 | 0 | 0 | unit-stride, whole registers
 | 0 | 1 | x | x | x | reserved, x !=0
 | 1 | 0 | 0 | 0 | 0 | unit-stride fault-only-first
@@ -1621,6 +1625,9 @@ instruction encodings respectively.
 5+| sumop[4:0] | Description
 
 | 0 | 0 | 0 | 0 | 0 | unit-stride
+| 0 | 0 | x | 0 | 1 | reserved
+| 0 | 0 | x | 1 | 0 | reserved
+| 0 | 1 | 0 | 1 | 1 | unit-stride, mask store, EEW=1
 | 0 | 0 | x | x | x | reserved, x !=0
 | 0 | 1 | 0 | 0 | 0 | unit-stride, whole registers
 | 0 | 1 | x | x | x | reserved, x !=0
@@ -1733,6 +1740,27 @@ NOTE: RV128 will require data and index EEW of 128.
     # vse512.v  vs3, (rs1), vm  #  512-bit unit-stride store. Reserved
     # vse1024.v vs3, (rs1), vm  # 1024-bit unit-stride store. Reserved
 ----
+
+An additional unit-stride load and store is provided to support
+transferring mask values (EEW=1) to/from memory.  These operate the
+same as unmasked byte loads or stores, except that the effective
+vector length is ``evl``=ceil(``vl``/8), and the destination register is
+always written with a tail-agnostic policy.
+
+----
+    # Vector unit-stride mask load
+    vle1.v vd, (rs1)   #  Load byte vector of length ceil(vl/8)
+
+    # Vector unit-stride mask store
+    vse1.v vs3, (rs1)  #  Store byte vector of length ceil(vl/8)
+----
+
+NOTE: The primary motivation to provide mask load and store is to
+support machines that internally rearrange data based on EEW to reduce
+cross-datapath wiring.  However, this also provides a convenient
+mechanism to access packed bit vectors in memory as mask registers,
+and reduces the cost of mask spill/fill by reducing need to change
+`vl`.
 
 === Vector Strided Instructions
 
@@ -2254,6 +2282,10 @@ NOTE: Implementations should raise illegal instruction exceptions on
 NOTE: These instructions can be implemented as unit-stride
 loads/stores of vector register groups, where EEW is 8, `nf` encodes
 EMUL, and `vl` = VLMAX for EEW and EMUL.
+
+NOTE: We have considered adding a whole register mask load
+instruction (``vl1re1.v vd, (rs1)``), with EEW=1, as a mask hint but this is not currently on
+PoR.
 
 == Vector AMO Operations
 
