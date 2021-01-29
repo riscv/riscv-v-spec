@@ -4562,7 +4562,7 @@ trap handler.  An illegal instruction exception is raised if `vstart`
 is non-zero.
 
 The destination register group cannot overlap the source register
-and, if masked, cannot overlap the mask register ('v0').
+and, if masked, cannot overlap the mask register (`v0`).
 
 NOTE: These constraints exist for two reasons.  First, to simplify
 avoidance of WAR hazards in implementations with temporally long vector
