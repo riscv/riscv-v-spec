@@ -222,8 +222,9 @@ set to Off.
 
 When the `VS` field is set to Initial or Clean, executing any
 instruction that changes vector state, including the vector CSRs, will
-change `VS` to Dirty.  Implementations may also change `VS` field to
-Dirty at any time, even when there is no change in vector state.
+change `VS` to Dirty.
+Implementations may also change the `VS` field from Initial or Clean to Dirty
+at any time, even when there is no change in vector state.
 
 NOTE: Accurate setting of the `VS` field is an optimization.  Software
 will typically use VS to reduce context swap overhead.
