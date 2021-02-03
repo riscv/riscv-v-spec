@@ -809,7 +809,7 @@ treated as part of the tail.
  SEW=32b           -       -       -       0
 ----
 
-=== Mapping with LMUL > 1
+=== Mapping for LMUL > 1
 
 When vector registers are grouped, the elements of the vector register
 group are striped across the constituent vector registers.  The
@@ -940,7 +940,7 @@ for completeness but they do not add a useful operating point in the
 base architecture as they use less than the full register capacity and
 do not enable more architectural registers.
 
-=== Mapping with LMUL > 1 and ELEN > VLEN
+=== Mapping for LMUL > 1 and ELEN > VLEN
 
 If vector registers are grouped to support larger SEW, with ELEN >
 VLEN, the vector registers in the group are concatenated to form a
@@ -1197,7 +1197,7 @@ calculations. [[sec-mask-vector-logical]]
 When a mask is written with a compare result, destination mask bits
 past the end of the current vector length are always handled according
 to a tail-agnostic policy regardless of the setting of the `vta` bit
-in `vtype (Section <<sec-agnostic>>).
+in `vtype` (Section <<sec-agnostic>>).
 
 [[sec-vector-mask-encoding]]
 ==== Mask Encoding
@@ -1274,7 +1274,7 @@ vector register.
 
 ----
     for element index x
-    prestart    = (0 <= x < vstart)
+    prestart(x) = (0 <= x < vstart)
     body(x)     = (vstart <= x < vl)
     tail(x)     = (vl <= x < max(VLMAX,VLEN/SEW))
     mask(x)     = unmasked || v0.mask[x] == 1
@@ -1317,7 +1317,7 @@ their arguments, and write the new value of `vl` into `rd`.
 ----
 
 The new `vtype` setting is encoded in the immediate fields of
-`vsetvli` and`vsetivli`,  and in the `rs2` register for `vsetvl`.  The new vector
+`vsetvli` and `vsetivli`,  and in the `rs2` register for `vsetvl`.  The new vector
 length setting is based on AVL, which for `vsetvli` and `vsetvl` is encoded in the `rs1` and `rd`
 fields as follows:
 
