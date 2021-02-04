@@ -1,52 +1,63 @@
-Date: 2021/01/29
+Date: 2020/12/18
 Task Group: Vector Extension
 Chair: Krste Asanovic
 Co-Chair: Roger Espasa
-Number of Attendees: ~16
+Number of Attendees: ~10
 Current issues on github: https://github.com/riscv/riscv-v-spec
 
-# Meetings
-
-Meetings will continue in the regular Friday time slot as given on the
-task groups' Google calendar.
-
-# v0.10 release
-
-Version v0.10 (zero-point-ten) is tagged in repo, incorporating all
-specification changes agreed to date.  A numbered version was
-requested by toolchain folks to help with their release process.  An
-archived pdf build of v0.10 is available at:
-
-https://github.com/riscv/riscv-v-spec/releases/download/v0.10/riscv-v-spec-0.10.pdf
-
-This version is intended to provide a stable milestone for internal
-development, but is not ready for public review or ratification.
-However, the intent is that there are no substantial changes in
-instruction specifications before reaching frozen v1.0 status for
-public review, though of course there cannot be any guarantees.  The
-repo version name has been updated for the next stage of editing.
+Note: No more meetings schedule until next year.  Time slot may have
+to change.
 
 Issues discussed:
 
-#623  Round Float to integer as float
+# Freeze process
 
-The current ISA spec does not have an instruction that rounds a float
-to an integer but leaving result as a float (IEEE RoundToIntegral*).
-The following five vector instruction sequence was quickly proposed,
-but not checked for correctness or completeness:
-    vfcvt.rtz.x.f.v v8, v4     # Round to integer of same width (could use frm)
-    vfcvt.f.x.v v8, v8         # Round back to float of same width
-    vfabs.f.f.v v12, v4        # Get magnitude of original value.
-    vmfgt.vf v0, v4, f0        # Is large integer already? f0 has threshold.
-    vmerge.vvm v4, v8, v4, v0  # Leave alone if already an integer
+We are close to freezing the spec.  There is a waiver from chairs for
+SAIL model and compatibility tests, but we will need to complete these
+before ratification.
 
-Group was to evaluate correct equivalent sequence and to determine
-relative importance of supporting the operation directly.
+# auto pdf generation
 
-#550 Zve* subsets
+There was a request to have the repo automatically generate a pdf
+version on commits to avoid users having to install formatting tools.
 
-There was discussion on the exact composition of the Zve* subsets,
-though mostly there was agreement with decisions in earlier meetings.
-One question is whether multiplies that produce the upper
-word of a ELEN*ELEN-bit product (vmulh* and vsmul*) should be mandated
-on all embedded subsets when ELEN>=64.
+# Mask handling
+
+Continuing discussion, the concrete proposal is to add new unit-stride
+loads and stores that would use the lumop/sumop field to encode byte
+load/stores used for masks, and also use effective vl = ceil(vl/8)
+(implying effectively EMUL<=1).  Proposed instructions would be:
+
+       vle1.v vd, (rs1)    # Byte load with effective vl = ceil(vl/8)
+       vse1.v vs2, (rs1)   # Byte store with effective vl = ceil(vl/8)
+
+Encoded with lumop/sumop = 00011.
+
+We discussed adding whole vector register load version with
+lumop=01011, which would only be a mask hint, but for now, this seems
+less necessary so is not on PoR.
+
+       vl1re1.v vd, (rs1) # Whole register load
+
+# vsetivli
+
+A new variant of vsetvl was proposed providing an immediate as the AVL
+in rs1[4:0].  The immediate encoding is the same as for CSR immediate
+instructions. The instruction would have bit 31:30 = 11 and bits 29:20
+would be encoded same as vsetvli.
+
+This would be used when AVL was statically known, and known to fit
+inside vector register group.  Compared with existing PoR, it removes
+need to load immediate into a spare scalar register before executing
+vsetvli, and is useful for handling scalar values in vector register
+(vl=1) and other cases where short fixed-sized vectors are the
+datatype (e.g., graphics).
+
+There was discussion on whether uimm=00000 should represent 32 or be
+reserved.  32 is more useful, but adds a little complexity to
+hardware.
+
+There was also discussion on whether instruction should set vill if
+selected AVL is not supported, or whether should clip vl to VLMAX as
+with other instructions, or if behavior should be reserved.  Group
+generally favored writing vill to expose software errors.
