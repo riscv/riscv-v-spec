@@ -1617,14 +1617,11 @@ instruction encodings respectively.
 |===
 5+| lumop[4:0] | Description
 
-| 0 | 0 | 0 | 0 | 0 | unit-stride
-| 0 | 0 | x | 0 | 1 | reserved
-| 0 | 0 | x | 1 | 0 | reserved
+| 0 | 0 | 0 | 0 | 0 | unit-stride load
+| 0 | 1 | 0 | 0 | 0 | unit-stride, whole register load
 | 0 | 1 | 0 | 1 | 1 | unit-stride, mask load, EEW=1
-| 0 | 1 | 0 | 0 | 0 | unit-stride, whole registers
-| 0 | 1 | x | x | x | reserved, x !=0
 | 1 | 0 | 0 | 0 | 0 | unit-stride fault-only-first
-| 1 | x | x | x | x | reserved, x!=0
+| x | x | x | x | x | other encodings reserved
 |===
 
 .sumop
@@ -1632,14 +1629,10 @@ instruction encodings respectively.
 |===
 5+| sumop[4:0] | Description
 
-| 0 | 0 | 0 | 0 | 0 | unit-stride
-| 0 | 0 | x | 0 | 1 | reserved
-| 0 | 0 | x | 1 | 0 | reserved
+| 0 | 0 | 0 | 0 | 0 | unit-stride store
+| 0 | 1 | 0 | 0 | 0 | unit-stride, whole register store
 | 0 | 1 | 0 | 1 | 1 | unit-stride, mask store, EEW=1
-| 0 | 0 | x | x | x | reserved, x !=0
-| 0 | 1 | 0 | 0 | 0 | unit-stride, whole registers
-| 0 | 1 | x | x | x | reserved, x !=0
-| 1 | x | x | x | x | reserved
+| x | x | x | x | x | other encodings reserved
 |===
 
 The `nf[2:0]` field encodes the number of fields in each segment.  For
