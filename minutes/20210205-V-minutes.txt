@@ -1,0 +1,40 @@
+Date: 2021/02/05
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Vice-Chair: Roger Espasa
+Number of Attendees: ~16
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+# Next Meeting
+
+It was decided to meet again in two weeks (Feb 19) to allow time for
+everyone to digest and comment on the v0.10 release version.  Please
+send PRs for any small typos and clarifications, and use mailing list
+for larger issues.
+
+Issues discussed
+
+# Assembly synatx
+
+There was a desire to move away from allowing vsetvl to imply
+"undisturbed" behavior by default, to ensure maximum use of "agnostic"
+by software.  The assembler can issue errors instead of warnings when
+the ta/tu/ma/mu fields are not explicitly given, with perhaps an
+option to allow with a warning to allow older code to be compiled.
+
+# Spec formatting
+
+There was some discussion on use of Wavedrom formatting tools.  New
+tools to give diagrams for the register layout will be added.  There
+was also a promise of somewhat faster build times for the doc.  There
+apparently is a central flow for running document generation on
+commits at riscv.org, and we need to sync up with that process.
+
+# Extend agnostic behavior of mask logical operations
+
+There was a request to extend tail-agnostic behavior of mask logical
+instructions to allow the tail to be overwritten with values
+corresponding to the logical operation (as opposed to agnostic values
+that currently can only be all 1s or the previous destination value).
+This is a relaxation of requireements, so would not affect
+compatibility of existing implementations.  To be discussed.
