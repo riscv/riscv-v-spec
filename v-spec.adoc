@@ -3969,10 +3969,10 @@ sign-injection instruction with both source operands set to the same
 vector operand.  Can define assembly pseudoinstruction `vfneg.v vd,vs`
 = `vfsgnjn.vv vd,vs,vs`.
 
-NOTE: A vector of floating-point values can take absolute value using a
-sign-injection instruction with both source operands set to the same
-vector operand.  Can define assembly pseudoinstruction `vfabs.v vd,vs`
-= `vfsgnjx.vv vd,vs,vs`.
+NOTE: The absolute value of a vector of floating-point elements can be
+calculated using a sign-injection instruction with both source
+operands set to the same vector operand.  Can define assembly
+pseudoinstruction `vfabs.v vd,vs` = `vfsgnjx.vv vd,vs,vs`.
 
 === Vector Floating-Point Compare Instructions
 
