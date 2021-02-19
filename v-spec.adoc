@@ -96,6 +96,8 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Clarified that mask and vl dependencies are control dependencies for RVWMO purposes
 
+=== Specified that fault-only-first segment load instructions may update destination registers past the point that trimming occurs.
+
 :sectnums:
 
 == Introduction
@@ -2041,18 +2043,19 @@ field to be stored in each segment.
 
 There are also fault-only-first versions of the unit-stride instructions.
 
-For fault-only-first segment loads, if an exception is detected partway
-through accessing a segment, regardless of whether the element index is zero,
-it is implementation-defined whether a subset of the segment is loaded.
-
 ----
     # Template for vector fault-only-first unit-stride segment loads.
     vlseg<nf>e<eew>ff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
 ----
 
+For fault-only-first segment loads, if an exception is detected partway
+through accessing a segment, regardless of whether the element index is zero,
+it is implementation-defined whether a subset of the segment is loaded.
+
 These instructions may overwrite destination vector register group
 elements past the point at which a trap is reported or past the point
 at which vector length is trimmed.
+
 
 ==== Vector Strided Segment Loads and Stores
 
