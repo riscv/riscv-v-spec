@@ -813,7 +813,7 @@ treated as part of the tail, and hence must obey the vta setting.
  SEW=32b           -       -       -       0
 ----
 
-=== Mapping with LMUL > 1
+=== Mapping for LMUL > 1
 
 When vector registers are grouped, the elements of the vector register
 group are striped across the constituent vector registers.  The
