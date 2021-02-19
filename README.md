@@ -36,7 +36,9 @@ Requirements
 
 **Linux**: install using [nvm](https://github.com/creationix/nvm)
 
-**OSX**: `brew install node`
+**OS X Homebrew**: `brew install node`
+
+**OX X Macports**: `sudo port install npm6`
 
 **Windows**: [nodejs.org](https://nodejs.org/en/download/)
 
