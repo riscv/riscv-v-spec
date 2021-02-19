@@ -801,7 +801,7 @@ least-significant byte of the stored element.
 
 When LMUL < 1, only the first LMUL*VLEN/SEW elements in the vector
 register are used.  The remaining space in the vector register is
-treated as part of the tail.
+treated as part of the tail, and hence must obey the vta setting.
 
 ----
  Example, VLEN=128b, LMUL=1/4
