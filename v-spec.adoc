@@ -58,7 +58,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Moved quad-widening mulacc to appendix and removed instruction encodings to make clear not part of v1.0
 
-=== Added `vneg` and `vfneg` pseudo-instructions.
+=== Added `vfabs`, `vneg` and `vfneg` pseudo-instructions.
 
 === Changed mandatory illegal instruction exceptions on unsupported encodings to reserved, to allow future use of these encodings.  Implementations are still recommended to trap on unsupported reserved encodings.
 
@@ -3968,6 +3968,11 @@ NOTE: A vector of floating-point values can be negated using a
 sign-injection instruction with both source operands set to the same
 vector operand.  Can define assembly pseudoinstruction `vfneg.v vd,vs`
 = `vfsgnjn.vv vd,vs,vs`.
+
+NOTE: A vector of floating-point values can take absolute value using a
+sign-injection instruction with both source operands set to the same
+vector operand.  Can define assembly pseudoinstruction `vfabs.v vd,vs`
+= `vfsgnjx.vv vd,vs,vs`.
 
 === Vector Floating-Point Compare Instructions
 
