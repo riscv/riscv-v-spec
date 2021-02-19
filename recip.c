@@ -13,7 +13,7 @@
 # error Need IEEE 754 FP
 #endif
 
-typedef union{
+typedef union {
   float f;
   uint32_t i;
 } f32_union;
