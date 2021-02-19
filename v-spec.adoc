@@ -94,8 +94,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Added `vsetivli` instruction with immediate AVL value.
 
-=== Clarified that mask and vl dependencies are control dependencies
-for RVWMO purposes
+=== Clarified that mask and vl dependencies are control dependencies for RVWMO purposes
 
 :sectnums:
 
