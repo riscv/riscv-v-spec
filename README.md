@@ -19,7 +19,7 @@ International License. See the LICENSE file for details.
 
 - The [Binutils port for v0.8](https://github.com/riscv/riscv-binutils-gdb/tree/rvv-0.8.x)
 - The [GNU toolchain port for v0.8](https://github.com/riscv/riscv-gnu-toolchain/tree/rvv-0.8.x)
-- The [Spike simulator](https://github.com/riscv/riscv-isa-sim) which supports v0.8
+- The [Spike simulator](https://github.com/riscv/riscv-isa-sim) supports v0.10
 - The [RISC-V Proxy Kernel](https://github.com/riscv/riscv-pk)
   (to be used with e.g. Spike) supports enabling v0.8 CPU support
   when compiled with a v0.8 capable GNU toolchain
