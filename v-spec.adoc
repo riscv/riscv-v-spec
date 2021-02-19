@@ -3400,7 +3400,7 @@ NOTE: The vector integer move instructions share the encoding with the vector
 merge instructions, but with `vm=1` and `vs2=v0`.
 
 The form `vmv.v.v vd, vd`, which leaves body elements unchanged,
-is used as a HINT to indicate that the register will next be used
+is used as a hint to indicate that the register will next be used
 with an EEW equal to SEW.
 
 NOTE: Implementations that internally reorganize data according to EEW
@@ -5093,7 +5093,7 @@ does not apply to these instructions.
 Instead, no elements are written if `vstart` {ge} `evl`.
 
 NOTE: If `vd` is equal to `vs2` the instruction is an architectural
-NOP, but is treated as a HINT to implementations that rearrange data
+NOP, but is treated as a hint to implementations that rearrange data
 internally that the register group will next be accessed with an EEW
 equal to SEW.
 
