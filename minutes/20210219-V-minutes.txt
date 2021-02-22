@@ -1,0 +1,32 @@
+Date: 2021/02/19
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Vice-Chair: Roger Espasa
+Number of Attendees: ~23
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+# Next Meeting/Freezing
+
+The schedule is to meet again in two weeks (Friday March 5).  The plan
+is to have all pending updates and cleanups in spec by that date, to
+be able to agree to freeze and move forward into public review (v1.0),
+which should happen soon after this meeting.  Please continue to send
+PRs for any small typos and clarifications, and use mailing list for
+larger issues.
+
+Issues discussed
+
+#640 Bound on VLMAX
+
+The major issue raised was that software would otherwise have to cope
+with indices that might not fit in 16b.  The group agreed that
+profiles and/or platform specs can set the upper bound, with a current
+recommendation that all profiles limit VLMAX to 64K elements
+(VLEN=64Kib, or 8K bytes per vector register).  The current ISA spec can
+support larger VLMAX already, but adding vrgatherei32 instruction
+would be a useful addition (post-v1.0) if architectural vector
+regfiles >256KiB become common.
+
+It was also discussed that a privileged setting will be desired to
+modulate visible VLEN to support thread migration, or just different
+application vector profiles with different VLMAX in general.
