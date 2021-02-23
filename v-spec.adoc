@@ -1763,7 +1763,7 @@ always written with a tail-agnostic policy.
     vse1.v vs3, (rs1)  #  Store byte vector of length ceil(vl/8)
 ----
 
-`vle1.v` and `vle1.v` are encoded with `width[2:0]`=0, like
+`vle1.v` and `vse1.v` are encoded with `width[2:0]`=0, like
 `vle8.v` and `vse8.v`; they are distinguished by different
 `lumop` and `sumop` encodings.
 
@@ -5244,4 +5244,3 @@ include::calling-convention.adoc[]
 include::quad-mul.adoc[]
 
 include::ediv.adoc[]
-
