@@ -1763,6 +1763,10 @@ always written with a tail-agnostic policy.
     vse1.v vs3, (rs1)  #  Store byte vector of length ceil(vl/8)
 ----
 
+`vle1.v` and `vle1.v` are encoded with `width[2:0]`=0, like
+`vle8.v` and `vse8.v`; they are distinguished by different
+`lumop` and `sumop` encodings.
+
 NOTE: The primary motivation to provide mask load and store is to
 support machines that internally rearrange data based on EEW to reduce
 cross-datapath wiring.  However, this also provides a convenient
