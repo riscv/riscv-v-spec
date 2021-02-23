@@ -1767,6 +1767,9 @@ always written with a tail-agnostic policy.
 `vle8.v` and `vse8.v`; they are distinguished by different
 `lumop` and `sumop` encodings.
 
+NOTE: Since `vle1.v` and `vse1.v` operate like byte loads and stores,
+`vstart` is in units of bytes for these instructions.
+
 NOTE: The primary motivation to provide mask load and store is to
 support machines that internally rearrange data based on EEW to reduce
 cross-datapath wiring.  However, this also provides a convenient
