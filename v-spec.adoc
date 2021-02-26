@@ -44,7 +44,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Defined interaction of `misa.v` and `mstatus.vs`
 
-=== Defined integer narrowing pseudo-instruction `vncvt.x.x.w vd,vs,vm`
+=== Defined integer narrowing pseudoinstruction `vncvt.x.x.w vd,vs,vm`
 
 === Added reciprocal and reciprocal square-root estimate instructions
 
@@ -58,7 +58,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Moved quad-widening mulacc to appendix and removed instruction encodings to make clear not part of v1.0
 
-=== Added `vfabs`, `vneg` and `vfneg` pseudo-instructions.
+=== Added `vfabs`, `vneg` and `vfneg` pseudoinstructions.
 
 === Changed mandatory illegal instruction exceptions on unsupported encodings to reserved, to allow future use of these encodings.  Implementations are still recommended to trap on unsupported reserved encodings.
 
@@ -2185,7 +2185,7 @@ The load instructions have an EEW encoded in the `mew` and `width`
 fields following the pattern of regular unit-stride loads.  Because
 in-register byte layouts are identical to in-memory byte layouts,
 these instructions all operate the same as moving vectors of bytes
-with EEW=8, regardless of actual EEW encoding.  Pseudo-instructions
+with EEW=8, regardless of actual EEW encoding.  Pseudoinstructions
 are provide for whole register load instructions that correspond to
 EEW=8.
 
@@ -2238,7 +2238,7 @@ an ABI.  The base V extension mandates support for SEW=8.
 
 ----
    # Format of whole register load and store instructions.
-   vl1r.v v3, (a0)       # Pseudo instruction equal to vl1re8.v
+   vl1r.v v3, (a0)       # Pseudoinstruction equal to vl1re8.v
 
    vl1re8.v    v3, (a0)  # Load v3 with VLEN/8 bytes held at address in a0
    vl1re16.v   v3, (a0)  # Load v3 with VLEN/16 halfwords held at address in a0
@@ -2249,7 +2249,7 @@ an ABI.  The base V extension mandates support for SEW=8.
    # vl1re512.v  v3, (a0)
    # vl1re1024.v v3, (a0)
 
-   vl2r.v v2, (a0)       # Pseudo instruction equal to vl2re8.v v2, (a0)
+   vl2r.v v2, (a0)       # Pseudoinstruction equal to vl2re8.v v2, (a0)
 
    vl2re8.v    v2, (a0)  # Load v2-v3 with 2*VLEN/8 bytes from address in a0
    vl2re16.v   v2, (a0)  # Load v2-v3 with 2*VLEN/16 halfwords held at address in a0
@@ -2260,7 +2260,7 @@ an ABI.  The base V extension mandates support for SEW=8.
    # vl2re512.v  v2, (a0)
    # vl2re1024.v v2, (a0)
 
-   vl4r.v v4, (a0)       # Pseudo instruction equal to vl4re8.v
+   vl4r.v v4, (a0)       # Pseudoinstruction equal to vl4re8.v
 
    vl4re8.v    v4, (a0)  # Load v4-v7 with 4*VLEN/8 bytes from address in a0
    vl4re16.v   v4, (a0)
@@ -2271,7 +2271,7 @@ an ABI.  The base V extension mandates support for SEW=8.
    # vl4re512.v  v4, (a0)
    # vl4re1024.v v4, (a0)
 
-   vl8r.v v8, (a0)       # Pseudo instruction equal to vl8re8.v
+   vl8r.v v8, (a0)       # Pseudoinstruction equal to vl8re8.v
 
    vl8re8.v    v8, (a0)  # Load v8-v15 with 8*VLEN/8 bytes from address in a0
    vl8re16.v   v8, (a0)
@@ -4421,7 +4421,7 @@ common uses of mask logical operations:
 NOTE: The vmmv.m instruction was previously called vmcpy.m, but with
 new layout it is more consistent to name as a "mv" because bits are
 copied without interpretation.  The vmcpy.m assembler
-pseudo-instruction can be retained for compatibility.
+pseudoinstruction can be retained for compatibility.
 
 The set of eight mask logical instructions can generate any of the 16
 possibly binary logical functions of the two input masks:
