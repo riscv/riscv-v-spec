@@ -4318,7 +4318,7 @@ summation loop.
 The unordered sum reduction instruction, `vfredsum`, provides an
 implementation more freedom in performing the reduction.
 
-The implementation can produce a result equivalent to a reduction tree
+The implementation must produce a result equivalent to a reduction tree
 composed of binary operator nodes, with the inputs being elements from
 the source vector register group (`vs2`) and the source scalar value
 (`vs1[0]`).  Each operator in the tree accepts two inputs and produces
