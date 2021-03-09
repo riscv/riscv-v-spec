@@ -1198,10 +1198,8 @@ Other vector registers can be used to hold working mask values, and
 mask vector logical operations are provided to perform predicate
 calculations. [[sec-mask-vector-logical]]
 
-When a mask is written with a compare result, destination mask bits
-past the end of the current vector length are always handled according
-to a tail-agnostic policy regardless of the setting of the `vta` bit
-in `vtype` (Section <<sec-agnostic>>).
+As specified in Section <<sec-agnostic>>, mask destination values are 
+always treated as tail-agnostic, regardless of the setting of `vta`.
 
 [[sec-vector-mask-encoding]]
 ==== Mask Encoding
