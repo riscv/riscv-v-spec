@@ -4764,7 +4764,7 @@ value between a scalar `x` register and element 0 of a vector
 register.  The instructions ignore LMUL and vector register groups.
 
 ----
-vmv.x.s rd, vs2  # x[rd] = vs2[0] (rs1=0)
+vmv.x.s rd, vs2  # x[rd] = vs2[0] (vs1=0)
 vmv.s.x vd, rs1  # vd[0] = x[rs1] (vs2=0)
 ----
 
