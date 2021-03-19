@@ -90,7 +90,7 @@ profiles can still mandate a minimum ELEN when LMUL = 1.
 
 === Mask register tail elements are always updated according to a tail-agnostic policy, regardless of `vta` setting.
 
-=== Added mask register load/store instructions `vle1.v`/`vse1.v`, to provide hint that values are masks and to reduce `vl` manipulation around mask spill/fill code.
+=== Added mask register load/store instructions `vlm.v`/`vsm.v`, to provide hint that values are masks and to reduce `vl` manipulation around mask spill/fill code.
 
 === Added `vsetivli` instruction with immediate AVL value.
 
@@ -1754,18 +1754,21 @@ always written with a tail-agnostic policy.
 
 ----
     # Vector unit-stride mask load
-    vle1.v vd, (rs1)   #  Load byte vector of length ceil(vl/8)
+    vlm.v vd, (rs1)   #  Load byte vector of length ceil(vl/8)
 
     # Vector unit-stride mask store
-    vse1.v vs3, (rs1)  #  Store byte vector of length ceil(vl/8)
+    vsm.v vs3, (rs1)  #  Store byte vector of length ceil(vl/8)
 ----
 
-`vle1.v` and `vse1.v` are encoded with `width[2:0]`=0, like
+`vlm.v` and `vsm.v` are encoded with `width[2:0]`=0, like
 `vle8.v` and `vse8.v`; they are distinguished by different
-`lumop` and `sumop` encodings.
-
-NOTE: Since `vle1.v` and `vse1.v` operate like byte loads and stores,
+`lumop` and `sumop` encodings.  Since `vlm.v` and `vsm.v` operate as byte loads and stores,
 `vstart` is in units of bytes for these instructions.
+
+NOTE: The previous assembler mnemonics `vle1.v` and `vse1.v` were
+confusing as length was handled different for these instructions
+versus other element load/store instructions.  To avoid software
+churn, these older assembly mnemonics are being retained as aliases.
 
 NOTE: The primary motivation to provide mask load and store is to
 support machines that internally rearrange data based on EEW to reduce
