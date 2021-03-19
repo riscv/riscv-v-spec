@@ -1,8 +1,9 @@
 [appendix]
 == Vector Quad-Widening Integer Multiply-Add Instructions (Extension `Zvqmac`)
 
-NOTE: This is only a proposal for a future extension after v1.0 and
-might change substantially before ratification.
+WARNING: This is an older proposal for a future extension after v1.0 and
+might change substantially or be dropped completely. Do not use this
+for development or production work.
 
 The quad-widening integer multiply-add instructions add a SEW-bit*SEW-bit
 multiply result to (from) a 4*SEW-bit value and produce a 4*SEW-bit

@@ -1,9 +1,10 @@
 [appendix]
 == Divided Element Extension (Extension `Zvediv`)
 
-NOTE: The EDIV extension is currently not planned to be part of the
+WARNING: The EDIV extension is currently not planned to be part of the
 base "V" extension, and will change substantially from this current
-sketch.
+sketch and could be dropped completely.  Do not use this specfication
+for any design work.
 
 NOTE: This section has not been updated to account for new mask format
 in v0.9.
