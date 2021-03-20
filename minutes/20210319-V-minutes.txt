@@ -1,0 +1,59 @@
+Date: 2021/03/19
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Vice-Chair: Roger Espasa
+Number of Attendees: ~16
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+Issues discussed
+
+#640 Bound on VLMAX/VLEN
+
+Previously, we'd discussed making the upper bound on VLMAX part of
+profile, but realization was that bound cannot be later increased in a
+software-compatibile way without adding a new instruction, so is
+effectively part of the ISA spec.
+
+We discussed having the more general case of VLMAX being the bound,
+but consensus was that having bound be a function of VLEN (<=65536)
+was simpler to specify and had no great effect on range of supported
+systems.
+
+The extension to add independent control of data input size of
+vrgather, proposed in #655, was briefly discussed, but this will not
+be included in v1.0.
+
+#651 expanding tail-agnostic to allow result values (masks only, or data)
+
+The discussion was around expanding the set of allowable tail-agnostic
+values to include the results of the computation.
+
+The consensus was to expand this for mask register writes (except
+loads), where only tail-agnostic behavior is required.
+
+But support was not as clear for data register writes, where
+tail-undisturbed behavior must be supported and where FP operations
+require masking off exception flags even for tail-agnostic.
+
+PoR is to expand mask register writes to allow results to be written
+in tail, while continuing discussion on further relaxing for data
+register writes.
+
+#457 Ordering in vector AMOs
+
+Current vector AMOs have no facility to order writes to the same
+address, whereas indexed stores have an ordered option.
+
+Discussion was on proposal to tie address-based ordering to the wd
+(write result data) bit.  One concern was that this seemed to hamper
+some cases, including where software wanted the results but knew
+addresses were disjoint.  Providing ordering only on same address
+would likely require slow implementation on out-of-order machine where
+addresses can be produced out of order for different element groups.
+
+Decision was to maintain PoR and consider post-v1.0 ways to support
+ordered vector AMOs.
+
+
+
+
