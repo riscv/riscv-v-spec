@@ -23,76 +23,7 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 :sectnums!:
 
-== Changes from v0.9
-
-=== SLEN=VLEN layout mandatory
-
-The group has decided to make the SLEN=VLEN layout mandatory.
-In-register layout of the bytes of a vector matches in-memory layout
-of bytes in a vector.  Many of the optimizations possible with the
-earlier SLEN<VLEN layouts can be achieved with microarchitectural
-techniques on wide datapath machines, and SLEN=VLEN provides a much
-simpler specification and interface to software.
-
-=== Support ELEN > VLEN for LMUL > 1
-
-Specification was loosened to allow elements wider than a single
-vector register to be supported using a vector register group, but
-profiles can still mandate a minimum ELEN when LMUL = 1.
-
-=== Defined vector FP exception behavior
-
-=== Defined interaction of `misa.v` and `mstatus.vs`
-
-=== Defined integer narrowing pseudoinstruction `vncvt.x.x.w vd,vs,vm`
-
-=== Added reciprocal and reciprocal square-root estimate instructions
-
-=== Added EEW encoding to whole register moves and load/stores to support microarchitectures with internal data rearrangement.
-
-=== Added `vrgatherei16` instruction
-
-=== Rearranged bits in `vtype` to make `vlmul` bits into a contiguous field
-
-=== Moved EDIV to appendix and removed instruction encoding for dot instructions to make clear not part of v1.0
-
-=== Moved quad-widening mulacc to appendix and removed instruction encodings to make clear not part of v1.0
-
-=== Added `vfabs`, `vneg` and `vfneg` pseudoinstructions.
-
-=== Changed mandatory illegal instruction exceptions on unsupported encodings to reserved, to allow future use of these encodings.  Implementations are still recommended to trap on unsupported reserved encodings.
-
-=== Clarified that support for vector misaligned memory accesses is independent of support for scalar misaligned memory accesses.
-
-=== Clarified support for precise/imprecise traps.  Require `vstart` to report location of faulting element. 
-
-=== Define whole register move instructions in terms of SEW instead of EEW=8 to allow definition to apply to machines with no support for EEW=8, and to help describe how these provide a hint to implementations with internal rearrangement of data.  Functionality has not changed.
-
-=== Specified minimum VLEN=128 for the base "V" vector extension.
-
-=== Clarified whole register moves, including existence of register group save/restore, and allowed misaligned to be signaled for smallest supported size instead of encoded EEW to support implementations without SEW=8 load/store.
-
-=== Changed default for vector memory instructions to be "unordered", and added ordered/unordered vector indexed instructions.
-
-=== Clarified that for precise traps, vector store instructions can update idempotent memory for elements past the location of an element raising a trap.
-
-=== Reserved vstart values greater than maximum element index.
-
-=== Allow vector strided instruction to perform fewer memory accesses when `rs2=x0`.
-
-=== Clarified that `vsetvl{i} x0, x0, ...` form instructions may set `vill` when new SEW/LMUL ratio would change VLMAX.
-
-=== Made clear that implementations must support LMUL 1,2,4,8.
-
-=== Clarified that permutation instructions also obey tail/mask agnostic/undisturbed where appropriate.
-
-=== Specified that reduction instructions also obey tail agnostic/undisturbed for destination vector register for elements past first.
-
-=== Mask register tail elements are always updated according to a tail-agnostic policy, regardless of `vta` setting.
-
-=== Added mask register load/store instructions `vlm.v`/`vsm.v`, to provide hint that values are masks and to reduce `vl` manipulation around mask spill/fill code.
-
-=== Added `vsetivli` instruction with immediate AVL value.
+== Changes from v0.10
 
 === Clarified that mask and vl dependencies are control dependencies for RVWMO purposes
 
