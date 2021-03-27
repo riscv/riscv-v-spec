@@ -1,0 +1,16 @@
+Date: 2021/03/26
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Vice-Chair: Roger Espasa
+Number of Attendees: ~10
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+A short meeting discussing only:
+
+#545 Vector AMO Encoding
+
+The group discussed the issue with vector AMO overlapping the desired
+space for future scalar AMOs.  The group agreed with the proposal to
+leave vector AMOs out of the v1.0 specification to allow time to
+revisit the encoding taking into account the needs of scalar AMOs.
+
