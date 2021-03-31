@@ -3293,10 +3293,10 @@ vnmsub.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vd[i]) + vs2[i]
 
 === Vector Widening Integer Multiply-Add Instructions
 
-The widening integer multiply-add instructions add a SEW-bit*SEW-bit
-multiply result to (from) a 2*SEW-bit value and produce a 2*SEW-bit
-result.  All combinations of signed and unsigned multiply operands are
-supported.
+The widening integer multiply-add instructions add the full 2*SEW-bit
+product from a SEW-bit*SEW-bit multiply to a 2*SEW-bit value and
+produce a 2*SEW-bit result.  All combinations of signed and unsigned
+multiply operands are supported.
 
 ----
 # Widening unsigned-integer multiply-add, overwrite addend
