@@ -3474,21 +3474,21 @@ not need to saturate.  This operation is partly covered by the
 `vmulhu` and `vmulhsu` instructions, for the case where rounding is
 simply truncation (`rdn`).
 
-=== Vector Single-Width Scaling Shift Instructions
+=== Vector Single-Width Rounding Shift Instructions
 
 These instructions shift the input value right, and round off the
-shifted out bits according to `vxrm`.  The scaling right shifts have
+shifted out bits according to `vxrm`.  The rounding right shifts have
 both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. 
 The low lg2(SEW) bits of the vector or scalar shift-amount value are used;
 shift-amount immediates are zero-extended.
 
 ----
- # Scaling shift right logical
+ # Single-width rounding shift right logical
  vssrl.vv vd, vs2, vs1, vm   # vd[i] = roundoff_unsigned(vs2[i], vs1[i])
  vssrl.vx vd, vs2, rs1, vm   # vd[i] = roundoff_unsigned(vs2[i], x[rs1])
  vssrl.vi vd, vs2, uimm, vm  # vd[i] = roundoff_unsigned(vs2[i], uimm)
 
- # Scaling shift right arithmetic
+ # Single-width rounding shift right arithmetic
  vssra.vv vd, vs2, vs1, vm   # vd[i] = roundoff_signed(vs2[i],vs1[i])
  vssra.vx vd, vs2, rs1, vm   # vd[i] = roundoff_signed(vs2[i], x[rs1])
  vssra.vi vd, vs2, uimm, vm  # vd[i] = roundoff_signed(vs2[i], uimm)
