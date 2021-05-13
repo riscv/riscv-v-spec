@@ -2934,7 +2934,12 @@ an assembler pseudoinstruction `vnot.v`.
 
 A full complement of vector shift instructions are provided, including
 logical shift left, and logical (zero-extending) and arithmetic
-(sign-extending) shift right.
+(sign-extending) shift right.  The data to be shifted is in the vector
+register group specified by `vs2` and the shift amount can be a vector
+register group `vs1`, a scalar integer register `rs1`, or an
+immediate.  The low lg2(SEW) bits of the vector or scalar shift-amount
+value are used, and shift-amount immediates are zero-extended.
+
 
 ----
 # Bit shift operations
@@ -2951,8 +2956,6 @@ vsra.vx vd, vs2, rs1, vm   # vector-scalar
 vsra.vi vd, vs2, uimm, vm   # vector-immediate
 ----
 
-The low lg2(SEW) bits of the vector or scalar shift-amount value are used,
-and shift-amount immediates are zero-extended.
  
 === Vector Narrowing Integer Right Shift Instructions
 
