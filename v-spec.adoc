@@ -2597,7 +2597,7 @@ vfop.vv  vd, vs2, vs1, vm # FP vector-vector operation vd[i] = vs2[i] fop vs1[i]
 vfop.vf  vd, vs2, rs1, vm # FP vector-scalar operation vd[i] = vs2[i] fop f[rs1]
 ----
 
-NOTE: In the encoding, `vs2` is the first operand, while `rs1/simm5`
+NOTE: In the encoding, `vs2` is the first operand, while `rs1/imm`
 is the second operand. This is the opposite to the standard scalar
 ordering.  This arrangement retains the existing encoding conventions
 that instructions that read only one scalar register, read it from
@@ -3518,12 +3518,12 @@ forms zero-extend their shift-amount immediate operand.
 #                                SEW                            2*SEW   SEW
  vnclipu.wv vd, vs2, vs1, vm  # vd[i] = clip(roundoff_unsigned(vs2[i], vs1[i]))
  vnclipu.wx vd, vs2, rs1, vm  # vd[i] = clip(roundoff_unsigned(vs2[i], x[rs1]))
- vnclipu.wi vd, vs2, uimm, vm # vd[i] = clip(roundoff_unsigned(vs2[i], uimm5))
+ vnclipu.wi vd, vs2, uimm, vm # vd[i] = clip(roundoff_unsigned(vs2[i], uimm))
 
 # Narrowing signed clip
  vnclip.wv vd, vs2, vs1, vm   # vd[i] = clip(roundoff_signed(vs2[i], vs1[i]))
  vnclip.wx vd, vs2, rs1, vm   # vd[i] = clip(roundoff_signed(vs2[i], x[rs1]))
- vnclip.wi vd, vs2, uimm, vm  # vd[i] = clip(roundoff_signed(vs2[i], uimm5))
+ vnclip.wi vd, vs2, uimm, vm  # vd[i] = clip(roundoff_signed(vs2[i], uimm))
 ----
 
 For `vnclipu`/`vnclip`, the rounding mode is specified in the `vxrm`
@@ -4782,7 +4782,7 @@ undisturbed/agnostic policy is followed for inactive elements.
 
 ----
  vslideup.vx vd, vs2, rs1, vm        # vd[i+rs1] = vs2[i]
- vslideup.vi vd, vs2, uimm[4:0], vm  # vd[i+uimm] = vs2[i]
+ vslideup.vi vd, vs2, uimm, vm       # vd[i+uimm] = vs2[i]
 ----
 
 For `vslideup`, the value in `vl` specifies the maximum number of destination
@@ -4815,7 +4815,7 @@ input vectors during execution, and enables restart with non-zero
 
 ----
  vslidedown.vx vd, vs2, rs1, vm       # vd[i] = vs2[i+rs1]
- vslidedown.vi vd, vs2, uimm[4:0], vm # vd[i] = vs2[i+uimm]
+ vslidedown.vi vd, vs2, uimm, vm      # vd[i] = vs2[i+uimm]
 ----
 
 For `vslidedown`, the value in `vl` specifies the maximum number of
