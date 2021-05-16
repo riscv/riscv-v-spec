@@ -2735,7 +2735,7 @@ vsub.vv vd, vs2, vs1, vm   # Vector-vector
 vsub.vx vd, vs2, rs1, vm   # vector-scalar
 
 # Integer reverse subtract
-vrsub.vx vd, vs2, rs1, vm   # vd[i] = rs1 - vs2[i]
+vrsub.vx vd, vs2, rs1, vm   # vd[i] = x[rs1] - vs2[i]
 vrsub.vi vd, vs2, imm, vm   # vd[i] = imm - vs2[i]
 ----
 
@@ -3354,7 +3354,7 @@ register number in `vs2` is _reserved_.
 
 ----
 vmv.v.v vd, vs1 # vd[i] = vs1[i]
-vmv.v.x vd, rs1 # vd[i] = rs1
+vmv.v.x vd, rs1 # vd[i] = x[rs1]
 vmv.v.i vd, imm # vd[i] = imm
 ----
 
