@@ -2125,7 +2125,7 @@ fields following the pattern of regular unit-stride loads.  Because
 in-register byte layouts are identical to in-memory byte layouts,
 these instructions all operate the same as moving vectors of bytes
 with EEW=8, regardless of actual EEW encoding.  Pseudoinstructions
-are provide for whole register load instructions that correspond to
+are provided for whole register load instructions that correspond to
 EEW=8.
 
 NOTE: For the purposes of opaque save and restore of register state,
