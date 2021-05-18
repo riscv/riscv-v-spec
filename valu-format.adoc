@@ -16,7 +16,7 @@ Formats for Vector Arithmetic Instructions under OP-V major opcode
 {reg: [
   {bits: 7, name: 0x57, attr: 'OPIVV'},
   {bits: 5, name: 'vd', type: 2},
-  {bits: 3, name: 0x1000},
+  {bits: 3, name: 0},
   {bits: 5, name: 'vs1', type: 2},
   {bits: 5, name: 'vs2', type: 2},
   {bits: 1, name: 'vm'},
