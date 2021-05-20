@@ -5203,3 +5203,5 @@ include::calling-convention.adoc[]
 include::quad-mul.adoc[]
 
 include::ediv.adoc[]
+
+include::fraclmul.adoc[]
