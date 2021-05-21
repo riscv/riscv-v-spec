@@ -4339,8 +4339,9 @@ source vector register.
 
 As with other vector instructions, the elements with indices less than
 `vstart` are unchanged, and `vstart` is reset to zero after execution.
-Vector mask logical instructions are always unmasked so there are no
-inactive elements.  Mask elements past `vl`, the tail elements, are
+Vector mask logical instructions are always unmasked, so there are no
+inactive elements, and the encodings with `vm=0` are reserved.
+Mask elements past `vl`, the tail elements, are
 always updated with a tail-agnostic policy.
 
 ----
