@@ -2121,20 +2121,15 @@ handlers, and OS context switches.  Software can determine the number
 of bytes transferred by reading the `vlenb` register.
 
 The load instructions have an EEW encoded in the `mew` and `width`
-fields following the pattern of regular unit-stride loads.  Because
-in-register byte layouts are identical to in-memory byte layouts,
-these instructions all operate the same as moving vectors of bytes
-with EEW=8, regardless of actual EEW encoding.  Pseudoinstructions
-are provided for whole register load instructions that correspond to
-EEW=8.
+fields following the pattern of regular unit-stride loads.
 
-NOTE: For the purposes of opaque save and restore of register state,
-the instructions have been defined as only moving byte vectors (SEW=8)
-between registers and memory.
-
-NOTE: The encoded EEW can be used as a HINT to indicate the
-destination register group will next be accessed with this EEW, which
-aids implementations that rearrange data internally.
+NOTE: Because in-register byte layouts are identical to in-memory byte
+layouts, the same data is written to the destination register group
+regardless of EEW.
+Hence, it would have sufficed to provide only EEW=8 variants.
+The full set of EEW variants is provided so that the encoded EEW can be used
+as a hint to indicate the destination register group will next be accessed
+with this EEW, which aids implementations that rearrange data internally.
 
 The vector whole register store instructions are encoded similar to
 unmasked unit-stride store of elements with EEW=8.
@@ -2229,10 +2224,6 @@ an ABI.  The base V extension mandates support for SEW=8.
 
 NOTE: Implementations should raise illegal instruction exceptions on
 `vl<nf>r` instructions for EEW values that are not supported.
-
-NOTE: These instructions can be implemented as unit-stride
-loads/stores of vector register groups, where EEW is 8, `nf` encodes
-EMUL, and `vl` = VLMAX for EEW and EMUL.
 
 NOTE: We have considered adding a whole register mask load
 instruction (``vl1re1.v vd, (rs1)``), with EEW=1, as a mask hint but this is not currently on
