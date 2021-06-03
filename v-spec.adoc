@@ -29,6 +29,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Specified that fault-only-first segment load instructions may update destination registers past the point that trimming occurs.
 
+=== Removed contradictory text in whole-register load section that implied that EEW is always 8, regardless of the EEW encoded in the opcode.
+
 :sectnums:
 
 == Introduction
