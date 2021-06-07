@@ -31,6 +31,9 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Removed contradictory text in whole-register load section that implied that EEW is always 8, regardless of the EEW encoded in the opcode.
 
+=== Added section listing names and contents of standard vector
+extensions for ratification.
+
 :sectnums:
 
 == Introduction
@@ -54,31 +57,8 @@ currently defined vector instructions, but is not intended to
 determine what set of vector instructions and which supported element
 widths are mandatory for a given platform profile.
 
-The term _base_ _vector_ _extension_ is used informally to describe
-the standard set of vector ISA components that will be required for
-the single-letter "V" extension, which is intended for use in standard
-server and application-processor platform profiles.  The set of
-mandatory instructions and supported element widths will vary with the
-base ISA (RV32I, RV64I) as described below.
-
-Other profiles, including embedded profiles, may choose to mandate
-only subsets of these extensions.  The exact set of mandatory
-supported instructions for an implementation to be compliant with a
-given profile will only be determined when each profile spec is
-ratified.  For convenience in defining subset profiles, vector
-instruction subsets are given ISA string names beginning with the "Zv"
-prefix.
-
-The document describes all the individual features to be included in
-the base vector extension.
-
-NOTE: The set of instructions to be included or not in the base "V"
-extension, and the naming of all the vector instruction subsets and
-extensions is still under review in this draft.
-
-The base vector extension is designed to act as a base for additional
-vector extensions in various domains, including cryptography and
-machine learning.
+Section <<sec-vector-extensions>> lists the standard vector extensions and
+which instructions and element widths are supported by each extension.
 
 == Implementation-defined Constant Parameters
 
@@ -175,7 +155,7 @@ NOTE: Earlier drafts allowed the `vtype` register to be written using
 regular CSR writes.  Allowing updates only via the `vset{i}vl{i}`
 instructions simplifies maintenance of the `vtype` register state.
 
-In the base vector extension, the `vtype` register has five fields,
+The `vtype` register has five fields,
 `vill`, `vma`, `vta`, `vsew[2:0]`, and `vlmul[2:0]`.
 
 include::vtype-format.adoc[]
@@ -187,8 +167,8 @@ represented by `vill` can be internally encoded using the illegal 64-bit
 combination in `vsew[1:0]` without requiring an additional storage
 bit to hold `vill`.
 
-NOTE: Further standard and custom extensions to the vector base will
-extend these fields to support a greater variety of data types.
+NOTE: Further standard and custom vector extensions will extend these
+fields to support a greater variety of data types.
 
 NOTE: It is anticipated that an extended 64-bit instruction encoding
 would allow these fields to be specified statically in the instruction
@@ -199,10 +179,6 @@ encoding.
 The value in `vsew` sets the dynamic _selected_ _element_ _width_
 (SEW).  By default, a vector register is viewed as being divided into
 VLEN/SEW elements.
-
-NOTE: In the base vector "V" extension, only SEW up to ELEN =
-max(XLEN,FLEN) are required to be supported.  Other profiles may
-impose different constraints on ELEN.
 
 .vsew[2:0] (selected element width) encoding
 [cols="1,1,1,1,>13"]
@@ -238,9 +214,6 @@ encodings are formally _reserved_ at this point.
 
 The supported element width may vary with LMUL, but profiles may
 mandate the minimum SEW that must be supported with LMUL=1.
-
-NOTE: The standard base V vector extension requires that
-SEW=max(XLEN,FLEN) is supported with LMUL=1.
 
 NOTE: Some implementations may support larger SEWs only when bits from
 multiple vector registers are combined.  Software that relies on large
@@ -862,9 +835,9 @@ reduce instruction fetch and dispatch overheads in cases where fewer
 vector register groups are needed.
 
 NOTE: The SEW/LMUL values of 2048 and greater are shown in the table
-for completeness but they do not add a useful operating point in the
-base architecture as they use less than the full register capacity and
-do not enable more architectural registers.
+for completeness but they do not add a useful operating point as they
+use less than the full register capacity and do not enable more
+architectural registers.
 
 === Mapping for LMUL > 1 and ELEN > VLEN
 
@@ -1096,9 +1069,8 @@ elements are handled with either a mask-undisturbed or mask-agnostic
 policy depending on the setting of the `vma` bit in `vtype` (Section
 <<sec-agnostic>>).
 
-In the base vector extension, the mask value used to control execution
-of a masked vector instruction is always supplied by vector register
-`v0`.
+The mask value used to control execution of a masked vector
+instruction is always supplied by vector register `v0`.
 
 NOTE: Future vector extensions may provide longer instruction
 encodings with space for a full mask register specifier.
@@ -1151,12 +1123,12 @@ operand, with `.t` indicating if operation occurs when `v0.mask[i]` is
     vop.v*    v1, v2, v3        # unmasked vector operation, m=1
 ----
 
-NOTE: Even though the base only supports one vector mask register `v0`
-and only the true form of predication, the assembly syntax writes it
-out in full to be compatible with future extensions that might add a
-mask register specifier and supporting both true and complement
-masking. The `.t` suffix on the masking operand also helps to visually
-encode the use of a mask.
+NOTE: Even though current vector extensions only support one vector
+mask register `v0` and only the true form of predication, the assembly
+syntax writes it out in full to be compatible with future extensions
+that might add a mask register specifier and supporting both true and
+complement masking. The `.t` suffix on the masking operand also helps
+to visually encode the use of a mask.
 
 NOTE: The `.mask` suffix is not part of the assembly syntax.
 We only append it in contexts where a mask vector is subscripted, 
@@ -1454,7 +1426,7 @@ SEW/LMUL to specify the data width.
 
 === Vector Load/Store Addressing Modes
 
-The base vector extension supports unit-stride, strided, and
+The vector extension supports unit-stride, strided, and
 indexed (scatter/gather) addressing modes.  Vector load/store base
 registers and strides are taken from the GPR `x` registers.
 
@@ -1632,13 +1604,7 @@ Mem bits is the size of each element accessed in memory.
 
 Data reg bits is the size of each data element accessed in register.
 
-NOTE: In base V extension, only data elements widths up to
-max(XLEN,FLEN) must be supported.
-
 Index bits is the size of each index accessed in register.
-
-NOTE: In base V extension, only index widths up to XLEN must be
-supported.
 
 Data and index bit EEW encodings larger than 64b are currently reserved.
 
@@ -1864,9 +1830,6 @@ otherwise the event might be lost.
 === Vector Load/Store Segment Instructions
 
 This instruction subset is given the ISA string name `Zvlsseg`.
-
-NOTE: This set of instructions is included in the base "V" extension
-used for the Unix profile.
 
 The vector load/store segment instructions move multiple contiguous
 fields in memory to and from consecutively numbered vector registers.
@@ -2156,12 +2119,12 @@ or the implementation's smallest supported SEW size in bytes
 
 NOTE: Allowing misaligned exceptions to be raised based on
 non-alignment to encoded EEW simplifies the implementation of these
-instructions.  Some implementations might not support smaller SEW
-widths, so are allowed to report misaligned exceptions for the
+instructions.  Some subset implementations might not support smaller
+SEW widths, so are allowed to report misaligned exceptions for the
 smallest supported SEW even if larger than encoded EEW.  An extreme
 implementation might have SEW~MIN~>XLEN for example.  Software
 environments can mandate the minimum alignment requirements to support
-an ABI.  The base V extension mandates support for SEW=8.
+an ABI.
 
 ----
    # Format of whole register load and store instructions.
@@ -2225,9 +2188,6 @@ PoR.
 == Vector AMO Operations
 
 This instruction subset is given the ISA string `Zvamo`.
-
-NOTE: This set of instructions is included in the base "V" extension
-used for the Unix profile.
 
 If vector AMO instructions are supported, then the scalar Zaamo
 instructions (atomic operations from the standard A extension) must be
@@ -5178,7 +5138,7 @@ where on a trap, special instructions can save and restore the vector
 unit microarchitectural state, to allow execution to continue
 correctly around imprecise traps.
 
-This mechanism is not defined in the base vector ISA.
+This mechanism is not defined in the current standard extensions.
 
 NOTE: A future extension might define a standard way of saving and
 restoring opaque microarchitectural state from a vector unit
@@ -5187,8 +5147,16 @@ implementation to support context switching with imprecise traps.
 == Standard Vector Extensions
 
 This section describes the standard vector extensions to be proposed
-for public review.
+for public review.  A set of smaller extensions intended for embedded
+use are named with a "Zve" prefix, while a larger vector extension
+designed for application processors is named as a single-letter V
+extension.
 
+The initial vector extensions are designed to act as a base for
+additional vector extensions in various domains, including
+cryptography and machine learning.
+
+[[sec-vector-extensions]]
 === Zve*: Vector extensions for Embedded Processors
 
 The following five standard extensions are defined to provide varying
