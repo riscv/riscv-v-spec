@@ -405,10 +405,10 @@ The assembly syntax adds two flags to the `vsetvli` instruction:
  ma   # Mask agnostic
  mu   # Mask undisturbed
 
- vsetvli t0, a0, e32,m4,ta,ma   # Tail agnostic, mask agnostic
- vsetvli t0, a0, e32,m4,tu,ma   # Tail undisturbed, mask agnostic
- vsetvli t0, a0, e32,m4,ta,mu   # Tail agnostic, mask undisturbed
- vsetvli t0, a0, e32,m4,tu,mu   # Tail undisturbed, mask undisturbed
+ vsetvli t0, a0, e32, m4, ta, ma   # Tail agnostic, mask agnostic
+ vsetvli t0, a0, e32, m4, tu, ma   # Tail undisturbed, mask agnostic
+ vsetvli t0, a0, e32, m4, ta, mu   # Tail agnostic, mask undisturbed
+ vsetvli t0, a0, e32, m4, tu, mu   # Tail undisturbed, mask undisturbed
 ----
 
 NOTE: To maintain backward compatibility in the short term and reduce
@@ -1237,8 +1237,8 @@ The new `vtype` setting is encoded in the immediate fields of
 
 Examples:
     vsetvli t0, a0, e8          # SEW= 8, LMUL=1
-    vsetvli t0, a0, e8,m2       # SEW= 8, LMUL=2
-    vsetvli t0, a0, e32,mf2     # SEW=32, LMUL=1/2
+    vsetvli t0, a0, e8, m2      # SEW= 8, LMUL=2
+    vsetvli t0, a0, e32, mf2    # SEW=32, LMUL=1/2
 ----
 
 The `vsetvl` variant operates similarly to `vsetvli` except that it
@@ -1358,14 +1358,14 @@ throughput on mixed-width operations in a single loop.
 #  a2 holds the address of the destination array
 
 loop:
-    vsetvli a3, a0, e16,m4,ta,ma  # vtype = 16-bit integer vectors;
-                                  # also update a3 with vl (# of elements this iteration)
+    vsetvli a3, a0, e16, m4, ta, ma  # vtype = 16-bit integer vectors;
+                                     # also update a3 with vl (# of elements this iteration)
     vle16.v v4, (a1)        # Get 16b vector
     slli t1, a3, 1          # Multiply # elements this iteration by 2 bytes/source element
     add a1, a1, t1          # Bump pointer
     vwmul.vx v8, v4, x10    # Widening multiply into 32b in <v8--v15>
 
-    vsetvli x0, x0, e32,m8,ta,ma  # Operate on 32b values
+    vsetvli x0, x0, e32, m8, ta, ma  # Operate on 32b values
     vsrl.vi v8, v8, 3
     vse32.v v8, (a2)        # Store vector of 32b elements
     slli t1, a3, 2          # Multiply # elements this iteration by 4 bytes/destination element
@@ -1921,7 +1921,7 @@ field to be stored in each segment.
 ----
     # Example 1
     # Memory structure holds packed RGB pixels (24-bit data structure, 8bpp)
-    vsetvli a1, t0, e8, ta,ma
+    vsetvli a1, t0, e8, ta, ma
     vlseg3e8.v v8, (a0), vm
     # v8 holds the red pixels
     # v9 holds the green pixels
@@ -1929,7 +1929,7 @@ field to be stored in each segment.
 
     # Example 2
     # Memory structure holds complex values, 32b for real and 32b for imaginary
-    vsetvli a1, t0, e32, ta,ma
+    vsetvli a1, t0, e32, ta, ma
     vlseg2e32.v v8, (a0), vm
     # v8 holds real
     # v9 holds imaginary
@@ -1965,13 +1965,13 @@ NOTE: Negative and zero strides are supported.
     vssseg<nf>e<eew>.v vs3, (rs1), rs2, vm         # Strided segment stores
 
     # Examples
-    vsetvli a1, t0, e8, ta,ma
+    vsetvli a1, t0, e8, ta, ma
     vlsseg3e8.v v4, (x5), x6   # Load bytes at addresses x5+i*x6   into v4[i],
                               #  and bytes at addresses x5+i*x6+1 into v5[i],
                               #  and bytes at addresses x5+i*x6+2 into v6[i].
 
     # Examples
-    vsetvli a1, t0, e32, ta,ma
+    vsetvli a1, t0, e32, ta, ma
     vssseg2e32.v v2, (x5), x6   # Store words from v2[i] to address x5+i*x6
                                 #   and words from v3[i] to address x5+i*x6+4
 ----
@@ -2002,13 +2002,13 @@ EMUL=(EEW/SEW)*LMUL.
     vsoxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm  # Ordered indexed segment stores
 
     # Examples
-    vsetvli a1, t0, e8, ta,ma
+    vsetvli a1, t0, e8, ta, ma
     vluxseg3ei32.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
                               #  and bytes at addresses x5+v3[i]+1 into v5[i],
                               #  and bytes at addresses x5+v3[i]+2 into v6[i].
 
     # Examples
-    vsetvli a1, t0, e32, ta,ma
+    vsetvli a1, t0, e32, ta, ma
     vsuxseg2ei32.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
                               #   and words from v3[i] to address x5+v5[i]+4
 ----
@@ -4379,7 +4379,7 @@ instructions (indexed stores) to perform vector compress functions.
 compact_non_zero:
     li a6, 0                      # Clear count of non-zero elements
 loop:
-    vsetvli a5, a0, e32,m8,ta,ma   # 32-bit integers
+    vsetvli a5, a0, e32, m8, ta, ma   # 32-bit integers
     vle32.v v8, (a1)               # Load input vector
       sub a0, a0, a5               # Decrement number done
       slli a5, a5, 2               # Multiply by four bytes
