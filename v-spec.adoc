@@ -149,9 +149,8 @@ file, and can only be updated by `vset{i}vl{i}` instructions. The vector
 type also determines the organization of elements in each vector
 register, and how multiple vector registers are grouped.
 
-NOTE: Earlier drafts allowed the `vtype` register to be written using
-regular CSR writes.  Allowing updates only via the `vset{i}vl{i}`
-instructions simplifies maintenance of the `vtype` register state.
+NOTE: Allowing updates only via the `vset{i}vl{i}` instructions
+simplifies maintenance of the `vtype` register state.
 
 The `vtype` register has five fields,
 `vill`, `vma`, `vta`, `vsew[2:0]`, and `vlmul[2:0]`.
