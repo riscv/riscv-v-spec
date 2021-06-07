@@ -323,34 +323,17 @@ regardless of LMUL.
 [[sec-agnostic]]
 ==== Vector Tail Agnostic and Vector Mask Agnostic `vta` and `vma`
 
-These two bits modify the behavior of destination tail elements and
-destination inactive masked-off elements respectively during the
-execution of vector instructions.  The tail and inactive sets contain
-element positions that are not receiving new results during a vector
-operation, as defined in Section <<sec-inactive-defs>>.
+These two bits modify the behavior of tail and masked-off elements
+during the execution of vector instructions.  The tail and masked-off sets contain
+element positions that are not updated because they not receiving new
+results during a vector operation, as defined in Section <<sec-inactive-defs>>.
 
-All systems must support all four options:
-
-[cols="1,1,3,3"]
-[%autowidth]
-|===
-| `vta` | `vma` | Tail Elements | Inactive Elements
-
-|   0   |   0   | undisturbed   | undisturbed
-|   0   |   1   | undisturbed   | agnostic
-|   1   |   0   | agnostic      | undisturbed
-|   1   |   1   | agnostic      | agnostic
-|===
+When individual elements are not updated, their value may be either left undisturbed
+or overwritten with all 1s according to the policies below.
 
 When a set is marked undisturbed, the corresponding set of destination
 elements in a vector register group retain the value they previously
-held.   Mask destination values are always treated as tail-agnostic,
-regardless of the setting of `vta`.
-
-NOTE: Mask tails are always treated as agnostic to reduce complexity
-of managing mask data, which can be written at bit granularity.  There
-appears to be little software need to support tail-undisturbed for
-mask register values.
+held.
 
 When a set is marked agnostic, the corresponding set of destination
 elements in any vector destination operand can either retain
@@ -360,13 +343,33 @@ undisturbed or overwritten with 1s, in any combination, and the
 pattern of undisturbed or overwritten with 1s is not required to be
 deterministic when the instruction is executed with the same inputs.
 
+All systems must support all four options:
+
+[cols="1,1,3,3"]
+[%autowidth]
+|===
+| `vta` | `vma` | Tail Elements | Masked Elements
+
+|   0   |   0   | undisturbed   | undisturbed
+|   0   |   1   | undisturbed   | agnostic
+|   1   |   0   | agnostic      | undisturbed
+|   1   |   1   | agnostic      | agnostic
+|===
+
+Mask destination values are always treated as tail-agnostic,
+regardless of the setting of `vta`.
+
+NOTE: Mask tails are always treated as agnostic to reduce complexity
+of managing mask data, which can be written at bit granularity.  There
+appears to be little software need to support tail-undisturbed for
+mask register values.
+
 NOTE: The agnostic policy was added to accommodate machines with vector
 register renaming, and/or that have deeply temporal vector registers.
 With an undisturbed policy, all elements would have to be read from
 the old physical destination vector register to be copied into the new
 physical destination vector register.  This causes an inefficiency
-when these inactive or tail values are not required for subsequent
-calculations.
+when these inactive values are not required for subsequent calculations.
 
 NOTE: The intent is for software to reduce microarchitectural work by
 selecting agnostic when the value in the respective set does not
@@ -1059,7 +1062,7 @@ the EMUL for the scalar reduction element.
 === Vector Masking
 
 Masking is supported on many vector instructions.  Element operations
-that are masked off (inactive) never generate exceptions.  The
+that are masked off never generate exceptions.  The
 destination vector register elements corresponding to masked-off
 elements are handled with either a mask-undisturbed or mask-agnostic
 policy depending on the setting of the `vma` bit in `vtype` (Section
@@ -1131,14 +1134,17 @@ We only append it in contexts where a mask vector is subscripted,
 e.g., `v0.mask[i]`. 
 
 [[sec-inactive-defs]]
-=== Prestart, Active, Inactive, Body, and Tail Element Definitions
+=== Prestart, Body, Active, Masked, Tail, and Inactive Element Definitions
 
 The destination element indices operated on during a vector
-instruction's execution can be divided into three disjoint subsets.
+instruction's execution can be divided into three disjoint subsets: prestart, body and tail.
+The body set can be subdivided into disjoint active and masked subsets.
+Together, masked and tail form the set of inactive elements.
 
 * The _prestart_ elements are those whose element index is less than the
 initial value in the `vstart` register.  The prestart elements do not
-raise exceptions and do not update the destination vector register.
+raise exceptions and do not update the destination vector register, i.e.
+prestart elements are always left undisturbed.
 
 * The _body_ elements are those whose element index is greater than or equal
 to the initial value in the `vstart` register, and less than the current
@@ -1149,11 +1155,11 @@ elements within the body and where the current mask is enabled at that element
 position.  The active elements can raise exceptions and update the destination
 vector register group.
 
-** The _inactive_ elements are the elements within the body
+** The _masked_ or masked-off elements are the elements within the body
 but where the current mask is disabled at that element
-position.  The inactive elements do not raise exceptions and do not
+position.  The masked elements do not raise exceptions and do not
 update any destination vector register group unless masked agnostic is
-specified (`vtype.vma`=1), in which case inactive elements may be
+specified (`vtype.vma`=1), in which case masked elements may be
 overwritten with 1s.
 
 * The _tail_ elements during a vector instruction's execution are the
@@ -1164,14 +1170,18 @@ which case tail elements may be overwritten with 1s.  When LMUL < 1,
 the tail includes the elements past VLMAX that are held in the same
 vector register.
 
+* The _inactive_ elements are a superset of the prestart, masked-off and tail elements.
+Inactive elements can never raise an exception.
+
 ----
     for element index x
     prestart(x) = (0 <= x < vstart)
     body(x)     = (vstart <= x < vl)
     tail(x)     = (vl <= x < max(VLMAX,VLEN/SEW))
-    mask(x)     = unmasked || v0.mask[x] == 1
-    active(x)   = body(x) && mask(x)
-    inactive(x) = body(x) && !mask(x)
+    selected(x) = unmasked || v0.mask[x] == 0
+    active(x)   = body(x) &&  selected(x)
+    masked(x)   = body(x) && !selected(x)
+    inactive(x) = prestart(x) || masked(x) || tail(x)
 ----
 
 NOTE: Some instructions such as `vslidedown` and `vrgather` may read
@@ -4066,8 +4076,7 @@ source vector register.
 
 As with other vector instructions, the elements with indices less than
 `vstart` are unchanged, and `vstart` is reset to zero after execution.
-Vector mask logical instructions are always unmasked so there are no
-inactive elements.  Mask elements past `vl`, the tail elements, are
+Vector mask logical instructions are always unmasked.  Mask elements past `vl`, the tail elements, are
 always updated with a tail-agnostic policy.
 
 ----
@@ -4504,7 +4513,7 @@ The tail agnostic/undisturbed policy is followed for tail elements.
 
 The slide instructions may be masked, with mask element _i_
 controlling whether _destination_ element _i_ is written.  The mask
-undisturbed/agnostic policy is followed for inactive elements.
+undisturbed/agnostic policy is followed for masked-off elements.
 
 ==== Vector Slideup Instructions
 
@@ -4662,8 +4671,8 @@ treated as unsigned integers.  The source vector can be read at any
 index < VLMAX regardless of `vl`.  The maximum number of elements to write to
 the destination register is given by `vl`, and the remaining elements
 past `vl` are handled according to the current tail policy
-(Section <<sec-agnostic>>).  The operation can be masked, and the mask
-undisturbed/agnostic policy is followed for inactive elements.
+(Section <<sec-agnostic>>).  The mask
+undisturbed/agnostic policy is followed for masked-off elements.
 
 ----
 vrgather.vv vd, vs2, vs1, vm # vd[i] = (vs1[i] >= VLMAX) ? 0 : vs2[vs1[i]];
