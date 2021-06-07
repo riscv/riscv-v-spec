@@ -93,17 +93,6 @@ NOTE: Profiles may set further constraints on these parameters, for
 example, requiring that ELEN {ge} max(XLEN,FLEN), or requiring a
 minimum VLEN value.
 
-The base "V" vector extension requires that VLEN{ge}128.
-
-NOTE: The value of 128 was chosen as a compromise for application
-processors. Providing a larger VLEN allows stripmining code to be
-elided in some cases for short vectors, but also increases the size of
-the minimum implementation.  Note that larger LMUL can be used to
-avoid stripmining for longer known-size application vectors at the
-cost of having fewer available vector register groups. For example, an
-LMUL of 8 allows vectors of up to sixteen 64-bit elements to be
-processed without stripmining using four vector register groups.
-
 The ISA supports writing binary code that under certain constraints
 will execute portably on harts with different values for the VLEN
 parameter, provided both support the required element types.
@@ -1222,6 +1211,7 @@ indices past `vl` or even VLMAX in source vector register groups.  The
 general policy is to return the value 0 when the index is greater than
 VLMAX in the source vector register group.
 
+[[sec-vector-config]]
 == Configuration-Setting Instructions (`vsetvli`/`vsetivl`/`vsetvl`)
 
 One of the common approaches to handling a large number of elements is
@@ -1416,6 +1406,7 @@ loop:
     bnez a0, loop           # Any more?
 ----
 
+[[sec-vector-memory]]
 == Vector Loads and Stores
 
 Vector loads and stores move values between vector registers and
@@ -2708,6 +2699,7 @@ by a `w` in the source operand suffix (e.g., `vnsra.wv`)
 NOTE: Comparison operations that set a mask register are also
 implicitly a narrowing operation.
 
+[[sec-vector-integer]]
 == Vector Integer Arithmetic Instructions
 
 A set of vector integer arithmetic instructions is provided.
@@ -3366,6 +3358,7 @@ can shuffle the internal representation according to SEW.
 Implementations that do not internally reorganize data can dynamically
 elide this instruction, and treat as a NOP.
 
+[[sec-vector-fixed-point]]
 == Vector Fixed-Point Arithmetic Instructions
 
 The preceding set of integer arithmetic instructions is extended to support
@@ -3542,6 +3535,7 @@ as a signed integer.
 If any destination element is saturated, the `vxsat` bit is set in the
 `vxsat` register.
 
+[[sec-vector-float]]
 == Vector Floating-Point Instructions
 
 The standard vector floating-point instructions treat 16-bit, 32-bit,
@@ -4174,6 +4168,7 @@ the `.vs` suffix denotes the first operand is a vector register group
 and the second operand is a scalar stored in element 0 of a vector
 register.
 
+[[sec-vector-integer-reduce]]
 === Vector Single-Width Integer Reduction Instructions
 
 All operands and results of single-width reduction instructions have
@@ -4191,6 +4186,7 @@ the same SEW width.  Overflows wrap around on arithmetic sums.
     vredxor.vs  vd, vs2, vs1, vm   # vd[0] =  xor( vs1[0] , vs2[*] )
 ----
 
+[[sec-vector-integer-reduce-widen]]
 === Vector Widening Integer Reduction Instructions
 
 The unsigned `vwredsumu.vs` instruction zero-extends the SEW-wide
@@ -4208,6 +4204,7 @@ elements before summing them.
     vwredsum.vs  vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(sign-extend(SEW))
 ----
 
+[[sec-vector-float-reduce]]
 === Vector Single-Width Floating-Point Reduction Instructions
 
 ----
@@ -4297,6 +4294,7 @@ NOTE: If no elements are active, the scalar in `vs1[0]` is simply copied to
 the destination register, without canonicalizing NaN values and without
 setting any exception flags.
 
+[[sec-vector-float-reduce-widen]]
 === Vector Widening Floating-Point Reduction Instructions
 
 Widening forms of the sum reductions are provided that
@@ -4315,6 +4313,7 @@ to 2*SEW bits before adding to the 2*SEW-bit accumulator.
 NOTE: `vfwredosum.vs` handles inactive elements and NaN payloads analogously
 to `vfredosum.vs`; `vfwredsum.vs` does so analogously to `vfredsum.vs`.
 
+[[sec-vector-mask]]
 == Vector Mask Instructions
 
 Several instructions are provided to help operate on mask values held in
@@ -4685,6 +4684,7 @@ destination SEW, the least-significant SEW bits are retained.
 NOTE: Microarchitectures can implement `vid.v` instruction using the
 same datapath as `viota.m` but with an implicit set mask source.
 
+[[sec-vector-permute]]
 == Vector Permutation Instructions
 
 A range of permutation instructions are provided to move elements
@@ -5184,6 +5184,134 @@ NOTE: A future extension might define a standard way of saving and
 restoring opaque microarchitectural state from a vector unit
 implementation to support context switching with imprecise traps.
 
+== Standard Vector Extensions
+
+This section describes the standard vector extensions to be proposed
+for public review.
+
+=== Zve*: Vector extensions for Embedded Processors
+
+The following five standard extensions are defined to provide varying
+degrees of vector support and are intended for use with embedded
+processors.  Any of these extensions can be added to base ISAs with
+XLEN=32 or XLEN=64.  The table lists the minimum VLEN and supported
+EEWs for each extension as well as what floating-point types are
+supported.
+
+.Embedded vector extensions
+[cols="1,1,2,1,1"]
+[%autowidth]
+|===
+| Extension | Minimum VLEN | Supported EEW |  FP32 | FP64
+
+| Zve32x    | 32    | 8, 16, 32     |   N   |  N 
+| Zve32f    | 32    | 8, 16, 32     |   Y   |  N
+| Zve64x    | 64    | 8, 16, 32, 64 |   N   |  N
+| Zve64f    | 64    | 8, 16, 32, 64 |   Y   |  N
+| Zve64d    | 64    | 8, 16, 32, 64 |   Y   |  Y
+|===
+
+All Zve* extensions provide support for EEW of 8, 16, and 32, and
+Zve64* extensions also support EEW of 64.
+
+All Zve* extensions support the vector configuration instructions
+(Section <<sec-vector-config>>).
+
+All Zve* extensions support all vector load and store instructions
+(Section <<sec-vector-memory>>), except Zve64* extensions do not
+support EEW=64 for index values when XLEN=32.
+
+All Zve* extensions support all vector integer instructions (Section
+<<sec-vector-integer>>), except that the `vmulh` integer multiply
+variants that return the high word of the product (`vmulh.vv`,
+`vmulh.vx`, `vmulhu.vv`, `vmulhu.vx`, `vmulhsu.vv`, `vmulhsu.vx`) are
+not included for EEW=64 in Zve64*.
+
+NOTE: Producing the high-word of a product can take substantial
+additional gates for large EEW.
+
+All Zve* extensions support all vector fixed-point arithmetic
+instructions (<<sec-vector-fixed-point>>), except that `vsmul.vv` and
+`vsmul.vx` are not supported for EEW=64 in Zve64*.
+
+NOTE: As with `vmulh`, `vsmul` requires a large amount of additional
+logic, and 64-bit fixed-point multiplies are relatively rare.
+
+All Zve* extensions support all vector integer single-width and
+widening reduction operations (Sections <<sec-vector-integer-reduce>>,
+<<sec-vector-integer-reduce-widen>>).
+
+All Zve* extensions support all vector mask instructions (Section
+<<sec-vector-mask>>).
+
+All Zve* extensions support all vector permutation instructions
+(Section <<sec-vector-permute>>), except that Zve32x and Zve64x do not
+implement the floating-point scalar move instructions.
+
+The Zve32f and Zve64f extensions require the scalar processor to
+implement the F extension, and implement all vector floating-point
+instructions (Section <<sec-vector-float>>) for floating-point
+operands with EEW=32 (i.e., no widening floating-point operations),
+and conversion instructions are provided to and from all supported
+integer EEWs.  Vector single-width floating-point reduction operations
+(<<sec-vector-float-reduce>>) for EEW=32 are supported.
+
+The Zve32d and Zve64d extensions require the scalar processor to
+implement the D extension, and implement all vector floating-point
+instructions (Section <<sec-vector-float>>) for floating-point
+operands with EEW=32 or EEW=64 (including widening instructions and
+conversions between FP32 and FP64). Vector single-width floating-point
+reductions (<<sec-vector-float-reduce>>) for EEW=32 and EEW=64 are
+supported as well as widening reductions from FP32 to FP64.
+
+=== V: Vector Extension for Application Processor 
+
+The single-letter V extension is intended for use in application
+processor profiles.
+
+The V vector extension requires that VLEN {ge} 128.
+
+NOTE: The value of 128 was chosen as a compromise for application
+processors. Providing a larger VLEN allows stripmining code to be
+elided in some cases for short vectors, but also increases the size of
+the minimum implementation.  Note that larger LMUL can be used to
+avoid stripmining for longer known-size application vectors at the
+cost of having fewer available vector register groups. For example, an
+LMUL of 8 allows vectors of up to sixteen 64-bit elements to be
+processed without stripmining using four vector register groups.
+
+The V extension supports EEW of 8, 16, and 32, and 64.
+
+The V extension supports the vector configuration instructions
+(Section <<sec-vector-config>>).
+
+The V extension supports all vector load and store instructions
+(Section <<sec-vector-memory>>), except the V extension does not
+support EEW=64 for index values when XLEN=32.
+
+The V extension supports all vector integer instructions (Section
+<<sec-vector-integer>>).
+
+The V extension supports all vector fixed-point arithmetic
+instructions (<<sec-vector-fixed-point>>).
+
+The V extension supports all vector integer single-width and
+widening reduction operations (Sections <<sec-vector-integer-reduce>>,
+<<sec-vector-integer-reduce-widen>>).
+
+The V extension supports all vector mask instructions (Section
+<<sec-vector-mask>>).
+
+The V extension supports all vector permutation instructions (Section
+<<sec-vector-permute>>).
+
+The V extension requires the scalar processor to implement the F and D
+extensions, and implements all vector floating-point instructions
+(Section <<sec-vector-float>>) for floating-point operands with EEW=32
+or EEW=64 (including widening instructions and conversions between
+FP32 and FP64). Vector single-width floating-point reductions
+(<<sec-vector-float-reduce>>) for EEW=32 and EEW=64 are supported as
+well as widening reductions from FP32 to FP64.
 
 == Vector Instruction Listing
 
