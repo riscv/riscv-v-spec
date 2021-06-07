@@ -1462,7 +1462,7 @@ raise an illegal instruction exception if the EEW is not supported for
 offset elements.
 
 NOTE: A profile may place an upper limit on the maximum supported index
-EEW (e..g, only up to XLEN) smaller than ELEN.
+EEW (e.g., only up to XLEN) smaller than ELEN.
 
 The vector addressing modes are encoded using the 2-bit `mop[1:0]`
 field.
