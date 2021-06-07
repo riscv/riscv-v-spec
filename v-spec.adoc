@@ -462,7 +462,7 @@ NOTE: As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
 
 Instructions that write an `x` register or `f` register
-do so even when `vstart` {ge} `vl`.
+do so even when `vstart` {ge} `vl`, including when `vl`=0.
 
 === Vector Byte Length `vlenb`
 
