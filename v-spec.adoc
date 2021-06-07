@@ -5321,6 +5321,3 @@ include::vector-examples.adoc[]
 
 include::calling-convention.adoc[]
 
-include::quad-mul.adoc[]
-
-include::ediv.adoc[]
