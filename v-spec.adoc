@@ -2203,14 +2203,15 @@ as scalar misaligned memory accesses.
 == Vector Memory Consistency Model
 
 Vector memory instructions appear to execute in program order on the
-local hart.  Vector memory instructions follow RVWMO at the
-instruction level, and element operations are ordered within the
-instruction as if performed by an element-ordered sequence of
-syntactically independent scalar instructions.  Vector indexed-ordered
-loads and stores read and write elements from/to memory in element
-order respectively.  Vector indexed-unordered loads and stores do not
-preserve element order for reads and writes within a single vector
-load or store instruction respectively.
+local hart.
+
+Vector memory instructions follow RVWMO at the instruction level.
+
+Except for vector indexed-ordered loads and stores, element operations
+are unordered within the instruction.
+
+Vector indexed-ordered loads and stores read and write elements
+from/to memory in element order respectively.
 
 NOTE: More formal definitions required.
 
