@@ -4955,6 +4955,11 @@ supported.
 | Zve64d    | 64    | 8, 16, 32, 64 |   Y   |  Y
 |===
 
+All Zve* extensions have precise traps.
+
+NOTE: There is currently no standard support for handling imprecise
+traps, so standard extensions have to provide precise traps.
+
 All Zve* extensions provide support for EEW of 8, 16, and 32, and
 Zve64* extensions also support EEW of 64.
 
@@ -5012,6 +5017,8 @@ supported as well as widening reductions from FP32 to FP64.
 
 The single-letter V extension is intended for use in application
 processor profiles.
+
+The V vector extension has precise traps.
 
 The V vector extension requires that VLEN {ge} 128.
 
