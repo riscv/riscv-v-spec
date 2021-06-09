@@ -6,7 +6,7 @@ For the current stable release is [v1.0-rc]  (https://github.com/riscv/riscv-v-s
 Note, stable releases are for development purposes only and may change
 before ratification.
 
-The _previous_ stable releases are  [v0.10](https://github.com/riscv/riscv-v-spec/releases/tag/v0.10) [v0.9](https://github.com/riscv/riscv-v-spec/releases/tag/0.9) and [v0.8](https://github.com/riscv/riscv-v-spec/releases/tag/0.8).
+The _previous_ stable releases are  [v0.10](https://github.com/riscv/riscv-v-spec/releases/tag/v0.10), [v0.9](https://github.com/riscv/riscv-v-spec/releases/tag/0.9), and [v0.8](https://github.com/riscv/riscv-v-spec/releases/tag/0.8).
 
 The top level file is [v-spec.adoc](./v-spec.adoc)
 
