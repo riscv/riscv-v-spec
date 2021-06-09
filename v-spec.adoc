@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 1.0-rc1-20210608
+Version 1.0-rc2-draft
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -23,36 +23,16 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 :sectnums!:
 
-== Changes from v0.10
+== Changes from v1.0-rc1
 
-=== Clarified that mask and vl dependencies are control dependencies for RVWMO purposes
-
-=== Specified that fault-only-first segment load instructions may update destination registers past the point that trimming occurs.
-
-=== Removed contradictory text in whole-register load section that implied that EEW is always 8, regardless of the EEW encoded in the opcode.
-
-=== Added section listing names and contents of standard vector extensions for ratification.
-
-=== Removed vector AMOs from standard vector extensions.  Will be added later as separate Zvamo extension, but will need a different encoding from earlier proposal.
-
-=== Made clear that implementations can raise illegal instruction exceptions if EEW not supported for address offset in indexed vector memory instructions.
-
-=== Added upper limit of 64Kib on VLEN.
-
-=== Allow mask-agnostic tails to be written with the value that would have been produced with a maximum vector length.
-
-=== Made clear that mask load and store instructions actually operate as if EEW=8 (not EEW=1 as previously described).
-
-=== Changed assembler mnemonic of unordered floating-point reductions `vfredsum` and `vfwredsum` to `vfredusum` and `vfwredusum` respectively.  Older names kept as aliases.
-
-=== Clarified that mask logical instructions are always unmasked so encodings with `vm=0` (masked) are reserved.
+=== No changes to date.
 
 :sectnums:
 
 == Introduction
 
-This document is the first release candidate for version 1.0 of the
-RISC-V vector extension for public review.
+This document is a draft of the second release candidate for version
+1.0 of the RISC-V vector extension for public review.
 
 *This is not the frozen version of 1.0 for public review*.
 
