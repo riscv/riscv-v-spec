@@ -4337,8 +4337,7 @@ whose index is less than the element, e.g., a parallel prefix sum of
 the mask values.
 
 This instruction can be masked, in which case only the enabled
-elements contribute to the sum and only the enabled elements are
-written.
+elements contribute to the sum.
 
 ----
  viota.m vd, vs2, vm
@@ -4354,7 +4353,7 @@ written.
      1 1 1 0 1 0 1 1   v0 contents
      1 0 0 1 0 0 0 1   v2 contents
      2 3 4 5 6 7 8 9   v4 contents
-                       viota.m v4, v2, v0.t # Masked
+                       viota.m v4, v2, v0.t # Masked, vtype.vma=0
      1 1 1 5 1 7 1 0   v4 results
 ----
 
