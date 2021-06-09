@@ -47,7 +47,6 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Clarified that mask logical instructions are always unmasked so encodings with `vm=0` (masked) are reserved.
 
-
 :sectnums:
 
 == Introduction
@@ -367,14 +366,14 @@ regardless of the setting of `vta`.
 
 When a set is marked agnostic, the corresponding set of destination
 elements in any vector destination operand can either retain the value
-they previously held, or are overwritten with 1s.  Within a single
-vector instruction, each destination element can be either left
-undisturbed or overwritten with 1s, in any combination, and the
-pattern of undisturbed or overwritten with 1s is not required to be
-deterministic when the instruction is executed with the same inputs.
-In addition, except for mask load instructions, any element in the tail of a mask result can also be
-written with the value the mask-producing operation would have
-calculated with `vl`=VLMAX.
+they previously held, or are overwritten with 1s.  Within a single vector
+instruction, each destination element can be either left undisturbed
+or overwritten with 1s, in any combination, and the pattern of
+undisturbed or overwritten with 1s is not required to be deterministic
+when the instruction is executed with the same inputs.  In addition,
+except for mask load instructions, any element in the tail of a mask
+result can also be written with the value the mask-producing operation
+would have calculated with `vl`=VLMAX.
 
 NOTE: The agnostic policy was added to accommodate machines with vector
 register renaming, and/or that have deeply temporal vector registers.
@@ -467,24 +466,14 @@ The _XLEN_-bit-wide read-only `vl` CSR can only be updated by the
 instruction variants.
 
 The `vl` register holds an unsigned integer specifying the number of
-elements to be updated by a vector instruction.
+elements to be updated with results from a vector instruction, as
+further detailed in Section <<sec-inactive-defs>>.
 
 NOTE: The number of bits implemented in `vl` depends on the
 implementation's maximum vector length of the smallest supported
 type. The smallest vector implementation with VLEN=32 and supporting
 SEW=8 would need at least six bits in `vl` to hold the values 0-32
 (VLEN=32, with LMUL=8 and SEW=8, yields VLMAX=32).
-
-Elements in any destination vector register group with indices {ge}
-`vl` are unmodified during execution of a vector instruction.  When
-`vstart` {ge} `vl`, no elements are updated in any destination vector
-register group.
-
-NOTE: As a consequence, when `vl`=0, no elements are updated in the
-destination vector register group, regardless of `vstart`.
-
-Instructions that write an `x` register or `f` register
-do so even when `vstart` {ge} `vl`, including when `vl`=0.
 
 === Vector Byte Length `vlenb`
 
@@ -501,7 +490,8 @@ settings which require them to be saved and restored.
 === Vector Start Index CSR `vstart`
 
 The `vstart` read-write CSR specifies the index of the first element
-to be executed by a vector instruction.
+to be executed by a vector instruction, as described in Section
+<<sec-inactive-defs>>.
 
 Normally, `vstart` is only written by hardware on a trap on a vector
 instruction, with the `vstart` value representing the element on which
@@ -519,11 +509,6 @@ CSR to zero.
 
 `vstart` is not modified by vector instructions that raise illegal-instruction
 exceptions.
-
-For instructions where the number of elements to be performed is set
-by `vl`, if the value in the `vstart` register is greater than or
-equal to the vector length `vl` then no element operations are
-performed.  The `vstart` register is then reset to zero.
 
 The `vstart` CSR is defined to have only enough writable bits to hold
 the largest element index (one less than the maximum VLMAX).
@@ -1178,12 +1163,14 @@ specified (`vtype.vma`=1), in which case inactive elements may be
 overwritten with 1s.
 
 * The _tail_ elements during a vector instruction's execution are the
-elements past the current vector length setting specified in `vl`.  The tail elements do
-not raise exceptions, and do not update any destination vector
-register group unless tail agnostic is specified (`vtype.vta`=1), in
-which case tail elements may be overwritten with 1s.  When LMUL < 1,
-the tail includes the elements past VLMAX that are held in the same
-vector register.
+elements past the current vector length setting specified in `vl`.
+The tail elements do not raise exceptions, and do not update any
+destination vector register group unless tail agnostic is specified
+(`vtype.vta`=1), in which case tail elements may be overwritten with
+1s, or with the result of the instruction in the case of
+mask-producing instructions except for mask loads.  When LMUL < 1, the
+tail includes the elements past VLMAX that are held in the same vector
+register.
 
 ----
     for element index x
@@ -1194,6 +1181,17 @@ vector register.
     active(x)   = body(x) && mask(x)
     inactive(x) = body(x) && !mask(x)
 ----
+
+When `vstart` {ge} `vl`, there are no body elements, and no elements
+are updated in any destination vector register group, including that
+no tail elements are updated with agnostic values.
+
+NOTE: As a consequence, when `vl`=0, no elements, including agnostic
+elements, are updated in the destination vector register group
+regardless of `vstart`.
+
+Instructions that write an `x` register or `f` register
+do so even when `vstart` {ge} `vl`, including when `vl`=0.
 
 NOTE: Some instructions such as `vslidedown` and `vrgather` may read
 indices past `vl` or even VLMAX in source vector register groups.  The
