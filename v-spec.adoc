@@ -1730,28 +1730,28 @@ address are required, then an ordered indexed operation can be used.
 ----
     # Vector indexed loads and stores
 
-    # Vector unordered indexed load instructions
+    # Vector indexed-ordered load instructions
     # vd destination, rs1 base address, vs2 indices
     vluxei8.v    vd, (rs1), vs2, vm  # unordered  8-bit indexed load of SEW data
     vluxei16.v   vd, (rs1), vs2, vm  # unordered 16-bit indexed load of SEW data
     vluxei32.v   vd, (rs1), vs2, vm  # unordered 32-bit indexed load of SEW data
     vluxei64.v   vd, (rs1), vs2, vm  # unordered 64-bit indexed load of SEW data
 
-    # Vector ordered indexed load instructions
+    # Vector indexed-ordered load instructions
     # vd destination, rs1 base address, vs2 indices
     vloxei8.v    vd, (rs1), vs2, vm  # ordered  8-bit indexed load of SEW data
     vloxei16.v   vd, (rs1), vs2, vm  # ordered 16-bit indexed load of SEW data
     vloxei32.v   vd, (rs1), vs2, vm  # ordered 32-bit indexed load of SEW data
     vloxei64.v   vd, (rs1), vs2, vm  # ordered 64-bit indexed load of SEW data
 
-    # Vector unordered-indexed store instructions
+    # Vector indexed-unordered store instructions
     # vs3 store data, rs1 base address, vs2 indices
     vsuxei8.v   vs3, (rs1), vs2, vm # unordered  8-bit indexed store of SEW data
     vsuxei16.v  vs3, (rs1), vs2, vm # unordered 16-bit indexed store of SEW data
     vsuxei32.v  vs3, (rs1), vs2, vm # unordered 32-bit indexed store of SEW data
     vsuxei64.v  vs3, (rs1), vs2, vm # unordered 64-bit indexed store of SEW data
 
-    # Vector ordered indexed store instructions
+    # Vector indexed-ordered store instructions
     # vs3 store data, rs1 base address, vs2 indices
     vsoxei8.v    vs3, (rs1), vs2, vm  # ordered  8-bit indexed store of SEW data
     vsoxei16.v   vs3, (rs1), vs2, vm  # ordered 16-bit indexed store of SEW data
@@ -2010,10 +2010,10 @@ EMUL=(EEW/SEW)*LMUL.
 
 ----
     # Format
-    vluxseg<nf>ei<eew>.v vd, (rs1), vs2, vm   # Unordered indexed segment loads
-    vloxseg<nf>ei<eew>.v vd, (rs1), vs2, vm   # Ordered indexed segment loads
-    vsuxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm  # Unordered indexed segment stores
-    vsoxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm  # Ordered indexed segment stores
+    vluxseg<nf>ei<eew>.v vd, (rs1), vs2, vm   # Indexed-unordered segment loads
+    vloxseg<nf>ei<eew>.v vd, (rs1), vs2, vm   # Indexed-ordered segment loads
+    vsuxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm  # Indexed-unordered segment stores
+    vsoxseg<nf>ei<eew>.v vs3, (rs1), vs2, vm  # Indexed-ordered segment stores
 
     # Examples
     vsetvli a1, t0, e8, ta,ma
