@@ -39,6 +39,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Added upper limit of 64Kib on VLEN.
 
+=== Allow mask-agnostic tails to be written with the value that would have been produced with a maximum vector length.
+
 :sectnums:
 
 == Introduction
@@ -356,18 +358,16 @@ elements in a vector register group retain the value they previously
 held.   Mask destination values are always treated as tail-agnostic,
 regardless of the setting of `vta`.
 
-NOTE: Mask tails are always treated as agnostic to reduce complexity
-of managing mask data, which can be written at bit granularity.  There
-appears to be little software need to support tail-undisturbed for
-mask register values.
-
 When a set is marked agnostic, the corresponding set of destination
-elements in any vector destination operand can either retain
-the value they previously held, or are overwritten with 1s.  Within a
-single vector instruction, each destination element can be either left
+elements in any vector destination operand can either retain the value
+they previously held, or are overwritten with 1s.  Within a single
+vector instruction, each destination element can be either left
 undisturbed or overwritten with 1s, in any combination, and the
 pattern of undisturbed or overwritten with 1s is not required to be
 deterministic when the instruction is executed with the same inputs.
+In addition, except for mask load instructions, any element in the tail of a mask result can also be
+written with the value the mask-producing operation would have
+calculated with `vl`=VLMAX.
 
 NOTE: The agnostic policy was added to accommodate machines with vector
 register renaming, and/or that have deeply temporal vector registers.
@@ -377,9 +377,14 @@ physical destination vector register.  This causes an inefficiency
 when these inactive or tail values are not required for subsequent
 calculations.
 
-NOTE: The intent is for software to reduce microarchitectural work by
-selecting agnostic when the value in the respective set does not
-matter.
+NOTE: Mask tails are always treated as agnostic to reduce complexity
+of managing mask data, which can be written at bit granularity.  There
+appears to be little software need to support tail-undisturbed for
+mask register values.  Allowing mask-generating instructions to write
+back the result of the instruction avoids the need for logic to mask
+out the tail, except mask loads cannot write memory values to
+destination mask tails as this would imply accessing memory past
+software intent.
 
 NOTE: The value of all 1s instead of all 0s was chosen for the
 overwrite value to discourage software developers from depending on
