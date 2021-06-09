@@ -41,6 +41,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Allow mask-agnostic tails to be written with the value that would have been produced with a maximum vector length.
 
+=== Made clear that mask load and store instructions actually operate as if EEW=8 (not EEW=1 as previously described).
+
 :sectnums:
 
 == Introduction
@@ -1530,7 +1532,7 @@ instruction encodings respectively.
 
 | 0 | 0 | 0 | 0 | 0 | unit-stride load
 | 0 | 1 | 0 | 0 | 0 | unit-stride, whole register load
-| 0 | 1 | 0 | 1 | 1 | unit-stride, mask load, EEW=1
+| 0 | 1 | 0 | 1 | 1 | unit-stride, mask load, EEW=8
 | 1 | 0 | 0 | 0 | 0 | unit-stride fault-only-first
 | x | x | x | x | x | other encodings reserved
 |===
@@ -1542,7 +1544,7 @@ instruction encodings respectively.
 
 | 0 | 0 | 0 | 0 | 0 | unit-stride store
 | 0 | 1 | 0 | 0 | 0 | unit-stride, whole register store
-| 0 | 1 | 0 | 1 | 1 | unit-stride, mask store, EEW=1
+| 0 | 1 | 0 | 1 | 1 | unit-stride, mask store, EEW=8
 | x | x | x | x | x | other encodings reserved
 |===
 
@@ -1648,9 +1650,9 @@ NOTE: RV128 will require data and index EEW of 128.
 ----
 
 An additional unit-stride load and store is provided to support
-transferring mask values (EEW=1) to/from memory.  These operate the
-same as unmasked byte loads or stores, except that the effective
-vector length is ``evl``=ceil(``vl``/8), and the destination register is
+transferring mask values to/from memory.  These operate the
+same as unmasked byte loads or stores (EEW=8), except that the effective
+vector length is ``evl``=ceil(``vl``/8) (i.e. EMUL=1), and the destination register is
 always written with a tail-agnostic policy.
 
 ----
@@ -1672,7 +1674,7 @@ versus other element load/store instructions.  To avoid software
 churn, these older assembly mnemonics are being retained as aliases.
 
 NOTE: The primary motivation to provide mask load and store is to
-support machines that internally rearrange data based on EEW to reduce
+support machines that internally rearrange data to reduce
 cross-datapath wiring.  However, this also provides a convenient
 mechanism to access packed bit vectors in memory as mask registers,
 and reduces the cost of mask spill/fill by reducing need to change
@@ -2193,7 +2195,7 @@ NOTE: Implementations should raise illegal instruction exceptions on
 `vl<nf>r` instructions for EEW values that are not supported.
 
 NOTE: We have considered adding a whole register mask load
-instruction (``vl1re1.v vd, (rs1)``), with EEW=1, as a mask hint but this is not currently on
+instruction (``vl1re1.v vd, (rs1)``) as a mask hint but this is not currently on
 PoR.
 
 == Vector Memory Alignment Constraints
