@@ -5,7 +5,7 @@
 strncpy:
       mv a3, a0             # Copy dst
 loop:
-    vsetvli x0, a2, e8,m8, ta,ma   # Vectors of bytes.
+    vsetvli x0, a2, e8, m8, ta, ma   # Vectors of bytes.
     vle8ff.v v8, (a1)        # Get src bytes
     vmseq.vi v1, v8, 0      # Flag zero bytes
       csrr t1, vl           # Get number of bytes fetched
@@ -21,11 +21,11 @@ loop:
       ret
 
 zero_tail:
-    vsetvli x0, a2, e8,m8,ta,ma   # Vectors of bytes.
+    vsetvli x0, a2, e8, m8, ta, ma   # Vectors of bytes.
     vmv.v.i v0, 0           # Splat zero.
 
 zero_loop:
-    vsetvli t1, a2, e8,m8,ta,ma   # Vectors of bytes.
+    vsetvli t1, a2, e8, m8, ta, ma   # Vectors of bytes.
     vse8.v v0, (a3)          # Store zero.
       sub a2, a2, t1        # Decrement count.
       add a3, a3, t1        # Bump pointer
