@@ -355,6 +355,10 @@ except for mask load instructions, any element in the tail of a mask
 result can also be written with the value the mask-producing operation
 would have calculated with `vl`=VLMAX.
 
+Furthermore, for mask logical instructions, any element in the tail of the
+result can be written with the value the mask-producing operation would
+have calculated with `vl`=VLEN, SEW=8, and LMUL=8.
+
 NOTE: The agnostic policy was added to accommodate machines with vector
 register renaming, and/or that have deeply temporal vector registers.
 With an undisturbed policy, all elements would have to be read from
