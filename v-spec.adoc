@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 1.0-draft-20210130
+Version 1.0-rc1-20210608
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -51,19 +51,19 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 == Introduction
 
-This document describes the draft of version 1.0 of the RISC-V vector
-extension.
+This document is the first release candidate for version 1.0 of the
+RISC-V vector extension for public review.
 
-NOTE: This is a draft of the stable proposal for the vector extension
-specification to be used for implementation and evaluation.  Once the
-draft label is removed, version 1.0 is intended to be sent out for
-public review as part of the RISC-V International ratification
-process.  Version 1.0 is also considered stable enough to begin
-developing toolchains, functional simulators, and initial
-implementations, including in upstream software projects, and is not
-expected to have major functionality changes except if serious issues
-are discovered during ratification.  Once ratified, the spec will be
-given version 2.0.
+*This is not the frozen version of 1.0 for public review*.
+
+NOTE: When finally approved and the release candidate tag is removed,
+version 1.0 is intended to be sent out for public review as part of
+the RISC-V International ratification process.  Version 1.0 is also
+considered stable enough to begin developing toolchains, functional
+simulators, and initial implementations, including in upstream
+software projects, and is not expected to have major functionality
+changes except if serious issues are discovered during ratification.
+Once ratified, the spec will be given version 2.0.
 
 This draft spec includes the complete set of currently defined vector
 instructions.  Section <<sec-vector-extensions>> lists the standard
