@@ -45,6 +45,9 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Changed assembler mnemonic of unordered floating-point reductions `vfredsum` and `vfwredsum` to `vfredusum` and `vfwredusum` respectively.  Older names kept as aliases.
 
+=== Clarified that mask logical instructions are always unmasked so encodings with `vm=0` (masked) are reserved.
+
+
 :sectnums:
 
 == Introduction
