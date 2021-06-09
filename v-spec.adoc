@@ -43,6 +43,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Made clear that mask load and store instructions actually operate as if EEW=8 (not EEW=1 as previously described).
 
+=== Changed assembler mnemonic of unordered floating-point reductions `vfredsum` and `vfwredsum` to `vfredusum` and `vfwredusum` respectively.  Older names kept as aliases.
+
 :sectnums:
 
 == Introduction
@@ -3962,11 +3964,13 @@ elements before summing them.
 ----
     # Simple reductions.
     vfredosum.vs vd, vs2, vs1, vm # Ordered sum
-    vfredsum.vs  vd, vs2, vs1, vm # Unordered sum
+    vfredusum.vs vd, vs2, vs1, vm # Unordered sum
     vfredmax.vs  vd, vs2, vs1, vm # Maximum value
     vfredmin.vs  vd, vs2, vs1, vm # Minimum value
 
 ----
+
+NOTE: Older assembler mnemonic `vfredsum` is retained as alias for `vfredusum`.
 
 ==== Vector Ordered Single-Width Floating-Point Sum Reduction
 
@@ -3995,7 +3999,7 @@ summation loop.
 
 ==== Vector Unordered Single-Width Floating-Point Sum Reduction
 
-The unordered sum reduction instruction, `vfredsum`, provides an
+The unordered sum reduction instruction, `vfredusum`, provides an
 implementation more freedom in performing the reduction.
 
 The implementation must produce a result equivalent to a reduction tree
@@ -4034,7 +4038,7 @@ permitted to pass through the original NaN and set no exception flags, as with
 `vfredosum`.
 
 NOTE: The `vfredosum` instruction is a valid implementation of the
-`vfredsum` instruction.
+`vfredusum` instruction.
 
 ==== Vector Single-Width Floating-Point Max and Min Reductions
 
@@ -4055,15 +4059,17 @@ read and write a double-width reduction result.
 ----
  # Simple reductions.
  vfwredosum.vs vd, vs2, vs1, vm # Ordered sum
- vfwredsum.vs vd, vs2, vs1, vm  # Unordered sum
+ vfwredusum.vs vd, vs2, vs1, vm # Unordered sum
 ----
+
+NOTE: Older assembler mnemonic `vfwredsum` is retained as alias for `vfwredusum`.
 
 The reduction of the SEW-width elements is performed as in the
 single-width reduction case, with the elements in `vs2` promoted
 to 2*SEW bits before adding to the 2*SEW-bit accumulator.
 
 NOTE: `vfwredosum.vs` handles inactive elements and NaN payloads analogously
-to `vfredosum.vs`; `vfwredsum.vs` does so analogously to `vfredsum.vs`.
+to `vfredosum.vs`; `vfwredusum.vs` does so analogously to `vfredusum.vs`.
 
 [[sec-vector-mask]]
 == Vector Mask Instructions
