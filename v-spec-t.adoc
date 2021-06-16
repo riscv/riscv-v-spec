@@ -1,0 +1,59 @@
+= RISC-V "V" Vector Extension
+:description: Draft Vector specification
+:company: RISC-V.org
+:revdate: 06/2021
+:revnumber: 1.0-rc2-draft
+:revremark: Pre-release version
+:url-riscv: http://riscv.org
+:doctype: book
+//:doctype: report
+:preface-title: Preamble
+:colophon:
+:appendix-caption: Appendix
+:imagesdir: images
+:title-logo-image: image:risc-v_logo.png[pdfwidth=3.25in,align=center]
+//:page-background-image: image:draft.svg[opacity=20%]
+//:title-page-background-image: none
+:back-cover-image: image:backpage.png[opacity=25%]
+// Settings:
+:experimental:
+:reproducible:
+// needs to be changed? bug discussion started
+//:WaveDromEditorApp: app/wavedrom-editor.app
+:imagesoutdir: images
+:icons: font
+:lang: en
+:listing-caption: Listing
+:sectnums:
+:toc: left
+:toclevels: 4
+:source-highlighter: pygments
+ifdef::backend-pdf[]
+:source-highlighter: coderay
+endif::[]
+:data-uri:
+:hide-uri-scheme:
+:stem: latexmath
+:footnote:
+:xrefstyle: short
+
+Contributors include: Alon Amid, Krste Asanovic, Allen Baum, Alex
+Bradbury, Tony Brewer, Chris Celio, Aliaksei Chapyzhenka, Silviu
+Chiricescu, Ken Dockser, Bob Dreyer, Roger Espasa, Sean Halle, John
+Hauser, David Horner, Bruce Hoult, Bill Huffman, Nicholas Knight,
+Constantine Korikov,
+Ben Korpan, Hanna Kruppe, Yunsup Lee, Guy Lemieux, Grigorios Magklis,
+Filip Moc, Rich Newell, Albert Ou, David Patterson, Colin Schmidt,
+Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
+
+
+[width="100%",format=csv]
+|===
+Changes from v1.0-rc1,No changes to date.
+|===
+
+
+include::colophon.adoc[]
+include::body.adoc[]
+
+

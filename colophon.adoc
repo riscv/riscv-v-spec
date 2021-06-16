@@ -1,0 +1,21 @@
+= Preface
+
+This document is a draft of the second release candidate for version
+1.0 of the RISC-V vector extension for public review.
+
+*This is not the frozen version of 1.0 for public review*.
+
+NOTE: When finally approved and the release candidate tag is removed,
+version 1.0 is intended to be sent out for public review as part of
+the RISC-V International ratification process.  Version 1.0 is also
+considered stable enough to begin developing toolchains, functional
+simulators, and initial implementations, including in upstream
+software projects, and is not expected to have major functionality
+changes except if serious issues are discovered during ratification.
+Once ratified, the spec will be given version 2.0.
+
+This draft spec includes the complete set of currently defined vector
+instructions.  Section <<sec-vector-extensions>> lists the standard
+vector extensions and which instructions and element widths are
+supported by each extension.
+
