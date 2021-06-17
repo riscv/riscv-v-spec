@@ -606,7 +606,8 @@ remaining bits in `vtype` are zero, and `vl` is set to zero.
 
 The `vstart`, `vxrm`, `vxsat` CSRs can have arbitrary values at reset.
 
-NOTE: The `vstart`, `vxrm`, and `vxsat` fields should be
+NOTE: Most uses of the vector unit will require an initial `vset{i}vl{i}`,
+which will reset `vstart`.  The `vxrm` and `vxsat` fields should be
 reset explicitly in software before use.
 
 The vector registers can have arbitrary values at reset.
