@@ -6,7 +6,7 @@ Each hart supporting a vector extension defines two parameters:
 . The maximum size of a vector element that any operation can produce or consume in bits, _ELEN_ {ge} 8, which
 must be a power of 2.
 . The number of bits in a single vector register, _VLEN_, which must
-be a power of 2 and must be no greater than `2 \ \^16`.
+be a power of 2 and must be no greater than 2^16^.
 
 Standard vector extensions (Section <<sec-vector-extensions>>) and
 architecture profiles may set further constraints on _ELEN_ and _VLEN_.
@@ -29,6 +29,7 @@ NOTE: In general, thread contexts with active vector state cannot be
 migrated during execution between harts that have any difference in
 VLEN or ELEN parameters.
 
+[[extension-programmers-model]]
 == Vector Extension Programmer's Model
 
 The vector extension adds 32 vector registers, and seven unprivileged
@@ -37,7 +38,6 @@ base scalar RISC-V ISA.
 
 .New vector CSRs
 [cols="2,2,2,10"]
-[%autowidth]
 |===
 | Address | Privilege | Name   | Description
 
@@ -125,8 +125,7 @@ The value in `vsew` sets the dynamic _selected_ _element_ _width_
 VLEN/SEW elements.
 
 .vsew[2:0] (selected element width) encoding
-[cols="1,1,1,1,>13"]
-[%autowidth]
+[cols="3,3,3,2,>13"]
 |===
 3+| vsew[2:0] | SEW |
 
@@ -146,7 +145,6 @@ encodings are formally _reserved_ at this point.
 
 .Example VLEN = 128 bits
 [cols=">,>"]
-[%autowidth]
 |===
 | SEW | Elements per vector register
 
@@ -229,16 +227,15 @@ NOTE: It is recommended that assemblers provide a warning (not an
 error) if a `vsetvli` instruction attempts to write an LMUL < SEW~LMUL1MIN~/SEW~LMUL1MAX~.
 
 LMUL is set by the signed `vlmul` field in `vtype` (LMUL =
-2 \^`vlmul[2:0]` \^).
+2^`vlmul[2:0]`^).
 
 The derived value VLMAX = LMUL*VLEN/SEW represents the maximum number
 of elements that can be operated on with a single vector instruction
 given the current SEW and LMUL settings as shown in the table below.
 
 [cols="1,1,1,2,2,5,5"]
-[%autowidth]
 |===
-  3+| vlmul[2:0] | LMUL | # groups | VLMAX      | Registers grouped with register _n_
+  3+| vlmul[2:0] | LMUL | \#groups | VLMAX      | Registers grouped with register __n__
 
 | 1 | 0 | 0 |   -  |     -   |     -      | reserved
 | 1 | 0 | 1 |   1/8|     32  | VLEN/SEW/8 | `v` __n__ (single register in group)
@@ -278,7 +275,6 @@ operation, as defined in Section <<sec-inactive-defs>>.
 All systems must support all four options:
 
 [cols="1,1,3,3"]
-[%autowidth]
 |===
 | `vta` | `vma` | Tail Elements | Inactive Elements
 
@@ -498,7 +494,6 @@ mode as specified in the following table.
 
 .vxrm encoding
 [cols="1,1,4,10,5"]
-[%autowidth]
 |===
 2+| `vxrm[1:0]` | Abbreviation | Rounding Mode | Rounding increment, `r`
 
@@ -535,7 +530,6 @@ in the vector control and status CSR, `vcsr`.
 
 .vcsr layout
 [cols=">2,4,10"]
-[%autowidth]
 |===
 | Bits | Name   | Description
 
@@ -1023,7 +1017,7 @@ Other vector registers can be used to hold working mask values, and
 mask vector logical operations are provided to perform predicate
 calculations. [[sec-mask-vector-logical]]
 
-As specified in Section <<sec-agnostic>>, mask destination values are 
+As specified in Section <<sec-agnostic>>, mask destination values are
 always treated as tail-agnostic, regardless of the setting of `vta`.
 
 [[sec-vector-mask-encoding]]
@@ -1062,8 +1056,8 @@ complement masking. The `.t` suffix on the masking operand also helps
 to visually encode the use of a mask.
 
 NOTE: The `.mask` suffix is not part of the assembly syntax.
-We only append it in contexts where a mask vector is subscripted, 
-e.g., `v0.mask[i]`. 
+We only append it in contexts where a mask vector is subscripted,
+e.g., `v0.mask[i]`.
 
 [[sec-inactive-defs]]
 === Prestart, Active, Inactive, Body, and Tail Element Definitions
@@ -1213,11 +1207,11 @@ fields as follows:
 
 .AVL used in `vsetvli` and `vsetvl` instructions
 [cols="2,2,10,10"]
-[%autowidth]
+
 |===
 |  `rd`  | `rs1`  | AVL value         | Effect on `vl`
 |  -     | !x0    | Value in `x[rs1]` | Normal stripmining
-| !x0    |  x0    | \~ 0                | Set `vl` to VLMAX
+| !x0    |  x0    | ~0                | Set `vl` to VLMAX
 |  x0    |  x0    | Value in `vl` register | Keep existing `vl` (of course, `vtype` may change)
 |===
 
@@ -1225,7 +1219,7 @@ When `rs1` is not `x0`, the AVL is an unsigned integer held in the `x`
 register specified by `rs1`, and the new `vl` value is also written to
 the `x` register specified by `rd`.
 
-When `rs1=x0` but `rd!=x0`, the maximum unsigned integer value (`\~0`)
+When `rs1=x0` but `rd!=x0`, the maximum unsigned integer value (`~0`)
 is used as the AVL, and the resulting VLMAX is written to `vl` and
 also to the `x` register specified by `rd`.
 
@@ -1289,7 +1283,7 @@ loops uses the largest vector length of all iterations, even in the case
 of `AVL < 2*VLMAX`.
 This allows software to avoid needing to explicitly calculate a running
 maximum of vector lengths observed during a stripmined loop.
-Requirement 2 also allows an implementation to set vl to VLMAX for `VLMAX < AVL < 2*VLMAX` 
+Requirement 2 also allows an implementation to set vl to VLMAX for `VLMAX < AVL < 2*VLMAX`
 --
 
 [[example-stripmine-sew]]
@@ -1390,7 +1384,7 @@ vector offset operand specified by `vs2` to the base effective address
 to give the effective address of each element.  The data vector
 register group has EEW=SEW, EMUL=LMUL, while the offset vector
 register group has EEW encoding in the instruction and
-EMUL=(EEW/SEW)\*LMUL.
+`EMUL=(EEW/SEW)*LMUL`.
 
 The vector offset operand is treated as a vector of byte-address
 offsets.
@@ -1500,7 +1494,7 @@ to transfer for the whole vector register load/store instructions.
 
 Vector loads and stores have an EEW encoded directly in the
 instruction.  The corresponding EMUL is calculated as EMUL =
-(EEW/SEW)\*LMUL. If the EMUL would be out of range (EMUL>8 or
+(EEW/SEW)*LMUL. If the EMUL would be out of range (EMUL>8 or
 EMUL<1/8), the instruction encoding is reserved.  The vector register
 groups must have legal register specifiers for the selected EMUL;
 the instruction encoding is otherwise considered reserved.
@@ -1529,11 +1523,11 @@ unsupported EEW widths are reserved.
 | Standard scalar FP   | x |   0 | 0 | 1 |   16| FLEN | -  | FLH/FSH             |
 | Standard scalar FP   | x |   0 | 1 | 0 |   32| FLEN | -  | FLW/FSW             |
 | Standard scalar FP   | x |   0 | 1 | 1 |   64| FLEN | -  | FLD/FSD             |
-| Standard scalar FP   | x |   1 | 0 | 0 |  128| FLEN | -  | FLQ/FSQ             |    
+| Standard scalar FP   | x |   1 | 0 | 0 |  128| FLEN | -  | FLQ/FSQ             |
 | Vector 8b element    | 0 |   0 | 0 | 0 |    8|    8 | -  | VLxE8/VSxE8         |
 | Vector 16b element   | 0 |   1 | 0 | 1 |   16|   16 | -  | VLxE16/VSxE16       |
 | Vector 32b element   | 0 |   1 | 1 | 0 |   32|   32 | -  | VLxE32/VSxE32       |
-| Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64       |     
+| Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64       |
 | Vector 128b element  | 1 |   0 | 0 | 0 |  128|  128 | -  | VLxE128/VSxE128     | _Reserved_
 | Vector 256b element  | 1 |   1 | 0 | 1 |  256|  256 | -  | VLxE256/VSxE256     | _Reserved_
 | Vector 512b element  | 1 |   1 | 1 | 0 |  512|  512 | -  | VLxE512/VSxE512     | _Reserved_
@@ -1940,7 +1934,7 @@ with respect to each other.
 
 The data vector register group has EEW=SEW, EMUL=LMUL, while the index
 vector register group has EEW encoded in the instruction with
-EMUL=(EEW/SEW)\*LMUL.
+EMUL=(EEW/SEW)*LMUL.
 
 ----
     # Format
@@ -1977,9 +1971,7 @@ Format for Vector Load Whole Register Instructions under LOAD-FP major opcode
  nf  | mew|  00  | 1| 01000 |    rs1    | width |    vd   |0000111| VL<nf>R
 ////
 
-
-. Vector Load Whole Register Instructions under LOAD-FP major opcode
-[wavedrom, svg]
+[wavedrom.svg]
 ----
 {reg: [
   {bits: 7, name: 0x07, attr: 'VL*R*'},
@@ -2000,8 +1992,7 @@ Format for Vector Store Whole Register Instructions under STORE-FP major opcode
  nf  |  0 |  00  | 1| 01000 |    rs1    |  000  |   vs3   |0100111| VS<nf>R
 ////
 
-. Format for Vector Store Whole Register Instructions under STORE-FP major opcode
-[wavedrom, svg]
+[wavedrom,svg]
 ----
 {reg: [
   {bits: 7, name: 0x27, attr: 'VS*R*'},
@@ -2052,7 +2043,7 @@ lowest-numbered memory addresses and successive vector register
 numbers are placed contiguously in memory.
 
 The instructions operate with an effective vector length,
-`evl`=`nf`\*VLEN/EEW, regardless of current settings in `vtype` and
+`evl`=`nf`*VLEN/EEW, regardless of current settings in `vtype` and
 `vl`.  The usual property that no elements are written if `vstart`
 {ge} `vl` does not apply to these instructions.  Instead, no elements
 are written if `vstart` {ge} `evl`.
@@ -2084,7 +2075,7 @@ an ABI.
    vl1re16.v   v3, (a0)  # Load v3 with VLEN/16 halfwords held at address in a0
    vl1re32.v   v3, (a0)  # Load v3 with VLEN/32 words held at address in a0
    vl1re64.v   v3, (a0)  # Load v3 with VLEN/64 doublewords held at address in a0
-   # vl1re128.v  v3, (a0) 
+   # vl1re128.v  v3, (a0)
    # vl1re256.v  v3, (a0)
    # vl1re512.v  v3, (a0)
    # vl1re1024.v v3, (a0)
@@ -2459,7 +2450,7 @@ pseudoinstructions `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and
 The vector integer extension instructions zero- or sign-extend a
 source vector integer operand with EEW less than SEW to fill SEW-sized
 elements in the destination.  The EEW of the source is 1/2, 1/4, or
-1/8 of SEW, while EMUL of the source is (EEW/SEW)\*LMUL.  The
+1/8 of SEW, while EMUL of the source is (EEW/SEW)*LMUL.  The
 destination has EEW equal to SEW and EMUL equal to LMUL.
 
 ----
@@ -2630,7 +2621,7 @@ vsra.vx vd, vs2, rs1, vm   # vector-scalar
 vsra.vi vd, vs2, uimm, vm   # vector-immediate
 ----
 
- 
+
 === Vector Narrowing Integer Right Shift Instructions
 
 The narrowing right shifts extract a smaller field from a wider
@@ -2747,9 +2738,9 @@ to 15 giving an effective `vmsltu.vi` range of 1 to 16 (Note,
 `vmsltu.vi` with immediate 0 is not useful as it is always
 false). Because the 5-bit vector immediates are always sign-extended,
 `vmsleu.vi` also supports unsigned immediate values in the range
-`2\ ^SEW\ \^-16` to `2\ \^SEW\ \^-1`, allowing corresponding `vmsltu.vi`
-comparisons against unsigned immediates in the range `2\ \^SEW\ \^-15` to
-`2\ \^SEW\ \^`.  Note that `vlsltu.vi` with immediate `2\ \^SE\ \^` is not useful
+`2^SEW^-16` to `2^SEW^-1`, allowing corresponding `vmsltu.vi`
+comparisons against unsigned immediates in the range `2^SEW^-15` to
+`2^SEW^`.  Note that `vlsltu.vi` with immediate `2^SEW^` is not useful
 as it is always true.
 
 Similarly, `vmsge{u}.vi` is not provided and the comparison is
@@ -2768,7 +2759,7 @@ provided, and so the `va {ge} x` case requires special treatment.
 
 NOTE: The `vmsge{u}.vx` could potentially be encoded in a
 non-orthogonal way under the unused OPIVI variant of `vmslt{u}`.  These
-would be the only instructions in OPIVI that use a scalar x register
+would be the only instructions in OPIVI that use a scalar `x`register
 however.  Alternatively, a further two funct6 encodings could be used,
 but these would have a different operand format (writes to mask
 register) than others in the same group of 8 funct6 encodings.  The
@@ -3053,13 +3044,13 @@ elide this instruction, and treat as a NOP.
 The preceding set of integer arithmetic instructions is extended to support
 fixed-point arithmetic.
 
-A fixed-point number is a two's-complement signed or unsigned integer 
+A fixed-point number is a two's-complement signed or unsigned integer
 interpreted as the numerator in a fraction with an implicit denominator.
-The fixed-point instructions are intended to be applied to the numerators; 
-it is the responsibility of software to manage the denominators. 
+The fixed-point instructions are intended to be applied to the numerators;
+it is the responsibility of software to manage the denominators.
 An N-bit element can hold two's-complement signed integers in the
-range -2\ \^N-1\ \^...+2\ \^N-\ \^-1, and unsigned integers in the range 0
-... +2\ \^N\ \^-1.  The fixed-point instructions help preserve precision in
+range -2^N-1^...+2^N-1^-1, and unsigned integers in the range 0
+... +2^N^-1.  The fixed-point instructions help preserve precision in
 narrow operands by supporting scaling and rounding, and can handle
 overflow by saturating results into the destination format range.
 
@@ -3142,7 +3133,7 @@ vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip(roundoff_signed(vs2[i]*x[rs1], SEW-1))
 ----
 
 NOTE: When multiplying two N-bit signed numbers, the largest magnitude
-is obtained for -2\ \^N-1\ \^ * -2\ \^N-1\ \^ producing a result +2\ \^2N-2\ \^, which
+is obtained for -2^N-1^ * -2^N-1^ producing a result +2^2N-2^, which
 has a single (zero) sign bit when held in 2N bits.  All other products
 have two sign bits in 2N bits.  To retain greater precision in N
 result bits, the product is shifted right by one bit less than N,
@@ -3159,7 +3150,7 @@ simply truncation (`rdn`).
 
 These instructions shift the input value right, and round off the
 shifted out bits according to `vxrm`.  The scaling right shifts have
-both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. 
+both zero-extending (`vssrl`) and sign-extending (`vssra`) forms.
 The low lg2(SEW) bits of the vector or scalar shift-amount value are used;
 shift-amount immediates are zero-extended.
 
@@ -3412,7 +3403,6 @@ The following table describes the instruction's behavior for all
 classes of floating-point inputs:
 
 [cols="1,1,1"]
-[%autowidth]
 |===
 | Input | Output | Exceptions raised
 
@@ -3483,35 +3473,35 @@ The following table describes the instruction's behavior for all
 classes of floating-point inputs, where _B_ is the exponent bias:
 
 [cols="1,1,1,1"]
-[%autowidth]
+
 |===
 | Input (_x_) | Rounding Mode | Output (_y_ {approx} _1/x_) | Exceptions raised
 
 | -{inf}                                              | _any_         | -0.0                      |
-| -2 \^B+1 \^ < _x_ {le} -2 \^B \^ (normal)                   | _any_         | -2 \^-(B+1) \^ {ge} _y_ > -2 \^-B \^ (subnormal, sig=01...) |
-| -2 \^B \^ < _x_ {le} -2 \^B-1 \^ (normal)                   | _any_         | -2 \^-B \^ {ge} _y_ > -2 \^-B+1 \^ (subnormal, sig=1...) |
-| -2 \^B-1 \^ < _x_ {le} -2 \^-B+1 \^ (normal)                | _any_         | -2 \^-B+1 \^ {ge} _y_ > -2 \^B-1 \^ (normal) |
-| -2 \^-B+1 \^ < _x_ {le} -2 \^-B \^ (subnormal, sig=1...)    | _any_         | -2 \^B-1 \^ {ge} _y_ > -2 \^B \^ (normal) |
-| -2 \^-B \^ < _x_ {le} -2 \^-(B+1) \^ (subnormal, sig=01...) | _any_         | -2 \^B \^ {ge} _y_ > -2 \^B+1 \^ (normal) |
-| -2 \^-(B+1) \^ < _x_ < -0.0 (subnormal, sig=00...)      | RUP, RTZ      | greatest-mag. negative finite value | NX, OF
-| -2 \^-(B+1) \^ < _x_ < -0.0 (subnormal, sig=00...)      | RDN, RNE, RMM | -{inf}                    | NX, OF
+| -2^B+1^ < _x_ {le} -2^B^ (normal)                   | _any_         | -2^-(B+1)^ {ge} _y_ > -2^-B^ (subnormal, sig=01...) |
+| -2^B^ < _x_ {le} -2^B-1^ (normal)                   | _any_         | -2^-B^ {ge} _y_ > -2^-B+1^ (subnormal, sig=1...) |
+| -2^B-1^ < _x_ {le} -2^-B+1^ (normal)                | _any_         | -2^-B+1^ {ge} _y_ > -2^B-1^ (normal) |
+| -2^-B+1^ < _x_ {le} -2^-B^ (subnormal, sig=1...)    | _any_         | -2^B-1^ {ge} _y_ > -2^B^ (normal) |
+| -2^-B^ < _x_ {le} -2^-(B+1)^ (subnormal, sig=01...) | _any_         | -2^B^ {ge} _y_ > -2^B+1^ (normal) |
+| -2^-(B+1)^ < _x_ < -0.0 (subnormal, sig=00...)      | RUP, RTZ      | greatest-mag. negative finite value | NX, OF
+| -2^-(B+1)^ < _x_ < -0.0 (subnormal, sig=00...)      | RDN, RNE, RMM | -{inf}                    | NX, OF
 | -0.0                                                | _any_         | -{inf}                    | DZ
 | +0.0                                                | _any_         | +{inf}                    | DZ
-| +0.0 < _x_ < 2 \^-(B+1) \^ (subnormal, sig=00...)       | RUP, RNE, RMM | +{inf}                    | NX, OF
-| +0.0 < _x_ < 2 \^-(B+1) \^ (subnormal, sig=00...)       | RDN, RTZ      | greatest finite value     | NX, OF
-| 2 \^-(B+1) \^ {le} _x_ < 2 \^-B \^ (subnormal, sig=01...)   | _any_         | 2 \^B+1 \^ > _y_ {ge} 2 \^B \^ (normal) |
-| 2 \^-B \^ {le} _x_ < 2 \^-B+1 \^ (subnormal, sig=1...)      | _any_         | 2 \^B \^ > _y_ {ge} 2 \^B-1 \^ (normal) |
-| 2 \^-B+1 \^ {le} _x_ < 2 \^B-1 \^ (normal)                  | _any_         | 2 \^B-1 \^ > _y_ {ge} 2 \^-B+1 \^ (normal) |
-| 2 \^B-1 \^ {le} _x_ < 2 \^B \^ (normal)                     | _any_         | 2 \^-B+1 \^ > _y_ {ge} 2 \^-B \^ (subnormal, sig=1...) |
-| 2 \^B \^ {le} _x_ < 2 \^B+1 \^ (normal)                     | _any_         | 2 \^-B \^ > _y_ {ge} 2 \^-(B+1) \^ (subnormal, sig=01...) |
+| +0.0 < _x_ < 2^-(B+1)^ (subnormal, sig=00...)       | RUP, RNE, RMM | +{inf}                    | NX, OF
+| +0.0 < _x_ < 2^-(B+1)^ (subnormal, sig=00...)       | RDN, RTZ      | greatest finite value     | NX, OF
+| 2^-(B+1)^ {le} _x_ < 2^-B^ (subnormal, sig=01...)   | _any_         | 2^B+1^ > _y_ {ge} 2^B^ (normal) |
+| 2^-B^ {le} _x_ < 2^-B+1^ (subnormal, sig=1...)      | _any_         | 2^B^ > _y_ {ge} 2^B-1^ (normal) |
+| 2^-B+1^ {le} _x_ < 2^B-1^ (normal)                  | _any_         | 2^B-1^ > _y_ {ge} 2^-B+1^ (normal) |
+| 2^B-1^ {le} _x_ < 2^B^ (normal)                     | _any_         | 2^-B+1^ > _y_ {ge} 2^-B^ (subnormal, sig=1...) |
+| 2^B^ {le} _x_ < 2^B+1^ (normal)                     | _any_         | 2^-B^ > _y_ {ge} 2^-(B+1)^ (subnormal, sig=01...) |
 | +{inf}                                              | _any_         | +0.0                      |
 | qNaN                                                | _any_         | canonical NaN             |
 | sNaN                                                | _any_         | canonical NaN             | NV
 |===
 
-NOTE: Subnormal inputs with magnitude at least 2 \^-(B+1) \^ produce normal outputs;
+NOTE: Subnormal inputs with magnitude at least 2^-(B+1)^ produce normal outputs;
 other subnormal inputs produce infinite outputs.
-Normal inputs with magnitude at least 2 \^B-1 \^ produce subnormal outputs;
+Normal inputs with magnitude at least 2^B-1^ produce subnormal outputs;
 other normal inputs produce normal outputs.
 
 NOTE: The output value depends on the dynamic rounding mode when
@@ -4033,11 +4023,11 @@ always updated with a tail-agnostic policy.
     vmand.mm vd, vs2, vs1     # vd.mask[i] =   vs2.mask[i] &&  vs1.mask[i]
     vmnand.mm vd, vs2, vs1    # vd.mask[i] = !(vs2.mask[i] &&  vs1.mask[i])
     vmandnot.mm vd, vs2, vs1  # vd.mask[i] =   vs2.mask[i] && !vs1.mask[i]
-    vmxor.mm  vd, vs2, vs1    # vd.mask[i] =   vs2.mask[i]  \^ \^  vs1.mask[i]
+    vmxor.mm  vd, vs2, vs1    # vd.mask[i] =   vs2.mask[i] ^^  vs1.mask[i]
     vmor.mm  vd, vs2, vs1     # vd.mask[i] =   vs2.mask[i] ||  vs1.mask[i]
     vmnor.mm  vd, vs2, vs1    # vd.mask[i] = !(vs2.mask[i] ||  vs1.mask[i])
     vmornot.mm  vd, vs2, vs1  # vd.mask[i] =   vs2.mask[i] || !vs1.mask[i]
-    vmxnor.mm vd, vs2, vs1    # vd.mask[i] = !(vs2.mask[i]  \^ \^  vs1.mask[i])
+    vmxnor.mm vd, vs2, vs1    # vd.mask[i] = !(vs2.mask[i] ^^  vs1.mask[i])
 ----
 
 Several assembler pseudoinstructions are defined as shorthand for
@@ -4128,7 +4118,7 @@ to the GPR.
 
 NOTE: Software can assume that any negative value (highest bit set)
 corresponds to no element found, as vector lengths will never exceed
-2 \^(XLEN-1) \^ on any implementation.
+2^(XLEN-1)^ on any implementation.
 
 Traps on `vfirst` are always reported with a `vstart` of 0.  The
 `vfirst` instruction will raise an illegal instruction exception if
@@ -4630,7 +4620,7 @@ vrgatherei16.vv vd, vs2, vs1, vm # vd[i] = (vs1[i] >= VLMAX) ? 0 : vs2[vs1[i]];
 
 The `vrgather.vv` form uses SEW/LMUL for both the data and
 indices. The `vrgatherei16.vv` form uses SEW/LMUL for the data in
-`vs2` but EEW=16 and EMUL = (16/SEW)\*LMUL for the indices in `vs1`.
+`vs2` but EEW=16 and EMUL = (16/SEW)*LMUL for the indices in `vs1`.
 
 NOTE: When SEW=8, `vrgather.vv` can only reference vector elements
 0-255.  The `vrgatherei16` form can index 64K elements, and can also
@@ -4718,7 +4708,7 @@ readily synthesized using iota and a masked vrgather:
       1 0 0 1 1 1 0 1     # mask vector of 8 elements
       p q r s t u v w     # destination register before vdecompress
 
-      e q r d c b v a     # result of vdecompress 
+      e q r d c b v a     # result of vdecompress
 ----
 
 ----
@@ -4790,7 +4780,7 @@ restrictions.
 == Exception Handling
 
 On a trap during a vector instruction (caused by either a synchronous
-exception or an asynchronous interrupt), the existing `\*epc` CSR is
+exception or an asynchronous interrupt), the existing `*epc` CSR is
 written with a pointer to the errant vector instruction, while the
 `vstart` CSR contains the element index that caused the trap to be
 taken.
@@ -4841,8 +4831,8 @@ guaranteed for the element or segment reported by `vstart`.
 === Imprecise vector traps
 
 Imprecise vector traps are traps that are not precise.  In particular,
-instructions newer than `\*epc` may have committed results, and
-instructions older than `\*epc` may have not completed execution.
+instructions newer than `*epc` may have committed results, and
+instructions older than `*epc` may have not completed execution.
 Imprecise traps are primarily intended to be used in situations where
 reporting an error and terminating execution is the appropriate
 response.
@@ -4901,7 +4891,7 @@ supported.
 
 .Embedded vector extensions
 [cols="1,1,2,1,1"]
-[%autowidth]
+
 |===
 | Extension | Minimum VLEN | Supported EEW |  FP32 | FP64
 

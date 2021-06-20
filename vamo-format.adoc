@@ -6,7 +6,8 @@ Format for Vector AMO Instructions under AMO major opcode
    5      1   1      5           5         3        5        7
 ////
 
-```wavedrom
+[wavedrom,svg]
+----
 {reg:[
   {bits: 7, name: 0x2f, attr: 'VAMO*'},
   {bits: 5, name: 'vs3 / vd', attr: 'source / destination', type: 2},
@@ -17,4 +18,4 @@ Format for Vector AMO Instructions under AMO major opcode
   {bits: 1, name: 'wd'},
   {bits: 5, name: 'amoop'},
 ]}
-```
+----

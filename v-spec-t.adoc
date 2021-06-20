@@ -55,5 +55,6 @@ Changes from v1.0-rc1,No changes to date.
 
 include::colophon.adoc[]
 include::body.adoc[]
+//include::appendix.adoc[]
 
 
