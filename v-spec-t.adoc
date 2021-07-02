@@ -52,6 +52,7 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 Changes from v1.0-rc1,No changes to date.
 |===
 
+Frozen: Change is extremely unlikely. A high threshold will be used, and a change will only occur because of some truly critical issue being identified during the public review cycle. Any other desired or needed changes can be the subject of a follow-on new extension.
 
 include::colophon.adoc[]
 include::body.adoc[]
