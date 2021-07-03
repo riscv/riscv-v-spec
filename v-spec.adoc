@@ -2188,10 +2188,10 @@ following vector instruction needs a new SEW/LMUL. So, in best case
 only two instructions are needed to synthesize the effect of the
 dedicated instruction:
 ----
-  csrr t0, vlen              # Save current vlen (potentially not needed)
+  csrr t0, vl                # Save current vl (potentially not needed)
   vsetvli t1, x0, e8, m8     # Maximum VLMAX
   vlm.v v0, (a0)             # Load mask register
-  vsetvli x0, t0, <new type> # Restore vlen (potentially already present)
+  vsetvli x0, t0, <new type> # Restore vl (potentially already present)
 ----
 
 == Vector Memory Alignment Constraints
