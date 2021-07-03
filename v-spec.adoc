@@ -3894,6 +3894,19 @@ tail agnostic/undisturbed policy.
 If `vl`=0, no operation is performed and the destination register is
 not updated.
 
+NOTE: This choice of behavior for `vl`=0 reduces implementation
+complexity as it is consistent with other operations on vector
+register state.  For the common case that the source and destination
+scalar operand are the same vector register, this behavior also
+produces the expected result.  For the uncommon case that the source
+and destination scalar operand are in different vector registers, this
+instruction will not copy the source into the destination when `vl`=0.
+However, it is expected that in most of these cases it will be
+statically known that `vl` is not zero.  In other cases, a check for
+`vl`=0 will have to be added to ensure that the source scalar is
+copied to the destination (e.g., by explicitly setting `vl`=1 and
+performing a register-register copy).
+
 Traps on vector reduction instructions are always reported with a
 `vstart` of 0.  Vector reduction operations raise an illegal
 instruction exception if `vstart` is non-zero.
