@@ -25,7 +25,7 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 == Changes from v1.0-rc1
 
-=== No changes to date.
+=== Various clarifications to text, and added rationale for design choices.
 
 :sectnums:
 
