@@ -4161,6 +4161,9 @@ Traps on `vpopc.m` are always reported with a `vstart` of 0.  The
 `vpopc` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
 
+NOTE: `vpopc.m` writes `x[rd]` even if `vl`=0
+(with the value 0, since no mask elements are active).
+
 === `vfirst` find-first-set mask bit
 
 ----
@@ -4179,6 +4182,9 @@ corresponds to no element found, as vector lengths will never exceed
 Traps on `vfirst` are always reported with a `vstart` of 0.  The
 `vfirst` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
+
+NOTE: `vfirst.m` writes `x[rd]` even if `vl`=0
+(with the value -1, since no mask elements are active).
 
 === `vmsbf.m` set-before-first mask bit
 
@@ -4445,6 +4451,8 @@ source vector register to a destination integer register.  If SEW > XLEN, the
 least-significant XLEN bits are transferred and the upper SEW-XLEN bits are
 ignored.  If SEW < XLEN, the value is sign-extended to XLEN bits.
 
+NOTE: `vmv.x.s` performs its operation even if `vstart` {ge} `vl` or `vl`=0.
+
 The `vmv.s.x` instruction copies the scalar integer register to element 0 of
 the destination vector register.  If SEW < XLEN, the least-significant bits
 are copied and the upper XLEN-SEW bits are ignored.  If SEW > XLEN, the value
@@ -4472,6 +4480,8 @@ vfmv.s.f vd, rs1  # vd[0] = f[rs1] (vs2=0)
 The `vfmv.f.s` instruction copies a single SEW-wide element from index
 0 of the source vector register to a destination scalar floating-point
 register.
+
+NOTE: `vfmv.f.s` performs its operation even if `vstart` {ge} `vl` or `vl`=0.
 
 The `vfmv.s.f` instruction copies the scalar floating-point register
 to element 0 of the destination vector register.  The other elements
