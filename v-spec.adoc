@@ -1179,7 +1179,7 @@ general policy is to return the value 0 when the index is greater than
 VLMAX in the source vector register group.
 
 [[sec-vector-config]]
-== Configuration-Setting Instructions (`vsetvli`/`vsetivl`/`vsetvl`)
+== Configuration-Setting Instructions (`vsetvli`/`vsetivli`/`vsetvl`)
 
 One of the common approaches to handling a large number of elements is
 "stripmining" where each iteration of a loop handles some number of elements,
