@@ -47,16 +47,19 @@ change `VS` to Dirty.
 Implementations may also change the `VS` field from Initial or Clean to Dirty
 at any time, even when there is no change in vector state.
 
-NOTE: Accurate setting of the `VS` field is an optimization.  Software
+[NOTE]
+====
+Accurate setting of the `VS` field is an optimization.  Software
 will typically use VS to reduce context swap overhead.
 
 Implementations may have a writable `misa.v` field.  Analogous to the
 way in which the floating-point unit is handled, the `mstatus.vs`
 field may exist even if `misa.v` is clear.
 
-NOTE: Allowing `mstatus.vs` to exist when `misa.v` is clear, enables
+Allowing `mstatus.vs` to exist when `misa.v` is clear, enables
 vector emulation and simplifies handling of `mstatus.vs` in systems
 with writable `misa.v`.
+====
 
 === Vector type register, `vtype`
 
@@ -74,19 +77,22 @@ The `vtype` register has five fields,
 
 include::vtype-format.adoc[]
 
-NOTE: A small implementation supporting ELEN=32 requires only seven
+[NOTE]
+====
+A small implementation supporting ELEN=32 requires only seven
 bits of state in `vtype`: two bits for `ma` and `ta`, two bits for
 `vsew[1:0]` and three bits for `vlmul[2:0]`.  The illegal value
 represented by `vill` can be internally encoded using the illegal 64-bit
 combination in `vsew[1:0]` without requiring an additional storage
 bit to hold `vill`.
 
-NOTE: Further standard and custom vector extensions will extend these
+Further standard and custom vector extensions will extend these
 fields to support a greater variety of data types.
 
-NOTE: It is anticipated that an extended 64-bit instruction encoding
+It is anticipated that an extended 64-bit instruction encoding
 would allow these fields to be specified statically in the instruction
 encoding.
+====
 
 ==== Vector selected element width `vsew[2:0]`
 
@@ -170,7 +176,9 @@ and LMUL configuration sets the `vill` bit in `vtype`.
 For a given supported fractional LMUL setting, implementations must support
 SEW settings between SEW~LMUL1MIN~ and LMUL * SEW~LMUL1MAX~, inclusive.
 
-NOTE: Requiring LMUL {ge} SEW~LMUL1MIN~/SEW~LMUL1MAX~ allows software
+[NOTE]
+====
+Requiring LMUL {ge} SEW~LMUL1MIN~/SEW~LMUL1MAX~ allows software
 operating on mixed-width elements to only use a single vector register
 to hold the wider elements, with fractional
 LMUL used to hold narrower elements.  When LMUL <
@@ -179,7 +187,7 @@ would have enough bits in the fractional vector register to store at
 least one element, as VLEN=SEW~LMUL1MAX~ is a valid implementation
 choice.
 
-NOTE: The constraint is written using SEW~LMUL1MAX~ and not ELEN
+The constraint is written using SEW~LMUL1MAX~ and not ELEN
 because some systems might only support larger SEW values for LMUL>1.
 Note that in these cases, the constraint ensures that no more than a
 single vector register is needed to hold the widest-supported element
@@ -190,13 +198,14 @@ The use of `vtype` encodings with LMUL < SEW~LMUL1MIN~/SEW~LMUL1MAX~ is
 __reserved__, but implementations can set `vill` if they do not
 support these configurations.
 
-NOTE: Requiring all implementations to set `vill` in this case would
+Requiring all implementations to set `vill` in this case would
 prohibit future use of this case in an extension, so to allow for
 a future definition of LMUL<SEW~LMUL1MIN~/SEW~LMUL1MAX~ behavior, we consider
 the use of this case to be __reserved__.
 
-NOTE: It is recommended that assemblers provide a warning (not an
+It is recommended that assemblers provide a warning (not an
 error) if a `vsetvli` instruction attempts to write an LMUL < SEW~LMUL1MIN~/SEW~LMUL1MAX~.
+====
 
 LMUL is set by the signed `vlmul` field in `vtype` (LMUL =
 2^`vlmul[2:0]`^).
@@ -291,20 +300,22 @@ out the tail, except mask loads cannot write memory values to
 destination mask tails as this would imply accessing memory past
 software intent.
 
-NOTE: The value of all 1s instead of all 0s was chosen for the
+[NOTE]
+====
+The value of all 1s instead of all 0s was chosen for the
 overwrite value to discourage software developers from depending on
 the value written.
 
-NOTE: A simple in-order implementation can ignore the settings and
+A simple in-order implementation can ignore the settings and
 simply execute all vector instructions using the undisturbed
 policy. The `vta` and `vma` state bits must still be provided in
 `vtype` for compatibility and to support thread migration.
 
-NOTE: An out-of-order implementation can choose to implement
+An out-of-order implementation can choose to implement
 tail-agnostic + mask-agnostic using tail-agnostic + mask-undisturbed
 to reduce implementation complexity.
 
-NOTE: The definition of agnostic result policy is left loose to
+The definition of agnostic result policy is left loose to
 accommodate migrating application threads between harts on a small
 in-order core (which probably leaves agnostic regions undisturbed) and
 harts on a larger out-of-order core with register renaming (which
@@ -315,6 +326,7 @@ mixing of policies also enables implementations that might change
 policies for different granules of a vector register, for example,
 using undisturbed within a granule that is actively operated on but
 renaming to all 1s for granules in the tail.
+====
 
 The assembly syntax adds two flags to the `vsetvli` instruction:
 
@@ -379,12 +391,15 @@ SEW=8 would need at least six bits in `vl` to hold the values 0-32
 The _XLEN_-bit-wide read-only CSR `vlenb` holds the value VLEN/8,
 i.e., the vector register length in bytes.
 
-NOTE: The value in `vlenb` is a design-time constant in any
+[NOTE]
+====
+The value in `vlenb` is a design-time constant in any
 implementation.
 
-NOTE: Without this CSR, several instructions are needed to calculate
+Without this CSR, several instructions are needed to calculate
 VLEN in bytes, and the code has to disturb current `vl` and `vtype`
 settings which require them to be saved and restored.
+====
 
 === Vector Start Index CSR `vstart`
 

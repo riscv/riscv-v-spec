@@ -93,7 +93,9 @@ vsmul.vv vd, vs2, vs1, vm  # vd[i] = clip(roundoff_signed(vs2[i]*vs1[i], SEW-1))
 vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip(roundoff_signed(vs2[i]*x[rs1], SEW-1))
 ----
 
-NOTE: When multiplying two N-bit signed numbers, the largest magnitude
+[NOTE]
+====
+When multiplying two N-bit signed numbers, the largest magnitude
 is obtained for -2^N-1^ * -2^N-1^ producing a result +2^2N-2^, which
 has a single (zero) sign bit when held in 2N bits.  All other products
 have two sign bits in 2N bits.  To retain greater precision in N
@@ -101,11 +103,12 @@ result bits, the product is shifted right by one bit less than N,
 saturating the largest magnitude result but increasing result
 precision by one bit for all other products.
 
-NOTE: We do not provide an equivalent fractional multiply where one
+We do not provide an equivalent fractional multiply where one
 input is unsigned, as these would retain all upper SEW bits and would
 not need to saturate.  This operation is partly covered by the
 `vmulhu` and `vmulhsu` instructions, for the case where rounding is
 simply truncation (`rdn`).
+====
 
 === Vector Single-Width Scaling Shift Instructions
 

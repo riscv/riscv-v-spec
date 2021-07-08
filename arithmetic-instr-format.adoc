@@ -68,11 +68,14 @@ any floating-point vector operand's EEW is not a supported
 floating-point type width (which includes when FLEN < SEW) are
 reserved.
 
-NOTE: Some instructions _zero_-extend the 5-bit immediate, and denote this
+[NOTE]
+====
+Some instructions _zero_-extend the 5-bit immediate, and denote this
 by naming the immediate `uimm` in the assembly syntax.
 
-NOTE: The proposed Zfinx variants will take the floating-point scalar
+The proposed Zfinx variants will take the floating-point scalar
 argument from the `x` registers.
+====
 
 Vector arithmetic instructions are masked under control of the `vm`
 field.
@@ -144,19 +147,22 @@ vwop.wv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
 vwop.wx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
 ----
 
-NOTE: Originally, a `w` suffix was used on opcode, but this could be
+[NOTE]
+====
+Originally, a `w` suffix was used on opcode, but this could be
 confused with the use of a `w` suffix to mean word-sized operations in
 doubleword integers, so the `w` was moved to prefix.
 
-NOTE: The floating-point widening operations were changed to `vfw*`
+The floating-point widening operations were changed to `vfw*`
 from `vwf*` to be more consistent with any scalar widening
 floating-point operations that will be written as `fw*`.
 
-NOTE: For integer multiply-add, another possible widening option
+For integer multiply-add, another possible widening option
 increases the size of the accumulator to EEW=4*SEW (i.e., 4*SEW +=
 SEW*SEW).  These would be distinguished by a `vq*` prefix on the
 opcode, for quad-widening.  These are not included at this time, but
 are a possible addition in a future extension.
+====
 
 For all widening instructions, the destination EEW and EMUL values
 must be a supported configuration, otherwise the instruction encoding
@@ -166,11 +172,14 @@ The destination vector register group must be specified using a vector
 register number that is valid for the destination's EMUL, otherwise the
 instruction encoding is reserved.
 
-NOTE: This constraint is necessary to support restart with non-zero
+[NOTE]
+====
+This constraint is necessary to support restart with non-zero
 `vstart`.
 
-NOTE: For the `vw<op>.wv vd, vs2, vs1` format instructions, it is legal
+For the `vw<op>.wv vd, vs2, vs1` format instructions, it is legal
 for vd to equal vs2.
+====
 
 [[sec-narrowing]]
 === Narrowing Vector Arithmetic Instructions

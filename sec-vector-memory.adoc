@@ -370,16 +370,19 @@ address are required, then an ordered indexed operation can be used.
 
 ----
 
-NOTE: The assembler syntax for indexed loads and stores uses
+[NOTE]
+====
+The assembler syntax for indexed loads and stores uses
 ``ei``__x__ instead of ``e``__x__ to indicate the statically encoded EEW
 is of the index not the data.
 
-NOTE: The indexed operations mnemonics have a "U" or "O" to
+The indexed operations mnemonics have a "U" or "O" to
 distinguish between unordered and ordered, while the other vector
 addressing modes have no character. While this is perhaps a little
 less consistent, this approach minimizes disruption to existing
 software, as VSXEI previously meant "ordered" - and the opcode can be
 retained as an alias during transition to help reduce software churn.
+====
 
 === Unit-stride Fault-Only-First Loads
 

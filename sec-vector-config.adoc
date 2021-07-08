@@ -121,12 +121,16 @@ changed by this instruction to optimize their microarchitecture.
 For the `vsetivli` instruction, the AVL is encoded as a 5-bit
 zero-extended immediate (0--31) in the `rs1` field.
 
-NOTE: The encoding of AVL for `vsetivli` is the same as for regular
+
+[NOTE]
+====
+The encoding of AVL for `vsetivli` is the same as for regular
 CSR immediate values.
 
-NOTE: The `vsetivli` instruction provides more compact code when the
+The `vsetivli` instruction provides more compact code when the
 dimensions of vectors are small, and known to fit inside the vector
 registers, so do not need stripmining overhead.
+====
 
 === Constraints on Setting `vl`
 
@@ -146,7 +150,7 @@ argument, then set `vl` obeying the following constraints:
 value in `vl`, provided the resultant VLMAX equals the value of VLMAX at the time that `vl` was read
 
 [NOTE]
---
+====
 The `vl` setting rules are designed to be sufficiently strict to
 preserve `vl` behavior across register spills and context swaps for
 `AVL {le} VLMAX`, yet flexible enough to enable implementations to improve
@@ -161,7 +165,7 @@ of `AVL < 2*VLMAX`.
 This allows software to avoid needing to explicitly calculate a running
 maximum of vector lengths observed during a stripmined loop.
 Requirement 2 also allows an implementation to set vl to VLMAX for `VLMAX < AVL < 2*VLMAX` 
---
+====
 
 [[example-stripmine-sew]]
 === Example of stripmining and changes to SEW

@@ -1,10 +1,8 @@
 .vfrsqrt7.v common-case lookup table contents
 [%autowidth]
 |===
-
-|exp[0] | sig[MSB -: 6] | sig_out[MSB -: 7]
-
-.64+|0
+|exp[0] | sig[MSB -: 6] sig_out[MSB -: 7]
+|.64+|0
 |  0 |  52
 |  1 |  51
 |  2 |  50
@@ -69,8 +67,7 @@
 | 61 |   1
 | 62 |   1
 | 63 |   0
-
-.64+|1
+|.64+|1
 |  0 | 127
 |  1 | 125
 |  2 | 123

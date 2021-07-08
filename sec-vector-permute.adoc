@@ -50,7 +50,9 @@ The `vfmv.f.s` instruction copies a single SEW-wide element from index
 0 of the source vector register to a destination scalar floating-point
 register.
 
-NOTE: `vfmv.f.s` performs its operation even if `vstart` {ge} `vl` or `vl`=0.
+[NOTE]
+====
+`vfmv.f.s` performs its operation even if `vstart` {ge} `vl` or `vl`=0.
 
 The `vfmv.s.f` instruction copies the scalar floating-point register
 to element 0 of the destination vector register.  The other elements
@@ -59,8 +61,9 @@ as tail elements using the current tail agnostic/undisturbed policy.
 If `vstart` {ge} `vl`, no operation is performed and the destination
 register is not updated.
 
-NOTE: As a consequence, when `vl`=0, no elements are updated in the
+As a consequence, when `vl`=0, no elements are updated in the
 destination vector register group, regardless of `vstart`.
+====
 
 The encodings corresponding to the masked versions (`vm=0`) of `vfmv.f.s`
 and `vfmv.s.f` are reserved.

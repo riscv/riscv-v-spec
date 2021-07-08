@@ -157,7 +157,9 @@ The additive identity is +0.0 when rounding down (towards -{inf}) or
 The reduction tree structure must be deterministic for a given value
 in `vtype` and `vl`.
 
-NOTE: As a consequence of this definition, implementations need not propagate
+[NOTE]
+====
+As a consequence of this definition, implementations need not propagate
 NaN payloads through the reduction tree when no elements are active. In
 particular, if no elements are active and the scalar input is NaN,
 implementations are permitted to canonicalize the NaN and, if the NaN is
@@ -165,18 +167,22 @@ signaling, set the invalid exception flag.  Implementations are alternatively
 permitted to pass through the original NaN and set no exception flags, as with
 `vfredosum`.
 
-NOTE: The `vfredosum` instruction is a valid implementation of the
+The `vfredosum` instruction is a valid implementation of the
 `vfredusum` instruction.
+====
 
 ==== Vector Single-Width Floating-Point Max and Min Reductions
 
-NOTE: Floating-point max and min reductions should return the same
+[NOTE]
+====
+Floating-point max and min reductions should return the same
 final value and raise the same exception flags regardless of operation
 order.
 
-NOTE: If no elements are active, the scalar in `vs1[0]` is simply copied to
+If no elements are active, the scalar in `vs1[0]` is simply copied to
 the destination register, without canonicalizing NaN values and without
 setting any exception flags.
+====
 
 [[sec-vector-float-reduce-widen]]
 === Vector Widening Floating-Point Reduction Instructions
@@ -189,13 +195,15 @@ read and write a double-width reduction result.
  vfwredosum.vs vd, vs2, vs1, vm # Ordered sum
  vfwredusum.vs vd, vs2, vs1, vm # Unordered sum
 ----
-
-NOTE: Older assembler mnemonic `vfwredsum` is retained as alias for `vfwredusum`.
+[NOTE]
+====
+Older assembler mnemonic `vfwredsum` is retained as alias for `vfwredusum`.
 
 The reduction of the SEW-width elements is performed as in the
 single-width reduction case, with the elements in `vs2` promoted
 to 2*SEW bits before adding to the 2*SEW-bit accumulator.
 
-NOTE: `vfwredosum.vs` handles inactive elements and NaN payloads analogously
+`vfwredosum.vs` handles inactive elements and NaN payloads analogously
 to `vfredosum.vs`; `vfwredusum.vs` does so analogously to `vfredusum.vs`.
+====
 

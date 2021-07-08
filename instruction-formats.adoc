@@ -110,7 +110,9 @@ policy depending on the setting of the `vma` bit in `vtype` (Section
 The mask value used to control execution of a masked vector
 instruction is always supplied by vector register `v0`.
 
-NOTE: Future vector extensions may provide longer instruction
+[NOTE]
+====
+Future vector extensions may provide longer instruction
 encodings with space for a full mask register specifier.
 
 The destination vector register group for a masked vector instruction
@@ -119,12 +121,13 @@ vector register is being written with a mask value (e.g., comparisons)
 or the scalar result of a reduction.  These instruction encodings are
 reserved.
 
-NOTE: This constraint supports restart with a non-zero `vstart` value.
+This constraint supports restart with a non-zero `vstart` value.
 
-NOTE: Some masked instructions that target `v0` which were legal in
+Some masked instructions that target `v0` which were legal in
 v0.8 are illegal with the new MLEN=1 mask layout for v1.0. For
 example, `vadd.vv v0, v1, v2, v0.m` is now always illegal; previously,
 it was legal for LMUL=1.
+====
 
 Other vector registers can be used to hold working mask values, and
 mask vector logical operations are provided to perform predicate
@@ -161,16 +164,19 @@ operand, with `.t` indicating if operation occurs when `v0.mask[i]` is
     vop.v*    v1, v2, v3        # unmasked vector operation, m=1
 ----
 
-NOTE: Even though current vector extensions only support one vector
+[NOTE]
+====
+Even though current vector extensions only support one vector
 mask register `v0` and only the true form of predication, the assembly
 syntax writes it out in full to be compatible with future extensions
 that might add a mask register specifier and supporting both true and
 complement masking. The `.t` suffix on the masking operand also helps
 to visually encode the use of a mask.
 
-NOTE: The `.mask` suffix is not part of the assembly syntax.
+The `.mask` suffix is not part of the assembly syntax.
 We only append it in contexts where a mask vector is subscripted, 
 e.g., `v0.mask[i]`. 
+====
 
 [[sec-inactive-defs]]
 === Prestart, Active, Inactive, Body, and Tail Element Definitions
@@ -222,15 +228,18 @@ When `vstart` {ge} `vl`, there are no body elements, and no elements
 are updated in any destination vector register group, including that
 no tail elements are updated with agnostic values.
 
-NOTE: As a consequence, when `vl`=0, no elements, including agnostic
+[NOTE]
+====
+As a consequence, when `vl`=0, no elements, including agnostic
 elements, are updated in the destination vector register group
 regardless of `vstart`.
 
 Instructions that write an `x` register or `f` register
 do so even when `vstart` {ge} `vl`, including when `vl`=0.
 
-NOTE: Some instructions such as `vslidedown` and `vrgather` may read
+Some instructions such as `vslidedown` and `vrgather` may read
 indices past `vl` or even VLMAX in source vector register groups.  The
 general policy is to return the value 0 when the index is greater than
 VLMAX in the source vector register group.
+====
 

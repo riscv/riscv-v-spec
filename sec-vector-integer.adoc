@@ -349,7 +349,9 @@ x      scalar integer register
 i      immediate
 ----
 
-NOTE: The immediate forms of `vmslt{u}.vi` are not provided as the
+[NOTE]
+====
+The immediate forms of `vmslt{u}.vi` are not provided as the
 immediate value can be decreased by 1 and the `vmsle{u}.vi` variants
 used instead.  The `vmsle.vi` range is -16 to 15, resulting in an
 effective `vmslt.vi` range of -15 to 16.  The `vmsleu.vi` range is 0
@@ -361,6 +363,7 @@ false). Because the 5-bit vector immediates are always sign-extended,
 comparisons against unsigned immediates in the range `2^SEW^-15` to
 `2^SEW^`.  Note that `vlsltu.vi` with immediate `2^SEW^` is not useful
 as it is always true.
+====
 
 Similarly, `vmsge{u}.vi` is not provided and the comparison is
 implemented using `vmsgt{u}.vi` with the immediate decremented by one.
@@ -518,14 +521,17 @@ extreme inputs.
     vrem.vx vd, vs2, rs1, vm   # vector-scalar
 ----
 
-NOTE: The decision to include integer divide and remainder was
+[NOTE]
+====
+The decision to include integer divide and remainder was
 contentious. The argument in favor is that without a standard
 instruction, software would have to pick some algorithm to perform the
 operation, which would likely perform poorly on some
 microarchitectures versus others.
 
-NOTE: There is no instruction to perform a "scalar divide by vector"
+There is no instruction to perform a "scalar divide by vector"
 operation.
+====
 
 === Vector Widening Integer Multiply Instructions
 
@@ -642,11 +648,14 @@ vmv.v.x vd, rs1 # vd[i] = x[rs1]
 vmv.v.i vd, imm # vd[i] = imm
 ----
 
-NOTE: Mask values can be widened into SEW-width elements using a
+[NOTE]
+====
+Mask values can be widened into SEW-width elements using a
 sequence `vmv.v.i vd, 0; vmerge.vim vd, vd, 1, v0`.
 
-NOTE: The vector integer move instructions share the encoding with the vector
+The vector integer move instructions share the encoding with the vector
 merge instructions, but with `vm=1` and `vs2=v0`.
+====
 
 The form `vmv.v.v vd, vd`, which leaves body elements unchanged,
 is used as a hint to indicate that the register will next be used
