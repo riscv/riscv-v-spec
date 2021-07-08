@@ -1,0 +1,209 @@
+[[arithmetic-instr-format]]
+== Vector Arithmetic Instruction Formats
+
+The vector arithmetic instructions use a new major opcode (OP-V =
+1010111~2~) which neighbors OP-FP.  The three-bit `funct3` field is
+used to define sub-categories of vector instructions.
+
+include::valu-format.adoc[]
+
+[[sec-arithmetic-encoding]]
+=== Vector Arithmetic Instruction encoding
+
+The `funct3` field encodes the operand type and source locations.
+
+.funct3
+[cols="1,1,1,3,5,5"]
+|===
+3+| funct3[2:0] | Category | Operands | Type of scalar operand
+
+| 0 | 0 | 0 | OPIVV | vector-vector    |       N/A
+| 0 | 0 | 1 | OPFVV | vector-vector    |       N/A
+| 0 | 1 | 0 | OPMVV | vector-vector    |       N/A
+| 0 | 1 | 1 | OPIVI | vector-immediate | `imm[4:0]`
+| 1 | 0 | 0 | OPIVX | vector-scalar    | GPR `x` register `rs1`
+| 1 | 0 | 1 | OPFVF | vector-scalar    | FP `f` register `rs1`
+| 1 | 1 | 0 | OPMVX | vector-scalar    | GPR `x` register `rs1`
+| 1 | 1 | 1 | OPCFG | scalars-imms     | GPR `x` register `rs1` & `rs2`/`imm`
+|===
+
+Integer operations are performed using unsigned or two's-complement
+signed integer arithmetic depending on the opcode.
+
+NOTE: In this discussion, fixed-point operations are
+considered to be integer operations.
+
+All standard vector floating-point arithmetic operations follow the
+IEEE-754/2008 standard.  All vector floating-point operations use the
+dynamic rounding mode in the `frm` register.  Use of the `frm` field
+when it contains an invalid rounding mode by any vector floating-point
+instruction, even those that do not depend on the rounding mode, or
+when `vl`=0, or when `vstart` {ge} `vl`, is reserved.
+
+NOTE: All vector floating-point code will rely on a valid value in
+`frm`.  Implementations can make all vector FP instructions report
+exceptions when the rounding mode is invalid to simplify control
+logic.
+
+Vector-vector operations take two vectors of operands from vector
+register groups specified by `vs2` and `vs1` respectively.
+
+Vector-scalar operations can have three possible forms, but in all
+cases take one vector of operands from a vector register group
+specified by `vs2` and a second scalar source operand from one of
+three alternative sources.
+
+. For integer operations, the scalar can be a 5-bit immediate encoded
+in the `rs1` field.  The value is sign-extended to SEW bits, unless
+otherwise specified.  . For integer operations, the scalar can be
+taken from the scalar `x` register specified by `rs1`.  If XLEN>SEW,
+the least-significant SEW bits of the `x` register are used, unless
+otherwise specified.  If XLEN<SEW, the value from the `x` register is
+sign-extended to SEW bits.  For floating-point operations, the
+scalar can be taken from a scalar `f` register.  If FLEN > SEW, the
+value in the `f` registers is checked for a valid NaN-boxed value, in
+which case the least-significant SEW bits of the `f` register are
+used, else the canonical NaN value is used.  Vector instructions where
+any floating-point vector operand's EEW is not a supported
+floating-point type width (which includes when FLEN < SEW) are
+reserved.
+
+NOTE: Some instructions _zero_-extend the 5-bit immediate, and denote this
+by naming the immediate `uimm` in the assembly syntax.
+
+NOTE: The proposed Zfinx variants will take the floating-point scalar
+argument from the `x` registers.
+
+Vector arithmetic instructions are masked under control of the `vm`
+field.
+
+----
+# Assembly syntax pattern for vector binary arithmetic instructions
+
+# Operations returning vector results, masked by vm (v0.t, <nothing>)
+vop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
+vop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
+vop.vi  vd, vs2, imm, vm  # integer vector-immediate   vd[i] = vs2[i] op imm
+
+vfop.vv  vd, vs2, vs1, vm # FP vector-vector operation vd[i] = vs2[i] fop vs1[i]
+vfop.vf  vd, vs2, rs1, vm # FP vector-scalar operation vd[i] = vs2[i] fop f[rs1]
+----
+
+NOTE: In the encoding, `vs2` is the first operand, while `rs1/imm`
+is the second operand. This is the opposite to the standard scalar
+ordering.  This arrangement retains the existing encoding conventions
+that instructions that read only one scalar register, read it from
+`rs1`, and that 5-bit immediates are sourced from the `rs1` field.
+
+----
+# Assembly syntax pattern for vector ternary arithmetic instructions (multiply-add)
+
+# Integer operations overwriting sum input
+vop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i] * vs2[i] + vd[i]
+vop.vx vd, rs1, vs2, vm  # vd[i] = x[rs1] * vs2[i] + vd[i]
+
+# Integer operations overwriting product input
+vop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i] * vd[i] + vs2[i]
+vop.vx vd, rs1, vs2, vm  # vd[i] = x[rs1] * vd[i] + vs2[i]
+
+# Floating-point operations overwriting sum input
+vfop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i] * vs2[i] + vd[i]
+vfop.vf vd, rs1, vs2, vm  # vd[i] = f[rs1] * vs2[i] + vd[i]
+
+# Floating-point operations overwriting product input
+vfop.vv vd, vs1, vs2, vm  # vd[i] = vs1[i] * vd[i] + vs2[i]
+vfop.vf vd, rs1, vs2, vm  # vd[i] = f[rs1] * vd[i] + vs2[i]
+----
+
+NOTE: For ternary multiply-add operations, the assembler syntax always
+places the destination vector register first, followed by either `rs1`
+or `vs1`, then `vs2`.  This ordering provides a more natural reading
+of the assembler for these ternary operations, as the multiply
+operands are always next to each other.
+
+[[sec-widening]]
+=== Widening Vector Arithmetic Instructions
+
+A few vector arithmetic instructions are defined to be __widening__
+operations where the destination vector register group has EEW=2*SEW and
+EMUL=2*LMUL.
+
+The first vector register group operand can be either single or
+double-width. These are generally written with a `vw*` prefix on the
+opcode or `vfw*` for vector floating-point operations.
+
+----
+Assembly syntax pattern for vector widening arithmetic instructions
+
+# Double-width result, two single-width sources: 2*SEW = SEW op SEW
+vwop.vv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
+vwop.vx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
+
+# Double-width result, first source double-width, second source single-width: 2*SEW = 2*SEW op SEW
+vwop.wv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
+vwop.wx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
+----
+
+NOTE: Originally, a `w` suffix was used on opcode, but this could be
+confused with the use of a `w` suffix to mean word-sized operations in
+doubleword integers, so the `w` was moved to prefix.
+
+NOTE: The floating-point widening operations were changed to `vfw*`
+from `vwf*` to be more consistent with any scalar widening
+floating-point operations that will be written as `fw*`.
+
+NOTE: For integer multiply-add, another possible widening option
+increases the size of the accumulator to EEW=4*SEW (i.e., 4*SEW +=
+SEW*SEW).  These would be distinguished by a `vq*` prefix on the
+opcode, for quad-widening.  These are not included at this time, but
+are a possible addition in a future extension.
+
+For all widening instructions, the destination EEW and EMUL values
+must be a supported configuration, otherwise the instruction encoding
+is reserved.
+
+The destination vector register group must be specified using a vector
+register number that is valid for the destination's EMUL, otherwise the
+instruction encoding is reserved.
+
+NOTE: This constraint is necessary to support restart with non-zero
+`vstart`.
+
+NOTE: For the `vw<op>.wv vd, vs2, vs1` format instructions, it is legal
+for vd to equal vs2.
+
+[[sec-narrowing]]
+=== Narrowing Vector Arithmetic Instructions
+
+A few instructions are provided to convert double-width source vectors
+into single-width destination vectors.  These instructions convert a
+vector register group with EEW/EMUL=2*SEW/2*LMUL to a vector register
+group with the current SEW/LMUL setting.
+
+If EEW > ELEN or EMUL > 8, the instruction encoding is reserved.
+
+NOTE: An alternative design decision would have been to treat SEW/LMUL
+as defining the size of the source vector register group.  The choice
+here is motivated by the belief the chosen approach will require fewer
+`vtype` changes.
+
+The source and destination vector register groups have to be specified
+with a vector register number that is legal for the source and
+destination EMUL values respectively, otherwise the instruction
+encoding is reserved.
+
+Where there is a second source vector register group (specified by
+`vs1`), this has the same (narrower) width as the result (i.e.,
+EEW=SEW).
+
+NOTE: It is safe to overwrite a second source vector register group
+with the same EEW and EMUL as the result.
+
+A `vn*` prefix on the opcode is used to distinguish these instructions
+in the assembler, or a `vfn*` prefix for narrowing floating-point
+opcodes.  The double-width source vector register group is signified
+by a `w` in the source operand suffix (e.g., `vnsra.wv`)
+
+NOTE: Comparison operations that set a mask register are also
+implicitly a narrowing operation.
+

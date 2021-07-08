@@ -1,0 +1,658 @@
+[[sec-vector-integer]]
+== Vector Integer Arithmetic Instructions
+
+A set of vector integer arithmetic instructions is provided.
+
+=== Vector Single-Width Integer Add and Subtract
+
+Vector integer add and subtract are provided.  Reverse-subtract
+instructions are also provided for the vector-scalar forms.
+
+----
+# Integer adds.
+vadd.vv vd, vs2, vs1, vm   # Vector-vector
+vadd.vx vd, vs2, rs1, vm   # vector-scalar
+vadd.vi vd, vs2, imm, vm   # vector-immediate
+
+# Integer subtract
+vsub.vv vd, vs2, vs1, vm   # Vector-vector
+vsub.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Integer reverse subtract
+vrsub.vx vd, vs2, rs1, vm   # vd[i] = x[rs1] - vs2[i]
+vrsub.vi vd, vs2, imm, vm   # vd[i] = imm - vs2[i]
+----
+
+NOTE: A vector of integer values can be negated using a
+reverse-subtract instruction with a scalar operand of `x0`. Can define
+assembly pseudoinstruction `vneg.v vd,vs` = `vrsub.vx vd,vs,x0`.
+
+=== Vector Widening Integer Add/Subtract
+
+The widening add/subtract instructions are provided in both signed and
+unsigned variants, depending on whether the narrower source operands
+are first sign- or zero-extended before forming the double-width sum.
+
+----
+# Widening unsigned integer add/subtract, 2*SEW = SEW +/- SEW
+vwaddu.vv  vd, vs2, vs1, vm  # vector-vector
+vwaddu.vx  vd, vs2, rs1, vm  # vector-scalar
+vwsubu.vv  vd, vs2, vs1, vm  # vector-vector
+vwsubu.vx  vd, vs2, rs1, vm  # vector-scalar
+
+# Widening signed integer add/subtract, 2*SEW = SEW +/- SEW
+vwadd.vv  vd, vs2, vs1, vm  # vector-vector
+vwadd.vx  vd, vs2, rs1, vm  # vector-scalar
+vwsub.vv  vd, vs2, vs1, vm  # vector-vector
+vwsub.vx  vd, vs2, rs1, vm  # vector-scalar
+
+# Widening unsigned integer add/subtract, 2*SEW = 2*SEW +/- SEW
+vwaddu.wv  vd, vs2, vs1, vm  # vector-vector
+vwaddu.wx  vd, vs2, rs1, vm  # vector-scalar
+vwsubu.wv  vd, vs2, vs1, vm  # vector-vector
+vwsubu.wx  vd, vs2, rs1, vm  # vector-scalar
+
+# Widening signed integer add/subtract, 2*SEW = 2*SEW +/- SEW
+vwadd.wv  vd, vs2, vs1, vm  # vector-vector
+vwadd.wx  vd, vs2, rs1, vm  # vector-scalar
+vwsub.wv  vd, vs2, vs1, vm  # vector-vector
+vwsub.wx  vd, vs2, rs1, vm  # vector-scalar
+----
+
+NOTE: An integer value can be doubled in width using the widening add
+instructions with a scalar operand of `x0`.  Can define assembly
+pseudoinstructions `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and
+`vwcvtu.x.x.v vd,vs,vm = vwaddu.vx vd,vs,x0,vm`.
+
+=== Vector Integer Extension
+
+The vector integer extension instructions zero- or sign-extend a
+source vector integer operand with EEW less than SEW to fill SEW-sized
+elements in the destination.  The EEW of the source is 1/2, 1/4, or
+1/8 of SEW, while EMUL of the source is (EEW/SEW)*LMUL.  The
+destination has EEW equal to SEW and EMUL equal to LMUL.
+
+----
+vzext.vf2 vd, vs2, vm  # Zero-extend SEW/2 source to SEW destination
+vsext.vf2 vd, vs2, vm  # Sign-extend SEW/2 source to SEW destination
+vzext.vf4 vd, vs2, vm  # Zero-extend SEW/4 source to SEW destination
+vsext.vf4 vd, vs2, vm  # Sign-extend SEW/4 source to SEW destination
+vzext.vf8 vd, vs2, vm  # Zero-extend SEW/8 source to SEW destination
+vsext.vf8 vd, vs2, vm  # Sign-extend SEW/8 source to SEW destination
+----
+
+If the source EEW is not a supported width, or source EMUL would be
+below the minimum legal LMUL, the instruction encoding is reserved.
+
+=== Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
+
+To support multi-word integer arithmetic, instructions that operate on
+a carry bit are provided.  For each operation (add or subtract), two
+instructions are provided: one to provide the result (SEW width), and
+the second to generate the carry output (single bit encoded as a mask
+boolean).
+
+The carry inputs and outputs are represented using the mask register
+layout as described in Section <<sec-mask-register-layout>>.  Due to
+encoding constraints, the carry input must come from the implicit `v0`
+register, but carry outputs can be written to any vector register that
+respects the source/destination overlap restrictions.
+
+`vadc` and `vsbc` add or subtract the source operands and the carry-in or
+borrow-in, and write the result to vector register `vd`.
+These instructions are encoded as masked instructions (`vm=0`), but they operate
+on and write back all body elements.
+Encodings corresponding to the unmasked versions (`vm=1`) are reserved.
+
+`vmadc` and `vmsbc` add or subtract the source operands, optionally
+add the carry-in or subtract the borrow-in if masked (`vm=0`), and
+write the result back to mask register `vd`.  If unmasked (`vm=1`),
+there is no carry-in or borrow-in.  These instructions operate on and
+write back all body elements, even if masked.  Because these
+instructions produce a mask value, they always operate with a
+tail-agnostic policy.
+
+----
+ # Produce sum with carry.
+
+ # vd[i] = vs2[i] + vs1[i] + v0.mask[i]
+ vadc.vvm   vd, vs2, vs1, v0  # Vector-vector
+
+ # vd[i] = vs2[i] + x[rs1] + v0.mask[i]
+ vadc.vxm   vd, vs2, rs1, v0  # Vector-scalar
+
+ # vd[i] = vs2[i] + imm + v0.mask[i]
+ vadc.vim   vd, vs2, imm, v0  # Vector-immediate
+
+ # Produce carry out in mask register format
+
+ # vd.mask[i] = carry_out(vs2[i] + vs1[i] + v0.mask[i])
+ vmadc.vvm   vd, vs2, vs1, v0  # Vector-vector
+
+ # vd.mask[i] = carry_out(vs2[i] + x[rs1] + v0.mask[i])
+ vmadc.vxm   vd, vs2, rs1, v0  # Vector-scalar
+
+ # vd.mask[i] = carry_out(vs2[i] + imm + v0.mask[i])
+ vmadc.vim   vd, vs2, imm, v0  # Vector-immediate
+
+ # vd.mask[i] = carry_out(vs2[i] + vs1[i])
+ vmadc.vv    vd, vs2, vs1      # Vector-vector, no carry-in
+
+ # vd.mask[i] = carry_out(vs2[i] + x[rs1])
+ vmadc.vx    vd, vs2, rs1      # Vector-scalar, no carry-in
+
+ # vd.mask[i] = carry_out(vs2[i] + imm)
+ vmadc.vi    vd, vs2, imm      # Vector-immediate, no carry-in
+----
+
+Because implementing a carry propagation requires executing two
+instructions with unchanged inputs, destructive accumulations will
+require an additional move to obtain correct results.
+
+----
+  # Example multi-word arithmetic sequence, accumulating into v4
+  vmadc.vvm v1, v4, v8, v0  # Get carry into temp register v1
+  vadc.vvm v4, v4, v8, v0   # Calc new sum
+  vmmv.m v0, v1             # Move temp carry into v0 for next word
+----
+
+The subtract with borrow instruction `vsbc` performs the equivalent
+function to support long word arithmetic for subtraction.  There are
+no subtract with immediate instructions.
+
+----
+ # Produce difference with borrow.
+
+ # vd[i] = vs2[i] - vs1[i] - v0.mask[i]
+ vsbc.vvm   vd, vs2, vs1, v0  # Vector-vector
+
+ # vd[i] = vs2[i] - x[rs1] - v0.mask[i]
+ vsbc.vxm   vd, vs2, rs1, v0  # Vector-scalar
+
+ # Produce borrow out in mask register format
+
+ # vd.mask[i] = borrow_out(vs2[i] - vs1[i] - v0.mask[i])
+ vmsbc.vvm   vd, vs2, vs1, v0  # Vector-vector
+
+ # vd.mask[i] = borrow_out(vs2[i] - x[rs1] - v0.mask[i])
+ vmsbc.vxm   vd, vs2, rs1, v0  # Vector-scalar
+
+ # vd.mask[i] = borrow_out(vs2[i] - vs1[i])
+ vmsbc.vv    vd, vs2, vs1      # Vector-vector, no borrow-in
+
+ # vd.mask[i] = borrow_out(vs2[i] - x[rs1])
+ vmsbc.vx    vd, vs2, rs1      # Vector-scalar, no borrow-in
+----
+
+For `vmsbc`, the borrow is defined to be 1 iff the difference, prior to
+truncation, is negative.
+
+For `vadc` and `vsbc`, the instruction encoding is reserved if the
+destination vector register is `v0`.
+
+NOTE: This constraint corresponds to the constraint on masked vector
+operations that overwrite the mask register.
+
+=== Vector Bitwise Logical Instructions
+
+----
+# Bitwise logical operations.
+vand.vv vd, vs2, vs1, vm   # Vector-vector
+vand.vx vd, vs2, rs1, vm   # vector-scalar
+vand.vi vd, vs2, imm, vm   # vector-immediate
+
+vor.vv vd, vs2, vs1, vm    # Vector-vector
+vor.vx vd, vs2, rs1, vm    # vector-scalar
+vor.vi vd, vs2, imm, vm    # vector-immediate
+
+vxor.vv vd, vs2, vs1, vm    # Vector-vector
+vxor.vx vd, vs2, rs1, vm    # vector-scalar
+vxor.vi vd, vs2, imm, vm    # vector-immediate
+----
+
+NOTE: With an immediate of -1, scalar-immediate forms of the `vxor`
+instruction provide a bitwise NOT operation.  This can be provided as
+an assembler pseudoinstruction `vnot.v`.
+
+=== Vector Single-Width Bit Shift Instructions
+
+A full complement of vector shift instructions are provided, including
+logical shift left, and logical (zero-extending) and arithmetic
+(sign-extending) shift right.  The data to be shifted is in the vector
+register group specified by `vs2` and the shift amount can be a vector
+register group `vs1`, a scalar integer register `rs1`, or an
+immediate.  The low lg2(SEW) bits of the vector or scalar shift-amount
+value are used, and shift-amount immediates are zero-extended.
+
+
+----
+# Bit shift operations
+vsll.vv vd, vs2, vs1, vm   # Vector-vector
+vsll.vx vd, vs2, rs1, vm   # vector-scalar
+vsll.vi vd, vs2, uimm, vm   # vector-immediate
+
+vsrl.vv vd, vs2, vs1, vm   # Vector-vector
+vsrl.vx vd, vs2, rs1, vm   # vector-scalar
+vsrl.vi vd, vs2, uimm, vm   # vector-immediate
+
+vsra.vv vd, vs2, vs1, vm   # Vector-vector
+vsra.vx vd, vs2, rs1, vm   # vector-scalar
+vsra.vi vd, vs2, uimm, vm   # vector-immediate
+----
+
+ 
+=== Vector Narrowing Integer Right Shift Instructions
+
+The narrowing right shifts extract a smaller field from a wider
+operand and have both zero-extending (`srl`) and sign-extending
+(`sra`) forms.  The shift amount can come from a vector or a scalar
+`x` register or a 5-bit immediate.  The low lg2(2*SEW) bits of the
+vector or scalar shift-amount value are used (e.g., the low 6 bits for
+a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate forms
+zero-extend their shift-amount immediate operand.
+
+----
+ # Narrowing shift right logical, SEW = (2*SEW) >> SEW
+ vnsrl.wv vd, vs2, vs1, vm   # vector-vector
+ vnsrl.wx vd, vs2, rs1, vm   # vector-scalar
+ vnsrl.wi vd, vs2, uimm, vm   # vector-immediate
+
+ # Narrowing shift right arithmetic, SEW = (2*SEW) >> SEW
+ vnsra.wv vd, vs2, vs1, vm   # vector-vector
+ vnsra.wx vd, vs2, rs1, vm   # vector-scalar
+ vnsra.wi vd, vs2, uimm, vm   # vector-immediate
+----
+
+NOTE: It could be useful to add support for `n4` variants, where the
+destination is 1/4 width of source.
+
+NOTE: An integer value can be halved in width using the narrowing integer
+shift instructions with a scalar operand of x0. Can define assembly
+pseudoinstructions `vncvt.x.x.w vd,vs,vm` = `vnsrl.wx vd,vs,x0,vm`.
+
+=== Vector Integer Comparison Instructions
+
+The following integer compare instructions write 1 to the destination
+mask register element if the comparison evaluates to true, and 0
+otherwise.  The destination mask vector is always held in a single
+vector register, with a layout of elements as described in Section
+<<sec-mask-register-layout>>.  The destination mask vector register
+may be the same as the source vector mask register (`v0`).
+
+----
+# Set if equal
+vmseq.vv vd, vs2, vs1, vm  # Vector-vector
+vmseq.vx vd, vs2, rs1, vm  # vector-scalar
+vmseq.vi vd, vs2, imm, vm  # vector-immediate
+
+# Set if not equal
+vmsne.vv vd, vs2, vs1, vm  # Vector-vector
+vmsne.vx vd, vs2, rs1, vm  # vector-scalar
+vmsne.vi vd, vs2, imm, vm  # vector-immediate
+
+# Set if less than, unsigned
+vmsltu.vv vd, vs2, vs1, vm  # Vector-vector
+vmsltu.vx vd, vs2, rs1, vm  # Vector-scalar
+
+# Set if less than, signed
+vmslt.vv vd, vs2, vs1, vm  # Vector-vector
+vmslt.vx vd, vs2, rs1, vm  # vector-scalar
+
+# Set if less than or equal, unsigned
+vmsleu.vv vd, vs2, vs1, vm   # Vector-vector
+vmsleu.vx vd, vs2, rs1, vm   # vector-scalar
+vmsleu.vi vd, vs2, imm, vm   # Vector-immediate
+
+# Set if less than or equal, signed
+vmsle.vv vd, vs2, vs1, vm  # Vector-vector
+vmsle.vx vd, vs2, rs1, vm  # vector-scalar
+vmsle.vi vd, vs2, imm, vm  # vector-immediate
+
+# Set if greater than, unsigned
+vmsgtu.vx vd, vs2, rs1, vm   # Vector-scalar
+vmsgtu.vi vd, vs2, imm, vm   # Vector-immediate
+
+# Set if greater than, signed
+vmsgt.vx vd, vs2, rs1, vm    # Vector-scalar
+vmsgt.vi vd, vs2, imm, vm    # Vector-immediate
+
+# Following two instructions are not provided directly
+# Set if greater than or equal, unsigned
+# vmsgeu.vx vd, vs2, rs1, vm    # Vector-scalar
+# Set if greater than or equal, signed
+# vmsge.vx vd, vs2, rs1, vm    # Vector-scalar
+----
+
+The following table indicates how all comparisons are implemented in
+native machine code.
+
+----
+Comparison      Assembler Mapping             Assembler Pseudoinstruction
+
+va < vb         vmslt{u}.vv vd, va, vb, vm
+va <= vb        vmsle{u}.vv vd, va, vb, vm
+va > vb         vmslt{u}.vv vd, vb, va, vm    vmsgt{u}.vv vd, va, vb, vm
+va >= vb        vmsle{u}.vv vd, vb, va, vm    vmsge{u}.vv vd, va, vb, vm
+
+va < x          vmslt{u}.vx vd, va, x, vm
+va <= x         vmsle{u}.vx vd, va, x, vm
+va > x          vmsgt{u}.vx vd, va, x, vm
+va >= x         see below
+
+va < i          vmsle{u}.vi vd, va, i-1, vm    vmslt{u}.vi vd, va, i, vm
+va <= i         vmsle{u}.vi vd, va, i, vm
+va > i          vmsgt{u}.vi vd, va, i, vm
+va >= i         vmsgt{u}.vi vd, va, i-1, vm    vmsge{u}.vi vd, va, i, vm
+
+va, vb vector register groups
+x      scalar integer register
+i      immediate
+----
+
+NOTE: The immediate forms of `vmslt{u}.vi` are not provided as the
+immediate value can be decreased by 1 and the `vmsle{u}.vi` variants
+used instead.  The `vmsle.vi` range is -16 to 15, resulting in an
+effective `vmslt.vi` range of -15 to 16.  The `vmsleu.vi` range is 0
+to 15 giving an effective `vmsltu.vi` range of 1 to 16 (Note,
+`vmsltu.vi` with immediate 0 is not useful as it is always
+false). Because the 5-bit vector immediates are always sign-extended,
+`vmsleu.vi` also supports unsigned immediate values in the range
+`2^SEW^-16` to `2^SEW^-1`, allowing corresponding `vmsltu.vi`
+comparisons against unsigned immediates in the range `2^SEW^-15` to
+`2^SEW^`.  Note that `vlsltu.vi` with immediate `2^SEW^` is not useful
+as it is always true.
+
+Similarly, `vmsge{u}.vi` is not provided and the comparison is
+implemented using `vmsgt{u}.vi` with the immediate decremented by one.
+The resulting effective `vmsge.vi` range is -15 to 16, and the
+resulting effective `vmsgeu.vi` range is 1 to 16 (Note, `vmsgeu.vi` with
+immediate 0 is not useful as it is always true).
+
+NOTE: The `vmsgt` forms for register scalar and immediates are provided
+to allow a single comparison instruction to provide the correct
+polarity of mask value without using additional mask logical
+instructions.
+
+To reduce encoding space, the `vmsge{u}.vx` form is not directly
+provided, and so the `va {ge} x` case requires special treatment.
+
+NOTE: The `vmsge{u}.vx` could potentially be encoded in a
+non-orthogonal way under the unused OPIVI variant of `vmslt{u}`.  These
+would be the only instructions in OPIVI that use a scalar `x`register
+however.  Alternatively, a further two funct6 encodings could be used,
+but these would have a different operand format (writes to mask
+register) than others in the same group of 8 funct6 encodings.  The
+current PoR is to omit these instructions and to synthesize where
+needed as described below.
+
+The `vmsge{u}.vx` operation can be synthesized by reducing the
+value of `x` by 1 and using the `vmsgt{u}.vx` instruction, when it is
+known that this will not underflow the representation in `x`.
+
+----
+Sequences to synthesize `vmsge{u}.vx` instruction
+
+va >= x,  x > minimum
+
+   addi t0, x, -1; vmsgt{u}.vx vd, va, t0, vm
+----
+
+The above sequence will usually be the most efficient implementation,
+but assembler pseudoinstructions can be provided for cases where the
+range of `x` is unknown.
+
+----
+unmasked va >= x
+
+  pseudoinstruction: vmsge{u}.vx vd, va, x
+  expansion: vmslt{u}.vx vd, va, x; vmnand.mm vd, vd, vd
+
+masked va >= x, vd != v0
+
+  pseudoinstruction: vmsge{u}.vx vd, va, x, v0.t
+  expansion: vmslt{u}.vx vd, va, x, v0.t; vmxor.mm vd, vd, v0
+
+masked va >= x, vd == v0
+
+  pseudoinstruction: vmsge{u}.vx vd, va, x, v0.t, vt
+  expansion: vmslt{u}.vx vt, va, x;  vmandnot.mm vd, vd, vt
+
+masked va >= x, any vd
+
+  pseudoinstruction: vmsge{u}.vx vd, va, x, v0.t, vt
+  expansion: vmslt{u}.vx vt, va, x;  vmandnot.mm vt, v0, vt;  vmandnot.mm vd, vd, v0;  vmor.mm vd, vt, vd
+
+  The vt argument to the pseudoinstruction must name a temporary vector register that is
+  not same as vd and which will be clobbered by the pseudoinstruction
+----
+
+Comparisons effectively AND in the mask under a mask-undisturbed policy e.g,
+
+----
+    # (a < b) && (b < c) in two instructions when mask-undisturbed
+    vmslt.vv    v0, va, vb        # All body elements written
+    vmslt.vv    v0, vb, vc, v0.t  # Only update at set mask
+----
+
+Comparisons write mask registers, and so always operate under a
+tail-agnostic policy.
+
+=== Vector Integer Min/Max Instructions
+
+Signed and unsigned integer minimum and maximum instructions are
+supported.
+
+----
+# Unsigned minimum
+vminu.vv vd, vs2, vs1, vm   # Vector-vector
+vminu.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Signed minimum
+vmin.vv vd, vs2, vs1, vm   # Vector-vector
+vmin.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Unsigned maximum
+vmaxu.vv vd, vs2, vs1, vm   # Vector-vector
+vmaxu.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Signed maximum
+vmax.vv vd, vs2, vs1, vm   # Vector-vector
+vmax.vx vd, vs2, rs1, vm   # vector-scalar
+----
+
+=== Vector Single-Width Integer Multiply Instructions
+
+The single-width multiply instructions perform a SEW-bit*SEW-bit
+multiply and return an SEW-bit-wide result.  The `*mulh*` versions
+write the high word of the product to the destination register.
+
+----
+# Signed multiply, returning low bits of product
+vmul.vv vd, vs2, vs1, vm   # Vector-vector
+vmul.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Signed multiply, returning high bits of product
+vmulh.vv vd, vs2, vs1, vm   # Vector-vector
+vmulh.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Unsigned multiply, returning high bits of product
+vmulhu.vv vd, vs2, vs1, vm   # Vector-vector
+vmulhu.vx vd, vs2, rs1, vm   # vector-scalar
+
+# Signed(vs2)-Unsigned multiply, returning high bits of product
+vmulhsu.vv vd, vs2, vs1, vm   # Vector-vector
+vmulhsu.vx vd, vs2, rs1, vm   # vector-scalar
+----
+
+NOTE: There is no `vmulhus` opcode to return high half of
+unsigned-vector * signed-scalar product.
+
+NOTE: The current `vmulh*` opcodes perform simple fractional
+multiplies, but with no option to scale, round, and/or saturate the
+result.  A possible extension can consider variants of `vmulh`,
+`vmulhu`, `vmulhsu` that use the `vxrm` rounding mode when discarding
+low half of product.  There is no possibility of overflow in these
+cases.
+
+=== Vector Integer Divide Instructions
+
+The divide and remainder instructions are equivalent to the RISC-V
+standard scalar integer multiply/divides, with the same results for
+extreme inputs.
+
+----
+    # Unsigned divide.
+    vdivu.vv vd, vs2, vs1, vm   # Vector-vector
+    vdivu.vx vd, vs2, rs1, vm   # vector-scalar
+
+    # Signed divide
+    vdiv.vv vd, vs2, vs1, vm   # Vector-vector
+    vdiv.vx vd, vs2, rs1, vm   # vector-scalar
+
+    # Unsigned remainder
+    vremu.vv vd, vs2, vs1, vm   # Vector-vector
+    vremu.vx vd, vs2, rs1, vm   # vector-scalar
+
+    # Signed remainder
+    vrem.vv vd, vs2, vs1, vm   # Vector-vector
+    vrem.vx vd, vs2, rs1, vm   # vector-scalar
+----
+
+NOTE: The decision to include integer divide and remainder was
+contentious. The argument in favor is that without a standard
+instruction, software would have to pick some algorithm to perform the
+operation, which would likely perform poorly on some
+microarchitectures versus others.
+
+NOTE: There is no instruction to perform a "scalar divide by vector"
+operation.
+
+=== Vector Widening Integer Multiply Instructions
+
+The widening integer multiply instructions return the full 2*SEW-bit
+product from an SEW-bit*SEW-bit multiply.
+
+----
+# Widening signed-integer multiply
+vwmul.vv  vd, vs2, vs1, vm # vector-vector
+vwmul.vx  vd, vs2, rs1, vm # vector-scalar
+
+# Widening unsigned-integer multiply
+vwmulu.vv vd, vs2, vs1, vm # vector-vector
+vwmulu.vx vd, vs2, rs1, vm # vector-scalar
+
+# Widening signed-unsigned integer multiply
+vwmulsu.vv vd, vs2, vs1, vm # vector-vector
+vwmulsu.vx vd, vs2, rs1, vm # vector-scalar
+----
+
+=== Vector Single-Width Integer Multiply-Add Instructions
+
+The integer multiply-add instructions are destructive and are provided
+in two forms, one that overwrites the addend or minuend
+(`vmacc`, `vnmsac`) and one that overwrites the first multiplicand
+(`vmadd`, `vnmsub`).
+
+The low half of the product is added or subtracted from the third operand.
+
+NOTE: `sac` is intended to be read as "subtract from accumulator". The
+opcode is `vnmsac` to match the (unfortunately counterintuitive)
+floating-point `fnmsub` instruction definition.  Similarly for the
+`vnmsub` opcode.
+
+----
+# Integer multiply-add, overwrite addend
+vmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
+
+# Integer multiply-sub, overwrite minuend
+vnmsac.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
+vnmsac.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vs2[i]) + vd[i]
+
+# Integer multiply-add, overwrite multiplicand
+vmadd.vv vd, vs1, vs2, vm    # vd[i] = (vs1[i] * vd[i]) + vs2[i]
+vmadd.vx vd, rs1, vs2, vm    # vd[i] = (x[rs1] * vd[i]) + vs2[i]
+
+# Integer multiply-sub, overwrite multiplicand
+vnmsub.vv vd, vs1, vs2, vm    # vd[i] = -(vs1[i] * vd[i]) + vs2[i]
+vnmsub.vx vd, rs1, vs2, vm    # vd[i] = -(x[rs1] * vd[i]) + vs2[i]
+----
+
+=== Vector Widening Integer Multiply-Add Instructions
+
+The widening integer multiply-add instructions add the full 2*SEW-bit
+product from a SEW-bit*SEW-bit multiply to a 2*SEW-bit value and
+produce a 2*SEW-bit result.  All combinations of signed and unsigned
+multiply operands are supported.
+
+----
+# Widening unsigned-integer multiply-add, overwrite addend
+vwmaccu.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vwmaccu.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
+
+# Widening signed-integer multiply-add, overwrite addend
+vwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vwmacc.vx vd, rs1, vs2, vm    # vd[i] = +(x[rs1] * vs2[i]) + vd[i]
+
+# Widening signed-unsigned-integer multiply-add, overwrite addend
+vwmaccsu.vv vd, vs1, vs2, vm  # vd[i] = +(signed(vs1[i]) * unsigned(vs2[i])) + vd[i]
+vwmaccsu.vx vd, rs1, vs2, vm  # vd[i] = +(signed(x[rs1]) * unsigned(vs2[i])) + vd[i]
+
+# Widening unsigned-signed-integer multiply-add, overwrite addend
+vwmaccus.vx vd, rs1, vs2, vm  # vd[i] = +(unsigned(x[rs1]) * signed(vs2[i])) + vd[i]
+----
+
+=== Vector Integer Merge Instructions
+
+The vector integer merge instructions combine two source operands
+based on a mask.  Unlike regular arithmetic instructions, the
+merge operates on all body elements (i.e., the set of elements from
+`vstart` up to the current vector length in `vl`).
+
+The `vmerge` instructions are encoded as masked instructions (`vm=0`).
+The instructions combine two
+sources as follows.  At elements where the mask value is zero, the
+first operand is copied to the destination element, otherwise the
+second operand is copied to the destination element.  The first
+operand is always a vector register group specified by `vs2`.  The
+second operand is a vector register group specified by `vs1` or a
+scalar `x` register specified by `rs1` or a 5-bit sign-extended
+immediate.
+
+----
+vmerge.vvm vd, vs2, vs1, v0  # vd[i] = v0.mask[i] ? vs1[i] : vs2[i]
+vmerge.vxm vd, vs2, rs1, v0  # vd[i] = v0.mask[i] ? x[rs1] : vs2[i]
+vmerge.vim vd, vs2, imm, v0  # vd[i] = v0.mask[i] ? imm    : vs2[i]
+----
+
+=== Vector Integer Move Instructions
+
+The vector integer move instructions copy a source operand to a vector
+register group.
+The `vmv.v.v` variant copies a vector register group, whereas the `vmv.v.x`
+and `vmv.v.i` variants __splat__ a scalar register or immediate to all active
+elements of the destination vector register group.
+These instructions are encoded as unmasked instructions (`vm=1`).
+The first operand specifier (`vs2`) must contain `v0`, and any other vector
+register number in `vs2` is _reserved_.
+
+----
+vmv.v.v vd, vs1 # vd[i] = vs1[i]
+vmv.v.x vd, rs1 # vd[i] = x[rs1]
+vmv.v.i vd, imm # vd[i] = imm
+----
+
+NOTE: Mask values can be widened into SEW-width elements using a
+sequence `vmv.v.i vd, 0; vmerge.vim vd, vd, 1, v0`.
+
+NOTE: The vector integer move instructions share the encoding with the vector
+merge instructions, but with `vm=1` and `vs2=v0`.
+
+The form `vmv.v.v vd, vd`, which leaves body elements unchanged,
+is used as a hint to indicate that the register will next be used
+with an EEW equal to SEW.
+
+NOTE: Implementations that internally reorganize data according to EEW
+can shuffle the internal representation according to SEW.
+Implementations that do not internally reorganize data can dynamically
+elide this instruction, and treat as a NOP.

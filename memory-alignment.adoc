@@ -1,0 +1,19 @@
+[[memory-alignment]]
+== Vector Memory Alignment Constraints
+
+If an element accessed by a vector memory instruction is not naturally
+aligned to the size of the element, either the element is transferred
+successfully or an address misaligned exception is raised on that
+element.
+
+Support for misaligned vector memory accesses is independent of an
+implementation's support for misaligned scalar memory accesses.
+
+NOTE: An implementation may have neither, one, or both scalar and
+vector memory accesses support some or all misaligned accesses in
+hardware.  A separate PMA should be defined to determine if vector
+misaligned accesses are supported in the associated address range.
+
+Vector misaligned memory accesses follow the same rules for atomicity
+as scalar misaligned memory accesses.
+

@@ -1,0 +1,595 @@
+[[sec-vector-float]]
+== Vector Floating-Point Instructions
+
+The standard vector floating-point instructions treat 16-bit, 32-bit,
+64-bit, and 128-bit elements as IEEE-754/2008-compatible values.  If
+the EEW of a vector floating-point operand does not correspond to a
+supported IEEE floating-point type, the instruction encoding is
+reserved.
+
+NOTE: The floating-point element widths that are supported depend on
+the profile.
+
+Vector floating-point instructions require the presence of base scalar
+floating-point extensions corresponding to the supported vector
+floating-point element widths.
+
+NOTE: In particular, vector profiles supporting 16-bit half-precision
+floating-point values will also have to implement scalar
+half-precision floating-point support in the `f` registers.
+
+If the floating-point unit status field `mstatus.FS` is `Off` then any
+attempt to execute a vector floating-point instruction will raise an
+illegal instruction exception.  Any vector floating-point instruction
+that modifies any floating-point extension state (i.e., floating-point
+CSRs or `f` registers) must set `mstatus.FS` to `Dirty`.
+
+The vector floating-point instructions have the same behavior as the
+scalar floating-point instructions with regard to NaNs.
+
+Scalar values for vector-scalar operations can be sourced from the
+standard scalar `f` registers, as described in Section
+<<sec-arithmetic-encoding>>.
+
+=== Vector Floating-Point Exception Flags
+
+A vector floating-point exception at any active floating-point element
+sets the standard FP exception flags in the `fflags` register.  Inactive
+elements do not set FP exception flags.
+
+=== Vector Single-Width Floating-Point Add/Subtract Instructions
+
+----
+    # Floating-point add
+    vfadd.vv vd, vs2, vs1, vm   # Vector-vector
+    vfadd.vf vd, vs2, rs1, vm   # vector-scalar
+
+    # Floating-point subtract
+    vfsub.vv vd, vs2, vs1, vm   # Vector-vector
+    vfsub.vf vd, vs2, rs1, vm   # Vector-scalar vd[i] = vs2[i] - f[rs1]
+    vfrsub.vf vd, vs2, rs1, vm  # Scalar-vector vd[i] = f[rs1] - vs2[i]
+----
+
+=== Vector Widening Floating-Point Add/Subtract Instructions
+
+----
+# Widening FP add/subtract, 2*SEW = SEW +/- SEW
+vfwadd.vv vd, vs2, vs1, vm  # vector-vector
+vfwadd.vf vd, vs2, rs1, vm  # vector-scalar
+vfwsub.vv vd, vs2, vs1, vm  # vector-vector
+vfwsub.vf vd, vs2, rs1, vm  # vector-scalar
+
+# Widening FP add/subtract, 2*SEW = 2*SEW +/- SEW
+vfwadd.wv  vd, vs2, vs1, vm  # vector-vector
+vfwadd.wf  vd, vs2, rs1, vm  # vector-scalar
+vfwsub.wv  vd, vs2, vs1, vm  # vector-vector
+vfwsub.wf  vd, vs2, rs1, vm  # vector-scalar
+----
+
+=== Vector Single-Width Floating-Point Multiply/Divide Instructions
+
+----
+    # Floating-point multiply
+    vfmul.vv vd, vs2, vs1, vm   # Vector-vector
+    vfmul.vf vd, vs2, rs1, vm   # vector-scalar
+
+    # Floating-point divide
+    vfdiv.vv vd, vs2, vs1, vm   # Vector-vector
+    vfdiv.vf vd, vs2, rs1, vm   # vector-scalar
+
+    # Reverse floating-point divide vector = scalar / vector
+    vfrdiv.vf vd, vs2, rs1, vm  # scalar-vector, vd[i] = f[rs1]/vs2[i]
+----
+
+=== Vector Widening Floating-Point Multiply
+
+----
+# Widening floating-point multiply
+vfwmul.vv    vd, vs2, vs1, vm # vector-vector
+vfwmul.vf    vd, vs2, rs1, vm # vector-scalar
+----
+
+=== Vector Single-Width Floating-Point Fused Multiply-Add Instructions
+
+All four varieties of fused multiply-add are provided, and in two
+destructive forms that overwrite one of the operands, either the
+addend or the first multiplicand.
+
+----
+# FP multiply-accumulate, overwrites addend
+vfmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vfmacc.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) + vd[i]
+
+# FP negate-(multiply-accumulate), overwrites subtrahend
+vfnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) - vd[i]
+vfnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) - vd[i]
+
+# FP multiply-subtract-accumulator, overwrites subtrahend
+vfmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) - vd[i]
+vfmsac.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) - vd[i]
+
+# FP negate-(multiply-subtract-accumulator), overwrites minuend
+vfnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
+vfnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
+
+# FP multiply-add, overwrites multiplicand
+vfmadd.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vd[i]) + vs2[i]
+vfmadd.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vd[i]) + vs2[i]
+
+# FP negate-(multiply-add), overwrites multiplicand
+vfnmadd.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vd[i]) - vs2[i]
+vfnmadd.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vd[i]) - vs2[i]
+
+# FP multiply-sub, overwrites multiplicand
+vfmsub.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vd[i]) - vs2[i]
+vfmsub.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vd[i]) - vs2[i]
+
+# FP negate-(multiply-sub), overwrites multiplicand
+vfnmsub.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vd[i]) + vs2[i]
+vfnmsub.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vd[i]) + vs2[i]
+----
+
+NOTE: It would be possible to use the two unused rounding modes in the
+scalar FP FMA encoding to provide a few non-destructive FMAs.
+However, this would be the only maskable operation with three inputs
+and separate output.
+
+=== Vector Widening Floating-Point Fused Multiply-Add Instructions
+
+The widening floating-point fused multiply-add instructions all
+overwrite the wide addend with the result.  The multiplier inputs are
+all SEW wide, while the addend and destination is 2*SEW bits wide.
+
+----
+# FP widening multiply-accumulate, overwrites addend
+vfwmacc.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) + vd[i]
+vfwmacc.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) + vd[i]
+
+# FP widening negate-(multiply-accumulate), overwrites addend
+vfwnmacc.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) - vd[i]
+vfwnmacc.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) - vd[i]
+
+# FP widening multiply-subtract-accumulator, overwrites addend
+vfwmsac.vv vd, vs1, vs2, vm    # vd[i] = +(vs1[i] * vs2[i]) - vd[i]
+vfwmsac.vf vd, rs1, vs2, vm    # vd[i] = +(f[rs1] * vs2[i]) - vd[i]
+
+# FP widening negate-(multiply-subtract-accumulator), overwrites addend
+vfwnmsac.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vs2[i]) + vd[i]
+vfwnmsac.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vs2[i]) + vd[i]
+----
+
+=== Vector Floating-Point Square-Root Instruction
+
+This is a unary vector-vector instruction.
+
+----
+    # Floating-point square root
+    vfsqrt.v vd, vs2, vm   # Vector-vector square root
+----
+
+=== Vector Floating-Point Reciprocal Square-Root Estimate Instruction
+
+----
+    # Floating-point reciprocal square-root estimate to 7 bits.
+    vfrsqrt7.v vd, vs2, vm
+----
+
+This is a unary vector-vector instruction that returns an estimate of
+1/sqrt(x) accurate to 7 bits.
+
+NOTE: An earlier draft version had used the assembler name `vfrsqrte7`
+but this was deemed to cause confusion with the ``e``__x__ notation for element
+width.  The earlier name can be retained as alias in tool chains for
+backward compatibility.
+
+The following table describes the instruction's behavior for all
+classes of floating-point inputs:
+
+[cols="1,1,1"]
+[%autowidth]
+|===
+| Input | Output | Exceptions raised
+
+| -{inf} {le} _x_ < -0.0     | canonical NaN           | NV
+| -0.0                       | -{inf}                  | DZ
+| +0.0                       | +{inf}                  | DZ
+| +0.0 < _x_ < +{inf}        | _estimate of 1/sqrt(x)_ |
+| +{inf}                     | +0.0                    |
+| qNaN                       | canonical NaN           |
+| sNaN                       | canonical NaN           | NV
+|===
+
+NOTE: All positive normal and subnormal inputs produce normal outputs.
+
+NOTE: The output value is independent of the dynamic rounding mode.
+
+For the non-exceptional cases, the low bit of the exponent and the six high
+bits of significand (after the leading one) are concatenated and used to
+address the following table.
+The output of the table becomes the seven high bits of the result significand
+(after the leading one); the remainder of the result significand is zero.
+Subnormal inputs are normalized and the exponent adjusted appropriately before
+the lookup.
+The output exponent is chosen to make the result approximate the reciprocal of
+the square root of the argument.
+
+More precisely, the result is computed as follows.
+Let the normalized input exponent be equal to the input exponent if the input
+is normal, or 0 minus the number of leading zeros in the significand
+otherwise.
+If the input is subnormal, the normalized input significand is given by
+shifting the input significand left by 1 minus the normalized input exponent,
+discarding the leading 1 bit.
+The output exponent equals floor((3*B - 1 - the normalized input exponent) / 2).
+The output sign equals the input sign.
+
+The following table gives the seven MSBs of the output significand as a
+function of the LSB of the normalized input exponent and the six MSBs of the
+normalized input significand; the other bits of the output significand are zero.
+
+include::vfrsqrt7.adoc[]
+
+NOTE: For example, when SEW=32, vfrsqrt7(0x00718abc ({approx} 1.043e-38))
+= 0x5f080000 ({approx} 9.800e18), and vfrsqrt7(0x7f765432 ({approx} 3.274e38))
+= 0x1f820000 ({approx} 5.506e-20).
+
+NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
+Newton-Raphson iterations to converge to close to bfloat16, FP16,
+FP32, FP64 accuracy respectively.   Future instructions can be defined
+with greater estimate accuracy.
+
+=== Vector Floating-Point Reciprocal Estimate Instruction
+
+----
+    # Floating-point reciprocal estimate to 7 bits.
+    vfrec7.v vd, vs2, vm
+----
+
+NOTE: An earlier draft version had used the assembler name `vfrece7`
+but this was deemed to cause confusion with ``e``__x__ notation for element
+width.  The earlier name can be retained as alias in tool chains for
+backward compatibility.
+
+This is a unary vector-vector instruction that returns an estimate of
+1/x accurate to 7 bits.
+
+The following table describes the instruction's behavior for all
+classes of floating-point inputs, where _B_ is the exponent bias:
+
+[cols="1,1,1,1"]
+[%autowidth]
+|===
+| Input (_x_) | Rounding Mode | Output (_y_ {approx} _1/x_) | Exceptions raised
+
+| -{inf}                                              | _any_         | -0.0                      |
+| -2^B+1^ < _x_ {le} -2^B^ (normal)                   | _any_         | -2^-(B+1)^ {ge} _y_ > -2^-B^ (subnormal, sig=01...) |
+| -2^B^ < _x_ {le} -2^B-1^ (normal)                   | _any_         | -2^-B^ {ge} _y_ > -2^-B+1^ (subnormal, sig=1...) |
+| -2^B-1^ < _x_ {le} -2^-B+1^ (normal)                | _any_         | -2^-B+1^ {ge} _y_ > -2^B-1^ (normal) |
+| -2^-B+1^ < _x_ {le} -2^-B^ (subnormal, sig=1...)    | _any_         | -2^B-1^ {ge} _y_ > -2^B^ (normal) |
+| -2^-B^ < _x_ {le} -2^-(B+1)^ (subnormal, sig=01...) | _any_         | -2^B^ {ge} _y_ > -2^B+1^ (normal) |
+| -2^-(B+1)^ < _x_ < -0.0 (subnormal, sig=00...)      | RUP, RTZ      | greatest-mag. negative finite value | NX, OF
+| -2^-(B+1)^ < _x_ < -0.0 (subnormal, sig=00...)      | RDN, RNE, RMM | -{inf}                    | NX, OF
+| -0.0                                                | _any_         | -{inf}                    | DZ
+| +0.0                                                | _any_         | +{inf}                    | DZ
+| +0.0 < _x_ < 2^-(B+1)^ (subnormal, sig=00...)       | RUP, RNE, RMM | +{inf}                    | NX, OF
+| +0.0 < _x_ < 2^-(B+1)^ (subnormal, sig=00...)       | RDN, RTZ      | greatest finite value     | NX, OF
+| 2^-(B+1)^ {le} _x_ < 2^-B^ (subnormal, sig=01...)   | _any_         | 2^B+1^ > _y_ {ge} 2^B^ (normal) |
+| 2^-B^ {le} _x_ < 2^-B+1^ (subnormal, sig=1...)      | _any_         | 2^B^ > _y_ {ge} 2^B-1^ (normal) |
+| 2^-B+1^ {le} _x_ < 2^B-1^ (normal)                  | _any_         | 2^B-1^ > _y_ {ge} 2^-B+1^ (normal) |
+| 2^B-1^ {le} _x_ < 2^B^ (normal)                     | _any_         | 2^-B+1^ > _y_ {ge} 2^-B^ (subnormal, sig=1...) |
+| 2^B^ {le} _x_ < 2^B+1^ (normal)                     | _any_         | 2^-B^ > _y_ {ge} 2^-(B+1)^ (subnormal, sig=01...) |
+| +{inf}                                              | _any_         | +0.0                      |
+| qNaN                                                | _any_         | canonical NaN             |
+| sNaN                                                | _any_         | canonical NaN             | NV
+|===
+
+NOTE: Subnormal inputs with magnitude at least 2^-(B+1)^ produce normal outputs;
+other subnormal inputs produce infinite outputs.
+Normal inputs with magnitude at least 2^B-1^ produce subnormal outputs;
+other normal inputs produce normal outputs.
+
+NOTE: The output value depends on the dynamic rounding mode when
+the overflow exception is raised.
+
+For the non-exceptional cases, the seven high bits of significand (after the
+leading one) are used to address the following table.
+The output of the table becomes the seven high bits of the result significand
+(after the leading one); the remainder of the result significand is zero.
+Subnormal inputs are normalized and the exponent adjusted appropriately before
+the lookup.
+The output exponent is chosen to make the result approximate the reciprocal of
+the argument, and subnormal outputs are denormalized accordingly.
+
+More precisely, the result is computed as follows.
+Let the normalized input exponent be equal to the input exponent if the input
+is normal, or 0 minus the number of leading zeros in the significand
+otherwise.
+The normalized output exponent equals (2*B - 1 - the normalized input exponent).
+If the normalized output exponent is outside the range [-1, 2*B], the result
+corresponds to one of the exceptional cases in the table above.
+
+If the input is subnormal, the normalized input significand is given by
+shifting the input significand left by 1 minus the normalized input exponent,
+discarding the leading 1 bit.
+Otherwise, the normalized input significand equals the input significand.
+The following table gives the seven MSBs of the normalized output significand
+as a function of the seven MSBs of the normalized input significand; the other
+bits of the normalized output significand are zero.
+
+include::vfrec7.adoc[]
+
+If the normalized output exponent is 0 or -1, the result is subnormal: the
+output exponent is 0, and the output significand is given by concatenating
+a 1 bit to the left of the normalized output significand, then shifting that
+quantity right by 1 minus the normalized output exponent.
+Otherwise, the output exponent equals the normalized output exponent, and the
+output significand equals the normalized output significand.
+The output sign equals the input sign.
+
+NOTE: For example, when SEW=32, vfrec7(0x00718abc ({approx} 1.043e-38))
+= 0x7e900000 ({approx} 9.570e37), and vfrec7(0x7f765432 ({approx} 3.274e38))
+= 0x00214000 ({approx} 3.053e-39).
+
+NOTE: The 7 bit accuracy was chosen as it requires 0,1,2,3
+Newton-Raphson iterations to converge to close to bfloat16, FP16,
+FP32, FP64 accuracy respectively.   Future instructions can be defined
+with greater estimate accuracy.
+
+=== Vector Floating-Point MIN/MAX Instructions
+
+The vector floating-point `vfmin` and `vfmax` instructions have the
+same behavior as the corresponding scalar floating-point instructions
+in version 2.2 of the RISC-V F/D/Q extension.
+
+----
+    # Floating-point minimum
+    vfmin.vv vd, vs2, vs1, vm   # Vector-vector
+    vfmin.vf vd, vs2, rs1, vm   # vector-scalar
+
+    # Floating-point maximum
+    vfmax.vv vd, vs2, vs1, vm   # Vector-vector
+    vfmax.vf vd, vs2, rs1, vm   # vector-scalar
+----
+
+=== Vector Floating-Point Sign-Injection Instructions
+
+Vector versions of the scalar sign-injection instructions.  The result
+takes all bits except the sign bit from the vector `vs2` operands.
+
+----
+    vfsgnj.vv vd, vs2, vs1, vm   # Vector-vector
+    vfsgnj.vf vd, vs2, rs1, vm   # vector-scalar
+
+    vfsgnjn.vv vd, vs2, vs1, vm  # Vector-vector
+    vfsgnjn.vf vd, vs2, rs1, vm  # vector-scalar
+
+    vfsgnjx.vv vd, vs2, vs1, vm  # Vector-vector
+    vfsgnjx.vf vd, vs2, rs1, vm  # vector-scalar
+----
+
+NOTE: A vector of floating-point values can be negated using a
+sign-injection instruction with both source operands set to the same
+vector operand.  Can define assembly pseudoinstruction `vfneg.v vd,vs`
+= `vfsgnjn.vv vd,vs,vs`.
+
+NOTE: The absolute value of a vector of floating-point elements can be
+calculated using a sign-injection instruction with both source
+operands set to the same vector operand.  Can define assembly
+pseudoinstruction `vfabs.v vd,vs` = `vfsgnjx.vv vd,vs,vs`.
+
+=== Vector Floating-Point Compare Instructions
+
+These vector FP compare instructions compare two source operands and
+write the comparison result to a mask register.  The destination mask
+vector is always held in a single vector register, with a layout of
+elements as described in Section <<sec-mask-register-layout>>.  The
+destination mask vector register may be the same as the source vector
+mask register (`v0`).  Comparisons write mask registers, and so always
+operate under a tail-agnostic policy.
+
+The compare instructions follow the semantics of the scalar
+floating-point compare instructions.  `vmfeq` and `vmfne` raise the invalid
+operation exception only on signaling NaN inputs.  `vmflt`, `vmfle`, `vmfgt`,
+and `vmfge` raise the invalid operation exception on both signaling and
+quiet NaN inputs.
+`vmfne` writes 1 to the destination element when either
+operand is NaN, whereas the other comparisons write 0 when either operand
+is NaN.
+
+----
+    # Compare equal
+    vmfeq.vv vd, vs2, vs1, vm  # Vector-vector
+    vmfeq.vf vd, vs2, rs1, vm  # vector-scalar
+
+    # Compare not equal
+    vmfne.vv vd, vs2, vs1, vm  # Vector-vector
+    vmfne.vf vd, vs2, rs1, vm  # vector-scalar
+
+    # Compare less than
+    vmflt.vv vd, vs2, vs1, vm  # Vector-vector
+    vmflt.vf vd, vs2, rs1, vm  # vector-scalar
+
+    # Compare less than or equal
+    vmfle.vv vd, vs2, vs1, vm  # Vector-vector
+    vmfle.vf vd, vs2, rs1, vm  # vector-scalar
+
+    # Compare greater than
+    vmfgt.vf vd, vs2, rs1, vm  # vector-scalar
+
+    # Compare greater than or equal
+    vmfge.vf vd, vs2, rs1, vm  # vector-scalar
+----
+
+----
+Comparison      Assembler Mapping             Assembler pseudoinstruction
+
+va < vb         vmflt.vv vd, va, vb, vm
+va <= vb        vmfle.vv vd, va, vb, vm
+va > vb         vmflt.vv vd, vb, va, vm    vmfgt.vv vd, va, vb, vm
+va >= vb        vmfle.vv vd, vb, va, vm    vmfge.vv vd, va, vb, vm
+
+va < f          vmflt.vf vd, va, f, vm
+va <= f         vmfle.vf vd, va, f, vm
+va > f          vmfgt.vf vd, va, f, vm
+va >= f         vmfge.vf vd, va, f, vm
+
+va, vb vector register groups
+f      scalar floating-point register
+----
+
+NOTE: Providing all forms is necessary to correctly handle unordered
+comparisons for NaNs.
+
+NOTE: C99 floating-point quiet comparisons can be implemented by masking
+the signaling comparisons when either input is NaN, as follows.  When
+the comparand is a non-NaN constant, the middle two instructions can be
+omitted.
+
+----
+    # Example of implementing isgreater()
+    vmfeq.vv v0, va, va        # Only set where A is not NaN.
+    vmfeq.vv v1, vb, vb        # Only set where B is not NaN.
+    vmand.mm v0, v0, v1        # Only set where A and B are ordered,
+    vmfgt.vv v0, va, vb, v0.t  #  so only set flags on ordered values.
+----
+
+NOTE: In the above sequence, it is tempting to mask the second `vmfeq`
+instruction and remove the `vmand` instruction, but this more efficient
+sequence incorrectly fails to raise the invalid exception when an
+element of `va` contains a quiet NaN and the corresponding element in
+`vb` contains a signaling NaN.
+
+=== Vector Floating-Point Classify Instruction
+
+This is a unary vector-vector instruction that operates in the same
+way as the scalar classify instruction.
+
+----
+    vfclass.v vd, vs2, vm   # Vector-vector
+----
+
+The 10-bit mask produced by this instruction is placed in the
+least-significant bits of the result elements.  The upper (SEW-10)
+bits of the result are filled with zeros. The instruction is only
+defined for SEW=16b and above, so the result will always fit in the
+destination elements.
+
+=== Vector Floating-Point Merge Instruction
+
+A vector-scalar floating-point merge instruction is provided, which
+operates on all body elements, from `vstart` up to the current vector
+length in `vl` regardless of mask value.
+
+The `vfmerge.vfm` instruction is encoded as a masked instruction (`vm=0`).
+At elements where the mask value is zero, the first vector operand is
+copied to the destination element, otherwise a scalar floating-point
+register value is copied to the destination element.
+
+----
+vfmerge.vfm vd, vs2, rs1, v0  # vd[i] = v0.mask[i] ? f[rs1] : vs2[i]
+----
+
+=== Vector Floating-Point Move Instruction
+
+The vector floating-point move instruction __splats__ a floating-point
+scalar operand to a vector register group.  The instruction copies a
+scalar `f` register value to all active elements of a vector register
+group.  This instruction is encoded as a masked instruction (`vm=1`).
+The instruction must have the `vs2` field set to `v0`, with all other
+values for `vs2` reserved.
+
+----
+vfmv.v.f vd, rs1  # vd[i] = f[rs1]
+----
+
+NOTE: The `vfmv.v.f` instruction shares the encoding with the `vfmerge.vfm`
+instruction, but with `vm=1` and `vs2=v0`.
+
+=== Single-Width Floating-Point/Integer Type-Convert Instructions
+
+Conversion operations are provided to convert to and from
+floating-point values and unsigned and signed integers, where both
+source and destination are SEW wide.
+
+----
+vfcvt.xu.f.v vd, vs2, vm       # Convert float to unsigned integer.
+vfcvt.x.f.v  vd, vs2, vm       # Convert float to signed integer.
+
+vfcvt.rtz.xu.f.v vd, vs2, vm   # Convert float to unsigned integer, truncating.
+vfcvt.rtz.x.f.v  vd, vs2, vm   # Convert float to signed integer, truncating.
+
+vfcvt.f.xu.v vd, vs2, vm       # Convert unsigned integer to float.
+vfcvt.f.x.v  vd, vs2, vm       # Convert signed integer to float.
+----
+
+The conversions follow the same rules on exceptional conditions as the
+scalar conversion instructions.
+The conversions use the dynamic rounding mode in `frm`, except for the `rtz`
+variants, which round towards zero.
+
+NOTE: The `rtz` variants are provided to accelerate truncating conversions
+from floating-point to integer, as is common in languages like C and Java.
+
+=== Widening Floating-Point/Integer Type-Convert Instructions
+
+A set of conversion instructions is provided to convert between
+narrower integer and floating-point datatypes to a type of twice the
+width.
+
+----
+vfwcvt.xu.f.v vd, vs2, vm       # Convert float to double-width unsigned integer.
+vfwcvt.x.f.v  vd, vs2, vm       # Convert float to double-width signed integer.
+
+vfwcvt.rtz.xu.f.v vd, vs2, vm   # Convert float to double-width unsigned integer, truncating.
+vfwcvt.rtz.x.f.v  vd, vs2, vm   # Convert float to double-width signed integer, truncating.
+
+vfwcvt.f.xu.v vd, vs2, vm       # Convert unsigned integer to double-width float.
+vfwcvt.f.x.v  vd, vs2, vm       # Convert signed integer to double-width float.
+
+vfwcvt.f.f.v vd, vs2, vm        # Convert single-width float to double-width float.
+----
+
+These instructions have the same constraints on vector register overlap
+as other widening instructions (see <<sec-widening>>).
+
+NOTE: A double-width IEEE floating-point value can always represent a
+single-width integer exactly.
+
+NOTE: A double-width IEEE floating-point value can always represent a
+single-width IEEE floating-point value exactly.
+
+NOTE: A full set of floating-point widening conversions is not
+supported as single instructions, but any widening conversion can be
+implemented as several doubling steps with equivalent results and no
+additional exception flags raised.
+
+=== Narrowing Floating-Point/Integer Type-Convert Instructions
+
+A set of conversion instructions is provided to convert wider integer
+and floating-point datatypes to a type of half the width.
+
+----
+vfncvt.xu.f.w vd, vs2, vm       # Convert double-width float to unsigned integer.
+vfncvt.x.f.w  vd, vs2, vm       # Convert double-width float to signed integer.
+
+vfncvt.rtz.xu.f.w vd, vs2, vm   # Convert double-width float to unsigned integer, truncating.
+vfncvt.rtz.x.f.w  vd, vs2, vm   # Convert double-width float to signed integer, truncating.
+
+vfncvt.f.xu.w vd, vs2, vm       # Convert double-width unsigned integer to float.
+vfncvt.f.x.w  vd, vs2, vm       # Convert double-width signed integer to float.
+
+vfncvt.f.f.w vd, vs2, vm        # Convert double-width float to single-width float.
+vfncvt.rod.f.f.w vd, vs2, vm    # Convert double-width float to single-width float,
+                                #  rounding towards odd.
+----
+
+These instructions have the same constraints on vector register overlap
+as other narrowing instructions (see <<sec-narrowing>>).
+
+NOTE: A full set of floating-point widening conversions is not
+supported as single instructions. Conversions can be implemented in
+a sequence of halving steps.  Results are equivalently rounded and
+the same exception flags are raised if all but the last halving step
+use round-towards-odd (`vfncvt.rod.f.f.w`).  Only the final step
+should use the desired rounding mode.
+

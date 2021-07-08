@@ -1,0 +1,194 @@
+[[sec-vector-config]]
+== Configuration-Setting Instructions (`vsetvli`/`vsetivli`/`vsetvl`)
+
+One of the common approaches to handling a large number of elements is
+"stripmining" where each iteration of a loop handles some number of elements,
+and the iterations continue until all elements have been processed. The RISC-V
+vector specification provides direct, portable support for this approach.
+The application specifies the total number of elements to be processed (the application vector length or AVL) as a
+candidate value for `vl`, and the hardware responds via a general-purpose
+register with the (frequently smaller) number of elements that the hardware
+will handle per iteration (stored in `vl`), based on the microarchitectural
+implementation and the `vtype` setting. A straightforward loop structure,
+shown in <<example-stripmine-sew>>, depicts the ease with which the code keeps
+track of the remaining number of elements and the amount per iteration handled
+by hardware.
+
+A set of instructions is provided to allow rapid configuration of the
+values in `vl` and `vtype` to match application needs.  The
+`vset{i}vl{i}` instructions set the `vtype` and `vl` CSRs based on
+their arguments, and write the new value of `vl` into `rd`.
+
+----
+ vsetvli rd, rs1, vtypei   # rd = new vl, rs1 = AVL, vtypei = new vtype setting
+ vsetivli rd, uimm, vtypei # rd = new vl, uimm = AVL, vtypei = new vtype setting
+ vsetvl  rd, rs1, rs2      # rd = new vl, rs1 = AVL, rs2 = new vtype value
+----
+
+include::vcfg-format.adoc[]
+
+=== `vtype` encoding
+
+include::vtype-format.adoc[]
+
+The new `vtype` setting is encoded in the immediate fields of
+`vsetvli` and `vsetivli`,  and in the `rs2` register for `vsetvl`.
+
+----
+ Suggested assembler names used for vset{i}vli vtypei immediate
+
+ e8    # SEW=8b
+ e16   # SEW=16b
+ e32   # SEW=32b
+ e64   # SEW=64b
+ e128  # SEW=128b
+ e256  # SEW=256b
+ e512  # SEW=512b
+ e1024 # SEW=1024b
+
+ mf8  # LMUL=1/8
+ mf4  # LMUL=1/4
+ mf2  # LMUL=1/2
+ m1   # LMUL=1, assumed if m setting absent
+ m2   # LMUL=2
+ m4   # LMUL=4
+ m8   # LMUL=8
+
+Examples:
+    vsetvli t0, a0, e8          # SEW= 8, LMUL=1
+    vsetvli t0, a0, e8, m2      # SEW= 8, LMUL=2
+    vsetvli t0, a0, e32, mf2    # SEW=32, LMUL=1/2
+----
+
+The `vsetvl` variant operates similarly to `vsetvli` except that it
+takes a `vtype` value from `rs2` and can be used for context restore.
+
+If the `vtype` setting is not supported by the implementation, then
+the `vill` bit is set in `vtype`, the remaining bits in `vtype` are
+set to zero, and the `vl` register is also set to zero.
+
+NOTE: Earlier drafts required a trap when setting `vtype` to an
+illegal value.  However, this would have added the first
+data-dependent trap on a CSR write to the ISA.  Implementations may
+choose to trap when illegal values are written to `vtype` instead of
+setting `vill`, to allow emulation to support new configurations for
+forward-compatibility.  The current scheme supports light-weight
+runtime interrogation of the supported vector unit configurations by
+checking if `vill` is clear for a given setting.
+
+=== AVL encoding
+
+The new vector
+length setting is based on AVL, which for `vsetvli` and `vsetvl` is encoded in the `rs1` and `rd`
+fields as follows:
+
+.AVL used in `vsetvli` and `vsetvl` instructions
+[cols="2,2,10,10"]
+[%autowidth]
+|===
+|  `rd`  | `rs1`  | AVL value         | Effect on `vl`
+|  -     | !x0    | Value in `x[rs1]` | Normal stripmining
+| !x0    |  x0    | ~0                | Set `vl` to VLMAX
+|  x0    |  x0    | Value in `vl` register | Keep existing `vl` (of course, `vtype` may change)
+|===
+
+When `rs1` is not `x0`, the AVL is an unsigned integer held in the `x`
+register specified by `rs1`, and the new `vl` value is also written to
+the `x` register specified by `rd`.
+
+When `rs1=x0` but `rd!=x0`, the maximum unsigned integer value (`~0`)
+is used as the AVL, and the resulting VLMAX is written to `vl` and
+also to the `x` register specified by `rd`.
+
+When `rs1=x0` and `rd=x0`, the instruction operates as if the current
+vector length in `vl` is used as the AVL, and the resulting value is
+written to `vl`, but not to a destination register.  This form can
+only be used when VLMAX and hence `vl` is not actually changed by the
+new SEW/LMUL ratio.  Use of the instruction with a new SEW/LMUL ratio
+that would result in a change of VLMAX is reserved.  Implementations
+may set `vill` in this case.
+
+NOTE: This last form of the instructions allows the `vtype` register to
+be changed while maintaining the current `vl`, provided VLMAX is not
+reduced.  This design was chosen to ensure `vl` would always hold a
+legal value for current `vtype` setting.  The current `vl` value can
+be read from the `vl` CSR.  The `vl` value could be reduced by this
+instruction if the new SEW/LMUL ratio causes VLMAX to shrink, and so
+this case has been reserved as it is not clear this is a generally
+useful operation, and implementations can otherwise assume `vl` is not
+changed by this instruction to optimize their microarchitecture.
+
+For the `vsetivli` instruction, the AVL is encoded as a 5-bit
+zero-extended immediate (0--31) in the `rs1` field.
+
+NOTE: The encoding of AVL for `vsetivli` is the same as for regular
+CSR immediate values.
+
+NOTE: The `vsetivli` instruction provides more compact code when the
+dimensions of vectors are small, and known to fit inside the vector
+registers, so do not need stripmining overhead.
+
+=== Constraints on Setting `vl`
+
+The `vset{i}vl{i}` instructions first set VLMAX according to the `vtype`
+argument, then set `vl` obeying the following constraints:
+
+. `vl = AVL` if `AVL {le} VLMAX`
+. `ceil(AVL / 2) {le} vl {le} VLMAX` if `AVL < (2 * VLMAX)`
+. `vl = VLMAX` if `AVL {ge} (2 * VLMAX)`
+. Deterministic on any given implementation for same input AVL and VLMAX values
+. These specific properties follow from the prior rules:
+.. `vl = 0` if  `AVL = 0`
+.. `vl > 0` if `AVL > 0`
+.. `vl {le} VLMAX`
+.. `vl {le} AVL`
+.. a value read from `vl` when used as the AVL argument to `vset{i}vl{i}` results in the same
+value in `vl`, provided the resultant VLMAX equals the value of VLMAX at the time that `vl` was read
+
+[NOTE]
+--
+The `vl` setting rules are designed to be sufficiently strict to
+preserve `vl` behavior across register spills and context swaps for
+`AVL {le} VLMAX`, yet flexible enough to enable implementations to improve
+vector lane utilization for `AVL > VLMAX`.
+
+For example, this permits an implementation to set `vl = ceil(AVL / 2)`
+for `VLMAX < AVL < 2*VLMAX` in order to evenly distribute work over the
+last two iterations of a stripmine loop.
+Requirement 2 ensures that the first stripmine iteration of reduction
+loops uses the largest vector length of all iterations, even in the case
+of `AVL < 2*VLMAX`.
+This allows software to avoid needing to explicitly calculate a running
+maximum of vector lengths observed during a stripmined loop.
+Requirement 2 also allows an implementation to set vl to VLMAX for `VLMAX < AVL < 2*VLMAX` 
+--
+
+[[example-stripmine-sew]]
+=== Example of stripmining and changes to SEW
+
+The SEW and LMUL settings can be changed dynamically to provide high
+throughput on mixed-width operations in a single loop.
+----
+# Example: Load 16-bit values, widen multiply to 32b, shift 32b result
+# right by 3, store 32b values.
+# On entry:
+#  a0 holds the total number of elements to process
+#  a1 holds the address of the source array
+#  a2 holds the address of the destination array
+
+loop:
+    vsetvli a3, a0, e16, m4, ta, ma  # vtype = 16-bit integer vectors;
+                                     # also update a3 with vl (# of elements this iteration)
+    vle16.v v4, (a1)        # Get 16b vector
+    slli t1, a3, 1          # Multiply # elements this iteration by 2 bytes/source element
+    add a1, a1, t1          # Bump pointer
+    vwmul.vx v8, v4, x10    # Widening multiply into 32b in <v8--v15>
+
+    vsetvli x0, x0, e32, m8, ta, ma  # Operate on 32b values
+    vsrl.vi v8, v8, 3
+    vse32.v v8, (a2)        # Store vector of 32b elements
+    slli t1, a3, 2          # Multiply # elements this iteration by 4 bytes/destination element
+    add a2, a2, t1          # Bump pointer
+    sub a0, a0, a3          # Decrement count by vl
+    bnez a0, loop           # Any more?
+----

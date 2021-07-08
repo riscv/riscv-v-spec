@@ -1,0 +1,8 @@
+[[instruction-listing]]
+== Vector Instruction Listing
+
+include::inst-table.adoc[]
+
+include::a-vector-examples.adoc[]
+
+include::a-calling-convention.adoc[]

@@ -1,0 +1,234 @@
+[[exception-handling]]
+== Exception Handling
+
+On a trap during a vector instruction (caused by either a synchronous
+exception or an asynchronous interrupt), the existing `*epc` CSR is
+written with a pointer to the errant vector instruction, while the
+`vstart` CSR contains the element index that caused the trap to be
+taken.
+
+NOTE: We chose to add a `vstart` CSR to allow resumption of a
+partially executed vector instruction to reduce interrupt latencies
+and to simplify forward-progress guarantees.  This is similar to the
+scheme in the IBM 3090 vector facility.  To ensure forward progress
+without the `vstart` CSR, implementations would have to guarantee an
+entire vector instruction can always complete atomically without
+generating a trap.  This is particularly difficult to ensure in the
+presence of strided or scatter/gather operations and demand-paged
+virtual memory.
+
+=== Precise vector traps
+
+NOTE: We assume most supervisor-mode environments with demand-paging
+will require precise vector traps.
+
+Precise vector traps require that:
+
+. all instructions older than the trapping vector instruction have committed their results
+. no instructions newer than the trapping vector instruction have altered architectural state
+. any operations within the trapping vector instruction affecting result elements preceding the index in the `vstart` CSR have committed their results
+. no operations within the trapping vector instruction affecting elements at or following the `vstart` CSR have altered architectural state except if restarting and completing the affected vector instruction will nevertheless produce the correct final state.
+
+We relax the last requirement to allow elements following `vstart` to
+have been updated at the time the trap is reported, provided that
+re-executing the instruction from the given `vstart` will correctly
+overwrite those elements.
+
+In idempotent memory regions, vector store instructions may have
+updated elements in memory past the element causing a synchronous
+trap.  Non-idempotent memory regions must not have been updated for
+indices equal to or greater than the element that caused a synchronous
+trap during a vector store instruction.
+
+Except where noted above, vector instructions are allowed to overwrite
+their inputs, and so in most cases, the vector instruction restart
+must be from the `vstart` location. However, there are a number of
+cases where this overwrite is prohibited to enable execution of the
+vector instructions to be idempotent and hence restartable from any
+location.
+
+Implementations must ensure forward progress can be eventually
+guaranteed for the element or segment reported by `vstart`.
+
+=== Imprecise vector traps
+
+Imprecise vector traps are traps that are not precise.  In particular,
+instructions newer than `*epc` may have committed results, and
+instructions older than `*epc` may have not completed execution.
+Imprecise traps are primarily intended to be used in situations where
+reporting an error and terminating execution is the appropriate
+response.
+
+NOTE: A profile might specify that interrupts are precise while other
+traps are imprecise.  We assume many embedded implementations will
+generate only imprecise traps for vector instructions on fatal errors,
+as they will not require resumable traps.
+
+Imprecise traps shall report the faulting element in `vstart` for
+traps caused by synchronous vector exceptions.
+
+=== Selectable precise/imprecise traps
+
+Some profiles may choose to provide a privileged mode bit to select
+between precise and imprecise vector traps.  Imprecise mode would run
+at high-performance but possibly make it difficult to discern error
+causes, while precise mode would run more slowly, but support
+debugging of errors albeit with a possibility of not experiencing the
+same errors as in imprecise mode.
+
+=== Swappable traps
+
+Another trap mode can support swappable state in the vector unit,
+where on a trap, special instructions can save and restore the vector
+unit microarchitectural state, to allow execution to continue
+correctly around imprecise traps.
+
+This mechanism is not defined in the current standard extensions.
+
+NOTE: A future extension might define a standard way of saving and
+restoring opaque microarchitectural state from a vector unit
+implementation to support context switching with imprecise traps.
+
+[[sec-vector-extensions]]
+== Standard Vector Extensions
+
+This section describes the standard vector extensions to be proposed
+for public review.  A set of smaller extensions intended for embedded
+use are named with a "Zve" prefix, while a larger vector extension
+designed for application processors is named as a single-letter V
+extension.
+
+The initial vector extensions are designed to act as a base for
+additional vector extensions in various domains, including
+cryptography and machine learning.
+
+=== Zve*: Vector extensions for Embedded Processors
+
+The following five standard extensions are defined to provide varying
+degrees of vector support and are intended for use with embedded
+processors.  Any of these extensions can be added to base ISAs with
+XLEN=32 or XLEN=64.  The table lists the minimum VLEN and supported
+EEWs for each extension as well as what floating-point types are
+supported.
+
+.Embedded vector extensions
+[cols="1,1,2,1,1"]
+[%autowidth]
+|===
+| Extension | Minimum VLEN | Supported EEW |  FP32 | FP64
+
+| Zve32x    | 32    | 8, 16, 32     |   N   |  N 
+| Zve32f    | 32    | 8, 16, 32     |   Y   |  N
+| Zve64x    | 64    | 8, 16, 32, 64 |   N   |  N
+| Zve64f    | 64    | 8, 16, 32, 64 |   Y   |  N
+| Zve64d    | 64    | 8, 16, 32, 64 |   Y   |  Y
+|===
+
+All Zve* extensions have precise traps.
+
+NOTE: There is currently no standard support for handling imprecise
+traps, so standard extensions have to provide precise traps.
+
+All Zve* extensions provide support for EEW of 8, 16, and 32, and
+Zve64* extensions also support EEW of 64.
+
+All Zve* extensions support the vector configuration instructions
+(Section <<sec-vector-config>>).
+
+All Zve* extensions support all vector load and store instructions
+(Section <<sec-vector-memory>>), except Zve64* extensions do not
+support EEW=64 for index values when XLEN=32.
+
+All Zve* extensions support all vector integer instructions (Section
+<<sec-vector-integer>>), except that the `vmulh` integer multiply
+variants that return the high word of the product (`vmulh.vv`,
+`vmulh.vx`, `vmulhu.vv`, `vmulhu.vx`, `vmulhsu.vv`, `vmulhsu.vx`) are
+not included for EEW=64 in Zve64*.
+
+NOTE: Producing the high-word of a product can take substantial
+additional gates for large EEW.
+
+All Zve* extensions support all vector fixed-point arithmetic
+instructions (<<sec-vector-fixed-point>>), except that `vsmul.vv` and
+`vsmul.vx` are not supported for EEW=64 in Zve64*.
+
+NOTE: As with `vmulh`, `vsmul` requires a large amount of additional
+logic, and 64-bit fixed-point multiplies are relatively rare.
+
+All Zve* extensions support all vector integer single-width and
+widening reduction operations (Sections <<sec-vector-integer-reduce>>,
+<<sec-vector-integer-reduce-widen>>).
+
+All Zve* extensions support all vector mask instructions (Section
+<<sec-vector-mask>>).
+
+All Zve* extensions support all vector permutation instructions
+(Section <<sec-vector-permute>>), except that Zve32x and Zve64x do not
+implement the floating-point scalar move instructions.
+
+The Zve32f and Zve64f extensions require the scalar processor to
+implement the F extension, and implement all vector floating-point
+instructions (Section <<sec-vector-float>>) for floating-point
+operands with EEW=32 (i.e., no widening floating-point operations),
+and conversion instructions are provided to and from all supported
+integer EEWs.  Vector single-width floating-point reduction operations
+(<<sec-vector-float-reduce>>) for EEW=32 are supported.
+
+The Zve32d and Zve64d extensions require the scalar processor to
+implement the D extension, and implement all vector floating-point
+instructions (Section <<sec-vector-float>>) for floating-point
+operands with EEW=32 or EEW=64 (including widening instructions and
+conversions between FP32 and FP64). Vector single-width floating-point
+reductions (<<sec-vector-float-reduce>>) for EEW=32 and EEW=64 are
+supported as well as widening reductions from FP32 to FP64.
+
+=== V: Vector Extension for Application Processor 
+
+The single-letter V extension is intended for use in application
+processor profiles.
+
+The V vector extension has precise traps.
+
+The V vector extension requires that VLEN {ge} 128.
+
+NOTE: The value of 128 was chosen as a compromise for application
+processors. Providing a larger VLEN allows stripmining code to be
+elided in some cases for short vectors, but also increases the size of
+the minimum implementation.  Note that larger LMUL can be used to
+avoid stripmining for longer known-size application vectors at the
+cost of having fewer available vector register groups. For example, an
+LMUL of 8 allows vectors of up to sixteen 64-bit elements to be
+processed without stripmining using four vector register groups.
+
+The V extension supports EEW of 8, 16, and 32, and 64.
+
+The V extension supports the vector configuration instructions
+(Section <<sec-vector-config>>).
+
+The V extension supports all vector load and store instructions
+(Section <<sec-vector-memory>>), except the V extension does not
+support EEW=64 for index values when XLEN=32.
+
+The V extension supports all vector integer instructions (Section
+<<sec-vector-integer>>).
+
+The V extension supports all vector fixed-point arithmetic
+instructions (<<sec-vector-fixed-point>>).
+
+The V extension supports all vector integer single-width and
+widening reduction operations (Sections <<sec-vector-integer-reduce>>,
+<<sec-vector-integer-reduce-widen>>).
+
+The V extension supports all vector mask instructions (Section
+<<sec-vector-mask>>).
+
+The V extension supports all vector permutation instructions (Section
+<<sec-vector-permute>>).
+
+The V extension requires the scalar processor to implement the F and D
+extensions, and implements all vector floating-point instructions
+(Section <<sec-vector-float>>) for floating-point operands with EEW=32
+or EEW=64 (including widening instructions and conversions between
+FP32 and FP64). Vector single-width floating-point reductions
+(<<sec-vector-float-reduce>>) for EEW=32 and EEW=64 are supported as
+well as widening reductions from FP32 to FP64.

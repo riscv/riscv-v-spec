@@ -1,3 +1,4 @@
+[colophon]
 = Preface
 
 This document is a draft of the second release candidate for version

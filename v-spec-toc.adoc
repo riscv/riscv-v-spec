@@ -55,7 +55,29 @@ Changes from v1.0-rc1,No changes to date.
 Frozen: Change is extremely unlikely. A high threshold will be used, and a change will only occur because of some truly critical issue being identified during the public review cycle. Any other desired or needed changes can be the subject of a follow-on new extension.
 
 include::colophon.adoc[]
-include::body.adoc[]
-//include::appendix.adoc[]
+include::implemenation-defined-params.adoc[]
+include::programmers-model.adoc[]
+include::mapping-elements.adoc[]
+include::instruction-formats.adoc[]
+include::sec-vector-config.adoc[]
+include::sec-vector-memory.adoc[]
+//include::amo-operations.adoc[]
+include::memory-alignment.adoc[]
+include::memory-consistency.adoc[]
+include::arithmetic-instr-format.adoc[]
+include::sec-vector-integer.adoc[]
+include::sec-vector-fixed-point.adoc[]
+include::sec-vector-float.adoc[]
+include::reduction-ops.adoc[]
+include::sec-vector-mask.adoc[]
+include::sec-vector-permute.adoc[]
+include::exception-handling.adoc[]
+include::instruction-listing.adoc[]
+include::a-vector-examples.adoc[]
+include::a-calling-convention.adoc[]
+include::a-quad-mul.adoc[]
+include::a-ediv.adoc[]
+//include::index.adoc[]
+
 
 

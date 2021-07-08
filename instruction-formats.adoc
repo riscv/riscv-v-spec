@@ -1,0 +1,236 @@
+[[instruction-formats]]
+== Vector Instruction Formats
+
+The instructions in the vector extension fit under two existing major
+opcodes (LOAD-FP and STORE-FP) and one new major opcode (OP-V).
+
+Vector loads and stores are encoded within the scalar floating-point
+load and store major opcodes (LOAD-FP/STORE-FP).  The vector load and
+store encodings repurpose a portion of the standard scalar
+floating-point load/store 12-bit immediate field to provide further
+vector instruction encoding, with bit 25 holding the standard vector
+mask bit (see <<sec-vector-mask-encoding>>).
+
+include::vmem-format.adoc[]
+
+include::valu-format.adoc[]
+
+include::vcfg-format.adoc[]
+
+Vector instructions can have scalar or vector source operands and
+produce scalar or vector results, and most vector instructions can be
+performed either unconditionally or conditionally under a mask.
+
+Vector loads and stores move bit patterns between vector register
+elements and memory.  Vector arithmetic instructions operate on values
+held in vector register elements.
+
+=== Scalar Operands
+
+Scalar operands can be immediates, or taken from the `x` registers,
+the `f` registers, or element 0 of a vector register.  Scalar results
+are written to an `x` or `f` register or to element 0 of a vector
+register.  Any vector register can be used to hold a scalar regardless
+of the current LMUL setting.
+
+NOTE: In a change from v0.6, the floating-point registers no longer
+overlay the vector registers and scalars can now come from the integer
+or floating-point registers.  Not overlaying the `f` registers reduces
+vector register pressure, avoids interactions with the standard
+calling convention, simplifies high-performance scalar floating-point
+design, and provides compatibility with the Zfinx ISA option.
+Overlaying `f` with `v` would provide the advantage of lowering the
+number of state bits in some implementations, but complicates
+high-performance designs and would prevent compatibility with the
+Zfinx ISA option.
+
+=== Vector Operands
+
+Each vector operand has an _effective_ _element_ _width_ (EEW) and an
+_effective_ LMUL (EMUL) that is used to determine the size and
+location of all the elements within a vector register group.  By
+default, for most operands of most instructions, EEW=SEW and
+EMUL=LMUL.
+
+Some vector instructions have source and destination vector operands
+with the same number of elements but different widths, so that EEW and
+EMUL differ from SEW and LMUL respectively but EEW/EMUL = SEW/LMUL.
+For example, most widening arithmetic instructions have a source group
+with EEW=SEW and EMUL=LMUL but destination group with EEW=2*SEW and
+EMUL=2*LMUL.  Narrowing instructions have a source operand that has
+EEW=2*SEW and EMUL=2*LMUL but destination where EEW=SEW and EMUL=LMUL.
+
+Vector operands or results may occupy one or more vector registers
+depending on EMUL, but are always specified using the lowest-numbered
+vector register in the group.  Using other than the lowest-numbered
+vector register to specify a vector register group is a reserved
+encoding.
+
+A destination vector register group can overlap a source vector register
+group only if one of the following holds:
+
+- The destination EEW equals the source EEW.
+- The destination EEW is smaller than the source EEW and the overlap is in
+  the lowest-numbered part of the source register group (e.g., when LMUL=1,
+  `vnsrl.wi v0, v0, 3` is legal, but a destination of `v1` is not).
+- The destination EEW is greater than the source EEW, the source EMUL is
+  at least 1, and the overlap is in the highest-numbered part of the
+  destination register group (e.g., when LMUL=8, `vzext.vf4 v0, v6` is legal,
+  but a source of `v0`, `v2`, or `v4` is not).
+
+For the purpose of register group overlap constraints, mask elements have
+EEW=1.
+
+The largest vector register group used by an instruction can not be
+greater than 8 vector registers (i.e., EMUL{le}8), and if a vector
+instruction would require greater than 8 vector registers in a group,
+the instruction encoding is reserved.  For example, a widening
+operation that produces a widened vector register group result when
+LMUL=8 is reserved as this would imply a result EMUL=16.
+
+Widened scalar values, e.g., results from widening reduction
+operations, are held in the first element of a vector register and
+have EMUL=1.
+
+NOTE: Current reduction operations are defined to hold input and
+output values in a single vector register, with implicit EMUL of 1, so
+cannot accommodate using a vector register group to hold a wide scalar
+reduction result.  This would require an independent parameter to give
+the EMUL for the scalar reduction element.
+
+=== Vector Masking
+
+Masking is supported on many vector instructions.  Element operations
+that are masked off (inactive) never generate exceptions.  The
+destination vector register elements corresponding to masked-off
+elements are handled with either a mask-undisturbed or mask-agnostic
+policy depending on the setting of the `vma` bit in `vtype` (Section
+<<sec-agnostic>>).
+
+The mask value used to control execution of a masked vector
+instruction is always supplied by vector register `v0`.
+
+NOTE: Future vector extensions may provide longer instruction
+encodings with space for a full mask register specifier.
+
+The destination vector register group for a masked vector instruction
+cannot overlap the source mask register (`v0`), unless the destination
+vector register is being written with a mask value (e.g., comparisons)
+or the scalar result of a reduction.  These instruction encodings are
+reserved.
+
+NOTE: This constraint supports restart with a non-zero `vstart` value.
+
+NOTE: Some masked instructions that target `v0` which were legal in
+v0.8 are illegal with the new MLEN=1 mask layout for v1.0. For
+example, `vadd.vv v0, v1, v2, v0.m` is now always illegal; previously,
+it was legal for LMUL=1.
+
+Other vector registers can be used to hold working mask values, and
+mask vector logical operations are provided to perform predicate
+calculations. [[sec-mask-vector-logical]]
+
+As specified in Section <<sec-agnostic>>, mask destination values are 
+always treated as tail-agnostic, regardless of the setting of `vta`.
+
+[[sec-vector-mask-encoding]]
+==== Mask Encoding
+
+Where available, masking is encoded in a single-bit `vm` field in the
+ instruction (`inst[25]`).
+
+[cols="1,15"]
+|===
+| vm | Description
+
+| 0 | vector result, only where v0.mask[i] = 1
+| 1 | unmasked
+|===
+
+NOTE: In earlier proposals, `vm` was a two-bit field `vm[1:0]` that
+provided both true and complement masking using `v0` as well as
+encoding scalar operations.
+
+Vector masking is represented in assembler code as another vector
+operand, with `.t` indicating if operation occurs when `v0.mask[i]` is
+`1`.  If no masking operand is specified, unmasked vector execution
+(`vm=1`) is assumed.
+
+----
+    vop.v*    v1, v2, v3, v0.t  # enabled where v0.mask[i]=1, m=0
+    vop.v*    v1, v2, v3        # unmasked vector operation, m=1
+----
+
+NOTE: Even though current vector extensions only support one vector
+mask register `v0` and only the true form of predication, the assembly
+syntax writes it out in full to be compatible with future extensions
+that might add a mask register specifier and supporting both true and
+complement masking. The `.t` suffix on the masking operand also helps
+to visually encode the use of a mask.
+
+NOTE: The `.mask` suffix is not part of the assembly syntax.
+We only append it in contexts where a mask vector is subscripted, 
+e.g., `v0.mask[i]`. 
+
+[[sec-inactive-defs]]
+=== Prestart, Active, Inactive, Body, and Tail Element Definitions
+
+The destination element indices operated on during a vector
+instruction's execution can be divided into three disjoint subsets.
+
+* The _prestart_ elements are those whose element index is less than the
+initial value in the `vstart` register.  The prestart elements do not
+raise exceptions and do not update the destination vector register.
+
+* The _body_ elements are those whose element index is greater than or equal
+to the initial value in the `vstart` register, and less than the current
+vector length setting in `vl`. The body can be split into two disjoint subsets:
+
+** The _active_ elements during a vector instruction's execution are the
+elements within the body and where the current mask is enabled at that element
+position.  The active elements can raise exceptions and update the destination
+vector register group.
+
+** The _inactive_ elements are the elements within the body
+but where the current mask is disabled at that element
+position.  The inactive elements do not raise exceptions and do not
+update any destination vector register group unless masked agnostic is
+specified (`vtype.vma`=1), in which case inactive elements may be
+overwritten with 1s.
+
+* The _tail_ elements during a vector instruction's execution are the
+elements past the current vector length setting specified in `vl`.
+The tail elements do not raise exceptions, and do not update any
+destination vector register group unless tail agnostic is specified
+(`vtype.vta`=1), in which case tail elements may be overwritten with
+1s, or with the result of the instruction in the case of
+mask-producing instructions except for mask loads.  When LMUL < 1, the
+tail includes the elements past VLMAX that are held in the same vector
+register.
+
+----
+    for element index x
+    prestart(x) = (0 <= x < vstart)
+    body(x)     = (vstart <= x < vl)
+    tail(x)     = (vl <= x < max(VLMAX,VLEN/SEW))
+    mask(x)     = unmasked || v0.mask[x] == 1
+    active(x)   = body(x) && mask(x)
+    inactive(x) = body(x) && !mask(x)
+----
+
+When `vstart` {ge} `vl`, there are no body elements, and no elements
+are updated in any destination vector register group, including that
+no tail elements are updated with agnostic values.
+
+NOTE: As a consequence, when `vl`=0, no elements, including agnostic
+elements, are updated in the destination vector register group
+regardless of `vstart`.
+
+Instructions that write an `x` register or `f` register
+do so even when `vstart` {ge} `vl`, including when `vl`=0.
+
+NOTE: Some instructions such as `vslidedown` and `vrgather` may read
+indices past `vl` or even VLMAX in source vector register groups.  The
+general policy is to return the value 0 when the index is greater than
+VLMAX in the source vector register group.
+

@@ -1,0 +1,332 @@
+[[mapping-elements]]
+== Mapping of Vector Elements to Vector Register State
+
+The following diagrams illustrate how different width elements are
+packed into the bytes of a vector register depending on the current
+SEW and LMUL settings, as well as implementation VLEN.  Elements are
+packed into each vector register with the least-significant byte in
+the lowest-numbered bits.
+
+=== Mapping for LMUL = 1
+
+When LMUL=1, elements are simply packed in order from the
+least-significant to most-significant bits of the vector register.
+
+NOTE: To increase readability, vector register layouts are drawn with
+bytes ordered from right to left with increasing byte address.  Bits
+within an element are numbered in a little-endian format with
+increasing bit index from right to left corresponding to increasing
+magnitude.
+
+----
+LMUL=1 examples.
+
+The element index is given in hexadecimal and is shown placed at the
+least-significant byte of the stored element.
+
+
+ VLEN=32b
+
+ Byte         3 2 1 0
+
+ SEW=8b       3 2 1 0
+ SEW=16b        1   0
+ SEW=32b            0
+
+ VLEN=64b
+
+ Byte        7 6 5 4 3 2 1 0
+
+ SEW=8b      7 6 5 4 3 2 1 0
+ SEW=16b       3   2   1   0
+ SEW=32b           1       0
+ SEW=64b                   0
+
+ VLEN=128b
+
+ Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ SEW=8b      F E D C B A 9 8 7 6 5 4 3 2 1 0
+ SEW=16b       7   6   5   4   3   2   1   0
+ SEW=32b           3       2       1       0
+ SEW=64b                   1               0
+ SEW=128b                                  0
+
+ VLEN=256b
+
+ Byte     1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ SEW=8b   1F1E1D1C1B1A19181716151413121110 F E D C B A 9 8 7 6 5 4 3 2 1 0
+ SEW=16b     F   E   D   C   B   A   9   8   7   6   5   4   3   2   1   0
+ SEW=32b         7       6       5       4       3       2       1       0
+ SEW=64b                 3               2               1               0
+ SEW=128b                                1                               0
+----
+
+=== Mapping for LMUL < 1
+
+When LMUL < 1, only the first LMUL*VLEN/SEW elements in the vector
+register are used.  The remaining space in the vector register is
+treated as part of the tail, and hence must obey the vta setting.
+
+----
+ Example, VLEN=128b, LMUL=1/4
+
+ Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
+
+ SEW=8b      - - - - - - - - - - - - 3 2 1 0
+ SEW=16b       -   -   -   -   -   -   1   0
+ SEW=32b           -       -       -       0
+----
+
+=== Mapping for LMUL > 1
+
+When vector registers are grouped, the elements of the vector register
+group are striped across the constituent vector registers.  The
+elements are packed contiguously in element order in each vector
+register in the group, moving to the next highest-numbered vector
+register in the group once each vector register is filled.
+
+----
+ LMUL > 1 examples
+
+ VLEN=32b, SEW=8b, LMUL=2
+
+ Byte         3 2 1 0
+ v2*n         3 2 1 0
+ v2*n+1       7 6 5 4
+
+ VLEN=32b, SEW=16b, LMUL=2
+
+ Byte         3 2 1 0
+ v2*n           1   0
+ v2*n+1         3   2
+
+ VLEN=32b, SEW=16b, LMUL=4
+
+ Byte         3 2 1 0
+ v4*n           1   0
+ v4*n+1         3   2
+ v4*n+2         5   4
+ v4*n+3         7   6
+
+ VLEN=32b, SEW=32b, LMUL=4
+
+ Byte         3 2 1 0
+ v4*n               0
+ v4*n+1             1
+ v4*n+2             2
+ v4*n+3             3
+
+ VLEN=64b, SEW=32b, LMUL=2
+
+ Byte         7 6 5 4 3 2 1 0
+ v2*n               1       0
+ v2*n+1             3       2
+
+ VLEN=64b, SEW=32b, LMUL=4
+
+ Byte         7 6 5 4 3 2 1 0
+ v4*n               1       0
+ v4*n+1             3       2
+ v4*n+2             5       4
+ v4*n+3             7       6
+
+ VLEN=128b, SEW=32b, LMUL=2
+
+ Byte        F E D C B A 9 8 7 6 5 4 3 2 1 0
+ v2*n              3       2       1       0
+ v2*n+1            7       6       5       4
+
+ VLEN=128b, SEW=32b, LMUL=4
+
+ Byte          F E D C B A 9 8 7 6 5 4 3 2 1 0
+ v4*n                3       2       1       0
+ v4*n+1              7       6       5       4
+ v4*n+2              B       A       9       8
+ v4*n+3              F       E       D       C
+----
+
+=== Mapping across Mixed-Width Operations
+
+The vector ISA is designed to support mixed-width operations without
+requiring explicit additional rearrangement instructions.  The
+recommended software strategy when operating on vectors of different
+precision values is to modify `vtype` dynamically to keep SEW/LMUL
+constant (and hence VLMAX constant).
+
+The following example shows four different packed element widths (8b,
+16b, 32b, 64b) in a VLEN=128b implementation.  The vector register
+grouping factor (LMUL) is increased by the relative element size such
+that each group can hold the same number of vector elements (VLMAX=8
+in this example) to simplify stripmining code.
+
+----
+Example VLEN=128b, with SEW/LMUL=16
+
+Byte      F E D C B A 9 8 7 6 5 4 3 2 1 0
+vn        - - - - - - - - 7 6 5 4 3 2 1 0  SEW=8b, LMUL=1/2
+
+vn          7   6   5   4   3   2   1   0  SEW=16b, LMUL=1
+
+v2*n            3       2       1       0  SEW=32b, LMUL=2
+v2*n+1          7       6       5       4
+
+v4*n                    1               0  SEW=64b, LMUL=4
+v4*n+1                  3               2
+v4*n+2                  5               4
+v4*n+3                  7               6
+----
+
+The following table shows each possible constant SEW/LMUL operating
+point for loops with mixed-width operations.  Each column represents a
+constant SEW/LMUL operating point.  Entries in table are the LMUL
+values that yield that column's SEW/LMUL value for the datawidth on
+that row.  In each column, an LMUL setting for a datawidth indicates
+that it can be aligned with the other datawidths in the same column
+that also have an LMUL setting, such that all have the same VLMAX.
+
+|===
+| SEW/LMUL | 1 |  2 |  4 |  8 | 16  | 32  |  64  | 128 |  256 | 512 | 1024 |2048 |4096 |8192
+
+| SEW=   8 | 8 |  4 |  2 |  1 | 1/2 | 1/4 |  1/8 |     |      |     |      |     |     |
+| SEW=  16 |   |  8 |  4 |  2 |  1  | 1/2 |  1/4 | 1/8 |      |     |      |     |     |
+| SEW=  32 |   |    |  8 |  4 |  2  |  1  |  1/2 | 1/4 |  1/8 |     |      |     |     |
+| SEW=  64 |   |    |    |  8 |  4  |  2  |   1  | 1/2 |  1/4 | 1/8 |      |     |     |
+| SEW= 128 |   |    |    |    |  8  |  4  |   2  |  1  |  1/2 | 1/4 |  1/8 |     |     |
+| SEW= 256 |   |    |    |    |     |  8  |   4  |  2  |   1  | 1/2 |  1/4 | 1/8 |     |
+| SEW= 512 |   |    |    |    |     |     |   8  |  4  |   2  |  1  |  1/2 | 1/4 | 1/8 |
+| SEW=1024 |   |    |    |    |     |     |      |  8  |   4  |  2  |   1  | 1/2 | 1/4 | 1/8
+
+|===
+
+
+Larger LMUL settings can also used to simply increase vector length to
+reduce instruction fetch and dispatch overheads in cases where fewer
+vector register groups are needed.
+
+NOTE: The SEW/LMUL values of 2048 and greater are shown in the table
+for completeness but they do not add a useful operating point as they
+use less than the full register capacity and do not enable more
+architectural registers.
+
+=== Mapping for LMUL > 1 and ELEN > VLEN
+
+If vector registers are grouped to support larger SEW, with ELEN >
+VLEN, the vector registers in the group are concatenated to form a
+single array of bytes, with the lowest-numbered register in the group
+holding the lowest-addressed bytes from the memory layout.
+
+----
+ LMUL > 1 ELEN>VLEN, examples
+
+ VLEN=32b, SEW=64b, LMUL=2
+
+ Byte         3 2 1 0
+ v2*n               0
+ v2*n+1
+
+ VLEN=32b, SEW=64b, LMUL=4
+
+ Byte         3 2 1 0
+ v4*n               0
+ v4*n+1
+ v4*n+2             1
+ v4*n+3
+
+ VLEN=32b, SEW=64b, LMUL=8
+
+ Byte         3 2 1 0
+ v8*n               0
+ v8*n+1
+ v8*n+2             1
+ v8*n+3
+ v8*n+4             2
+ v8*n+5
+ v8*n+6             3
+ v8*n+7
+----
+
+[[sec-mask-register-layout]]
+=== Mask Register Layout
+
+A vector mask occupies only one vector register regardless of SEW and
+LMUL.  Each element is allocated a single mask bit in a mask vector
+register.
+
+NOTE: Earlier designs (pre-0.9) had a varying number of bits per mask
+value (MLEN).  In the 0.9 design, MLEN=1.
+
+==== Mask Element Locations
+
+The mask bit for element _i_ is located in bit _i_ of the mask
+register, independent of SEW or LMUL.
+
+----
+ VLEN=32b
+
+          Byte    3   2   1   0
+ LMUL=1,SEW=8b
+                  3   2   1   0  Element
+                [03][02][01][00] Mask bit position in decimal
+
+ LMUL=2,SEW=16b
+                      1       0
+                    [01]    [00]
+                      3       2
+                    [03]    [02]
+
+ LMUL=4,SEW=32b               0
+                            [00]
+                              1
+                            [01]
+                              2
+                            [02]
+                              3
+                            [03]
+----
+
+----
+ LMUL=2,SEW=8b
+                  3   2   1   0
+                [03][02][01][00]
+                  7   6   5   4
+                [07][06][05][04]
+
+ LMUL=8,SEW=32b
+                              0
+                            [00]
+                              1
+                            [01]
+                              2
+                            [02]
+                              3
+                            [03]
+                              4
+                            [04]
+                              5
+                            [05]
+                              6
+                            [06]
+                              7
+                            [07]
+
+ LMUL=8,SEW=8b
+                  3   2   1   0
+                [03][02][01][00]
+                  7   6   5   4
+                [07][06][05][04]
+                  B   A   9   8
+                [11][10][09][08]
+                  F   E   D   C
+                [15][14][13][12]
+                 13  12  11  10
+                [19][18][17][16]
+                 17  16  15  14
+                [23][22][21][20]
+                 1B  1A  19  18
+                [27][26][25][24]
+                 1F  1E  1D  1C
+                [31][30][29][28]
+----
+

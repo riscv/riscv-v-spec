@@ -1,0 +1,30 @@
+[[implemenation-defined-params]]
+== Implementation-defined Constant Parameters
+
+Each hart supporting a vector extension defines two parameters:
+
+. The maximum size of a vector element that any operation can produce or consume in bits, _ELEN_ {ge} 8, which
+must be a power of 2.
+. The number of bits in a single vector register, _VLEN_, which must
+be a power of 2 and must be no greater than 2^16^.
+
+Standard vector extensions (Section <<sec-vector-extensions>>) and
+architecture profiles may set further constraints on _ELEN_ and _VLEN_.
+
+NOTE: The upper limit on VLEN allows software to know that indices
+will fit into 16 bits (largest VLMAX of 65,536 occurs for LMUL=8 and
+SEW=8 with VLEN=65,536).  Any future extension beyond 64Kib per vector
+register will require new configuration instructions such that
+software using the old configuration instructions does not see greater
+vector lengths.
+
+The ISA supports writing binary code that under certain constraints
+will execute portably on harts with different values for the VLEN
+parameter, provided both support the required element types.
+
+NOTE: Code can be written that will expose differences in
+implementation parameters.
+
+NOTE: In general, thread contexts with active vector state cannot be
+migrated during execution between harts that have any difference in
+VLEN or ELEN parameters.

@@ -1,0 +1,201 @@
+[[reduction-ops]]
+== Vector Reduction Operations
+
+Vector reduction operations take a vector register group of elements
+and a scalar held in element 0 of a vector register, and perform a
+reduction using some binary operator, to produce a scalar result in
+element 0 of a vector register.  The scalar input and output operands
+are held in element 0 of a single vector register, not a vector
+register group, so any vector register can be the scalar source or
+destination of a vector reduction regardless of LMUL setting.
+
+The destination vector register can overlap the source operands,
+including the mask register.
+
+NOTE: Reductions read and write the scalar operand and result into
+element 0 of a vector register to avoid a loss of decoupling with the
+scalar processor, and to support future polymorphic use with future
+types not supported in the scalar unit.
+
+Inactive elements from the source vector register group are excluded
+from the reduction, but the scalar operand is always included
+regardless of the mask values.
+
+The other elements in the destination vector register ( 0 < index <
+VLEN/SEW) are considered the tail and are managed with the current
+tail agnostic/undisturbed policy.
+
+If `vl`=0, no operation is performed and the destination register is
+not updated.
+
+NOTE: This choice of behavior for `vl`=0 reduces implementation
+complexity as it is consistent with other operations on vector
+register state.  For the common case that the source and destination
+scalar operand are the same vector register, this behavior also
+produces the expected result.  For the uncommon case that the source
+and destination scalar operand are in different vector registers, this
+instruction will not copy the source into the destination when `vl`=0.
+However, it is expected that in most of these cases it will be
+statically known that `vl` is not zero.  In other cases, a check for
+`vl`=0 will have to be added to ensure that the source scalar is
+copied to the destination (e.g., by explicitly setting `vl`=1 and
+performing a register-register copy).
+
+Traps on vector reduction instructions are always reported with a
+`vstart` of 0.  Vector reduction operations raise an illegal
+instruction exception if `vstart` is non-zero.
+
+The assembler syntax for a reduction operation is `vredop.vs`, where
+the `.vs` suffix denotes the first operand is a vector register group
+and the second operand is a scalar stored in element 0 of a vector
+register.
+
+[[sec-vector-integer-reduce]]
+=== Vector Single-Width Integer Reduction Instructions
+
+All operands and results of single-width reduction instructions have
+the same SEW width.  Overflows wrap around on arithmetic sums.
+
+----
+    # Simple reductions, where [*] denotes all active elements:
+    vredsum.vs  vd, vs2, vs1, vm   # vd[0] =  sum( vs1[0] , vs2[*] )
+    vredmaxu.vs vd, vs2, vs1, vm   # vd[0] = maxu( vs1[0] , vs2[*] )
+    vredmax.vs  vd, vs2, vs1, vm   # vd[0] =  max( vs1[0] , vs2[*] )
+    vredminu.vs vd, vs2, vs1, vm   # vd[0] = minu( vs1[0] , vs2[*] )
+    vredmin.vs  vd, vs2, vs1, vm   # vd[0] =  min( vs1[0] , vs2[*] )
+    vredand.vs  vd, vs2, vs1, vm   # vd[0] =  and( vs1[0] , vs2[*] )
+    vredor.vs   vd, vs2, vs1, vm   # vd[0] =   or( vs1[0] , vs2[*] )
+    vredxor.vs  vd, vs2, vs1, vm   # vd[0] =  xor( vs1[0] , vs2[*] )
+----
+
+[[sec-vector-integer-reduce-widen]]
+=== Vector Widening Integer Reduction Instructions
+
+The unsigned `vwredsumu.vs` instruction zero-extends the SEW-wide
+vector elements before summing them, then adds the 2*SEW-width scalar
+element, and stores the result in a 2*SEW-width scalar element.
+
+The `vwredsum.vs` instruction sign-extends the SEW-wide vector
+elements before summing them.
+
+----
+    # Unsigned sum reduction into double-width accumulator
+    vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(zero-extend(SEW))
+
+    # Signed sum reduction into double-width accumulator
+    vwredsum.vs  vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(sign-extend(SEW))
+----
+
+[[sec-vector-float-reduce]]
+=== Vector Single-Width Floating-Point Reduction Instructions
+
+----
+    # Simple reductions.
+    vfredosum.vs vd, vs2, vs1, vm # Ordered sum
+    vfredusum.vs vd, vs2, vs1, vm # Unordered sum
+    vfredmax.vs  vd, vs2, vs1, vm # Maximum value
+    vfredmin.vs  vd, vs2, vs1, vm # Minimum value
+
+----
+
+NOTE: Older assembler mnemonic `vfredsum` is retained as alias for `vfredusum`.
+
+==== Vector Ordered Single-Width Floating-Point Sum Reduction
+
+The `vfredosum` instruction must sum the floating-point values in
+element order, starting with the scalar in `vs1[0]`--that is, it
+performs the computation:
+
+----
+ vd[0] = `(((vs1[0] + vs2[0]) + vs2[1]) + ...) + vs2[vl-1]`
+----
+where each addition operates identically to the scalar floating-point
+instructions in terms of raising exception flags and generating or
+propagating special values.
+
+NOTE: The ordered reduction supports compiler autovectorization, while
+the unordered FP sum allows for faster implementations.
+
+When the operation is masked (`vm=0`), the masked-off elements do not
+affect the result or the exception flags.
+
+NOTE: If no elements are active, no additions are performed, so the scalar in
+`vs1[0]` is simply copied to the destination register, without canonicalizing
+NaN values and without setting any exception flags.  This behavior preserves
+the handling of NaNs, exceptions, and rounding when autovectorizing a scalar
+summation loop.
+
+==== Vector Unordered Single-Width Floating-Point Sum Reduction
+
+The unordered sum reduction instruction, `vfredusum`, provides an
+implementation more freedom in performing the reduction.
+
+The implementation must produce a result equivalent to a reduction tree
+composed of binary operator nodes, with the inputs being elements from
+the source vector register group (`vs2`) and the source scalar value
+(`vs1[0]`).  Each operator in the tree accepts two inputs and produces
+one result.
+Each operator first computes an exact sum as a RISC-V scalar floating-point
+addition with infinite exponent range and precision, then converts this exact
+sum to a floating-point format with range and precision each at least as great
+as the element floating-point format indicated by SEW, rounding using the
+currently active floating-point dynamic rounding mode.
+A different floating-point range and precision may be chosen for the result of
+each operator.
+A node where one input is derived only from elements masked-off or beyond the
+active vector length may either treat that input as the additive identity of the
+appropriate EEW or simply copy the other input to its output.
+The rounded result from the root node in the tree is converted (rounded again,
+using the dynamic rounding mode) to the standard floating-point format
+indicated by SEW.
+An implementation
+is allowed to add an additional additive identity to the final result.
+
+The additive identity is +0.0 when rounding down (towards -{inf}) or
+-0.0 for all other rounding modes.
+
+The reduction tree structure must be deterministic for a given value
+in `vtype` and `vl`.
+
+NOTE: As a consequence of this definition, implementations need not propagate
+NaN payloads through the reduction tree when no elements are active. In
+particular, if no elements are active and the scalar input is NaN,
+implementations are permitted to canonicalize the NaN and, if the NaN is
+signaling, set the invalid exception flag.  Implementations are alternatively
+permitted to pass through the original NaN and set no exception flags, as with
+`vfredosum`.
+
+NOTE: The `vfredosum` instruction is a valid implementation of the
+`vfredusum` instruction.
+
+==== Vector Single-Width Floating-Point Max and Min Reductions
+
+NOTE: Floating-point max and min reductions should return the same
+final value and raise the same exception flags regardless of operation
+order.
+
+NOTE: If no elements are active, the scalar in `vs1[0]` is simply copied to
+the destination register, without canonicalizing NaN values and without
+setting any exception flags.
+
+[[sec-vector-float-reduce-widen]]
+=== Vector Widening Floating-Point Reduction Instructions
+
+Widening forms of the sum reductions are provided that
+read and write a double-width reduction result.
+
+----
+ # Simple reductions.
+ vfwredosum.vs vd, vs2, vs1, vm # Ordered sum
+ vfwredusum.vs vd, vs2, vs1, vm # Unordered sum
+----
+
+NOTE: Older assembler mnemonic `vfwredsum` is retained as alias for `vfwredusum`.
+
+The reduction of the SEW-width elements is performed as in the
+single-width reduction case, with the elements in `vs2` promoted
+to 2*SEW bits before adding to the 2*SEW-bit accumulator.
+
+NOTE: `vfwredosum.vs` handles inactive elements and NaN payloads analogously
+to `vfredosum.vs`; `vfwredusum.vs` does so analogously to `vfredusum.vs`.
+
