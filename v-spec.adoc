@@ -25,7 +25,7 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 == Changes from v1.0-rc1
 
-=== No changes to date.
+=== Various clarifications to text, and added rationale for design choices.
 
 :sectnums:
 
@@ -606,7 +606,7 @@ remaining bits in `vtype` are zero, and `vl` is set to zero.
 
 The `vstart`, `vxrm`, `vxsat` CSRs can have arbitrary values at reset.
 
-NOTE: Any use of the vector unit will require an initial `vset{i}vl{i}`,
+NOTE: Most uses of the vector unit will require an initial `vset{i}vl{i}`,
 which will reset `vstart`.  The `vxrm` and `vxsat` fields should be
 reset explicitly in software before use.
 
@@ -1179,7 +1179,7 @@ general policy is to return the value 0 when the index is greater than
 VLMAX in the source vector register group.
 
 [[sec-vector-config]]
-== Configuration-Setting Instructions (`vsetvli`/`vsetivl`/`vsetvl`)
+== Configuration-Setting Instructions (`vsetvli`/`vsetivli`/`vsetvl`)
 
 One of the common approaches to handling a large number of elements is
 "stripmining" where each iteration of a loop handles some number of elements,
@@ -2177,9 +2177,22 @@ an ABI.
 NOTE: Implementations should raise illegal instruction exceptions on
 `vl<nf>r` instructions for EEW values that are not supported.
 
-NOTE: We have considered adding a whole register mask load
-instruction (``vl1re1.v vd, (rs1)``) as a mask hint but this is not currently on
-PoR.
+NOTE: We have considered adding a whole register mask load instruction
+(`vl1rm.v`) but have decided to omit from initial extension.  The
+primary purpose would be to inform the microarchitecture that the data
+will be used as a mask.  The same effect can be achieved with the
+following code sequence, whose cost is at most four instructions. Of
+these, the first could likely be removed as `vl` is often already
+in a scalar register, and the last might already be present if the
+following vector instruction needs a new SEW/LMUL. So, in best case
+only two instructions are needed to synthesize the effect of the
+dedicated instruction:
+----
+  csrr t0, vl                # Save current vl (potentially not needed)
+  vsetvli t1, x0, e8, m8     # Maximum VLMAX
+  vlm.v v0, (a0)             # Load mask register
+  vsetvli x0, t0, <new type> # Restore vl (potentially already present)
+----
 
 == Vector Memory Alignment Constraints
 
@@ -3894,6 +3907,19 @@ tail agnostic/undisturbed policy.
 If `vl`=0, no operation is performed and the destination register is
 not updated.
 
+NOTE: This choice of behavior for `vl`=0 reduces implementation
+complexity as it is consistent with other operations on vector
+register state.  For the common case that the source and destination
+scalar operand are the same vector register, this behavior also
+produces the expected result.  For the uncommon case that the source
+and destination scalar operand are in different vector registers, this
+instruction will not copy the source into the destination when `vl`=0.
+However, it is expected that in most of these cases it will be
+statically known that `vl` is not zero.  In other cases, a check for
+`vl`=0 will have to be added to ensure that the source scalar is
+copied to the destination (e.g., by explicitly setting `vl`=1 and
+performing a register-register copy).
+
 Traps on vector reduction instructions are always reported with a
 `vstart` of 0.  Vector reduction operations raise an illegal
 instruction exception if `vstart` is non-zero.
@@ -4161,6 +4187,9 @@ Traps on `vpopc.m` are always reported with a `vstart` of 0.  The
 `vpopc` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
 
+NOTE: `vpopc.m` writes `x[rd]` even if `vl`=0
+(with the value 0, since no mask elements are active).
+
 === `vfirst` find-first-set mask bit
 
 ----
@@ -4179,6 +4208,9 @@ corresponds to no element found, as vector lengths will never exceed
 Traps on `vfirst` are always reported with a `vstart` of 0.  The
 `vfirst` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
+
+NOTE: `vfirst.m` writes `x[rd]` even if `vl`=0
+(with the value -1, since no mask elements are active).
 
 === `vmsbf.m` set-before-first mask bit
 
@@ -4445,6 +4477,8 @@ source vector register to a destination integer register.  If SEW > XLEN, the
 least-significant XLEN bits are transferred and the upper SEW-XLEN bits are
 ignored.  If SEW < XLEN, the value is sign-extended to XLEN bits.
 
+NOTE: `vmv.x.s` performs its operation even if `vstart` {ge} `vl` or `vl`=0.
+
 The `vmv.s.x` instruction copies the scalar integer register to element 0 of
 the destination vector register.  If SEW < XLEN, the least-significant bits
 are copied and the upper XLEN-SEW bits are ignored.  If SEW > XLEN, the value
@@ -4472,6 +4506,8 @@ vfmv.s.f vd, rs1  # vd[0] = f[rs1] (vs2=0)
 The `vfmv.f.s` instruction copies a single SEW-wide element from index
 0 of the source vector register to a destination scalar floating-point
 register.
+
+NOTE: `vfmv.f.s` performs its operation even if `vstart` {ge} `vl` or `vl`=0.
 
 The `vfmv.s.f` instruction copies the scalar floating-point register
 to element 0 of the destination vector register.  The other elements

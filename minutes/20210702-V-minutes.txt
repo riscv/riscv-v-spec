@@ -1,0 +1,66 @@
+Date: 2021/07/02
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Vice-Chair: Roger Espasa
+Number of Attendees: ~12
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+We discussed several issues that will result in clarifications to the
+current spec, but no substantive changes.  The plan is to release a
+v1.0-rc2 next week, then have a (hopefully) final meeting next week
+before releasing for public review.
+
+#701 Whole register mask loads
+
+The group revisited the decision to exclude these from the v1.0 spec.
+The discussion concluded that the use was narrow (code that knew the
+target register would be used as a mask, but where vector length was
+different than current vector length), and that the effect could be
+synthesized with a four instruction sequence to save vl, set max
+vector length, then use mask load, then restore vl (in some cases, a
+portion of the vl manipulation could possibly be amortized with other
+code).  The decision was to continue to exclude these from v1.0 and
+the spec commentary will be updated to describe the alternative code
+sequence.
+
+#702 Reductions when vl=0
+
+The group discussed the behavior of reductions when vl=0, and
+concluded we'd retain the current definition.  This only affects the
+case where the source and destination scalar are in different vector
+registers, which was determined to be a rare case that would often be
+known statically in code.  Commentary will be added to text to provide
+rationale.
+
+#703 Clarify that vl=0 does not affect moves from vector registers
+
+After reviewing #702, it was realized the current text could be
+confusing for the effect of vl=0 on vector->scalar move instructions,
+so the text will be clarified.
+
+#704 Add vector memory operations to RISC-V MCM
+
+As already noted in spec, a more formal definition of vector memory
+operations interaction with MCM is needed.
+
+#705 Vector memory operations under TSO.
+
+While not necessary for v1.0 (as Ztso is still not ratified, though
+frozen), the group realised that the behavior under RVTSO needs to be
+clarified.
+
+#664 drop tail undisturbed
+
+This closed issue was raised again.  The group agreed that tail
+undisturbed caused implementation complexity for renamed/OoO
+implementations, but also acknowledged there were some important use
+cases for tail undisturbed.  The observation was made that the
+complexity for renamed/OoO machines mostly arises from optimizing for
+performance, so implementations that did not care about
+tail-undisturbed use cases could simplify microarchitecture.  A note
+will be added explaining this tradeoff.
+
+
+
+
+
