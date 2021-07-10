@@ -27,6 +27,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Various clarifications to text, and added rationale for design choices.
 
+=== Renamed `vpopc.m` to `vcpop.m` for consistency with scalar instruction.  Keeping old assembler name as alias.
+
 :sectnums:
 
 == Introduction
@@ -4105,16 +4107,21 @@ fused with a following masked vector operation to effectively expand
 the number of predicate registers by moving values into `v0` before
 use.
 
-=== Vector mask population count `vpopc`
+=== Vector count population in mask `vcpop.m`
 
 ----
-    vpopc.m rd, vs2, vm
+    vcpop.m rd, vs2, vm
 ----
+
+NOTE: This instruction previously had the assembler mnemonic `vpopc.m`
+but was renamed to be consistent with the scalar instruction.  The
+assembler instruction alias `vpopc.m` is being retained for software
+compatibility.
 
 The source operand is a single vector register holding mask register
 values as described in Section <<sec-mask-register-layout>>.
 
-The `vpopc.m` instruction counts the number of mask elements of the
+The `vcpop.m` instruction counts the number of mask elements of the
 active elements of the vector source mask register that have the value
 1 and writes the result to a scalar `x` register.
 
@@ -4122,14 +4129,14 @@ The operation can be performed under a mask, in which case only the
 masked elements are counted.
 
 ----
- vpopc.m rd, vs2, v0.t # x[rd] = sum_i ( vs2.mask[i] && v0.mask[i] )
+ vcpop.m rd, vs2, v0.t # x[rd] = sum_i ( vs2.mask[i] && v0.mask[i] )
 ----
 
-Traps on `vpopc.m` are always reported with a `vstart` of 0.  The
-`vpopc` instruction will raise an illegal instruction exception if
+Traps on `vcpop.m` are always reported with a `vstart` of 0.  The
+`vcpop.m` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
 
-NOTE: `vpopc.m` writes `x[rd]` even if `vl`=0
+NOTE: `vcpop.m` writes `x[rd]` even if `vl`=0
 (with the value 0, since no mask elements are active).
 
 === `vfirst` find-first-set mask bit
@@ -4363,7 +4370,7 @@ loop:
       slli a5, a5, 2               # Multiply by four bytes
     vmsne.vi v0, v8, 0             # Locate non-zero values
       add a1, a1, a5               # Bump input pointer
-    vpopc.m a5, v0                 # Count number of elements set in v0
+    vcpop.m a5, v0                 # Count number of elements set in v0
     viota.m v16, v0                # Get destination offsets of active elements
       add a6, a6, a5               # Accumulate number of elements
     vsll.vi v16, v16, 2, v0.t      # Multiply offsets by four bytes
