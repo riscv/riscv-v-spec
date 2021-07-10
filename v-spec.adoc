@@ -1080,10 +1080,6 @@ Where available, masking is encoded in a single-bit `vm` field in the
 | 1 | unmasked
 |===
 
-NOTE: In earlier proposals, `vm` was a two-bit field `vm[1:0]` that
-provided both true and complement masking using `v0` as well as
-encoding scalar operations.
-
 Vector masking is represented in assembler code as another vector
 operand, with `.t` indicating if operation occurs when `v0.mask[i]` is
 `1`.  If no masking operand is specified, unmasked vector execution
