@@ -185,10 +185,6 @@ VLEN/SEW elements.
 | 0 | 0 | 1 |   16 |
 | 0 | 1 | 0 |   32 |
 | 0 | 1 | 1 |   64 |
-| 1 | 0 | 0 |  128 | _Reserved_
-| 1 | 0 | 1 |  256 | _Reserved_
-| 1 | 1 | 0 |  512 | _Reserved_
-| 1 | 1 | 1 | 1024 | _Reserved_
 |===
 
 NOTE: While it is anticipated the larger `vsew[2:0]` encodings
@@ -663,7 +659,6 @@ least-significant byte of the stored element.
  SEW=16b       7   6   5   4   3   2   1   0
  SEW=32b           3       2       1       0
  SEW=64b                   1               0
- SEW=128b                                  0
 
  VLEN=256b
 
@@ -673,7 +668,6 @@ least-significant byte of the stored element.
  SEW=16b     F   E   D   C   B   A   9   8   7   6   5   4   3   2   1   0
  SEW=32b         7       6       5       4       3       2       1       0
  SEW=64b                 3               2               1               0
- SEW=128b                                1                               0
 ----
 
 === Mapping for LMUL < 1
@@ -800,17 +794,12 @@ that it can be aligned with the other datawidths in the same column
 that also have an LMUL setting, such that all have the same VLMAX.
 
 |===
-| SEW/LMUL | 1 |  2 |  4 |  8 | 16  | 32  |  64  | 128 |  256 | 512 | 1024 |2048 |4096 |8192
+| SEW/LMUL | 1 |  2 |  4 |  8 | 16  | 32  |  64  | 128 |  256 | 512 |
 
-| SEW=   8 | 8 |  4 |  2 |  1 | 1/2 | 1/4 |  1/8 |     |      |     |      |     |     |
-| SEW=  16 |   |  8 |  4 |  2 |  1  | 1/2 |  1/4 | 1/8 |      |     |      |     |     |
-| SEW=  32 |   |    |  8 |  4 |  2  |  1  |  1/2 | 1/4 |  1/8 |     |      |     |     |
-| SEW=  64 |   |    |    |  8 |  4  |  2  |   1  | 1/2 |  1/4 | 1/8 |      |     |     |
-| SEW= 128 |   |    |    |    |  8  |  4  |   2  |  1  |  1/2 | 1/4 |  1/8 |     |     |
-| SEW= 256 |   |    |    |    |     |  8  |   4  |  2  |   1  | 1/2 |  1/4 | 1/8 |     |
-| SEW= 512 |   |    |    |    |     |     |   8  |  4  |   2  |  1  |  1/2 | 1/4 | 1/8 |
-| SEW=1024 |   |    |    |    |     |     |      |  8  |   4  |  2  |   1  | 1/2 | 1/4 | 1/8
-
+| SEW=   8 | 8 |  4 |  2 |  1 | 1/2 | 1/4 |  1/8 |     |      |     |
+| SEW=  16 |   |  8 |  4 |  2 |  1  | 1/2 |  1/4 | 1/8 |      |     |
+| SEW=  32 |   |    |  8 |  4 |  2  |  1  |  1/2 | 1/4 |  1/8 |     |
+| SEW=  64 |   |    |    |  8 |  4  |  2  |   1  | 1/2 |  1/4 | 1/8 |
 |===
 
 
@@ -1221,10 +1210,6 @@ The new `vtype` setting is encoded in the immediate fields of
  e16   # SEW=16b
  e32   # SEW=32b
  e64   # SEW=64b
- e128  # SEW=128b
- e256  # SEW=256b
- e512  # SEW=512b
- e1024 # SEW=1024b
 
  mf8  # LMUL=1/8
  mf4  # LMUL=1/4
@@ -1564,9 +1549,9 @@ the SEW/LMUL encoded in `vtype` for the data values.
 Vector loads and stores are encoded using width values that are not
 claimed by the standard scalar floating-point loads and stores.
 
-The `mew` bit (`inst[28]`) is expected to be used to encode expanded
-memory sizes of 128 bits and above, but these encodings are _reserved_
-at this point.
+The `mew` bit (`inst[28]`) when set is expected to be used to encode
+expanded memory sizes of 128 bits and above, but these encodings are
+_reserved_ at this point.
 
 Vector loads and stores for EEWs of all supported SEW settings must be
 provided in an implementation.  Vector load/store encodings for
@@ -1585,10 +1570,6 @@ unsupported EEW widths are reserved.
 | Vector 16b element   | 0 |   1 | 0 | 1 |   16|   16 | -  | VLxE16/VSxE16       |
 | Vector 32b element   | 0 |   1 | 1 | 0 |   32|   32 | -  | VLxE32/VSxE32       |
 | Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64       |     
-| Vector 128b element  | 1 |   0 | 0 | 0 |  128|  128 | -  | VLxE128/VSxE128     | _Reserved_
-| Vector 256b element  | 1 |   1 | 0 | 1 |  256|  256 | -  | VLxE256/VSxE256     | _Reserved_
-| Vector 512b element  | 1 |   1 | 1 | 0 |  512|  512 | -  | VLxE512/VSxE512     | _Reserved_
-| Vector 1024b element | 1 |   1 | 1 | 1 | 1024| 1024 | -  | VLxE1024/VSxE1024   | _Reserved_
 | Vector 8b index      | 0 |   0 | 0 | 0 | SEW | SEW  |  8 | VLxEI8/VSxEI8       |
 | Vector 16b index     | 0 |   1 | 0 | 1 | SEW | SEW  | 16 | VLxEI16/VSxEI16     |
 | Vector 32b index     | 0 |   1 | 1 | 0 | SEW | SEW  | 32 | VLxEI32/VSxEI32     |
@@ -1602,10 +1583,6 @@ Data reg bits is the size of each data element accessed in register.
 
 Index bits is the size of each index accessed in register.
 
-Data and index bit EEW encodings larger than 64b are currently reserved.
-
-NOTE: RV128 will require data and index EEW of 128.
-
 === Vector Unit-Stride Instructions
 
 ----
@@ -1616,20 +1593,12 @@ NOTE: RV128 will require data and index EEW of 128.
     vle16.v   vd, (rs1), vm  #   16-bit unit-stride load
     vle32.v   vd, (rs1), vm  #   32-bit unit-stride load
     vle64.v   vd, (rs1), vm  #   64-bit unit-stride load
-    # vle128.v  vd, (rs1), vm  #  128-bit unit-stride load. Reserved
-    # vle256.v  vd, (rs1), vm  #  256-bit unit-stride load. Reserved
-    # vle512.v  vd, (rs1), vm  #  512-bit unit-stride load. Reserved
-    # vle1024.v vd, (rs1), vm  # 1024-bit unit-stride load. Reserved
 
     # vs3 store data, rs1 base address, vm is mask encoding (v0.t or <missing>)
     vse8.v    vs3, (rs1), vm  #    8-bit unit-stride store
     vse16.v   vs3, (rs1), vm  #   16-bit unit-stride store
     vse32.v   vs3, (rs1), vm  #   32-bit unit-stride store
     vse64.v   vs3, (rs1), vm  #   64-bit unit-stride store
-    # vse128.v  vs3, (rs1), vm  #  128-bit unit-stride store. Reserved
-    # vse256.v  vs3, (rs1), vm  #  256-bit unit-stride store. Reserved
-    # vse512.v  vs3, (rs1), vm  #  512-bit unit-stride store. Reserved
-    # vse1024.v vs3, (rs1), vm  # 1024-bit unit-stride store. Reserved
 ----
 
 An additional unit-stride load and store is provided to support
@@ -1673,20 +1642,12 @@ and reduces the cost of mask spill/fill by reducing need to change
     vlse16.v   vd, (rs1), rs2, vm  #   16-bit strided load
     vlse32.v   vd, (rs1), rs2, vm  #   32-bit strided load
     vlse64.v   vd, (rs1), rs2, vm  #   64-bit strided load
-    # vlse128.v  vd, (rs1), rs2, vm  #  128-bit strided load. Reserved
-    # vlse256.v  vd, (rs1), rs2, vm  #  256-bit strided load. Reserved
-    # vlse512.v  vd, (rs1), rs2, vm  #  512-bit strided load. Reserved
-    # vlse1024.v vd, (rs1), rs2, vm  # 1024-bit strided load. Reserved
 
     # vs3 store data, rs1 base address, rs2 byte stride
     vsse8.v    vs3, (rs1), rs2, vm  #    8-bit strided store
     vsse16.v   vs3, (rs1), rs2, vm  #   16-bit strided store
     vsse32.v   vs3, (rs1), rs2, vm  #   32-bit strided store
     vsse64.v   vs3, (rs1), rs2, vm  #   64-bit strided store
-    # vsse128.v  vs3, (rs1), rs2, vm  #  128-bit strided store. Reserved
-    # vsse256.v  vs3, (rs1), rs2, vm  #  256-bit strided store. Reserved
-    # vsse512.v  vs3, (rs1), rs2, vm  #  512-bit strided store. Reserved
-    # vsse1024.v vs3, (rs1), rs2, vm  # 1024-bit strided store. Reserved
 ----
 
 Negative and zero strides are supported.
@@ -1786,10 +1747,6 @@ trimming.
     vle16ff.v   vd, (rs1), vm  #   16-bit unit-stride fault-only-first load
     vle32ff.v   vd, (rs1), vm  #   32-bit unit-stride fault-only-first load
     vle64ff.v   vd, (rs1), vm  #   64-bit unit-stride fault-only-first load
-    # vle128ff.v  vd, (rs1), vm  #  128-bit unit-stride fault-only-first load. Reserved
-    # vle256ff.v  vd, (rs1), vm  #  256-bit unit-stride fault-only-first load. Reserved
-    # vle512ff.v  vd, (rs1), vm  #  512-bit unit-stride fault-only-first load. Reserved
-    # vle1024ff.v vd, (rs1), vm  # 1024-bit unit-stride fault-only-first load. Reserved
 ----
 
 ----
@@ -2130,21 +2087,12 @@ an ABI.
    vl1re16.v   v3, (a0)  # Load v3 with VLEN/16 halfwords held at address in a0
    vl1re32.v   v3, (a0)  # Load v3 with VLEN/32 words held at address in a0
    vl1re64.v   v3, (a0)  # Load v3 with VLEN/64 doublewords held at address in a0
-   # vl1re128.v  v3, (a0) 
-   # vl1re256.v  v3, (a0)
-   # vl1re512.v  v3, (a0)
-   # vl1re1024.v v3, (a0)
-
    vl2r.v v2, (a0)       # Pseudoinstruction equal to vl2re8.v v2, (a0)
 
    vl2re8.v    v2, (a0)  # Load v2-v3 with 2*VLEN/8 bytes from address in a0
    vl2re16.v   v2, (a0)  # Load v2-v3 with 2*VLEN/16 halfwords held at address in a0
    vl2re32.v   v2, (a0)  # Load v2-v3 with 2*VLEN/32 words held at address in a0
    vl2re64.v   v2, (a0)  # Load v2-v3 with 2*VLEN/64 doublewords held at address in a0
-   # vl2re128.v  v2, (a0)
-   # vl2re256.v  v2, (a0)
-   # vl2re512.v  v2, (a0)
-   # vl2re1024.v v2, (a0)
 
    vl4r.v v4, (a0)       # Pseudoinstruction equal to vl4re8.v
 
@@ -2152,10 +2100,6 @@ an ABI.
    vl4re16.v   v4, (a0)
    vl4re32.v   v4, (a0)
    vl4re64.v   v4, (a0)
-   # vl4re128.v  v4, (a0)
-   # vl4re256.v  v4, (a0)
-   # vl4re512.v  v4, (a0)
-   # vl4re1024.v v4, (a0)
 
    vl8r.v v8, (a0)       # Pseudoinstruction equal to vl8re8.v
 
@@ -2163,10 +2107,6 @@ an ABI.
    vl8re16.v   v8, (a0)
    vl8re32.v   v8, (a0)
    vl8re64.v   v8, (a0)
-   # vl8re128.v  v8, (a0)
-   # vl8re256.v  v8, (a0)
-   # vl8re512.v  v8, (a0)
-   # vl8re1024.v v8, (a0)
 
    vs1r.v v3, (a1)      # Store v3 to address in a1
    vs2r.v v2, (a1)      # Store v2-v3 to address in a1
@@ -3287,13 +3227,16 @@ If any destination element is saturated, the `vxsat` bit is set in the
 == Vector Floating-Point Instructions
 
 The standard vector floating-point instructions treat 16-bit, 32-bit,
-64-bit, and 128-bit elements as IEEE-754/2008-compatible values.  If
+64-bit elements as IEEE-754/2008-compatible values.  If
 the EEW of a vector floating-point operand does not correspond to a
 supported IEEE floating-point type, the instruction encoding is
 reserved.
 
 NOTE: The floating-point element widths that are supported depend on
 the profile.
+
+NOTE: When 128-bit elements are added, they will be also be treated as
+IEEE-754/2008-compatible values.
 
 Vector floating-point instructions require the presence of base scalar
 floating-point extensions corresponding to the supported vector
