@@ -4993,7 +4993,7 @@ and conversion instructions are provided to and from all supported
 integer EEWs.  Vector single-width floating-point reduction operations
 (<<sec-vector-float-reduce>>) for EEW=32 are supported.
 
-The Zve32d and Zve64d extensions require the scalar processor to
+The Zve64d extension requires the scalar processor to
 implement the D extension, and implement all vector floating-point
 instructions (Section <<sec-vector-float>>) for floating-point
 operands with EEW=32 or EEW=64 (including widening instructions and
