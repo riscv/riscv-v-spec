@@ -2175,6 +2175,9 @@ Treating the mask as control allows masked vector load instructions to access
 memory before the mask value is known, without the need for
 a misspeculation-recovery mechanism.
 
+NOTE: The behavior of vector memory instructions under the proposed
+RVTSO memory model (Ztso extension) is not presently defined.
+
 == Vector Arithmetic Instruction Formats
 
 The vector arithmetic instructions use a new major opcode (OP-V =
