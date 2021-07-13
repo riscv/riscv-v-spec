@@ -796,23 +796,19 @@ that it can be aligned with the other datawidths in the same column
 that also have an LMUL setting, such that all have the same VLMAX.
 
 |===
-| SEW/LMUL | 1 |  2 |  4 |  8 | 16  | 32  |  64  | 128 |  256 | 512 
+|       7+^|            SEW/LMUL 
+|          | 1 |  2 |  4 |  8 | 16  | 32  |  64
 
-| SEW=   8 | 8 |  4 |  2 |  1 | 1/2 | 1/4 |  1/8 |     |      |     
-| SEW=  16 |   |  8 |  4 |  2 |  1  | 1/2 |  1/4 | 1/8 |      |     
-| SEW=  32 |   |    |  8 |  4 |  2  |  1  |  1/2 | 1/4 |  1/8 |     
-| SEW=  64 |   |    |    |  8 |  4  |  2  |   1  | 1/2 |  1/4 | 1/8 
+| SEW=   8 | 8 |  4 |  2 |  1 | 1/2 | 1/4 |  1/8
+| SEW=  16 |   |  8 |  4 |  2 |  1  | 1/2 |  1/4
+| SEW=  32 |   |    |  8 |  4 |  2  |  1  |  1/2
+| SEW=  64 |   |    |    |  8 |  4  |  2  |   1
 |===
 
 
 Larger LMUL settings can also used to simply increase vector length to
 reduce instruction fetch and dispatch overheads in cases where fewer
 vector register groups are needed.
-
-NOTE: The SEW/LMUL values of 2048 and greater are shown in the table
-for completeness but they do not add a useful operating point as they
-use less than the full register capacity and do not enable more
-architectural registers.
 
 === Mapping for LMUL > 1 and ELEN > VLEN
 
@@ -1065,7 +1061,7 @@ Other vector registers can be used to hold working mask values, and
 mask vector logical operations are provided to perform predicate
 calculations. [[sec-mask-vector-logical]]
 
-As specified in Section <<sec-agnostic>>, mask destination values are 
+As specified in Section <<sec-agnostic>>, mask destination values are
 always treated as tail-agnostic, regardless of the setting of `vta`.
 
 [[sec-vector-mask-encoding]]
@@ -1100,8 +1096,8 @@ complement masking. The `.t` suffix on the masking operand also helps
 to visually encode the use of a mask.
 
 NOTE: The `.mask` suffix is not part of the assembly syntax.
-We only append it in contexts where a mask vector is subscripted, 
-e.g., `v0.mask[i]`. 
+We only append it in contexts where a mask vector is subscripted,
+e.g., `v0.mask[i]`.
 
 [[sec-inactive-defs]]
 === Prestart, Active, Inactive, Body, and Tail Element Definitions
@@ -1323,7 +1319,7 @@ loops uses the largest vector length of all iterations, even in the case
 of `AVL < 2*VLMAX`.
 This allows software to avoid needing to explicitly calculate a running
 maximum of vector lengths observed during a stripmined loop.
-Requirement 2 also allows an implementation to set vl to VLMAX for `VLMAX < AVL < 2*VLMAX` 
+Requirement 2 also allows an implementation to set vl to VLMAX for `VLMAX < AVL < 2*VLMAX`
 --
 
 [[example-stripmine-sew]]
@@ -1563,11 +1559,11 @@ unsupported EEW widths are reserved.
 | Standard scalar FP   | x |   0 | 0 | 1 |   16| FLEN | -  | FLH/FSH             |
 | Standard scalar FP   | x |   0 | 1 | 0 |   32| FLEN | -  | FLW/FSW             |
 | Standard scalar FP   | x |   0 | 1 | 1 |   64| FLEN | -  | FLD/FSD             |
-| Standard scalar FP   | x |   1 | 0 | 0 |  128| FLEN | -  | FLQ/FSQ             |    
+| Standard scalar FP   | x |   1 | 0 | 0 |  128| FLEN | -  | FLQ/FSQ             |
 | Vector 8b element    | 0 |   0 | 0 | 0 |    8|    8 | -  | VLxE8/VSxE8         |
 | Vector 16b element   | 0 |   1 | 0 | 1 |   16|   16 | -  | VLxE16/VSxE16       |
 | Vector 32b element   | 0 |   1 | 1 | 0 |   32|   32 | -  | VLxE32/VSxE32       |
-| Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64       |     
+| Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64       |
 | Vector 8b index      | 0 |   0 | 0 | 0 | SEW | SEW  |  8 | VLxEI8/VSxEI8       |
 | Vector 16b index     | 0 |   1 | 0 | 1 | SEW | SEW  | 16 | VLxEI16/VSxEI16     |
 | Vector 32b index     | 0 |   1 | 1 | 0 | SEW | SEW  | 32 | VLxEI32/VSxEI32     |
@@ -2630,7 +2626,7 @@ vsra.vx vd, vs2, rs1, vm   # vector-scalar
 vsra.vi vd, vs2, uimm, vm   # vector-immediate
 ----
 
- 
+
 === Vector Narrowing Integer Right Shift Instructions
 
 The narrowing right shifts extract a smaller field from a wider
@@ -3053,10 +3049,10 @@ elide this instruction, and treat as a NOP.
 The preceding set of integer arithmetic instructions is extended to support
 fixed-point arithmetic.
 
-A fixed-point number is a two's-complement signed or unsigned integer 
+A fixed-point number is a two's-complement signed or unsigned integer
 interpreted as the numerator in a fraction with an implicit denominator.
-The fixed-point instructions are intended to be applied to the numerators; 
-it is the responsibility of software to manage the denominators. 
+The fixed-point instructions are intended to be applied to the numerators;
+it is the responsibility of software to manage the denominators.
 An N-bit element can hold two's-complement signed integers in the
 range -2^N-1^...+2^N-1^-1, and unsigned integers in the range 0
 ... +2^N^-1.  The fixed-point instructions help preserve precision in
@@ -3159,7 +3155,7 @@ simply truncation (`rdn`).
 
 These instructions shift the input value right, and round off the
 shifted out bits according to `vxrm`.  The scaling right shifts have
-both zero-extending (`vssrl`) and sign-extending (`vssra`) forms. 
+both zero-extending (`vssrl`) and sign-extending (`vssra`) forms.
 The low lg2(SEW) bits of the vector or scalar shift-amount value are used;
 shift-amount immediates are zero-extended.
 
@@ -4749,7 +4745,7 @@ readily synthesized using iota and a masked vrgather:
       1 0 0 1 1 1 0 1     # mask vector of 8 elements
       p q r s t u v w     # destination register before vdecompress
 
-      e q r d c b v a     # result of vdecompress 
+      e q r d c b v a     # result of vdecompress
 ----
 
 ----
@@ -4936,7 +4932,7 @@ supported.
 |===
 | Extension | Minimum VLEN | Supported EEW |  FP32 | FP64
 
-| Zve32x    | 32    | 8, 16, 32     |   N   |  N 
+| Zve32x    | 32    | 8, 16, 32     |   N   |  N
 | Zve32f    | 32    | 8, 16, 32     |   Y   |  N
 | Zve64x    | 64    | 8, 16, 32, 64 |   N   |  N
 | Zve64f    | 64    | 8, 16, 32, 64 |   Y   |  N
@@ -5001,7 +4997,7 @@ conversions between FP32 and FP64). Vector single-width floating-point
 reductions (<<sec-vector-float-reduce>>) for EEW=32 and EEW=64 are
 supported as well as widening reductions from FP32 to FP64.
 
-=== V: Vector Extension for Application Processor 
+=== V: Vector Extension for Application Processor
 
 The single-letter V extension is intended for use in application
 processor profiles.
@@ -5059,4 +5055,3 @@ include::inst-table.adoc[]
 include::vector-examples.adoc[]
 
 include::calling-convention.adoc[]
-
