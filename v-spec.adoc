@@ -29,6 +29,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Renamed `vpopc.m` to `vcpop.m` for consistency with scalar instruction.  Keeping old assembler name as alias.
 
+=== For mask-logical instructions, and `vmsbf.m`, `vmsif.m`, `vmsof.m` mask-manipulation instructions, allow implementations to write entire mask register with result (always tail-agnostic)
+
 :sectnums:
 
 == Introduction
@@ -348,14 +350,7 @@ they previously held, or are overwritten with 1s.  Within a single vector
 instruction, each destination element can be either left undisturbed
 or overwritten with 1s, in any combination, and the pattern of
 undisturbed or overwritten with 1s is not required to be deterministic
-when the instruction is executed with the same inputs.  In addition,
-except for mask load instructions, any element in the tail of a mask
-result can also be written with the value the mask-producing operation
-would have calculated with `vl`=VLMAX.
-
-Furthermore, for mask logical instructions, any element in the tail of the
-result can be written with the value the mask-producing operation would
-have calculated with `vl`=VLEN, SEW=8, and LMUL=8.
+when the instruction is executed with the same inputs.
 
 NOTE: The agnostic policy was added to accommodate machines with vector
 register renaming, and/or that have deeply temporal vector registers.
@@ -364,6 +359,14 @@ the old physical destination vector register to be copied into the new
 physical destination vector register.  This causes an inefficiency
 when these inactive or tail values are not required for subsequent
 calculations.
+
+In addition, except for mask load instructions, any element in the
+tail of a mask result can also be written with the value the
+mask-producing operation would have calculated with `vl`=VLMAX.
+Furthermore, for mask-logical instructions and `vmsbf.m`, `vmsif.m`,
+`vmsof.m` mask-manipulation instructions, any element in the tail of
+the result can be written with the value the mask-producing operation
+would have calculated with `vl`=VLEN, SEW=8, and LMUL=8.
 
 NOTE: Mask tails are always treated as agnostic to reduce complexity
 of managing mask data, which can be written at bit granularity.  There
