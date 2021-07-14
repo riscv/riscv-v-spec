@@ -1,0 +1,14 @@
+Date: 2021/07/09
+Task Group: Vector Extension
+Chair: Krste Asanovic
+Vice-Chair: Roger Espasa
+Number of Attendees: ~12
+Current issues on github: https://github.com/riscv/riscv-v-spec
+
+We had a short meeting to uncover any remaining issues with the spec
+before public review.  There were no new issues raised.
+
+We discussed mechanics of public review process.  The spec will have
+final edits made to close of remaining clarifications then be sent
+out for public review.
+
