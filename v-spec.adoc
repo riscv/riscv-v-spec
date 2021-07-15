@@ -31,6 +31,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === For mask-logical instructions, and `vmsbf.m`, `vmsif.m`, `vmsof.m` mask-manipulation instructions, allow implementations to write entire mask register with result (always tail-agnostic)
 
+=== Added vector length extensions "Zvl*".
+
 :sectnums:
 
 == Introduction
@@ -4921,13 +4923,52 @@ This section describes the standard vector extensions to be proposed
 for public review.  A set of smaller extensions intended for embedded
 use are named with a "Zve" prefix, while a larger vector extension
 designed for application processors is named as a single-letter V
-extension.
+extension.  A set of vector length extension names with prefix "Zvl"
+are also provided.
 
 The initial vector extensions are designed to act as a base for
 additional vector extensions in various domains, including
 cryptography and machine learning.
 
-=== Zve*: Vector extensions for Embedded Processors
+=== Zvl*: Minimum Vector Length Standard Extensions
+
+All standard vector extensions have a minimum required VLEN as
+described below.  A set of vector length extensions are provided to
+increase the minimum vector length of a vector extension.
+
+NOTE: The vector length extensions can be used to either specify
+additional software or architecture profile requirements, or to
+advertise hardware capabilities.
+
+.Vector length extensions
+[cols="1,1"]
+[%autowidth]
+|===
+| Extension  | Minimum VLEN
+
+| Zvl32b     | 32
+| Zvl64b     | 64
+| Zvl128b    | 128
+| Zvl256b    | 256
+| Zvl512b    | 512
+| Zvl1024b   | 1024
+|===
+
+NOTE: Longer vector length extensions should follow the same pattern.
+
+NOTE: Every vector length extension effectively includes all shorter
+vector length extensions.
+
+NOTE: The syntax for extension names is being revised, and these names
+are subject to change.  The trailing "b" is believed to be required to
+disambiguate numeric fields from version numbers.
+
+NOTE: Explicit use of the Zvl32b extension string is not required for
+any standard vector extension as they all effectively mandate at least
+this minimum, but the string can be useful when stating hardware
+capabilities.
+
+=== Zve*: Vector Extensions for Embedded Processors
 
 The following five standard extensions are defined to provide varying
 degrees of vector support and are intended for use with embedded
@@ -5007,7 +5048,7 @@ conversions between FP32 and FP64). Vector single-width floating-point
 reductions (<<sec-vector-float-reduce>>) for EEW=32 and EEW=64 are
 supported as well as widening reductions from FP32 to FP64.
 
-=== V: Vector Extension for Application Processor
+=== V: Vector Extension for Application Processors
 
 The single-letter V extension is intended for use in application
 processor profiles.
