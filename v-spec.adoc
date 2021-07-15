@@ -2748,12 +2748,15 @@ used instead.  The `vmsle.vi` range is -16 to 15, resulting in an
 effective `vmslt.vi` range of -15 to 16.  The `vmsleu.vi` range is 0
 to 15 giving an effective `vmsltu.vi` range of 1 to 16 (Note,
 `vmsltu.vi` with immediate 0 is not useful as it is always
-false). Because the 5-bit vector immediates are always sign-extended,
-`vmsleu.vi` also supports unsigned immediate values in the range
-`2^SEW^-16` to `2^SEW^-1`, allowing corresponding `vmsltu.vi`
-comparisons against unsigned immediates in the range `2^SEW^-15` to
-`2^SEW^`.  Note that `vlsltu.vi` with immediate `2^SEW^` is not useful
-as it is always true.
+false).
+
+NOTE: Because the 5-bit vector immediates are always sign-extended,
+when the high bit of the `simm5` immediate is set, `vmsleu.vi` also
+supports unsigned immediate values in the range `2^SEW^-16` to
+`2^SEW^-1`, allowing corresponding `vmsltu.vi` comparisons against
+unsigned immediates in the range `2^SEW^-15` to `2^SEW^`.  Note that
+`vmsltu.vi` with immediate `2^SEW^` is not useful as it is always
+true.
 
 Similarly, `vmsge{u}.vi` is not provided and the comparison is
 implemented using `vmsgt{u}.vi` with the immediate decremented by one.
