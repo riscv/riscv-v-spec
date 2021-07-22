@@ -1679,7 +1679,7 @@ address are required, then an ordered indexed operation can be used.
 ----
     # Vector indexed loads and stores
 
-    # Vector indexed-ordered load instructions
+    # Vector indexed-unordered load instructions
     # vd destination, rs1 base address, vs2 indices
     vluxei8.v    vd, (rs1), vs2, vm  # unordered  8-bit indexed load of SEW data
     vluxei16.v   vd, (rs1), vs2, vm  # unordered 16-bit indexed load of SEW data
