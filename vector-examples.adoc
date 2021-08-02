@@ -113,3 +113,9 @@ vfmul.vv v4, v1, v1, v0.t   # est * est
 vfmadd.vv v4, v3, v5, v0.t  # 1.5 - 0.5 * x * est * est
 vfmul.vv v1, v1, v4, v0.t   # estimate to 23 bits
 ----
+
+=== C standard library strcmp example
+
+----
+include::example/strcmp.s[lines=4..-1]
+----
