@@ -137,6 +137,8 @@ at any time, even when there is no change in vector state.
 NOTE: Accurate setting of `mstatus.VS` is an optimization.  Software
 will typically use VS to reduce context swap overhead.
 
+If `mstatus.VS` is Dirty, `mstatus.SD` is 1.
+
 Implementations may have a writable `misa.V` field.  Analogous to the
 way in which the floating-point unit is handled, the `mstatus.VS`
 field may exist even if `misa.V` is clear.
@@ -144,6 +146,28 @@ field may exist even if `misa.V` is clear.
 NOTE: Allowing `mstatus.VS` to exist when `misa.V` is clear, enables
 vector emulation and simplifies handling of `mstatus.VS` in systems
 with writable `misa.V`.
+
+=== Vector Context Status in `vsstatus`
+
+When the hypervisor extension is present, a vector context status field, `VS`,
+is added to `vsstatus[10:9]`.
+It is defined analogously to the floating-point context status field, `FS`.
+
+When V=1, both `vsstatus.VS` and `mstatus.VS` are in effect: attempts to
+execute any vector instruction, or to access the vector CSRs, raise an
+illegal-instruction exception when either field is set to Off.
+
+When V=1 and neither `vsstatus.VS` nor `mstatus.VS` is set to Off, executing
+any instruction that changes vector state, including the vector CSRs, will
+change both `mstatus.VS` and `vsstatus.VS` to Dirty.
+Implementations may also change `mstatus.VS` or `vsstatus.VS` from Initial or
+Clean to Dirty at any time, even when there is no change in vector state.
+
+If `vsstatus.VS` is Dirty, `vsstatus.SD` is 1.
+If `mstatus.VS` is Dirty, `mstatus.SD` is 1.
+
+For implementations with a writable `misa.V` field,
+the `vsstatus.VS` field may exist even if `misa.V` is clear.
 
 === Vector type register, `vtype`
 
@@ -3260,6 +3284,14 @@ attempt to execute a vector floating-point instruction will raise an
 illegal instruction exception.  Any vector floating-point instruction
 that modifies any floating-point extension state (i.e., floating-point
 CSRs or `f` registers) must set `mstatus.FS` to `Dirty`.
+
+If the hypervisor extension is implemented and V=1, the `vsstatus.FS` field is
+additionally in effect for vector floating-point instructions.  If
+`vsstatus.FS` or `mstatus.FS` is `Off` then any
+attempt to execute a vector floating-point instruction will raise an
+illegal instruction exception.  Any vector floating-point instruction
+that modifies any floating-point extension state (i.e., floating-point
+CSRs or `f` registers) must set both `mstatus.FS` and `vsstatus.FS` to `Dirty`.
 
 The vector floating-point instructions have the same behavior as the
 scalar floating-point instructions with regard to NaNs.
