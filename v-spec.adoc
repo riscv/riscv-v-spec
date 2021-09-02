@@ -125,16 +125,16 @@ in `sstatus[10:9]`.  It is defined analogously to the floating-point context
 status field, `FS`.
 
 Attempts to execute any vector instruction, or to access the vector
-CSRs, raise an illegal-instruction exception when the `VS` field is
+CSRs, raise an illegal-instruction exception when `mstatus.VS` is
 set to Off.
 
-When the `VS` field is set to Initial or Clean, executing any
+When `mstatus.VS` is set to Initial or Clean, executing any
 instruction that changes vector state, including the vector CSRs, will
-change `VS` to Dirty.
-Implementations may also change the `VS` field from Initial or Clean to Dirty
+change `mstatus.VS` to Dirty.
+Implementations may also change `mstatus.VS` from Initial or Clean to Dirty
 at any time, even when there is no change in vector state.
 
-NOTE: Accurate setting of the `VS` field is an optimization.  Software
+NOTE: Accurate setting of `mstatus.VS` is an optimization.  Software
 will typically use VS to reduce context swap overhead.
 
 Implementations may have a writable `misa.V` field.  Analogous to the
