@@ -137,13 +137,13 @@ at any time, even when there is no change in vector state.
 NOTE: Accurate setting of the `VS` field is an optimization.  Software
 will typically use VS to reduce context swap overhead.
 
-Implementations may have a writable `misa.v` field.  Analogous to the
-way in which the floating-point unit is handled, the `mstatus.vs`
-field may exist even if `misa.v` is clear.
+Implementations may have a writable `misa.V` field.  Analogous to the
+way in which the floating-point unit is handled, the `mstatus.VS`
+field may exist even if `misa.V` is clear.
 
-NOTE: Allowing `mstatus.vs` to exist when `misa.v` is clear, enables
-vector emulation and simplifies handling of `mstatus.vs` in systems
-with writable `misa.v`.
+NOTE: Allowing `mstatus.VS` to exist when `misa.V` is clear, enables
+vector emulation and simplifies handling of `mstatus.VS` in systems
+with writable `misa.V`.
 
 === Vector type register, `vtype`
 
