@@ -137,7 +137,8 @@ at any time, even when there is no change in vector state.
 NOTE: Accurate setting of `mstatus.VS` is an optimization.  Software
 will typically use VS to reduce context swap overhead.
 
-If `mstatus.VS` is Dirty, `mstatus.SD` is 1.
+If `mstatus.VS` is Dirty, `mstatus.SD` is 1;
+otherwise, `mstatus.SD` is set in accordance with existing specifications.
 
 Implementations may have a writable `misa.V` field.  Analogous to the
 way in which the floating-point unit is handled, the `mstatus.VS`
@@ -163,8 +164,11 @@ change both `mstatus.VS` and `vsstatus.VS` to Dirty.
 Implementations may also change `mstatus.VS` or `vsstatus.VS` from Initial or
 Clean to Dirty at any time, even when there is no change in vector state.
 
-If `vsstatus.VS` is Dirty, `vsstatus.SD` is 1.
-If `mstatus.VS` is Dirty, `mstatus.SD` is 1.
+If `vsstatus.VS` is Dirty, `vsstatus.SD` is 1;
+otherwise, `vsstatus.SD` is set in accordance with existing specifications.
+
+If `mstatus.VS` is Dirty, `mstatus.SD` is 1;
+otherwise, `mstatus.SD` is set in accordance with existing specifications.
 
 For implementations with a writable `misa.V` field,
 the `vsstatus.VS` field may exist even if `misa.V` is clear.
