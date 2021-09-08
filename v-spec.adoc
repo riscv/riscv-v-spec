@@ -75,9 +75,10 @@ register will require new configuration instructions such that
 software using the old configuration instructions does not see greater
 vector lengths.
 
-The ISA supports writing binary code that under certain constraints
-will execute portably on harts with different values for the VLEN
-parameter, provided both support the required element types.
+The vector extension supports writing binary code that under certain
+constraints will execute portably on harts with different values for
+the VLEN parameter, provided the harts support the required element
+types and instructions.
 
 NOTE: Code can be written that will expose differences in
 implementation parameters.
