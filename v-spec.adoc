@@ -108,6 +108,9 @@ base scalar RISC-V ISA.
 | 0xC22 | URO | vlenb  | VLEN/8 (vector register length in bytes)
 |===
 
+NOTE: The four CSR numbers `0x00B`-`0x00E` are tentatively reserved
+for future vector CSRs, some of which may be mirrored into `vcsr`.
+
 === Vector Registers
 
 The vector extension adds 32 architectural vector registers,
