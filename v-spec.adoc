@@ -33,6 +33,11 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Added vector length extensions "Zvl*".
 
+=== Added clarification of operation of `mstatus.VS` field and interaction with `mstatus.SD`.
+
+=== Added definition of behavior under hypervisor.
+
+
 :sectnums:
 
 == Introduction
@@ -135,7 +140,7 @@ Implementations may also change `mstatus.VS` from Initial or Clean to Dirty
 at any time, even when there is no change in vector state.
 
 NOTE: Accurate setting of `mstatus.VS` is an optimization.  Software
-will typically use VS to reduce context swap overhead.
+will typically use VS to reduce context-swap overhead.
 
 If `mstatus.VS` is Dirty, `mstatus.SD` is 1;
 otherwise, `mstatus.SD` is set in accordance with existing specifications.
