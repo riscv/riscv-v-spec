@@ -3868,7 +3868,7 @@ vfncvt.rod.f.f.w vd, vs2, vm    # Convert double-width float to single-width flo
 These instructions have the same constraints on vector register overlap
 as other narrowing instructions (see <<sec-narrowing>>).
 
-NOTE: A full set of floating-point widening conversions is not
+NOTE: A full set of floating-point narrowing conversions is not
 supported as single instructions. Conversions can be implemented in
 a sequence of halving steps.  Results are equivalently rounded and
 the same exception flags are raised if all but the last halving step
