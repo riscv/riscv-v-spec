@@ -39,6 +39,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Made SEW~LMUL1MAX~  (the largest SEW supported when LMUL=1) a required parameter for an implementation.
 
+=== Clarified checking of illegal values in `vtype`.
+
 :sectnums:
 
 == Introduction
@@ -196,8 +198,9 @@ past the current vector length in a vector result are handled.
 NOTE: Allowing updates only via the `vset{i}vl{i}` instructions
 simplifies maintenance of the `vtype` register state.
 
-The `vtype` register has five fields,
-`vill`, `vma`, `vta`, `vsew[2:0]`, and `vlmul[2:0]`.
+The `vtype` register has five fields, `vill`, `vma`, `vta`,
+`vsew[2:0]`, and `vlmul[2:0]`.  Bits `vtype[XLEN-2:8]` should be
+written with zero, and non-zero values in this field are reserved.
 
 include::vtype-format.adoc[]
 
@@ -514,6 +517,15 @@ instruction attempted to write an unsupported value to `vtype`.
 
 NOTE: The `vill` bit is held in bit XLEN-1 of the CSR to support
 checking for illegal values with a branch on the sign bit.
+
+All bits of the `vtype` argument must be considered in determining if
+the value is supported by the implementation.
+
+NOTE: All bits must be checked to ensure that new code assuming
+unsupported vector features in `vtype` traps instead of executing
+incorrectly on an older implementation.
+
+A `vtype` value with the `vill` bit set is an unsupported value.
 
 If the `vill` bit is set, then any attempt to execute a vector instruction
 that depends upon `vtype` will raise an illegal-instruction exception.
