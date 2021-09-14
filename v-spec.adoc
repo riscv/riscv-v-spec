@@ -37,6 +37,7 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Added definition of behavior under hypervisor.
 
+=== Made SEW~LMUL1MAX~  (the largest SEW supported when LMUL=1) a required parameter for an implementation.
 
 :sectnums:
 
@@ -63,12 +64,16 @@ supported by each extension.
 
 == Implementation-defined Constant Parameters
 
-Each hart supporting a vector extension defines two parameters:
+Each hart supporting a vector extension defines three parameters:
 
-. The maximum size of a vector element that any operation can produce or consume in bits, _ELEN_ {ge} 8, which
+. The maximum size in bits of a vector element that any operation can produce or consume, _ELEN_ {ge} 8, which
 must be a power of 2.
 . The number of bits in a single vector register, _VLEN_, which must
 be a power of 2 and must be no greater than 2^16^.
+. The maximum size in bits of a vector element that can be held using only one vector register, SEW~LMUL1MAX~, which must be a power of 2 and {le} ELEN and {le} VLEN.
+
+Current standard vector extensions have SEW~LMUL1MAX~=ELEN but future
+vector extensions might relax this constraint.
 
 Standard vector extensions (Section <<sec-vector-extensions>>) and
 architecture profiles may set further constraints on _ELEN_ and _VLEN_.
@@ -182,9 +187,11 @@ the `vsstatus.VS` field may exist even if `misa.V` is clear.
 
 The read-only XLEN-wide _vector_ _type_ CSR, `vtype` provides the
 default type used to interpret the contents of the vector register
-file, and can only be updated by `vset{i}vl{i}` instructions. The vector
-type also determines the organization of elements in each vector
-register, and how multiple vector registers are grouped.
+file, and can only be updated by `vset{i}vl{i}` instructions. The
+vector type determines the organization of elements in each
+vector register, and how multiple vector registers are grouped.  The
+`vtype` register also indicates how masked-off elements and elements
+past the current vector length in a vector result are handled.
 
 NOTE: Allowing updates only via the `vset{i}vl{i}` instructions
 simplifies maintenance of the `vtype` register state.
@@ -201,10 +208,18 @@ represented by `vill` can be internally encoded using the illegal 64-bit
 combination in `vsew[1:0]` without requiring an additional storage
 bit to hold `vill`.
 
-NOTE: Further standard and custom vector extensions will extend these
+NOTE: Further standard and custom vector extensions may extend these
 fields to support a greater variety of data types.
 
-NOTE: It is anticipated that an extended 64-bit instruction encoding
+NOTE: The primary motivation for the `vtype` CSR is to allow the
+vector instruction set to fit into a 32-bit instruction encoding
+space.  A separate `vset{i}vl{i}` instruction can be used to set `vl`
+and/or `vtype` fields before execution of a vector instruction, and
+implementations may choose to fuse these two instructions into a single
+internal vector microop.  In many cases, the `vl` and `vtype` values
+can be reused across multiple instructions, reducing the static and
+dynamic instruction overhead from the `vset{i}vl{i}` instructions.  It
+is anticipated that a future extended 64-bit instruction encoding
 would allow these fields to be specified statically in the instruction
 encoding.
 
@@ -224,11 +239,12 @@ VLEN/SEW elements.
 | 0 | 0 | 1 |   16 |
 | 0 | 1 | 0 |   32 |
 | 0 | 1 | 1 |   64 |
+| 1 | X | X |   Reserved |
 |===
 
 NOTE: While it is anticipated the larger `vsew[2:0]` encodings
-(`100`-`111`) will be used to encode larger SEW as shown in table, the
-encodings are formally _reserved_ at this point.
+(`100`-`111`) will be used to encode larger SEW, the encodings are
+formally _reserved_ at this point.
 
 .Example VLEN = 128 bits
 [cols=">,>"]
@@ -242,17 +258,18 @@ encodings are formally _reserved_ at this point.
 |  8 | 16
 |===
 
-The supported element width may vary with LMUL, but profiles may
-mandate the minimum SEW that must be supported with LMUL=1.
+The supported element width may vary with LMUL.
 
-NOTE: Some implementations may support larger SEWs only when bits from
-multiple vector registers are combined.  Software that relies on large
-SEW should attempt to use the largest LMUL, and hence the fewest
-vector register groups, to increase the number of implementations on
-which the code will run. The `vill` bit in `vtype` should be checked
-after setting `vtype` to see if the configuration is supported, and an
-alternate code path should be provided if it is not. Alternatively, a
-profile can mandate the minimum SEW at each LMUL setting.
+NOTE: The current set of standard vector extensions do not vary
+supported element width with LMUL.  Some future extensions may support
+larger SEWs only when bits from multiple vector registers are combined
+using LMUL.  In this case, software that relies on large SEW should
+attempt to use the largest LMUL, and hence the fewest vector register
+groups, to increase the number of implementations on which the code
+will run. The `vill` bit in `vtype` should be checked after setting
+`vtype` to see if the configuration is supported, and an alternate
+code path should be provided if it is not. Alternatively, a profile
+can mandate the minimum SEW at each LMUL setting.
 
 ==== Vector Register Grouping (`vlmul[2:0]`)
 
@@ -260,61 +277,89 @@ Multiple vector registers can be grouped together, so that a single
 vector instruction can operate on multiple vector registers.  The term
 _vector_ _register_ _group_ is used herein to refer to one or more
 vector registers used as a single operand to a vector instruction.
-Vector register groups allow double-width or larger elements to be
-operated on with the same vector length as selected-width elements.
-Vector register groups also provide greater execution efficiency for
-longer application vectors.
+Vector register groups can be used to provide greater execution
+efficiency for longer application vectors, but the main reason for
+their inclusion is to allow double-width or larger elements to be
+operated on with the same vector length as single-width elements.  The
+vector length multiplier, _LMUL_, when greater than 1, represents the
+default number of vector registers that are combined to form a vector
+register group.  Implementations must support LMUL integer values of
+1, 2, 4, and 8.
 
-The vector length multiplier, _LMUL_, when greater than 1, represents
-the default number of vector registers that are combined to form a
-vector register group.  Implementations must support LMUL integer values of 1,2,4,8.
+
+NOTE: The vector architecture includes instructions that take multiple
+source and destination vector operands with different element widths,
+but the same number of elements.  The effective LMUL (EMUL) of each
+vector operand is determined by the number of registers required to
+hold the elements.  For example, for a widening add operation, such as
+add 32-bit values to produce 64-bit results, a double-width result
+requires twice the LMUL of the single-width inputs.
 
 LMUL can also be a fractional value, reducing the number of bits used
-in a vector register.  LMUL can have fractional values 1/2, 1/4, 1/8.
-Fractional LMUL is used to increase the number of usable architectural
-registers when operating on mixed-width values, by not requiring that
-larger-width vectors occupy multiple vector registers. Instead, wider
-values can occupy a single vector register and narrower values can
-occupy a fraction of a vector register.
+in a single vector register. Fractional LMUL is used to increase the
+number of effective usable vector register groups when operating on
+mixed-width values.
 
-Implementations must support fractional LMUL settings for LMUL {ge}
+NOTE: With only integer LMUL values, a loop operating on a range of
+sizes would have to allocate at least one whole vector register
+(LMUL=1) for the narrowest data type and then would consume multiple
+vector registers (LMUL>1) to form a vector register group for each
+wider operand.  This can limit the number of vector register groups
+available.  With fractional LMUL, the widest values need occupy only a
+single vector register while narrower values can occupy a fraction of
+a single vector register, allowing all 32 architectural vector
+register names to be used for different values in a vector loop even
+when handling mixed-width values.  Fractional LMUL implies portions of
+vector registers are unused, but in some cases, having more shorter
+register-resident vectors improves efficiency relative to fewer longer
+register-resident vectors.
+
+Implementations must provide fractional LMUL settings that allow the
+narrowest supported type to occupy a fraction of a vector register
+corresponding to the ratio of the narrowest supported type's width to
+that of the largest supported type's width at LMUL=1.
+
+For standard vector extensions with ELEN=32, fractional LMULs of 1/2
+and 1/4 must be supported.  For standard vector extensions with
+ELEN=64, fractional LMULs of 1/2, 1/4, and 1/8 must be supported.  In
+general, the requirement is to support LMUL {ge}
 SEW~LMUL1MIN~/SEW~LMUL1MAX~, where SEW~LMUL1MIN~ is the narrowest
 supported SEW value at LMUL=1 and SEW~LMUL1MAX~ is the widest
-supported SEW value at LMUL=1.  An attempt to set an unsupported SEW
-and LMUL configuration sets the `vill` bit in `vtype`.
+supported SEW value at LMUL=1. 
+
+NOTE: When LMUL < SEW~LMUL1MIN~/SEW~LMUL1MAX~, there is no guarantee
+an implementation would have enough bits in the fractional vector
+register to store at least one element, as VLEN=SEW~LMUL1MAX~ is a
+valid implementation choice. For example, with VLEN=SEW~LMUL1MAX~=32,
+and SEW~LMUL1MIN~=8, an LMUL of 1/8 would only provide four bits of
+storage in a vector register.
+
+NOTE: The constraint is written using SEW~LMUL1MAX~ and not ELEN
+because some profiles might only support larger SEW values for LMUL>1.
+In these cases, the constraint ensures that no more than the minimum
+number of vector registers are needed to hold wider supported
+element widths even when code is also performing operations on the
+narrowest-supported elements.  
 
 For a given supported fractional LMUL setting, implementations must support
 SEW settings between SEW~LMUL1MIN~ and LMUL * SEW~LMUL1MAX~, inclusive.
 
-NOTE: Requiring LMUL {ge} SEW~LMUL1MIN~/SEW~LMUL1MAX~ allows software
-operating on mixed-width elements to only use a single vector register
-to hold the wider elements, with fractional
-LMUL used to hold narrower elements.  When LMUL <
-SEW~LMUL1MIN~/SEW~LMUL1MAX~, there is no guarantee an implementation
-would have enough bits in the fractional vector register to store at
-least one element, as VLEN=SEW~LMUL1MAX~ is a valid implementation
-choice.
-
-NOTE: The constraint is written using SEW~LMUL1MAX~ and not ELEN
-because some systems might only support larger SEW values for LMUL>1.
-Note that in these cases, the constraint ensures that no more than a
-single vector register is needed to hold the widest-supported element
-that can be held in a single vector register, when code is also
-performing operations on narrower widths.
+An attempt to set an unsupported SEW and LMUL configuration sets the
+`vill` bit in `vtype`.
 
 The use of `vtype` encodings with LMUL < SEW~LMUL1MIN~/SEW~LMUL1MAX~ is
 __reserved__, but implementations can set `vill` if they do not
 support these configurations.
 
 NOTE: Requiring all implementations to set `vill` in this case would
-prohibit future use of this case in an extension, so to allow for
-a future definition of LMUL<SEW~LMUL1MIN~/SEW~LMUL1MAX~ behavior, we consider
-the use of this case to be __reserved__.
+prohibit future use of this case in an extension, so to allow for a
+future definition of LMUL<SEW~LMUL1MIN~/SEW~LMUL1MAX~ behavior, we
+consider the use of this case to be __reserved__.
 
 NOTE: It is recommended that assemblers provide a warning (not an
 error) if a `vsetvli` instruction attempts to write an LMUL < SEW~LMUL1MIN~/SEW~LMUL1MAX~.
 
-LMUL is set by the signed `vlmul` field in `vtype` (LMUL =
+LMUL is set by the signed `vlmul` field in `vtype` (i.e., LMUL =
 2^`vlmul[2:0]`^).
 
 The derived value VLMAX = LMUL*VLEN/SEW represents the maximum number
