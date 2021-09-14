@@ -41,6 +41,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Clarified checking of illegal values in `vtype`.
 
+=== Made clear that calling convention appendix here is only a placeholder to help understand the examples, with RISC-V psABI being expanded to contain the authoritative calling convention.
+
 :sectnums:
 
 == Introduction

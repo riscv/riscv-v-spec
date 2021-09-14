@@ -1,5 +1,10 @@
 [appendix]
-== Calling Convention
+== Calling Convention (Not authoritative - Placeholder Only)
+
+NOTE: This Appendix is only a placeholder to help explain the
+conventions used in the code examples, and is not considered frozen or
+part of the ratification process.  The official RISC-V psABI document
+is being expanded to specify the vector calling conventions.
 
 In the RISC-V psABI, the vector registers `v0`-`v31` are all caller-saved.
 The `vl` and `vtype` CSRs are also caller-saved.
