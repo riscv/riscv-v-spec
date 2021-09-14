@@ -43,6 +43,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Made clear that calling convention appendix here is only a placeholder to help understand the examples, with RISC-V psABI being expanded to contain the authoritative calling convention.
 
+=== Clarified the `vxsat` is in bit 0 of the CSR and that upper bits should be written as zeros.
+
 :sectnums:
 
 == Introduction
@@ -628,8 +630,8 @@ a vector arithmetic instruction when `vstart` is nonzero.
 NOTE: When migrating a software thread between two harts with
 different microarchitectures, the `vstart` value might not be
 supported by the new hart microarchitecture.  The runtime on the
-receiving hart might then have to emulate instruction execution to a
-supported vstart element position.  Alternatively, migration events
+receiving hart might then have to emulate instruction execution up to the
+next supported `vstart` element position.  Alternatively, migration events
 can be constrained to only occur at mutually supported `vstart`
 locations.
 
@@ -672,11 +674,13 @@ rounding mode using a single `csrwi` instruction.
 
 === Vector Fixed-Point Saturation Flag `vxsat`
 
-The `vxsat` CSR holds a single read-write bit that indicates if a
-fixed-point instruction has had to saturate an output value to fit
-into a destination format.
+The `vxsat` CSR has a single read-write least-significant bit that
+indicates if a fixed-point instruction has had to saturate an output
+value to fit into a destination format.
 
 The `vxsat` bit is mirrored in `vcsr`.
+
+Bits `vxsat[XLEN-1:1]` should be written as zeros.
 
 === Vector Control and Status Register `vcsr`
 
