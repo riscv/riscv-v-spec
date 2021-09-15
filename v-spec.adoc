@@ -37,8 +37,6 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Added definition of behavior under hypervisor.
 
-=== Made SEW~LMUL1MAX~  (the largest SEW supported when LMUL=1) a required parameter for an implementation.
-
 === Clarified checking of illegal values in `vtype`.
 
 === Made clear that calling convention appendix here is only a placeholder to help understand the examples, with RISC-V psABI being expanded to contain the authoritative calling convention.
@@ -46,6 +44,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 === Clarified the `vxsat` is in bit 0 of the CSR and that upper bits should be written as zeros.
 
 === Clarified that `vxrm` field is in low two bits of the CSR and that upper bits should be written as zeros.
+
+=== Simplified explanations by removing text refering to option to have one element span multiple vector registers (ELEN {gt} VLEN), as this is not being proposed at this time.
 
 :sectnums:
 
@@ -72,19 +72,18 @@ supported by each extension.
 
 == Implementation-defined Constant Parameters
 
-Each hart supporting a vector extension defines three parameters:
+Each hart supporting a vector extension defines two parameters:
 
 . The maximum size in bits of a vector element that any operation can produce or consume, _ELEN_ {ge} 8, which
 must be a power of 2.
-. The number of bits in a single vector register, _VLEN_, which must
-be a power of 2 and must be no greater than 2^16^.
-. The maximum size in bits of a vector element that can be held using only one vector register, SEW~LMUL1MAX~, which must be a power of 2 and {le} ELEN and {le} VLEN.
-
-Current standard vector extensions have SEW~LMUL1MAX~=ELEN but future
-vector extensions might relax this constraint.
+. The number of bits in a single vector register, _VLEN_ {ge} ELEN, which must be a power of 2, and must be no greater than 2^16^.
 
 Standard vector extensions (Section <<sec-vector-extensions>>) and
 architecture profiles may set further constraints on _ELEN_ and _VLEN_.
+
+NOTE: Future extensions may allow ELEN {gt} VLEN by holding one
+element using bits from multiple vector registers, but this current
+proposal does not include this option.
 
 NOTE: The upper limit on VLEN allows software to know that indices
 will fit into 16 bits (largest VLMAX of 65,536 occurs for LMUL=8 and
@@ -313,7 +312,7 @@ NOTE: With only integer LMUL values, a loop operating on a range of
 sizes would have to allocate at least one whole vector register
 (LMUL=1) for the narrowest data type and then would consume multiple
 vector registers (LMUL>1) to form a vector register group for each
-wider operand.  This can limit the number of vector register groups
+wider vector operand.  This can limit the number of vector register groups
 available.  With fractional LMUL, the widest values need occupy only a
 single vector register while narrower values can occupy a fraction of
 a single vector register, allowing all 32 architectural vector
@@ -326,49 +325,40 @@ register-resident vectors.
 Implementations must provide fractional LMUL settings that allow the
 narrowest supported type to occupy a fraction of a vector register
 corresponding to the ratio of the narrowest supported type's width to
-that of the largest supported type's width at LMUL=1.
+that of the largest supported type's width.
 
 For standard vector extensions with ELEN=32, fractional LMULs of 1/2
 and 1/4 must be supported.  For standard vector extensions with
 ELEN=64, fractional LMULs of 1/2, 1/4, and 1/8 must be supported.  In
-general, the requirement is to support LMUL {ge}
-SEW~LMUL1MIN~/SEW~LMUL1MAX~, where SEW~LMUL1MIN~ is the narrowest
-supported SEW value at LMUL=1 and SEW~LMUL1MAX~ is the widest
-supported SEW value at LMUL=1. 
+general, the requirement is to support LMUL {ge} SEW~MIN~/ELEN, where
+SEW~MIN~ is the narrowest supported SEW value and ELEN is the widest
+supported SEW value.  In the current proposed standard extensions,
+SEW~MIN~=8.
 
-NOTE: When LMUL < SEW~LMUL1MIN~/SEW~LMUL1MAX~, there is no guarantee
+NOTE: When LMUL < SEW~MIN~/ELEN, there is no guarantee
 an implementation would have enough bits in the fractional vector
-register to store at least one element, as VLEN=SEW~LMUL1MAX~ is a
-valid implementation choice. For example, with VLEN=SEW~LMUL1MAX~=32,
-and SEW~LMUL1MIN~=8, an LMUL of 1/8 would only provide four bits of
+register to store at least one element, as VLEN=ELEN is a
+valid implementation choice. For example, with VLEN=ELEN=32,
+and SEW~MIN~=8, an LMUL of 1/8 would only provide four bits of
 storage in a vector register.
 
-NOTE: The constraint is written using SEW~LMUL1MAX~ and not ELEN
-because some profiles might only support larger SEW values for LMUL>1.
-In these cases, the constraint ensures that no more than the minimum
-number of vector registers are needed to hold wider supported element
-widths even when code is also performing operations on the
-narrowest-supported elements.  See Section <<sec-mapping-mixed>> for
-table showing how fractional LMUL improves support for mixed-width
-operations.
-
 For a given supported fractional LMUL setting, implementations must support
-SEW settings between SEW~LMUL1MIN~ and LMUL * SEW~LMUL1MAX~, inclusive.
+SEW settings between SEW~MIN~ and LMUL * ELEN, inclusive.
 
 An attempt to set an unsupported SEW and LMUL configuration sets the
 `vill` bit in `vtype`.
 
-The use of `vtype` encodings with LMUL < SEW~LMUL1MIN~/SEW~LMUL1MAX~ is
+The use of `vtype` encodings with LMUL < SEW~MIN~/ELEN is
 __reserved__, but implementations can set `vill` if they do not
 support these configurations.
 
 NOTE: Requiring all implementations to set `vill` in this case would
 prohibit future use of this case in an extension, so to allow for a
-future definition of LMUL<SEW~LMUL1MIN~/SEW~LMUL1MAX~ behavior, we
+future definition of LMUL<SEW~MIN~/ELEN behavior, we
 consider the use of this case to be __reserved__.
 
 NOTE: It is recommended that assemblers provide a warning (not an
-error) if a `vsetvli` instruction attempts to write an LMUL < SEW~LMUL1MIN~/SEW~LMUL1MAX~.
+error) if a `vsetvli` instruction attempts to write an LMUL < SEW~MIN~/ELEN.
 
 LMUL is set by the signed `vlmul` field in `vtype` (i.e., LMUL =
 2^`vlmul[2:0]`^).
@@ -736,7 +726,7 @@ rearrange vector data for different SEW to reduce datapath wiring
 costs, while externally preserving the simple software model.
 
 NOTE: For example, microarchitectures can track the EEW with which a
-vector register was written, and the insert additional scrambling
+vector register was written, and then insert additional scrambling
 operations to rearrange data if the register is accessed with a
 different EEW.
 
@@ -928,50 +918,9 @@ that also have an LMUL setting, such that all have the same VLMAX.
 | SEW=  64 |   |    |    |  8 |  4  |  2  |   1
 |===
 
-
 Larger LMUL settings can also used to simply increase vector length to
 reduce instruction fetch and dispatch overheads in cases where fewer
 vector register groups are needed.
-
-=== Mapping for LMUL > 1 and ELEN > VLEN
-
-NOTE: This section is included for completeness but no proposed
-standard vector extension supports ELEN > VLEN.
-
-If vector registers are grouped to support larger SEW, with ELEN >
-VLEN, the vector registers in the group are concatenated to form a
-single array of bytes, with the lowest-numbered register in the group
-holding the lowest-addressed bytes from the memory layout.
-
-----
- LMUL > 1 ELEN>VLEN, examples
-
- VLEN=32b, SEW=64b, LMUL=2
-
- Byte         3 2 1 0
- v2*n               0
- v2*n+1
-
- VLEN=32b, SEW=64b, LMUL=4
-
- Byte         3 2 1 0
- v4*n               0
- v4*n+1
- v4*n+2             1
- v4*n+3
-
- VLEN=32b, SEW=64b, LMUL=8
-
- Byte         3 2 1 0
- v8*n               0
- v8*n+1
- v8*n+2             1
- v8*n+3
- v8*n+4             2
- v8*n+5
- v8*n+6             3
- v8*n+7
-----
 
 [[sec-mask-register-layout]]
 === Mask Register Layout
