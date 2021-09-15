@@ -325,15 +325,13 @@ register-resident vectors.
 Implementations must provide fractional LMUL settings that allow the
 narrowest supported type to occupy a fraction of a vector register
 corresponding to the ratio of the narrowest supported type's width to
-that of the largest supported type's width.
-
-For standard vector extensions with ELEN=32, fractional LMULs of 1/2
-and 1/4 must be supported.  For standard vector extensions with
-ELEN=64, fractional LMULs of 1/2, 1/4, and 1/8 must be supported.  In
-general, the requirement is to support LMUL {ge} SEW~MIN~/ELEN, where
-SEW~MIN~ is the narrowest supported SEW value and ELEN is the widest
-supported SEW value.  In the current proposed standard extensions,
-SEW~MIN~=8.
+that of the largest supported type's width.  In general, the
+requirement is to support LMUL {ge} SEW~MIN~/ELEN, where SEW~MIN~ is
+the narrowest supported SEW value and ELEN is the widest supported SEW
+value.  In the current proposed standard extensions, SEW~MIN~=8.  For
+standard vector extensions with ELEN=32, fractional LMULs of 1/2 and
+1/4 must be supported.  For standard vector extensions with ELEN=64,
+fractional LMULs of 1/2, 1/4, and 1/8 must be supported.
 
 NOTE: When LMUL < SEW~MIN~/ELEN, there is no guarantee
 an implementation would have enough bits in the fractional vector
