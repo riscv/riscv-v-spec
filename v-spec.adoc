@@ -45,6 +45,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Clarified the `vxsat` is in bit 0 of the CSR and that upper bits should be written as zeros.
 
+=== Clarified that `vxrm` field is in low two bits of the CSR and that upper bits should be written as zeros.
+
 :sectnums:
 
 == Introduction
@@ -638,9 +640,16 @@ locations.
 === Vector Fixed-Point Rounding Mode Register `vxrm`
 
 The vector fixed-point rounding-mode register holds a two-bit
-read-write rounding-mode field.  The vector fixed-point rounding-mode
-is given a separate CSR address to allow independent access, but is
-also reflected as a field in `vcsr`.
+read-write rounding-mode field in the least-significant bits
+(`vxrm[1:0]`).  The upper bits, `vxrm[XLEN-1:2]`, should be written as
+zeros.
+
+The vector fixed-point rounding-mode is given a separate CSR address
+to allow independent access, but is also reflected as a field in
+`vcsr`.
+
+NOTE: A new rounding mode can be set while saving the original
+rounding mode using a single `csrwi` instruction.
 
 The fixed-point rounding algorithm is specified as follows.
 Suppose the pre-rounding result is `v`, and `d` bits of that result are to be
@@ -667,20 +676,14 @@ roundoff_signed(v, d) = (signed(v) >> d) + r
 ----
 are used to represent this operation in the instruction descriptions below.
 
-`vxrm[XLEN-1:2]` should be written as zeros.
-
-NOTE: A new rounding mode can be set while saving the original
-rounding mode using a single `csrwi` instruction.
-
 === Vector Fixed-Point Saturation Flag `vxsat`
 
-The `vxsat` CSR has a single read-write least-significant bit that
-indicates if a fixed-point instruction has had to saturate an output
-value to fit into a destination format.
+The `vxsat` CSR has a single read-write least-significant bit
+(`vxsat[0]`) that indicates if a fixed-point instruction has had to
+saturate an output value to fit into a destination format.
+Bits `vxsat[XLEN-1:1]` should be written as zeros.
 
 The `vxsat` bit is mirrored in `vcsr`.
-
-Bits `vxsat[XLEN-1:1]` should be written as zeros.
 
 === Vector Control and Status Register `vcsr`
 
