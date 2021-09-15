@@ -418,10 +418,12 @@ All systems must support all four options:
 |   1   |   1   | agnostic      | agnostic
 |===
 
+Mask destination tail elements are always treated as tail-agnostic,
+regardless of the setting of `vta`.
+
 When a set is marked undisturbed, the corresponding set of destination
 elements in a vector register group retain the value they previously
-held.   Mask destination values are always treated as tail-agnostic,
-regardless of the setting of `vta`.
+held.
 
 When a set is marked agnostic, the corresponding set of destination
 elements in any vector destination operand can either retain the value
@@ -431,30 +433,12 @@ or overwritten with 1s, in any combination, and the pattern of
 undisturbed or overwritten with 1s is not required to be deterministic
 when the instruction is executed with the same inputs.
 
-NOTE: The agnostic policy was added to accommodate machines with vector
-register renaming, and/or that have deeply temporal vector registers.
-With an undisturbed policy, all elements would have to be read from
-the old physical destination vector register to be copied into the new
-physical destination vector register.  This causes an inefficiency
-when these inactive or tail values are not required for subsequent
-calculations.
-
-In addition, except for mask load instructions, any element in the
-tail of a mask result can also be written with the value the
-mask-producing operation would have calculated with `vl`=VLMAX.
-Furthermore, for mask-logical instructions and `vmsbf.m`, `vmsif.m`,
-`vmsof.m` mask-manipulation instructions, any element in the tail of
-the result can be written with the value the mask-producing operation
-would have calculated with `vl`=VLEN, SEW=8, and LMUL=8.
-
-NOTE: Mask tails are always treated as agnostic to reduce complexity
-of managing mask data, which can be written at bit granularity.  There
-appears to be little software need to support tail-undisturbed for
-mask register values.  Allowing mask-generating instructions to write
-back the result of the instruction avoids the need for logic to mask
-out the tail, except mask loads cannot write memory values to
-destination mask tails as this would imply accessing memory past
-software intent.
+NOTE: The agnostic policy was added to accommodate machines with
+vector register renaming.  With an undisturbed policy, all elements
+would have to be read from the old physical destination vector
+register to be copied into the new physical destination vector
+register.  This causes an inefficiency when these inactive or tail
+values are not required for subsequent calculations.
 
 NOTE: The value of all 1s instead of all 0s was chosen for the
 overwrite value to discourage software developers from depending on
@@ -481,7 +465,25 @@ policies for different granules of a vector register, for example,
 using undisturbed within a granule that is actively operated on but
 renaming to all 1s for granules in the tail.
 
-The assembly syntax adds two flags to the `vsetvli` instruction:
+In addition, except for mask load instructions, any element in the
+tail of a mask result can also be written with the value the
+mask-producing operation would have calculated with `vl`=VLMAX.
+Furthermore, for mask-logical instructions and `vmsbf.m`, `vmsif.m`,
+`vmsof.m` mask-manipulation instructions, any element in the tail of
+the result can be written with the value the mask-producing operation
+would have calculated with `vl`=VLEN, SEW=8, and LMUL=8 (i.e., all
+bits of the mask register can be overwritten).
+
+NOTE: Mask tails are always treated as agnostic to reduce complexity
+of managing mask data, which can be written at bit granularity.  There
+appears to be little software need to support tail-undisturbed for
+mask register values.  Allowing mask-generating instructions to write
+back the result of the instruction avoids the need for logic to mask
+out the tail, except mask loads cannot write memory values to
+destination mask tails as this would imply accessing memory past
+software intent.
+
+The assembly syntax adds two mandatory flags to the `vsetvli` instruction:
 
 ----
  ta   # Tail agnostic
@@ -495,16 +497,14 @@ The assembly syntax adds two flags to the `vsetvli` instruction:
  vsetvli t0, a0, e32, m4, tu, mu   # Tail undisturbed, mask undisturbed
 ----
 
-NOTE: To maintain backward compatibility in the short term and reduce
-software churn in the move to 0.9, when these flags are not specified
-on a `vsetvli`, they should default to
-mask-undisturbed/tail-undisturbed.  The use of `vsetvli` without these
-flags should be deprecated, however, such that the specifying a flag
-setting becomes mandatory.  If anything, the default should be
-tail-agnostic/mask-agnostic, so software has to specify when it cares
-about the non-participating elements, but given the historical meaning
-of the instruction prior to introduction of these flags, it is safest
-to always require them in future assembly code.
+NOTE: Prior to v0.9, when these flags were not specified on a
+`vsetvli`, they defaulted to mask-undisturbed/tail-undisturbed.  The
+use of `vsetvli` without these flags is deprecated, however, and
+specifying a flag setting is now mandatory.  The default should
+perhaps be tail-agnostic/mask-agnostic, so software has to specify
+when it cares about the non-participating elements, but given the
+historical meaning of the instruction prior to introduction of these
+flags, it was decided to always require them in future assembly code.
 
 ==== Vector Type Illegal `vill`
 
