@@ -799,10 +799,10 @@ treated as part of the tail, and hence must obey the vta setting.
 === Mapping for LMUL > 1
 
 When vector registers are grouped, the elements of the vector register
-group are striped across the constituent vector registers.  The
-elements are packed contiguously in element order in each vector
-register in the group, moving to the next highest-numbered vector
-register in the group once each vector register is filled.
+group are packed contiguously in element order beginning with the
+lowest-numbered vector register and moving to the
+next-highest-numbered vector register in the group once each vector
+register is filled.
 
 ----
  LMUL > 1 examples
