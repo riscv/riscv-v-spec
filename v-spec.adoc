@@ -346,9 +346,11 @@ storage in a vector register.
 NOTE: The constraint is written using SEW~LMUL1MAX~ and not ELEN
 because some profiles might only support larger SEW values for LMUL>1.
 In these cases, the constraint ensures that no more than the minimum
-number of vector registers are needed to hold wider supported
-element widths even when code is also performing operations on the
-narrowest-supported elements.  
+number of vector registers are needed to hold wider supported element
+widths even when code is also performing operations on the
+narrowest-supported elements.  See Section <<sec-mapping-mixed>> for
+table showing how fractional LMUL improves support for mixed-width
+operations.
 
 For a given supported fractional LMUL setting, implementations must support
 SEW settings between SEW~LMUL1MIN~ and LMUL * SEW~LMUL1MAX~, inclusive.
@@ -726,6 +728,18 @@ SEW and LMUL settings, as well as implementation VLEN.  Elements are
 packed into each vector register with the least-significant byte in
 the lowest-numbered bits.
 
+The mapping was chosen to provide the simplest and most portable model
+for software, but might appear to incur large wiring cost for wider
+vector datapaths on certain operations.  The vector instruction set
+was expressly designed to support implementations that internally
+rearrange vector data for different SEW to reduce datapath wiring
+costs, while externally preserving the simple software model.
+
+NOTE: For example, microarchitectures can track the EEW with which a
+vector register was written, and the insert additional scrambling
+operations to rearrange data if the register is accessed with a
+different EEW.
+
 === Mapping for LMUL = 1
 
 When LMUL=1, elements are simply packed in order from the
@@ -864,13 +878,14 @@ register is filled.
  v4*n+3              F       E       D       C
 ----
 
+[[sec-mapping-mixed]]
 === Mapping across Mixed-Width Operations
 
 The vector ISA is designed to support mixed-width operations without
-requiring explicit additional rearrangement instructions.  The
-recommended software strategy when operating on vectors of different
-precision values is to modify `vtype` dynamically to keep SEW/LMUL
-constant (and hence VLMAX constant).
+requiring additional explicit rearrangement instructions.  The
+recommended software strategy when operating on multiple vectors with
+different precision values is to modify `vtype` dynamically to keep
+SEW/LMUL constant (and hence VLMAX constant).
 
 The following example shows four different packed element widths (8b,
 16b, 32b, 64b) in a VLEN=128b implementation.  The vector register
@@ -920,6 +935,9 @@ vector register groups are needed.
 
 === Mapping for LMUL > 1 and ELEN > VLEN
 
+NOTE: This section is included for completeness but no proposed
+standard vector extension supports ELEN > VLEN.
+
 If vector registers are grouped to support larger SEW, with ELEN >
 VLEN, the vector registers in the group are concatenated to form a
 single array of bytes, with the lowest-numbered register in the group
@@ -959,84 +977,11 @@ holding the lowest-addressed bytes from the memory layout.
 === Mask Register Layout
 
 A vector mask occupies only one vector register regardless of SEW and
-LMUL.  Each element is allocated a single mask bit in a mask vector
-register.
+LMUL.
 
-NOTE: Earlier designs (pre-0.9) had a varying number of bits per mask
-value (MLEN).  In the 0.9 design, MLEN=1.
-
-==== Mask Element Locations
-
+Each element is allocated a single mask bit in a mask vector register.
 The mask bit for element _i_ is located in bit _i_ of the mask
 register, independent of SEW or LMUL.
-
-----
- VLEN=32b
-
-          Byte    3   2   1   0
- LMUL=1,SEW=8b
-                  3   2   1   0  Element
-                [03][02][01][00] Mask bit position in decimal
-
- LMUL=2,SEW=16b
-                      1       0
-                    [01]    [00]
-                      3       2
-                    [03]    [02]
-
- LMUL=4,SEW=32b               0
-                            [00]
-                              1
-                            [01]
-                              2
-                            [02]
-                              3
-                            [03]
-----
-
-----
- LMUL=2,SEW=8b
-                  3   2   1   0
-                [03][02][01][00]
-                  7   6   5   4
-                [07][06][05][04]
-
- LMUL=8,SEW=32b
-                              0
-                            [00]
-                              1
-                            [01]
-                              2
-                            [02]
-                              3
-                            [03]
-                              4
-                            [04]
-                              5
-                            [05]
-                              6
-                            [06]
-                              7
-                            [07]
-
- LMUL=8,SEW=8b
-                  3   2   1   0
-                [03][02][01][00]
-                  7   6   5   4
-                [07][06][05][04]
-                  B   A   9   8
-                [11][10][09][08]
-                  F   E   D   C
-                [15][14][13][12]
-                 13  12  11  10
-                [19][18][17][16]
-                 17  16  15  14
-                [23][22][21][20]
-                 1B  1A  19  18
-                [27][26][25][24]
-                 1F  1E  1D  1C
-                [31][30][29][28]
-----
 
 == Vector Instruction Formats
 
