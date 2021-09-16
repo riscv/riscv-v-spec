@@ -1224,7 +1224,7 @@ set to zero, and the `vl` register is also set to zero.
 
 NOTE: Earlier drafts required a trap when setting `vtype` to an
 illegal value.  However, this would have added the first
-data-dependent trap on a CSR write to the ISA.  Implementations may
+data-dependent trap on a CSR write to the ISA.  Implementations could
 choose to trap when illegal values are written to `vtype` instead of
 setting `vill`, to allow emulation to support new configurations for
 forward-compatibility.  The current scheme supports light-weight
@@ -1280,12 +1280,12 @@ NOTE: The encoding of AVL for `vsetivli` is the same as for regular
 CSR immediate values.
 
 NOTE: The `vsetivli` instruction provides more compact code when the
-dimensions of vectors are small, and known to fit inside the vector
-registers, so do not need stripmining overhead.
+dimensions of vectors are small and known to fit inside the vector
+registers, in which case there is no stripmining overhead.
 
 === Constraints on Setting `vl`
 
-The `vset{i}vl{i}` instructions first set VLMAX according to the `vtype`
+The `vset{i}vl{i}` instructions first set VLMAX according to their `vtype`
 argument, then set `vl` obeying the following constraints:
 
 . `vl = AVL` if `AVL {le} VLMAX`
