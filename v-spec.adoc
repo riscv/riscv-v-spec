@@ -991,9 +991,9 @@ Some vector instructions have source and destination vector operands
 with the same number of elements but different widths, so that EEW and
 EMUL differ from SEW and LMUL respectively but EEW/EMUL = SEW/LMUL.
 For example, most widening arithmetic instructions have a source group
-with EEW=SEW and EMUL=LMUL but destination group with EEW=2*SEW and
+with EEW=SEW and EMUL=LMUL but have a destination group with EEW=2*SEW and
 EMUL=2*LMUL.  Narrowing instructions have a source operand that has
-EEW=2*SEW and EMUL=2*LMUL but destination where EEW=SEW and EMUL=LMUL.
+EEW=2*SEW and EMUL=2*LMUL but with a destination where EEW=SEW and EMUL=LMUL.
 
 Vector operands or results may occupy one or more vector registers
 depending on EMUL, but are always specified using the lowest-numbered
@@ -1013,8 +1013,11 @@ group only if one of the following holds:
   destination register group (e.g., when LMUL=8, `vzext.vf4 v0, v6` is legal,
   but a source of `v0`, `v2`, or `v4` is not).
 
-For the purpose of register group overlap constraints, mask elements have
-EEW=1.
+For the purpose of determining register group overlap constraints,
+mask elements have EEW=1.
+
+NOTE: The overlap constraints are designed to support resumable
+exceptions in machines without register renaming.
 
 The largest vector register group used by an instruction can not be
 greater than 8 vector registers (i.e., EMUL{le}8), and if a vector
@@ -1023,15 +1026,9 @@ the instruction encoding is reserved.  For example, a widening
 operation that produces a widened vector register group result when
 LMUL=8 is reserved as this would imply a result EMUL=16.
 
-Widened scalar values, e.g., results from widening reduction
-operations, are held in the first element of a vector register and
+Widened scalar values, e.g., input and output to a widening reduction
+operation, are held in the first element of a vector register and
 have EMUL=1.
-
-NOTE: Current reduction operations are defined to hold input and
-output values in a single vector register, with implicit EMUL of 1, so
-cannot accommodate using a vector register group to hold a wide scalar
-reduction result.  This would require an independent parameter to give
-the EMUL for the scalar reduction element.
 
 === Vector Masking
 
