@@ -985,6 +985,7 @@ would provide the advantage of lowering the number of state bits in
 some implementations, but complicates high-performance designs and
 would prevent compatibility with the proposed Zfinx ISA option.
 
+[[sec-vec-operands]]
 === Vector Operands
 
 Each vector operand has an _effective_ _element_ _width_ (EEW) and an
@@ -2314,12 +2315,12 @@ operands are always next to each other.
 === Widening Vector Arithmetic Instructions
 
 A few vector arithmetic instructions are defined to be __widening__
-operations where the destination vector register group has EEW=2*SEW and
-EMUL=2*LMUL.
+operations where the destination vector register group has EEW=2*SEW
+and EMUL=2*LMUL.  These are generally given a `vw*` prefix on the
+opcode, or `vfw*` for vector floating-point instructions.
 
 The first vector register group operand can be either single or
-double-width. These are generally written with a `vw*` prefix on the
-opcode or `vfw*` for vector floating-point operations.
+double-width.
 
 ----
 Assembly syntax pattern for vector widening arithmetic instructions
@@ -2341,25 +2342,8 @@ NOTE: The floating-point widening operations were changed to `vfw*`
 from `vwf*` to be more consistent with any scalar widening
 floating-point operations that will be written as `fw*`.
 
-NOTE: For integer multiply-add, another possible widening option
-increases the size of the accumulator to EEW=4*SEW (i.e., 4*SEW +=
-SEW*SEW).  These would be distinguished by a `vq*` prefix on the
-opcode, for quad-widening.  These are not included at this time, but
-are a possible addition in a future extension.
-
-For all widening instructions, the destination EEW and EMUL values
-must be a supported configuration, otherwise the instruction encoding
-is reserved.
-
-The destination vector register group must be specified using a vector
-register number that is valid for the destination's EMUL, otherwise the
-instruction encoding is reserved.
-
-NOTE: This constraint is necessary to support restart with non-zero
-`vstart`.
-
-NOTE: For the `vw<op>.wv vd, vs2, vs1` format instructions, it is legal
-for vd to equal vs2.
+Widening instruction encodings with register specifiers that do not
+follow the constraints in Section <<sec-vec-operands>> are reserved.
 
 [[sec-narrowing]]
 === Narrowing Vector Arithmetic Instructions
