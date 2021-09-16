@@ -53,6 +53,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Made clear that `nf` is encoded same as NFIELDS when used in whole register load/store instructions.
 
+=== Clarified that instructions with register specifiers that violate register overlap constraints are reserved.
+
 :sectnums:
 
 == Introduction
@@ -1025,6 +1027,8 @@ mask elements have EEW=1.
 
 NOTE: The overlap constraints are designed to support resumable
 exceptions in machines without register renaming.
+
+Any instruction encoding that violates the overlap constraints is reserved.
 
 The largest vector register group used by an instruction can not be
 greater than 8 vector registers (i.e., EMUL{le}8), and if a vector
