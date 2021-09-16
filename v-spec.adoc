@@ -2235,25 +2235,27 @@ logic.
 Vector-vector operations take two vectors of operands from vector
 register groups specified by `vs2` and `vs1` respectively.
 
-Vector-scalar operations can have three possible forms, but in all
-cases take one vector of operands from a vector register group
-specified by `vs2` and a second scalar source operand from one of
-three alternative sources.
+Vector-scalar operations can have three possible forms.  In all three forms,
+the vector register group operand is specified by `vs2`.  The second
+scalar source operand comes from one of three alternative sources:
 
-. For integer operations, the scalar can be a 5-bit immediate encoded
+. For integer operations, the scalar can be a 5-bit immediate, `imm[4:0]`, encoded
 in the `rs1` field.  The value is sign-extended to SEW bits, unless
-otherwise specified.  . For integer operations, the scalar can be
-taken from the scalar `x` register specified by `rs1`.  If XLEN>SEW,
-the least-significant SEW bits of the `x` register are used, unless
-otherwise specified.  If XLEN<SEW, the value from the `x` register is
-sign-extended to SEW bits.  For floating-point operations, the
-scalar can be taken from a scalar `f` register.  If FLEN > SEW, the
-value in the `f` registers is checked for a valid NaN-boxed value, in
-which case the least-significant SEW bits of the `f` register are
-used, else the canonical NaN value is used.  Vector instructions where
-any floating-point vector operand's EEW is not a supported
-floating-point type width (which includes when FLEN < SEW) are
-reserved.
+otherwise specified.
+
+. For integer operations, the scalar can be taken from the scalar `x`
+register specified by `rs1`.  If XLEN>SEW, the least-significant SEW
+bits of the `x` register are used, unless otherwise specified.  If
+XLEN<SEW, the value from the `x` register is sign-extended to SEW
+bits.
+
+. For floating-point operations, the scalar can be taken from a scalar
+`f` register.  If FLEN > SEW, the value in the `f` registers is
+checked for a valid NaN-boxed value, in which case the
+least-significant SEW bits of the `f` register are used, else the
+canonical NaN value is used.  Vector instructions where any
+floating-point vector operand's EEW is not a supported floating-point
+type width (which includes when FLEN < SEW) are reserved.
 
 NOTE: Some instructions _zero_-extend the 5-bit immediate, and denote this
 by naming the immediate `uimm` in the assembly syntax.
