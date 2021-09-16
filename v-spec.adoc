@@ -2346,43 +2346,43 @@ NOTE: The floating-point widening operations were changed to `vfw*`
 from `vwf*` to be more consistent with any scalar widening
 floating-point operations that will be written as `fw*`.
 
-Widening instruction encodings with register specifiers that do not
-follow the constraints in Section <<sec-vec-operands>> are reserved.
+Widening instruction encodings must follow the constraints in Section
+<<sec-vec-operands>>.
 
 [[sec-narrowing]]
 === Narrowing Vector Arithmetic Instructions
 
 A few instructions are provided to convert double-width source vectors
 into single-width destination vectors.  These instructions convert a
-vector register group with EEW/EMUL=2*SEW/2*LMUL to a vector register
-group with the current SEW/LMUL setting.
-
-If EEW > ELEN or EMUL > 8, the instruction encoding is reserved.
+vector register group specified by `vs2` with EEW/EMUL=2*SEW/2*LMUL to a vector register
+group with the current SEW/LMUL setting.  Where there is a second
+source vector register group (specified by `vs1`), this has the same
+(narrower) width as the result (i.e., EEW=SEW).
 
 NOTE: An alternative design decision would have been to treat SEW/LMUL
 as defining the size of the source vector register group.  The choice
 here is motivated by the belief the chosen approach will require fewer
 `vtype` changes.
 
-The source and destination vector register groups have to be specified
-with a vector register number that is legal for the source and
-destination EMUL values respectively, otherwise the instruction
-encoding is reserved.
-
-Where there is a second source vector register group (specified by
-`vs1`), this has the same (narrower) width as the result (i.e.,
-EEW=SEW).
-
-NOTE: It is safe to overwrite a second source vector register group
-with the same EEW and EMUL as the result.
+NOTE: Comparison operations that set a mask register are also
+implicitly a narrowing operation.
 
 A `vn*` prefix on the opcode is used to distinguish these instructions
 in the assembler, or a `vfn*` prefix for narrowing floating-point
 opcodes.  The double-width source vector register group is signified
 by a `w` in the source operand suffix (e.g., `vnsra.wv`)
 
-NOTE: Comparison operations that set a mask register are also
-implicitly a narrowing operation.
+----
+Assembly syntax pattern for vector narrowing arithmetic instructions
+
+# Single-width result vd, double-width source vs2, single-width source vs1/rs1
+# SEW = 2*SEW op SEW
+vnop.wv  vd, vs2, vs1, vm  # integer vector-vector      vd[i] = vs2[i] op vs1[i]
+vnop.wx  vd, vs2, rs1, vm  # integer vector-scalar      vd[i] = vs2[i] op x[rs1]
+----
+
+Narrowing instruction encodings must follow the constraints in Section
+<<sec-vec-operands>>.
 
 [[sec-vector-integer]]
 == Vector Integer Arithmetic Instructions
