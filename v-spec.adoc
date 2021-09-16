@@ -1674,28 +1674,28 @@ address are required, then an ordered indexed operation can be used.
     # Vector indexed loads and stores
 
     # Vector indexed-unordered load instructions
-    # vd destination, rs1 base address, vs2 indices
+    # vd destination, rs1 base address, vs2 byte offsets
     vluxei8.v    vd, (rs1), vs2, vm  # unordered  8-bit indexed load of SEW data
     vluxei16.v   vd, (rs1), vs2, vm  # unordered 16-bit indexed load of SEW data
     vluxei32.v   vd, (rs1), vs2, vm  # unordered 32-bit indexed load of SEW data
     vluxei64.v   vd, (rs1), vs2, vm  # unordered 64-bit indexed load of SEW data
 
     # Vector indexed-ordered load instructions
-    # vd destination, rs1 base address, vs2 indices
+    # vd destination, rs1 base address, vs2 byte offsets
     vloxei8.v    vd, (rs1), vs2, vm  # ordered  8-bit indexed load of SEW data
     vloxei16.v   vd, (rs1), vs2, vm  # ordered 16-bit indexed load of SEW data
     vloxei32.v   vd, (rs1), vs2, vm  # ordered 32-bit indexed load of SEW data
     vloxei64.v   vd, (rs1), vs2, vm  # ordered 64-bit indexed load of SEW data
 
     # Vector indexed-unordered store instructions
-    # vs3 store data, rs1 base address, vs2 indices
+    # vs3 store data, rs1 base address, vs2 byte offsets
     vsuxei8.v   vs3, (rs1), vs2, vm # unordered  8-bit indexed store of SEW data
     vsuxei16.v  vs3, (rs1), vs2, vm # unordered 16-bit indexed store of SEW data
     vsuxei32.v  vs3, (rs1), vs2, vm # unordered 32-bit indexed store of SEW data
     vsuxei64.v  vs3, (rs1), vs2, vm # unordered 64-bit indexed store of SEW data
 
     # Vector indexed-ordered store instructions
-    # vs3 store data, rs1 base address, vs2 indices
+    # vs3 store data, rs1 base address, vs2 byte offsets
     vsoxei8.v    vs3, (rs1), vs2, vm  # ordered  8-bit indexed store of SEW data
     vsoxei16.v   vs3, (rs1), vs2, vm  # ordered 16-bit indexed store of SEW data
     vsoxei32.v   vs3, (rs1), vs2, vm  # ordered 32-bit indexed store of SEW data
