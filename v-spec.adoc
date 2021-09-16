@@ -51,6 +51,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Removed Zvlsseg extension name as segment load/stores are required in all standard vector extensions.
 
+=== Made clear that `nf` is encoded same as NFIELDS when used in whole register load/store instructions.
+
 :sectnums:
 
 == Introduction
@@ -1796,6 +1798,8 @@ The three-bit `nf` field in the vector instruction encoding is an
 unsigned integer that contains one less than the number of fields per
 segment, _NFIELDS_.
 
+[[fig-nf]]
+.NFIELDS Encoding
 [cols="1,1,1,13"]
 |===
 3+| nf[2:0] | NFIELDS
@@ -1998,8 +2002,9 @@ Format for Vector Load Whole Register Instructions under LOAD-FP major opcode
 ]}
 ```
 
-////
 Format for Vector Store Whole Register Instructions under STORE-FP major opcode
+
+////
 31 29  28  27 26  25  24  20 19       15 14   12 11      7 6     0
  nf  |  0 |  00  | 1| 01000 |    rs1    |  000  |   vs3   |0100111| VS<nf>R
 ////
@@ -2042,26 +2047,26 @@ with this EEW, which aids implementations that rearrange data internally.
 The vector whole register store instructions are encoded similar to
 unmasked unit-stride store of elements with EEW=8.
 
-The `nf` field encodes how many vector registers to load and store.
+The `nf` field encodes how many vector registers to load and store using the NFIELDS encoding (Figure <<fig-nf>>).
 The encoded number of registers must be a power of 2 and the vector
 register numbers must be aligned as with a vector register group,
-otherwise the instruction encoding is reserved.  The `nf` field
-encodes the number of vector registers to transfer, numbered
-successively after the base.  Only `nf` values of 1, 2, 4, 8 are
+otherwise the instruction encoding is reserved.  NFIELDS
+indicates the number of vector registers to transfer, numbered
+successively after the base.  Only NFIELDS values of 1, 2, 4, 8 are
 supported, with other values reserved.  When multiple registers are
 transferred, the lowest-numbered vector register is held in the
 lowest-numbered memory addresses and successive vector register
 numbers are placed contiguously in memory.
 
 The instructions operate with an effective vector length,
-`evl`=`nf`*VLEN/EEW, regardless of current settings in `vtype` and
+`evl`=NFIELDS*VLEN/EEW, regardless of current settings in `vtype` and
 `vl`.  The usual property that no elements are written if `vstart`
 {ge} `vl` does not apply to these instructions.  Instead, no elements
 are written if `vstart` {ge} `evl`.
 
 The instructions operate similarly to unmasked unit-stride load and
-store instructions of elements, with the base address passed in the
-scalar `x` register specified by `rs1`.
+store instructions, with the base address passed in the scalar `x`
+register specified by `rs1`.
 
 Implementations are allowed to raise a misaligned address exception on
 whole register loads and stores if the base address is not naturally
@@ -2070,11 +2075,11 @@ or the implementation's smallest supported SEW size in bytes
 (SEW~MIN~/8).
 
 NOTE: Allowing misaligned exceptions to be raised based on
-non-alignment to encoded EEW simplifies the implementation of these
+non-alignment to the encoded EEW simplifies the implementation of these
 instructions.  Some subset implementations might not support smaller
 SEW widths, so are allowed to report misaligned exceptions for the
 smallest supported SEW even if larger than encoded EEW.  An extreme
-implementation might have SEW~MIN~>XLEN for example.  Software
+non-standard implementation might have SEW~MIN~>XLEN for example.  Software
 environments can mandate the minimum alignment requirements to support
 an ABI.
 
@@ -2124,7 +2129,7 @@ following code sequence, whose cost is at most four instructions. Of
 these, the first could likely be removed as `vl` is often already
 in a scalar register, and the last might already be present if the
 following vector instruction needs a new SEW/LMUL. So, in best case
-only two instructions are needed to synthesize the effect of the
+only two instructions (of which only one performs vector operations) are needed to synthesize the effect of the
 dedicated instruction:
 ----
   csrr t0, vl                # Save current vl (potentially not needed)
