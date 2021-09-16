@@ -49,6 +49,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Clarified that implementations must raise illegal instruction exception for standard loads and stores with EEWs that are not supported by the implementation.
 
+=== Removed Zvlsseg extension name as segment load/stores are required in all standard vector extensions.
+
 :sectnums:
 
 == Introduction
@@ -1781,14 +1783,14 @@ otherwise the event might be lost.
 [[sec-aos]]
 === Vector Load/Store Segment Instructions
 
-This instruction subset is given the ISA string name `Zvlsseg`.
-
 The vector load/store segment instructions move multiple contiguous
 fields in memory to and from consecutively numbered vector registers.
 
-NOTE: These operations support operations on "array-of-structures"
-datatypes by unpacking each field in a structure into separate vector
-registers.
+NOTE: The name "segment" reflects that the items moved are subarrays
+with homogeneous elements.  These operations can be used to transpose
+arrays between memory and registers, and can support operations on
+"array-of-structures" datatypes by unpacking each field in a structure
+into a separate vector register.
 
 The three-bit `nf` field in the vector instruction encoding is an
 unsigned integer that contains one less than the number of fields per
@@ -1832,36 +1834,35 @@ NOTE: This constraint is to help allow for forward-compatibility with
 a possible future longer instruction encoding that has more
 addressable vector registers.
 
-The `vl` register gives the number of structures to move, which is
+The `vl` register gives the number of segments to move, which is
 equal to the number of elements transferred to each vector register
-group.  Masking is also applied at the level of whole structures.
+group.  Masking is also applied at the level of whole segments.
 
 For segment loads and stores, the individual memory accesses used to
 access fields within each segment are unordered with respect to each
 other even for ordered indexed segment loads and stores.
 
-If a trap is taken, `vstart` is in units of structures.
-If a trap occurs partway through accessing a structure, it is
-implementation-defined whether a subset of the structure access is performed.
+The `vstart` value is in units of whole segments.  If a trap occurs during
+access to a segment, it is implementation-defined whether a subset
+of the faulting segment's accesses are performed before the trap is taken.
 
 ==== Vector Unit-Stride Segment Loads and Stores
 
 The vector unit-stride load and store segment instructions move packed
-contiguous segments ("array-of-structures") into multiple destination
-vector register groups.
+contiguous segments into multiple destination vector register groups.
 
-NOTE: For structures with heterogeneous-sized fields, software can
-later unpack structure fields from a segment using additional
-instructions after the segment load brings data into the vector
-registers.
+NOTE: Where the segments hold structures with heterogeneous-sized
+fields, software can later unpack individual structure fields using
+additional instructions after the segment load brings data into the
+vector registers.
 
 The assembler prefixes `vlseg`/`vsseg` are used for unit-stride
 segment loads and stores respectively.
 
 ----
     # Format
-    vlseg<nf>e<eew>.v vd, (rs1), vm       # Unit-stride segment load template
-    vsseg<nf>e<eew>.v vs3, (rs1), vm       # Unit-stride segment store template
+    vlseg<nf>e<eew>.v vd, (rs1), vm      # Unit-stride segment load template
+    vsseg<nf>e<eew>.v vs3, (rs1), vm     # Unit-stride segment store template
 
     # Examples
     vlseg8e8.v vd, (rs1), vm   # Load eight vector registers with eight byte fields.
@@ -1871,7 +1872,7 @@ segment loads and stores respectively.
 
 For loads, the `vd` register will hold the first field loaded from the
 segment.  For stores, the `vs3` register is read to provide the first
-field to be stored in each segment.
+field to be stored to each segment.
 
 ----
     # Example 1
@@ -1894,7 +1895,7 @@ There are also fault-only-first versions of the unit-stride instructions.
 
 ----
     # Template for vector fault-only-first unit-stride segment loads.
-    vlseg<nf>e<eew>ff.v vd, (rs1),  vm          # Unit-stride fault-only-first segment loads
+    vlseg<nf>e<eew>ff.v vd, (rs1),  vm    # Unit-stride fault-only-first segment loads
 ----
 
 For fault-only-first segment loads, if an exception is detected partway
@@ -1904,7 +1905,6 @@ it is implementation-defined whether a subset of the segment is loaded.
 These instructions may overwrite destination vector register group
 elements past the point at which a trap is reported or past the point
 at which vector length is trimmed.
-
 
 ==== Vector Strided Segment Loads and Stores
 
