@@ -47,6 +47,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Simplified explanations by removing text refering to option to have one element span multiple vector registers (ELEN {gt} VLEN), as this is not being proposed at this time.
 
+=== Clarified that implementations must raise illegal instruction exception for standard loads and stores with EEWs that are not supported by the implementation.
+
 :sectnums:
 
 == Introduction
@@ -1415,7 +1417,7 @@ Vector indexed operations add the contents of each element of the
 vector offset operand specified by `vs2` to the base effective address
 to give the effective address of each element.  The data vector
 register group has EEW=SEW, EMUL=LMUL, while the offset vector
-register group has EEW encoding in the instruction and
+register group has EEW encoded in the instruction and
 EMUL=(EEW/SEW)*LMUL.
 
 The vector offset operand is treated as a vector of byte-address
@@ -1431,7 +1433,7 @@ EEW.
 If the vector offset elements are narrower than XLEN, they are
 zero-extended to XLEN before adding to the base effective address.  If
 the vector offset elements are wider than XLEN, the least-significant
-XLEN bits are used in the address calculation.  An implementation can
+XLEN bits are used in the address calculation.  An implementation must
 raise an illegal instruction exception if the EEW is not supported for
 offset elements.
 
@@ -1469,7 +1471,7 @@ indexed load and store memory operations have two forms, ordered and
 unordered.  The indexed-ordered variants preserve element ordering on
 memory accesses.
 
-For unordered instructions (`mop`!=11) there is no guarantee on
+For unordered instructions (`mop[1:0]`!=11) there is no guarantee on
 element access order.  If the accesses are to a strongly ordered IO
 region, the element accesses can be initiated in any order.
 
@@ -1513,11 +1515,6 @@ element position.  Larger values in the `nf` field are used to access
 multiple contiguous fields within a segment as described below in
 Section <<sec-aos>>.
 
-NOTE: The `nf` field for segment load/stores has replaced the use of
-the same bits for an address offset field.  The offset can be replaced
-with a single scalar integer calculation, while segment load/stores
-add more powerful primitives to move items to and from memory.
-
 The `nf[2:0]` field also encodes the number of whole vector registers
 to transfer for the whole vector register load/store instructions.
 
@@ -1528,8 +1525,8 @@ Vector loads and stores have an EEW encoded directly in the
 instruction.  The corresponding EMUL is calculated as EMUL =
 (EEW/SEW)*LMUL. If the EMUL would be out of range (EMUL>8 or
 EMUL<1/8), the instruction encoding is reserved.  The vector register
-groups must have legal register specifiers for the selected EMUL;
-the instruction encoding is otherwise considered reserved.
+groups must have legal register specifiers for the selected EMUL,
+otherwise the instruction encoding is reserved.
 
 Vector unit-stride and constant-stride use the EEW/EMUL encoded in the
 instruction for the data values, while vector indexed loads and stores
@@ -1539,13 +1536,10 @@ the SEW/LMUL encoded in `vtype` for the data values.
 Vector loads and stores are encoded using width values that are not
 claimed by the standard scalar floating-point loads and stores.
 
-The `mew` bit (`inst[28]`) when set is expected to be used to encode
-expanded memory sizes of 128 bits and above, but these encodings are
-_reserved_ at this point.
-
-Vector loads and stores for EEWs of all supported SEW settings must be
-provided in an implementation.  Vector load/store encodings for
-unsupported EEW widths are reserved.
+Implementations must provide vector loads and stores with EEWs
+corresponding to all supported SEW settings.  Vector load/store
+encodings for unsupported EEW widths must raise an illegal
+instruction exception.
 
 .Width encoding for vector loads and stores.
 [cols="5,1,1,1,1,>3,>3,>3,3,2"]
@@ -1564,6 +1558,7 @@ unsupported EEW widths are reserved.
 | Vector 16b index     | 0 |   1 | 0 | 1 | SEW | SEW  | 16 | VLxEI16/VSxEI16     |
 | Vector 32b index     | 0 |   1 | 1 | 0 | SEW | SEW  | 32 | VLxEI32/VSxEI32     |
 | Vector 64b index     | 0 |   1 | 1 | 1 | SEW | SEW  | 64 | VLxEI64/VSxEI64     |
+| Reserved             | 1 |   X | X | X |   - |    - | -  |                     |
 |===
 
 
@@ -1572,6 +1567,10 @@ Mem bits is the size of each element accessed in memory.
 Data reg bits is the size of each data element accessed in register.
 
 Index bits is the size of each index accessed in register.
+
+The `mew` bit (`inst[28]`) when set is expected to be used to encode
+expanded memory sizes of 128 bits and above, but these encodings are
+currently reserved.
 
 === Vector Unit-Stride Instructions
 
