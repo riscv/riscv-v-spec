@@ -1590,11 +1590,12 @@ currently reserved.
     vse64.v   vs3, (rs1), vm  #   64-bit unit-stride store
 ----
 
-An additional unit-stride load and store is provided to support
-transferring mask values to/from memory.  These operate the
-same as unmasked byte loads or stores (EEW=8), except that the effective
-vector length is ``evl``=ceil(``vl``/8) (i.e. EMUL=1), and the destination register is
-always written with a tail-agnostic policy.
+Additional unit-stride mask load and store instructions are
+provided to transfer mask values to/from memory.  These
+operate similarly to unmasked byte loads or stores (EEW=8), except that
+the effective vector length is ``evl``=ceil(``vl``/8) (i.e. EMUL=1),
+and the destination register is always written with a tail-agnostic
+policy.
 
 ----
     # Vector unit-stride mask load
@@ -1604,21 +1605,21 @@ always written with a tail-agnostic policy.
     vsm.v vs3, (rs1)  #  Store byte vector of length ceil(vl/8)
 ----
 
-`vlm.v` and `vsm.v` are encoded with `width[2:0]`=0, like
-`vle8.v` and `vse8.v`; they are distinguished by different
+`vlm.v` and `vsm.v` are encoded with the same `width[2:0]`=0 encoding as
+`vle8.v` and `vse8.v`, but are distinguished by different
 `lumop` and `sumop` encodings.  Since `vlm.v` and `vsm.v` operate as byte loads and stores,
 `vstart` is in units of bytes for these instructions.
 
 NOTE: The previous assembler mnemonics `vle1.v` and `vse1.v` were
-confusing as length was handled different for these instructions
+confusing as length was handled differently for these instructions
 versus other element load/store instructions.  To avoid software
 churn, these older assembly mnemonics are being retained as aliases.
 
 NOTE: The primary motivation to provide mask load and store is to
 support machines that internally rearrange data to reduce
-cross-datapath wiring.  However, this also provides a convenient
-mechanism to access packed bit vectors in memory as mask registers,
-and reduces the cost of mask spill/fill by reducing need to change
+cross-datapath wiring.  However, these instructions also provide a convenient
+mechanism to use packed bit vectors in memory as mask values,
+and also reduce the cost of mask spill/fill by reducing need to change
 `vl`.
 
 === Vector Strided Instructions
