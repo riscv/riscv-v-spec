@@ -1658,6 +1658,13 @@ When `rs2!=x0` and the value of `x[rs2]=0`, the implementation must
 perform one memory access for each active element (but these accesses
 will not be ordered).
 
+NOTE: As with other architectural mandates, implementations must
+_appear_ to perform each memory access. Microarchitectures are
+free to optimize away accesses that would not be observed by another
+agent, for example, in idempotent memory regions obeying RVWMO.  For
+non-idempotent memory regions, where by definition each access can be
+observed by a device, the optimization would not be possible.
+
 NOTE: When repeating ordered vector accesses to the same memory
 address are required, then an ordered indexed operation can be used.
 
