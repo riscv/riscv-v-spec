@@ -1727,13 +1727,13 @@ the element that would have raised an exception.
 
 Load instructions may overwrite active destination vector register
 group elements past the element index at which the trap is reported.
-Similarly, fault-only-first load instructions may update destination
+Similarly, fault-only-first load instructions may update active destination
 elements past the element that causes trimming of the vector length
 (but not past the original vector length).  The values of these
 spurious updates do not have to correspond to the values in memory at
 the addressed memory locations.  Non-idempotent memory locations can
 only be accessed when it is known the corresponding element load
-operation will not be restarted due to a trap or vector length
+operation will not be restarted due to a trap or vector-length
 trimming.
 
 ----
@@ -1753,15 +1753,17 @@ include::example/strlen.s[lines=4..-1]
 ----
 
 NOTE: There is a security concern with fault-on-first loads, as they
-can be used to probe for valid effective addresses.  Strided and
-scatter/gather fault-only-first instructions are not provided due to
-lack of encoding space, and they can also represent a larger security
-hole, allowing software to easily check multiple random pages for
-accessibility without experiencing a trap. The unit-stride versions
-only allow probing a region immediately contiguous to a known region,
-and so do not appreciably impact security.  It is possible that
-security mitigations can be implemented to allow fault-only-first
-variants of non-contiguous accesses in future vector extensions.
+can be used to probe for valid effective addresses.  The unit-stride
+versions only allow probing a region immediately contiguous to a known
+region, and so reduce the security impact when used in unprivileged
+code.  However, code running in S-mode can establish arbitrary page
+translations that allow probing of random guest physical addresses 
+provided by a hypervisor.  Strided and scatter/gather fault-only-first
+instructions are not provided due to lack of encoding space, but they
+can also represent a larger security hole, allowing even unprivileged
+software to easily check multiple random pages for accessibility
+without experiencing a trap.  This standard does not address possible
+security mitigations for fault-only-first instructions.
 
 Even when an exception is not raised, implementations are permitted to process
 fewer than `vl` elements and reduce `vl` accordingly, but if `vstart`=0 and
