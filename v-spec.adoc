@@ -4790,9 +4790,10 @@ readily synthesized using iota and a masked vrgather:
 === Whole Vector Register Move
 
 The `vmv<nr>r.v` instructions copy whole vector registers (i.e., all
-VLEN bits) and can copy whole vector register groups.  The
-instructions operate as if EEW=SEW, EMUL = `nr`, effective length
-`evl`= EMUL * VLEN/SEW.
+VLEN bits) and can copy whole vector register groups.  The `nr` value
+in the opcode is the number of individual vector registers, NREG, to
+copy.  The instructions operate as if EEW=SEW, EMUL = NREG, effective
+length `evl`= EMUL * VLEN/SEW.
 
 NOTE: These instructions are intended to aid compilers to shuffle
 vector registers without needing to know or change `vl` or `vtype`.
@@ -4808,12 +4809,13 @@ equal to SEW.
 
 The instruction is encoded as an OPIVI instruction.  The number of
 vector registers to copy is encoded in the low three bits of the
-`simm` field using the same encoding as the `nf` field for memory
-instructions, i.e., `simm` = `nr-1`.
-The value of the `nr` field must be 1, 2, 4, or 8, with other values reserved.
+`simm` field (`simm[2:0]`) using the same encoding as the `nf[2:0]` field for memory
+instructions (Figure <<fig-nf>>), i.e., `simm[2:0]` = NREG-1.
+
+The value of NREG must be 1, 2, 4, or 8, and values of `simm[4:0]`
+other than 0, 1, 3, and 7 are reserved.
 
 NOTE: A future extension may support other numbers of registers to be moved.
-Values of `simm` other than 0, 1, 3, and 7 are currently reserved.
 
 NOTE: The instruction uses the same funct6 encoding as the `vsmul`
 instruction but with an immediate operand, and only the unmasked
