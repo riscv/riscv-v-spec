@@ -2861,8 +2861,11 @@ vmax.vx vd, vs2, rs1, vm   # vector-scalar
 === Vector Single-Width Integer Multiply Instructions
 
 The single-width multiply instructions perform a SEW-bit*SEW-bit
-multiply and return an SEW-bit-wide result.  The `*mulh*` versions
-write the high word of the product to the destination register.
+multiply to generate a 2*SEW-bit product, then return one half of the
+product in the SEW-bit-wide destination.  The `*mul*` versions write
+the low word of the product to the destination register, while the
+`*mulh*` versions write the high word of the product to the
+destination register.
 
 ----
 # Signed multiply, returning low bits of product
@@ -2882,12 +2885,13 @@ vmulhsu.vv vd, vs2, vs1, vm   # Vector-vector
 vmulhsu.vx vd, vs2, rs1, vm   # vector-scalar
 ----
 
-NOTE: There is no `vmulhus` opcode to return high half of
-unsigned-vector * signed-scalar product.
+NOTE: There is no `vmulhus.vx` opcode to return high half of
+unsigned-vector * signed-scalar product.  The scalar can be splatted
+to a vector, then a `vmulhsu.vv` used.
 
 NOTE: The current `vmulh*` opcodes perform simple fractional
 multiplies, but with no option to scale, round, and/or saturate the
-result.  A possible extension can consider variants of `vmulh`,
+result.  A possible future extension can consider variants of `vmulh`,
 `vmulhu`, `vmulhsu` that use the `vxrm` rounding mode when discarding
 low half of product.  There is no possibility of overflow in these
 cases.
