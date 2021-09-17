@@ -2387,7 +2387,8 @@ Narrowing instruction encodings must follow the constraints in Section
 [[sec-vector-integer]]
 == Vector Integer Arithmetic Instructions
 
-A set of vector integer arithmetic instructions is provided.
+A set of vector integer arithmetic instructions is provided.  Unless
+otherwise stated, integer operations wrap around on overflow.
 
 === Vector Single-Width Integer Add and Subtract
 
