@@ -3908,6 +3908,8 @@ element, and stores the result in a 2*SEW-width scalar element.
 The `vwredsum.vs` instruction sign-extends the SEW-wide vector
 elements before summing them.
 
+For both `vwredsumu.vs` and `vwredsum.vs`, overflows wrap around.
+
 ----
     # Unsigned sum reduction into double-width accumulator
     vwredsumu.vs vd, vs2, vs1, vm   # 2*SEW = 2*SEW + sum(zero-extend(SEW))
