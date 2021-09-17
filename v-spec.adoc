@@ -3288,9 +3288,8 @@ CSRs or `f` registers) must set both `mstatus.FS` and `vsstatus.FS` to `Dirty`.
 The vector floating-point instructions have the same behavior as the
 scalar floating-point instructions with regard to NaNs.
 
-Scalar values for vector-scalar operations can be sourced from the
-standard scalar `f` registers, as described in Section
-<<sec-arithmetic-encoding>>.
+Scalar values for floating-point vector-scalar operations are sourced
+as described in Section <<sec-arithmetic-encoding>>.
 
 === Vector Floating-Point Exception Flags
 
@@ -3390,10 +3389,10 @@ vfnmsub.vv vd, vs1, vs2, vm   # vd[i] = -(vs1[i] * vd[i]) + vs2[i]
 vfnmsub.vf vd, rs1, vs2, vm   # vd[i] = -(f[rs1] * vd[i]) + vs2[i]
 ----
 
-NOTE: It would be possible to use the two unused rounding modes in the
-scalar FP FMA encoding to provide a few non-destructive FMAs.
-However, this would be the only maskable operation with three inputs
-and separate output.
+NOTE: While we considered using the two unused rounding modes
+in the scalar FP FMA encoding to provide a few non-destructive FMAs,
+these would complicate microarchitectures by being the only maskable
+operation with three inputs and separate output.
 
 === Vector Widening Floating-Point Fused Multiply-Add Instructions
 
@@ -3630,13 +3629,13 @@ takes all bits except the sign bit from the vector `vs2` operands.
 
 NOTE: A vector of floating-point values can be negated using a
 sign-injection instruction with both source operands set to the same
-vector operand.  Can define assembly pseudoinstruction `vfneg.v vd,vs`
+vector operand.  An assembly pseudoinstruction is provided: `vfneg.v vd,vs`
 = `vfsgnjn.vv vd,vs,vs`.
 
 NOTE: The absolute value of a vector of floating-point elements can be
 calculated using a sign-injection instruction with both source
-operands set to the same vector operand.  Can define assembly
-pseudoinstruction `vfabs.v vd,vs` = `vfsgnjx.vv vd,vs,vs`.
+operands set to the same vector operand.  An assembly
+pseudoinstruction is provided: `vfabs.v vd,vs` = `vfsgnjx.vv vd,vs,vs`.
 
 === Vector Floating-Point Compare Instructions
 
@@ -3738,7 +3737,7 @@ destination elements.
 === Vector Floating-Point Merge Instruction
 
 A vector-scalar floating-point merge instruction is provided, which
-operates on all body elements, from `vstart` up to the current vector
+operates on all body elements from `vstart` up to the current vector
 length in `vl` regardless of mask value.
 
 The `vfmerge.vfm` instruction is encoded as a masked instruction (`vm=0`).
