@@ -4429,7 +4429,8 @@ destination vector register group, from 0 to `vl`-1.
     vid.v vd, vm  # Write element ID to destination.
 ----
 
-The instruction can be masked.
+The instruction can be masked.  Masking does not change the
+index value written to active elements.
 
 The `vs2` field of the instruction must be set to `v0`, otherwise the
 encoding is _reserved_.
