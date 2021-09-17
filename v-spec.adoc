@@ -4174,12 +4174,12 @@ masked elements are counted.
  vcpop.m rd, vs2, v0.t # x[rd] = sum_i ( vs2.mask[i] && v0.mask[i] )
 ----
 
+The `vcpop.m` instruction writes `x[rd]` even if `vl`=0 (with the
+value 0, since no mask elements are active).
+
 Traps on `vcpop.m` are always reported with a `vstart` of 0.  The
 `vcpop.m` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
-
-NOTE: `vcpop.m` writes `x[rd]` even if `vl`=0
-(with the value 0, since no mask elements are active).
 
 === `vfirst` find-first-set mask bit
 
@@ -4196,12 +4196,12 @@ NOTE: Software can assume that any negative value (highest bit set)
 corresponds to no element found, as vector lengths will never exceed
 2^(XLEN-1)^ on any implementation.
 
+The `vfirst.m` instruction writes `x[rd]` even if `vl`=0 (with the
+value -1, since no mask elements are active).
+
 Traps on `vfirst` are always reported with a `vstart` of 0.  The
 `vfirst` instruction will raise an illegal instruction exception if
 `vstart` is non-zero.
-
-NOTE: `vfirst.m` writes `x[rd]` even if `vl`=0
-(with the value -1, since no mask elements are active).
 
 === `vmsbf.m` set-before-first mask bit
 
