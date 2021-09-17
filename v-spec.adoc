@@ -1058,7 +1058,7 @@ encodings with space for a full mask register specifier.
 
 The destination vector register group for a masked vector instruction
 cannot overlap the source mask register (`v0`), unless the destination
-vector register is being written with a mask value (e.g., comparisons)
+vector register is being written with a mask value (e.g., compares)
 or the scalar result of a reduction.  These instruction encodings are
 reserved.
 
@@ -2364,7 +2364,7 @@ as defining the size of the source vector register group.  The choice
 here is motivated by the belief the chosen approach will require fewer
 `vtype` changes.
 
-NOTE: Comparison operations that set a mask register are also
+NOTE: Compare operations that set a mask register are also
 implicitly a narrowing operation.
 
 A `vn*` prefix on the opcode is used to distinguish these instructions
@@ -2665,7 +2665,7 @@ NOTE: An integer value can be halved in width using the narrowing integer
 shift instructions with a scalar operand of `x0`. An assembly
 pseudoinstruction is provided `vncvt.x.x.w vd,vs,vm` = `vnsrl.wx vd,vs,x0,vm`.
 
-=== Vector Integer Comparison Instructions
+=== Vector Integer Compare Instructions
 
 The following integer compare instructions write 1 to the destination
 mask register element if the comparison evaluates to true, and 0
@@ -2755,19 +2755,19 @@ false).
 NOTE: Because the 5-bit vector immediates are always sign-extended,
 when the high bit of the `simm5` immediate is set, `vmsleu.vi` also
 supports unsigned immediate values in the range `2^SEW^-16` to
-`2^SEW^-1`, allowing corresponding `vmsltu.vi` comparisons against
+`2^SEW^-1`, allowing corresponding `vmsltu.vi` compares against
 unsigned immediates in the range `2^SEW^-15` to `2^SEW^`.  Note that
 `vmsltu.vi` with immediate `2^SEW^` is not useful as it is always
 true.
 
-Similarly, `vmsge{u}.vi` is not provided and the comparison is
+Similarly, `vmsge{u}.vi` is not provided and the compare is
 implemented using `vmsgt{u}.vi` with the immediate decremented by one.
 The resulting effective `vmsge.vi` range is -15 to 16, and the
 resulting effective `vmsgeu.vi` range is 1 to 16 (Note, `vmsgeu.vi` with
 immediate 0 is not useful as it is always true).
 
 NOTE: The `vmsgt` forms for register scalar and immediates are provided
-to allow a single comparison instruction to provide the correct
+to allow a single compare instruction to provide the correct
 polarity of mask value without using additional mask logical
 instructions.
 
@@ -2824,7 +2824,7 @@ masked va >= x, any vd
   not same as vd and which will be clobbered by the pseudoinstruction
 ----
 
-Comparisons effectively AND in the mask under a mask-undisturbed policy e.g,
+Compares effectively AND in the mask under a mask-undisturbed policy e.g,
 
 ----
     # (a < b) && (b < c) in two instructions when mask-undisturbed
@@ -2832,7 +2832,7 @@ Comparisons effectively AND in the mask under a mask-undisturbed policy e.g,
     vmslt.vv    v0, vb, vc, v0.t  # Only update at set mask
 ----
 
-Comparisons write mask registers, and so always operate under a
+Compares write mask registers, and so always operate under a
 tail-agnostic policy.
 
 === Vector Integer Min/Max Instructions
@@ -3629,7 +3629,7 @@ write the comparison result to a mask register.  The destination mask
 vector is always held in a single vector register, with a layout of
 elements as described in Section <<sec-mask-register-layout>>.  The
 destination mask vector register may be the same as the source vector
-mask register (`v0`).  Comparisons write mask registers, and so always
+mask register (`v0`).  Compares write mask registers, and so always
 operate under a tail-agnostic policy.
 
 The compare instructions follow the semantics of the scalar
@@ -3638,7 +3638,7 @@ operation exception only on signaling NaN inputs.  `vmflt`, `vmfle`, `vmfgt`,
 and `vmfge` raise the invalid operation exception on both signaling and
 quiet NaN inputs.
 `vmfne` writes 1 to the destination element when either
-operand is NaN, whereas the other comparisons write 0 when either operand
+operand is NaN, whereas the other compares write 0 when either operand
 is NaN.
 
 ----
@@ -3683,10 +3683,10 @@ f      scalar floating-point register
 ----
 
 NOTE: Providing all forms is necessary to correctly handle unordered
-comparisons for NaNs.
+compares for NaNs.
 
-NOTE: C99 floating-point quiet comparisons can be implemented by masking
-the signaling comparisons when either input is NaN, as follows.  When
+NOTE: C99 floating-point quiet compares can be implemented by masking
+the signaling compares when either input is NaN, as follows.  When
 the comparand is a non-NaN constant, the middle two instructions can be
 omitted.
 
