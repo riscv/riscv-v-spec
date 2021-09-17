@@ -2410,8 +2410,8 @@ vrsub.vi vd, vs2, imm, vm   # vd[i] = imm - vs2[i]
 ----
 
 NOTE: A vector of integer values can be negated using a
-reverse-subtract instruction with a scalar operand of `x0`. Can define
-assembly pseudoinstruction `vneg.v vd,vs` = `vrsub.vx vd,vs,x0`.
+reverse-subtract instruction with a scalar operand of `x0`. An
+assembly pseudoinstruction `vneg.v vd,vs` = `vrsub.vx vd,vs,x0` is provided.
 
 === Vector Widening Integer Add/Subtract
 
@@ -2446,9 +2446,9 @@ vwsub.wx  vd, vs2, rs1, vm  # vector-scalar
 ----
 
 NOTE: An integer value can be doubled in width using the widening add
-instructions with a scalar operand of `x0`.  Can define assembly
+instructions with a scalar operand of `x0`.  Assembly
 pseudoinstructions `vwcvt.x.x.v vd,vs,vm = vwadd.vx vd,vs,x0,vm` and
-`vwcvtu.x.x.v vd,vs,vm = vwaddu.vx vd,vs,x0,vm`.
+`vwcvtu.x.x.v vd,vs,vm = vwaddu.vx vd,vs,x0,vm` are provided.
 
 === Vector Integer Extension
 
@@ -2469,6 +2469,16 @@ vsext.vf8 vd, vs2, vm  # Sign-extend SEW/8 source to SEW destination
 
 If the source EEW is not a supported width, or source EMUL would be
 below the minimum legal LMUL, the instruction encoding is reserved.
+
+NOTE: Standard vector load instructions access memory values that are
+the same size as the destination register elements.  Some application
+code needs to operate on a range of operand widths in a wider element,
+for example, loading a byte from memory and adding to an eight-byte
+element.  To avoid having to provide the cross-product of the number
+of vector load instructions by the number of data types (byte, word,
+halfword, and also signed/unsigned variants), we instead add explicit
+extension instructions that can be used if an appropriate widening
+arithmetic instruction is not available.
 
 === Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 
