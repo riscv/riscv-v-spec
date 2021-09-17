@@ -3182,9 +3182,12 @@ simply truncation (`rdn`).
 
 These instructions shift the input value right, and round off the
 shifted out bits according to `vxrm`.  The scaling right shifts have
-both zero-extending (`vssrl`) and sign-extending (`vssra`) forms.
-The low lg2(SEW) bits of the vector or scalar shift-amount value are used;
-shift-amount immediates are zero-extended.
+both zero-extending (`vssrl`) and sign-extending (`vssra`) forms.  The
+data to be shifted is in the vector register group specified by `vs2`
+and the shift amount value can come from a vector register group
+`vs1`, a scalar integer register `rs1`, or a zero-extended 5-bit
+immediate.  Only the low lg2(SEW) bits of the shift-amount value are
+used to control the shift amount.
 
 ----
  # Scaling shift right logical
