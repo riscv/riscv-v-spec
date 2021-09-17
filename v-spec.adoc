@@ -3866,10 +3866,11 @@ destination of a vector reduction regardless of LMUL setting.
 The destination vector register can overlap the source operands,
 including the mask register.
 
-NOTE: Reductions read and write the scalar operand and result into
-element 0 of a vector register to avoid a loss of decoupling with the
-scalar processor, and to support future polymorphic use with future
-types not supported in the scalar unit.
+NOTE: Vector reductions read and write the scalar operand and result
+into element 0 of a vector register instead of a scalar register to
+avoid a loss of decoupling with the scalar processor, and to support
+future polymorphic use with future types not supported in the scalar
+unit.
 
 Inactive elements from the source vector register group are excluded
 from the reduction, but the scalar operand is always included
