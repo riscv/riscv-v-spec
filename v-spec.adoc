@@ -57,6 +57,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Added note to explain how floating-point scalar values would be handled when adding vectors to the Zfinx/Zdinx/Zhinx extensions.
 
+=== The previous assembler mnemonics `vmandnot` and `vmornot` have been changed to `vmandn` and `vmorn` to be consistent with the equivalent scalar instructions.  The old `vmandnot` and `vmornot` mnemonics will be retained as aliases in assembler.
+
 :sectnums:
 
 == Introduction
@@ -2820,12 +2822,12 @@ masked va >= x, vd != v0
 masked va >= x, vd == v0
 
   pseudoinstruction: vmsge{u}.vx vd, va, x, v0.t, vt
-  expansion: vmslt{u}.vx vt, va, x;  vmandnot.mm vd, vd, vt
+  expansion: vmslt{u}.vx vt, va, x;  vmandn.mm vd, vd, vt
 
 masked va >= x, any vd
 
   pseudoinstruction: vmsge{u}.vx vd, va, x, v0.t, vt
-  expansion: vmslt{u}.vx vt, va, x;  vmandnot.mm vt, v0, vt;  vmandnot.mm vd, vd, v0;  vmor.mm vd, vt, vd
+  expansion: vmslt{u}.vx vt, va, x;  vmandn.mm vt, v0, vt;  vmandn.mm vd, vd, v0;  vmor.mm vd, vt, vd
 
   The vt argument to the pseudoinstruction must name a temporary vector register that is
   not same as vd and which will be clobbered by the pseudoinstruction
@@ -4080,20 +4082,25 @@ Mask elements past `vl`, the tail elements, are
 always updated with a tail-agnostic policy.
 
 ----
-    vmand.mm vd, vs2, vs1     # vd.mask[i] =   vs2.mask[i] &&  vs1.mask[i]
-    vmnand.mm vd, vs2, vs1    # vd.mask[i] = !(vs2.mask[i] &&  vs1.mask[i])
-    vmandnot.mm vd, vs2, vs1  # vd.mask[i] =   vs2.mask[i] && !vs1.mask[i]
-    vmxor.mm  vd, vs2, vs1    # vd.mask[i] =   vs2.mask[i] ^^  vs1.mask[i]
-    vmor.mm  vd, vs2, vs1     # vd.mask[i] =   vs2.mask[i] ||  vs1.mask[i]
-    vmnor.mm  vd, vs2, vs1    # vd.mask[i] = !(vs2.mask[i] ||  vs1.mask[i])
-    vmornot.mm  vd, vs2, vs1  # vd.mask[i] =   vs2.mask[i] || !vs1.mask[i]
-    vmxnor.mm vd, vs2, vs1    # vd.mask[i] = !(vs2.mask[i] ^^  vs1.mask[i])
+    vmand.mm vd, vs2, vs1   # vd.mask[i] =   vs2.mask[i] &&  vs1.mask[i]
+    vmnand.mm vd, vs2, vs1  # vd.mask[i] = !(vs2.mask[i] &&  vs1.mask[i])
+    vmandn.mm vd, vs2, vs1  # vd.mask[i] =   vs2.mask[i] && !vs1.mask[i]
+    vmxor.mm  vd, vs2, vs1  # vd.mask[i] =   vs2.mask[i] ^^  vs1.mask[i]
+    vmor.mm  vd, vs2, vs1   # vd.mask[i] =   vs2.mask[i] ||  vs1.mask[i]
+    vmnor.mm  vd, vs2, vs1  # vd.mask[i] = !(vs2.mask[i] ||  vs1.mask[i])
+    vmorn.mm  vd, vs2, vs1  # vd.mask[i] =   vs2.mask[i] || !vs1.mask[i]
+    vmxnor.mm vd, vs2, vs1  # vd.mask[i] = !(vs2.mask[i] ^^  vs1.mask[i])
 ----
+
+NOTE: The previous assembler mnemonics `vmandnot` and `vmornot` have
+been changed to `vmandn` and `vmorn` to be consistent with the
+equivalent scalar instructions.  The old `vmandnot` and `vmornot`
+mnemonics can be retained as assembler aliases for compatibility.
 
 Several assembler pseudoinstructions are defined as shorthand for
 common uses of mask logical operations:
 ----
-    vmmv.m vd, vs  => vmand.mm vd, vs, vs  # Copy mask register
+    vmmv.m vd, vs  => vmand.mm vd, vs, vs   # Copy mask register
     vmclr.m vd     => vmxor.mm vd, vd, vd   # Clear mask register
     vmset.m vd     => vmxnor.mm vd, vd, vd  # Set mask register
     vmnot.m vd, vs => vmnand.mm vd, vs, vs  # Invert bits
@@ -4121,18 +4128,18 @@ possibly binary logical functions of the two input masks:
 
 | 0 | 0 | 0 | 0 | vmxor.mm vd, vd, vd         | vmclr.m vd
 | 1 | 0 | 0 | 0 | vmnor.mm vd, src1, src2     |
-| 0 | 1 | 0 | 0 | vmandnot.mm vd, src2, src1  |
+| 0 | 1 | 0 | 0 | vmandn.mm vd, src2, src1    |
 | 1 | 1 | 0 | 0 | vmnand.mm vd, src1, src1    | vmnot.m vd, src1
-| 0 | 0 | 1 | 0 | vmandnot.mm vd, src1, src2  |
+| 0 | 0 | 1 | 0 | vmandn.mm vd, src1, src2    |
 | 1 | 0 | 1 | 0 | vmnand.mm vd, src2, src2    | vmnot.m vd, src2
 | 0 | 1 | 1 | 0 | vmxor.mm vd, src1, src2     |
 | 1 | 1 | 1 | 0 | vmnand.mm vd, src1, src2    |
 | 0 | 0 | 0 | 1 | vmand.mm vd, src1, src2     |
 | 1 | 0 | 0 | 1 | vmxnor.mm vd, src1, src2    |
 | 0 | 1 | 0 | 1 | vmand.mm vd, src2, src2     | vmmv.m vd, src2
-| 1 | 1 | 0 | 1 | vmornot.mm vd, src2, src1   |
+| 1 | 1 | 0 | 1 | vmorn.mm vd, src2, src1     |
 | 0 | 0 | 1 | 1 | vmand.mm vd, src1, src1     | vmmv.m vd, src1
-| 1 | 0 | 1 | 1 | vmornot.mm vd, src1, src2   |
+| 1 | 0 | 1 | 1 | vmorn.mm vd, src1, src2     |
 | 1 | 1 | 1 | 1 | vmxnor.mm vd, vd, vd        | vmset.m vd
 |===
 
@@ -4140,6 +4147,7 @@ NOTE: The vector mask logical instructions are designed to be easily
 fused with a following masked vector operation to effectively expand
 the number of predicate registers by moving values into `v0` before
 use.
+
 
 === Vector count population in mask `vcpop.m`
 
