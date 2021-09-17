@@ -2607,8 +2607,8 @@ vxor.vi vd, vs2, imm, vm    # vector-immediate
 ----
 
 NOTE: With an immediate of -1, scalar-immediate forms of the `vxor`
-instruction provide a bitwise NOT operation.  This can be provided as
-an assembler pseudoinstruction `vnot.v`.
+instruction provide a bitwise NOT operation.  This is provided as
+an assembler pseudoinstruction `vnot.v vd,vs,vm = vxor.vi vd,vs,-1,vm`.
 
 === Vector Single-Width Bit Shift Instructions
 
