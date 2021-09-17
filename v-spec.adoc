@@ -4372,11 +4372,6 @@ is non-zero.
 The destination register group cannot overlap the source register
 and, if masked, cannot overlap the mask register (`v0`).
 
-NOTE: These constraints exist for two reasons.  First, to simplify
-avoidance of WAR hazards in implementations with temporally long vector
-registers and no vector register renaming.  Second, to enable resuming
-execution after a trap simpler.
-
 The `viota.m` instruction can be combined with memory scatter
 instructions (indexed stores) to perform vector compress functions.
 
