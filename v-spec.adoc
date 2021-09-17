@@ -3205,15 +3205,13 @@ used to control the shift amount.
 
 The `vnclip` instructions are used to pack a fixed-point value into a
 narrower destination.  The instructions support rounding, scaling, and
-saturation into the final destination format.
-
-The second argument (vector element, scalar value, immediate value)
-gives the amount to right shift the source as in the narrowing shift
-instructions, which provides the scaling.  The low lg2(2*SEW) bits of
-the vector or scalar shift-amount value are used (e.g., the low 6 bits
-for a SEW=64-bit to SEW=32-bit narrowing operation).  The immediate
-forms zero-extend their shift-amount immediate operand.
-
+saturation into the final destination format.  The source data is in
+the vector register group specified by `vs2`. The scaling shift amount
+value can come from a vector register group `vs1`, a scalar integer
+register `rs1`, or a zero-extended 5-bit immediate.  The low
+lg2(2*SEW) bits of the vector or scalar shift-amount value (e.g., the
+low 6 bits for a SEW=64-bit to SEW=32-bit narrowing operation) are
+used to control the right shift amount, which provides the scaling.
 ----
 # Narrowing unsigned clip
 #                                SEW                            2*SEW   SEW
@@ -3238,10 +3236,10 @@ destination viewed as an unsigned integer.
 NOTE: There is no single instruction that can saturate a signed value
 into an unsigned destination.  A sequence of two vector instructions
 that first removes negative numbers by performing a max against 0
-using `vmax`, then clips the resulting unsigned value into the
-destination using `vnclipu`, can be used if setting `vxsat` value is
-not required.  A `vsetvli` is required inbetween these two
-instructions to change SEW.
+using `vmax` then clips the resulting unsigned value into the
+destination using `vnclipu` can be used if setting `vxsat` value for
+negative numbers is not required.  A `vsetvli` is required inbetween
+these two instructions to change SEW.
 
 For `vnclip`, the shifted rounded source value is treated as a signed
 integer and saturates if the result would overflow the destination viewed
