@@ -4711,7 +4711,7 @@ then zero is returned for the element value.
 
 Vector-scalar and vector-immediate forms of the register gather are
 also provided.  These read one element from the source vector at the
-given index, and write this value to the active elements at the start
+given index, and write this value to the active elements
 of the destination vector register. The index value in the scalar
 register and the immediate, zero-extended to XLEN bits, are treated as
 unsigned integers.  If XLEN > SEW, the index value is _not_ truncated
