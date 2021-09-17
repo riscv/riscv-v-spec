@@ -2943,7 +2943,7 @@ vwmul.vx  vd, vs2, rs1, vm # vector-scalar
 vwmulu.vv vd, vs2, vs1, vm # vector-vector
 vwmulu.vx vd, vs2, rs1, vm # vector-scalar
 
-# Widening signed-unsigned integer multiply
+# Widening signed(vs2)-unsigned integer multiply
 vwmulsu.vv vd, vs2, vs1, vm # vector-vector
 vwmulsu.vx vd, vs2, rs1, vm # vector-scalar
 ----
