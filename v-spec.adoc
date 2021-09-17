@@ -4232,10 +4232,10 @@ Traps on `vfirst` are always reported with a `vstart` of 0.  The
 
 The `vmsbf.m` instruction takes a mask register as input and writes
 results to a mask register.  The instruction writes a 1 to all active
-mask elements before the first source element that is a 1, then
+mask elements before the first active source element that is a 1, then
 writes a 0 to that element and all following active elements.  If
-there is no set bit in the source vector, then all active elements in
-the destination are written with a 1.
+there is no set bit in the active elements of the source vector, then
+all active elements in the destination are written with a 1.
 
 The tail elements in the destination mask register are updated under a
 tail-agnostic policy.
