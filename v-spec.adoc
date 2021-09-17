@@ -3058,13 +3058,17 @@ NOTE: The vector integer move instructions share the encoding with the vector
 merge instructions, but with `vm=1` and `vs2=v0`.
 
 The form `vmv.v.v vd, vd`, which leaves body elements unchanged,
-is used as a hint to indicate that the register will next be used
+can be used to indicate that the register will next be used
 with an EEW equal to SEW.
 
 NOTE: Implementations that internally reorganize data according to EEW
 can shuffle the internal representation according to SEW.
 Implementations that do not internally reorganize data can dynamically
 elide this instruction, and treat as a NOP.
+
+NOTE: The `vmv.v.v vd. vd` instruction is not a RISC-V HINT as a
+tail-agnostic setting may cause an architectural state change on some
+implementations.
 
 [[sec-vector-fixed-point]]
 == Vector Fixed-Point Arithmetic Instructions
