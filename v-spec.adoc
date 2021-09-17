@@ -4864,8 +4864,8 @@ restrictions.
 
 On a trap during a vector instruction (caused by either a synchronous
 exception or an asynchronous interrupt), the existing `*epc` CSR is
-written with a pointer to the errant vector instruction, while the
-`vstart` CSR contains the element index that caused the trap to be
+written with a pointer to the trapping vector instruction, while the
+`vstart` CSR contains the element index on which the trap was
 taken.
 
 NOTE: We chose to add a `vstart` CSR to allow resumption of a
@@ -4903,10 +4903,10 @@ trap during a vector store instruction.
 
 Except where noted above, vector instructions are allowed to overwrite
 their inputs, and so in most cases, the vector instruction restart
-must be from the `vstart` location. However, there are a number of
+must be from the `vstart` element index. However, there are a number of
 cases where this overwrite is prohibited to enable execution of the
-vector instructions to be idempotent and hence restartable from any
-location.
+vector instructions to be idempotent and hence restartable from an
+earlier index location.
 
 Implementations must ensure forward progress can be eventually
 guaranteed for the element or segment reported by `vstart`.
@@ -4928,6 +4928,8 @@ as they will not require resumable traps.
 Imprecise traps shall report the faulting element in `vstart` for
 traps caused by synchronous vector exceptions.
 
+There is no support for imprecise traps in the current standard extensions.
+
 === Selectable precise/imprecise traps
 
 Some profiles may choose to provide a privileged mode bit to select
@@ -4936,6 +4938,8 @@ at high-performance but possibly make it difficult to discern error
 causes, while precise mode would run more slowly, but support
 debugging of errors albeit with a possibility of not experiencing the
 same errors as in imprecise mode.
+
+This mechanism is not defined in the current standard extensions.
 
 === Swappable traps
 
