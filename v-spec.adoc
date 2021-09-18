@@ -5000,7 +5000,7 @@ NOTE: Every vector length extension effectively includes all shorter
 vector length extensions.
 
 NOTE: The syntax for extension names is being revised, and these names
-are subject to change.  The trailing "b" is believed to be required to
+are subject to change.  The trailing "b" will be required to
 disambiguate numeric fields from version numbers.
 
 NOTE: Explicit use of the Zvl32b extension string is not required for
@@ -5073,20 +5073,21 @@ All Zve* extensions support all vector permutation instructions
 implement the floating-point scalar move instructions.
 
 The Zve32f and Zve64f extensions require the scalar processor to
-implement the F extension, and implement all vector floating-point
-instructions (Section <<sec-vector-float>>) for floating-point
-operands with EEW=32 (i.e., no widening floating-point operations),
-and conversion instructions are provided to and from all supported
-integer EEWs.  Vector single-width floating-point reduction operations
-(<<sec-vector-float-reduce>>) for EEW=32 are supported.
+implement the F extension or the proposed Zfinx extension, and implement all
+vector floating-point instructions (Section <<sec-vector-float>>) for
+floating-point operands with EEW=32 (i.e., no widening floating-point
+operations), and conversion instructions are provided to and from all
+supported integer EEWs.  Vector single-width floating-point reduction
+operations (<<sec-vector-float-reduce>>) for EEW=32 are supported.
 
-The Zve64d extension requires the scalar processor to
-implement the D extension, and implement all vector floating-point
-instructions (Section <<sec-vector-float>>) for floating-point
-operands with EEW=32 or EEW=64 (including widening instructions and
-conversions between FP32 and FP64). Vector single-width floating-point
-reductions (<<sec-vector-float-reduce>>) for EEW=32 and EEW=64 are
-supported as well as widening reductions from FP32 to FP64.
+The Zve64d extension requires the scalar processor to implement the D
+extension or the proposed Zdinx extension, and implement all vector
+floating-point instructions (Section <<sec-vector-float>>) for
+floating-point operands with EEW=32 or EEW=64 (including widening
+instructions and conversions between FP32 and FP64). Vector
+single-width floating-point reductions (<<sec-vector-float-reduce>>)
+for EEW=32 and EEW=64 are supported as well as widening reductions
+from FP32 to FP64.
 
 === V: Vector Extension for Application Processors
 
@@ -5134,7 +5135,7 @@ The V extension supports all vector mask instructions (Section
 The V extension supports all vector permutation instructions (Section
 <<sec-vector-permute>>).
 
-The V extension requires the scalar processor to implement the F and D
+The V extension requires the scalar processor implements the F and D
 extensions, and implements all vector floating-point instructions
 (Section <<sec-vector-float>>) for floating-point operands with EEW=32
 or EEW=64 (including widening instructions and conversions between
