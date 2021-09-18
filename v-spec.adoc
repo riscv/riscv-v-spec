@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 1.0-rc2
+Version 1.0-draft
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -23,54 +23,20 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 :sectnums!:
 
-== Changes from v1.0-rc1
+== Changes from v1.0-rc2
 
-=== Various clarifications to text, and added rationale for design choices.
-
-=== Renamed `vpopc.m` to `vcpop.m` for consistency with scalar instruction.  Keeping old assembler name as alias.
-
-=== For mask-logical instructions, and `vmsbf.m`, `vmsif.m`, `vmsof.m` mask-manipulation instructions, allow implementations to write entire mask register with result (always tail-agnostic)
-
-=== Added vector length extensions "Zvl*".
-
-=== Added clarification of operation of `mstatus.VS` field and interaction with `mstatus.SD`.
-
-=== Added definition of behavior under hypervisor.
-
-=== Clarified checking of illegal values in `vtype`.
-
-=== Made clear that calling convention appendix here is only a placeholder to help understand the examples, with RISC-V psABI being expanded to contain the authoritative calling convention.
-
-=== Clarified the `vxsat` is in bit 0 of the CSR and that upper bits should be written as zeros.
-
-=== Clarified that `vxrm` field is in low two bits of the CSR and that upper bits should be written as zeros.
-
-=== Simplified explanations by removing text refering to option to have one element span multiple vector registers (ELEN {gt} VLEN), as this is not being proposed at this time.
-
-=== Clarified that implementations must raise illegal instruction exception for standard loads and stores with EEWs that are not supported by the implementation.
-
-=== Removed Zvlsseg extension name as segment load/stores are required in all standard vector extensions.
-
-=== Made clear that `nf` is encoded same as NFIELDS when used in whole register load/store instructions.
-
-=== Clarified that instructions with register specifiers that violate register overlap constraints are reserved.
-
-=== Added note to explain how floating-point scalar values would be handled when adding vectors to the Zfinx/Zdinx/Zhinx extensions.
-
-=== The previous assembler mnemonics `vmandnot` and `vmornot` have been changed to `vmandn` and `vmorn` to be consistent with the equivalent scalar instructions.  The old `vmandnot` and `vmornot` mnemonics will be retained as aliases in assembler.
-
-=== Stated that `misa.v` is set for implementations supporting the standard V extension.
+=== None.
 
 :sectnums:
 
 == Introduction
 
-This document is a draft of the second release candidate for version
-1.0 of the RISC-V vector extension for public review.
+This document is a draft of version 1.0 of the RISC-V vector extension
+for public review.
 
 *This is not the frozen version of 1.0 for public review*.
 
-NOTE: When finally approved and the release candidate tag is removed,
+NOTE: When finally approved and the draft tag is removed,
 version 1.0 is intended to be sent out for public review as part of
 the RISC-V International ratification process.  Version 1.0 will also
 then be considered stable enough to begin developing toolchains,
