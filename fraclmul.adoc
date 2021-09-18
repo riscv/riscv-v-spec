@@ -1,8 +1,8 @@
 [appendix]
 == Fractional Lmul example
 
-This appendix presents an example where compilers can make good use of
-the fractional LMUL feature.
+This appendix presents a non-normative example to help explain where
+compilers can make good use of the fractional LMUL feature.
 
 Consider the following (admittedly contrived) loop written in C:
 

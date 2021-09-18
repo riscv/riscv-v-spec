@@ -5099,7 +5099,7 @@ supporting V.
 
 The V vector extension has precise traps.
 
-The V vector extension requires that VLEN {ge} 128.
+The V vector extension requires Zvl128b.
 
 NOTE: The value of 128 was chosen as a compromise for application
 processors. Providing a larger VLEN allows stripmining code to be
