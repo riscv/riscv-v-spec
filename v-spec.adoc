@@ -59,6 +59,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === The previous assembler mnemonics `vmandnot` and `vmornot` have been changed to `vmandn` and `vmorn` to be consistent with the equivalent scalar instructions.  The old `vmandnot` and `vmornot` mnemonics will be retained as aliases in assembler.
 
+=== Stated that `misa.v` is set for implementations supporting the standard V extension.
+
 :sectnums:
 
 == Introduction
@@ -5090,6 +5092,9 @@ supported as well as widening reductions from FP32 to FP64.
 
 The single-letter V extension is intended for use in application
 processor profiles.
+
+The `misa.v` bit is set for implementations providing `misa` and
+supporting V.
 
 The V vector extension has precise traps.
 
