@@ -16,7 +16,7 @@
 #     a2      y
 
 saxpy:
-    vsetvli a4, a0, e32, m8, ta,ma
+    vsetvli a4, a0, e32, m8, ta, ma
     vle32.v v0, (a1)
     sub a0, a0, a4
     slli a4, a4, 2

@@ -1,0 +1,228 @@
+== Vector AMO Extension (`Zvamo`)
+
+NOTE: The vector AMO instructions are being removed from the standard
+vector extensions under review at this time.  The encoding below will
+be changed as it collides with scalar subword atomic encoding, but a
+new encoding is not currently available.  The vector AMO instructions
+will be added as an extension at a later date.
+
+This instruction extension is given the ISA string `Zvamo`.
+
+If vector AMO instructions are supported, then the scalar Zaamo
+instructions (atomic operations from the standard A extension) must be
+present.
+
+Vector AMO operations are encoded using the unused width encodings
+under the standard AMO major opcode.  Each active element performs an
+atomic read-modify-write of a single memory location.
+
+include::vamo-format.adoc[]
+
+----
+vs2[4:0] specifies v register holding address
+vs3/vd[4:0] specifies v register holding source operand and destination
+
+vm specifies vector mask
+width[2:0] specifies size of index elements, and distinguishes from scalar AMO
+amoop[4:0] specifies the AMO operation
+wd specifies whether the original memory value is written to vd (1=yes, 0=no)
+----
+
+The `vs2` vector register supplies the byte offset of each element,
+while the `vs3` vector register supplies the source data for the
+atomic memory operation.
+
+AMOs have the same index EEW scheme as indexed operations, except
+without the `mew` bit, which is required to be zero, so offsets can
+have EEW=8,16,32,64 only.  A vector of byte offsets in register `vs2`
+is added to the scalar base register in `rs1` to give the addresses
+of the AMO operations.
+
+The data register `vs3` used the dynamic SEW and LMUL settings in
+`vtype`.
+
+If the `wd` bit is set, the `vd` register is written with the initial
+value of the memory element.  If the `wd` bit is clear, the `vd`
+register is not written.
+
+NOTE: When `wd` is clear, the memory system does not need to return
+the original memory value, and the original values in `vd` will be
+preserved.
+
+NOTE: The AMOs were defined to overwrite source data partly to reduce
+total memory pipeline read port count for implementations with
+register renaming.  Also to support the same addressing mode as vector
+indexed operations, and because vector AMOs are less likely to need
+results given that the primary use is parallel in-memory reductions.
+
+Vector AMOs operate as if `aq` and `rl` bits were zero on each element
+with regard to ordering relative to other instructions in the same
+hart.
+
+Vector AMOs provide no ordering guarantee between element operations
+in the same vector AMO instruction.
+
+.Vector AMO width encoding
+[cols="4,1,1,1,3,3,3,3"]
+|===
+|                  3+| Width [2:0]| Index EEW   | Mem data bits | Reg data bits | Opcode
+
+| Standard scalar AMO | 0 | 1 | 0 |   -         |    32         |  XLEN  | AMO*.W
+| Standard scalar AMO | 0 | 1 | 1 |   -         |    64         |  XLEN  | AMO*.D
+| Standard scalar AMO | 1 | 0 | 0 |   -         |   128         |  XLEN  | AMO*.Q
+| Vector AMO          | 0 | 0 | 0 |   8         |   SEW         |   SEW  | VAMO*EI8.V
+| Vector AMO          | 1 | 0 | 1 |  16         |   SEW         |   SEW  | VAMO*EI16.V
+| Vector AMO          | 1 | 1 | 0 |  32         |   SEW         |   SEW  | VAMO*EI32.V
+| Vector AMO          | 1 | 1 | 1 |  64         |   SEW         |   SEW  | VAMO*EI64.V
+|===
+
+Index bits is the EEW of the offsets.
+
+Mem bits is the size of element accessed in memory
+
+Reg bits is the size of element accessed in register
+
+If index EEW is less than XLEN, then addresses in the vector `vs2` are
+zero-extended to XLEN.  If index EEW is greater than XLEN, the
+instruction encoding is reserved.
+
+Vector AMO instructions are only supported for the memory data element
+widths (in SEW) supported by AMOs in the implementation's scalar
+architecture.  Other element width encodings are reserved.
+
+The vector `amoop[4:0]` field uses the same encoding as the scalar
+5-bit AMO instruction field, except that LR and SC are not supported.
+
+.amoop
+[cols="1,1,1,1,1,11"]
+|===
+5+| amoop           | opcode
+
+| 0 | 0 | 0 | 0 | 1 | vamoswap
+| 0 | 0 | 0 | 0 | 0 | vamoadd
+| 0 | 0 | 1 | 0 | 0 | vamoxor
+| 0 | 1 | 1 | 0 | 0 | vamoand
+| 0 | 1 | 0 | 0 | 0 | vamoor
+| 1 | 0 | 0 | 0 | 0 | vamomin
+| 1 | 0 | 1 | 0 | 0 | vamomax
+| 1 | 1 | 0 | 0 | 0 | vamominu
+| 1 | 1 | 1 | 0 | 0 | vamomaxu
+|===
+
+The assembly syntax uses `x0` in the destination register position to
+indicate the return value is not required (`wd=0`).
+
+----
+# Vector AMOs for index EEW=8
+vamoswapei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoswapei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoaddei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoaddei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoxorei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoxorei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoandei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoandei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoorei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoorei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominuei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominuei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxuei8.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxuei8.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+# Vector AMOs for index EEW=16
+vamoswapei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoswapei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoaddei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoaddei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoxorei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoxorei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoandei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoandei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoorei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoorei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominuei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominuei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxuei16.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxuei16.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+# Vector AMOs for index EEW=32
+vamoswapei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoswapei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoaddei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoaddei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoxorei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoxorei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoandei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoandei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoorei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoorei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominuei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominuei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxuei32.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxuei32.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+# Vector AMOs for index EEW=64
+vamoswapei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoswapei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoaddei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoaddei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoxorei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoxorei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoandei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoandei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamoorei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamoorei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamominuei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamominuei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+
+vamomaxuei64.v vd, (rs1), vs2, vd,  v0.t # Write original value to register, wd=1
+vamomaxuei64.v x0, (rs1), vs2, vs3, v0.t # Do not write original value to register, wd=0
+----
+

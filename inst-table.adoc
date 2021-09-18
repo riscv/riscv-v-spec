@@ -14,7 +14,7 @@
 5+| funct6                  4+| funct6                 4+| funct6
 
 | 000000 |V|X|I| vadd       | 000000 |V| | vredsum     | 000000 |V|F| vfadd
-| 000001 | | | |            | 000001 |V| | vredand     | 000001 |V| | vfredsum
+| 000001 | | | |            | 000001 |V| | vredand     | 000001 |V| | vfredusum
 | 000010 |V|X| | vsub       | 000010 |V| | vredor      | 000010 |V|F| vfsub
 | 000011 | |X|I| vrsub      | 000011 |V| | vredxor     | 000011 |V| | vfredosum
 | 000100 |V|X| | vminu      | 000100 |V| | vredminu    | 000100 |V|F| vfmin
@@ -44,7 +44,7 @@
 | 010100 | | | |            | 010100 |V| | VMUNARY0    | 010100 | | |
 | 010101 | | | |            | 010101 | | |             | 010101 | | |
 | 010110 | | | |            | 010110 | | |             | 010110 | | |
-| 010111 |V|X|I| vmerge/vmv | 010111 |V| | vcompress   | 010111 | |F| vfmerge.vf/vfmv
+| 010111 |V|X|I| vmerge/vmv | 010111 |V| | vcompress   | 010111 | |F| vfmerge/vfmv
 | 011000 |V|X|I| vmseq      | 011000 |V| | vmandnot    | 011000 |V|F| vmfeq
 | 011001 |V|X|I| vmsne      | 011001 |V| | vmand       | 011001 |V|F| vmfle
 | 011010 |V|X| | vmsltu     | 011010 |V| | vmor        | 011010 | | |
@@ -67,7 +67,7 @@
 | 100101 |V|X|I| vsll       | 100101 |V|X| vmul        | 100101 | | |
 | 100110 | | | |            | 100110 |V|X| vmulhsu     | 100110 | | |
 | 100111 |V|X| | vsmul      | 100111 |V|X| vmulh       | 100111 | |F| vfrsub
-|        | | |I| vmv<nf>r   |        | | |             |        | | |
+|        | | |I| vmv<nr>r   |        | | |             |        | | |
 | 101000 |V|X|I| vsrl       | 101000 | | |             | 101000 |V|F| vfmadd
 | 101001 |V|X|I| vsra       | 101001 |V|X| vmadd       | 101001 |V|F| vfnmadd
 | 101010 |V|X|I| vssrl      | 101010 | | |             | 101010 |V|F| vfmsub
@@ -83,7 +83,7 @@
 5+| funct6                  4+| funct6                 4+| funct6
 
 | 110000 |V| | | vwredsumu  | 110000 |V|X| vwaddu      | 110000 |V|F| vfwadd
-| 110001 |V| | | vwredsum   | 110001 |V|X| vwadd       | 110001 |V| | vfwredsum
+| 110001 |V| | | vwredsum   | 110001 |V|X| vwadd       | 110001 |V| | vfwredusum
 | 110010 | | | |            | 110010 |V|X| vwsubu      | 110010 |V|F| vfwsub
 | 110011 | | | |            | 110011 |V|X| vwsub       | 110011 |V| | vfwredosum
 | 110100 | | | |            | 110100 |V|X| vwaddu.w    | 110100 |V|F| vfwadd.w
