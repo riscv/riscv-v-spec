@@ -5149,6 +5149,3 @@ include::inst-table.adoc[]
 include::vector-examples.adoc[]
 
 include::calling-convention.adoc[]
-
-include::fraclmul.adoc[]
-
