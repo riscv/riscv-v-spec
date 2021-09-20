@@ -1,5 +1,5 @@
 = RISC-V "V" Vector Extension
-Version 1.0-draft
+Version 1.0
 :doctype: article
 :encoding: utf-8
 :lang: en
@@ -25,28 +25,28 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 == Changes from v1.0-rc2
 
-=== None.
+=== Clarified that this it the frozen version for public review.
 
 :sectnums:
 
 == Introduction
 
-This document is a draft of version 1.0 of the RISC-V vector extension
-for public review.
+This document is version 1.0 of the RISC-V vector extension for public
+review.
 
-*This is not the frozen version of 1.0 for public review*.
+NOTE: This version 1.0 is considered frozen for public review as part
+of the RISC-V International ratification process.  Version 1.0 is
+considered stable enough to begin developing toolchains, functional
+simulators, and implementations, including in upstream software
+projects, and is not expected to have incompatible 
+changes except if serious issues are discovered during ratification.
+Once ratified, the spec will be given version 2.0.
 
-NOTE: When finally approved and the draft tag is removed,
-version 1.0 is intended to be sent out for public review as part of
-the RISC-V International ratification process.  Version 1.0 will also
-then be considered stable enough to begin developing toolchains,
-functional simulators, and initial implementations, including in
-upstream software projects, and is not expected to have major
-functionality changes except if serious issues are discovered during
-ratification.  Once ratified, the spec will be given version 2.0.
-
-This draft spec includes the complete set of currently defined vector
-instructions.  Section <<sec-vector-extensions>> lists the standard
+This spec includes the complete set of currently frozen vector
+instructions.  Other instructions that have been considered during
+development but are not present in this document are not included in
+the review and ratification process, and may be completely revised or
+abandoned.  Section <<sec-vector-extensions>> lists the standard
 vector extensions and which instructions and element widths are
 supported by each extension.
 
