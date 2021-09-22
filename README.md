@@ -4,10 +4,6 @@ Working draft of the proposed RISC-V V vector extension.
 [Version 1.0](https://github.com/riscv/riscv-v-spec/releases/tag/v1.0) has been frozen
 and as of this writing is undergoing public review.
 
-For the current stable release is
-is a release candidate for the v1.0 frozen spec for public review - it is not
-the v1.0 frozen spec.
-
 The _previous_ stable releases are
 [v1.0-rc](https://github.com/riscv/riscv-v-spec/releases/tag/v1.0-rc1),
 [v0.10](https://github.com/riscv/riscv-v-spec/releases/tag/v0.10),
