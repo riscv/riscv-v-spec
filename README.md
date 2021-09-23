@@ -1,8 +1,13 @@
 # riscv-v-spec
 Working draft of the proposed RISC-V V vector extension.
 
-[Version 1.0](https://github.com/riscv/riscv-v-spec/releases/tag/v1.0) has been frozen
-and as of this writing is undergoing public review.
+[Version 1.0](https://github.com/riscv/riscv-v-spec/releases/tag/v1.0)
+has been frozen and at this time is undergoing public review.
+Version 1.0 is considered stable enough to begin developing
+toolchains, functional simulators, and implementations, including in
+upstream software projects, and is not expected to have incompatible
+changes except if serious issues are discovered during
+ratification. Once ratified, the spec will be given version 2.0.
 
 The _previous_ stable releases are
 [v1.0-rc2](https://github.com/riscv/riscv-v-spec/releases/tag/v1.0-rc2),
@@ -10,8 +15,7 @@ The _previous_ stable releases are
 [v0.10](https://github.com/riscv/riscv-v-spec/releases/tag/v0.10),
 [v0.9](https://github.com/riscv/riscv-v-spec/releases/tag/0.9), and
 [v0.8](https://github.com/riscv/riscv-v-spec/releases/tag/0.8).
-Note, these previous releases are for development purposes only; changes have
-been made prior to freezing.
+Note, these previous releases were for experimental development purposes only and are not standard versions suitable for production use. Significant incompatible changes were made from these earlier versions prior to freezing.
 
 The top level file is [v-spec.adoc](./v-spec.adoc)
 
