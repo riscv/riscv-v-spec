@@ -5,7 +5,8 @@ Working draft of the proposed RISC-V V vector extension.
 and as of this writing is undergoing public review.
 
 The _previous_ stable releases are
-[v1.0-rc](https://github.com/riscv/riscv-v-spec/releases/tag/v1.0-rc1),
+[v1.0-rc2](https://github.com/riscv/riscv-v-spec/releases/tag/v1.0-rc2),
+[v1.0-rc1](https://github.com/riscv/riscv-v-spec/releases/tag/v1.0-rc1),
 [v0.10](https://github.com/riscv/riscv-v-spec/releases/tag/v0.10),
 [v0.9](https://github.com/riscv/riscv-v-spec/releases/tag/0.9), and
 [v0.8](https://github.com/riscv/riscv-v-spec/releases/tag/0.8).
