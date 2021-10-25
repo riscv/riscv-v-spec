@@ -4587,7 +4587,7 @@ past `vl` are handled according to the current tail policy (Section
 
 
 ----
-   vslide1up behavior
+   vslide1up behavior when vl > 0
 
                     i < vstart  unchanged
                 0 = i = vstart  vd[i] = x[rs1] if v0.mask[i] enabled
