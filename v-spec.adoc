@@ -25,7 +25,7 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 == Changes from v1.0
 
-=== None
+=== Moved discussion of illegal `vtype` values into section on configuration setting instructions, and expanded explanations.
 
 :sectnums:
 
@@ -318,9 +318,6 @@ storage in a vector register.
 For a given supported fractional LMUL setting, implementations must support
 SEW settings between SEW~MIN~ and LMUL * ELEN, inclusive.
 
-An attempt to set an unsupported SEW and LMUL configuration sets the
-`vill` bit in `vtype`.
-
 The use of `vtype` encodings with LMUL < SEW~MIN~/ELEN is
 __reserved__, but implementations can set `vill` if they do not
 support these configurations.
@@ -488,15 +485,6 @@ instruction attempted to write an unsupported value to `vtype`.
 
 NOTE: The `vill` bit is held in bit XLEN-1 of the CSR to support
 checking for illegal values with a branch on the sign bit.
-
-All bits of the `vtype` argument must be considered in determining if
-the value is supported by the implementation.
-
-NOTE: All bits must be checked to ensure that new code assuming
-unsupported vector features in `vtype` traps instead of executing
-incorrectly on an older implementation.
-
-A `vtype` value with the `vill` bit set is an unsupported value.
 
 If the `vill` bit is set, then any attempt to execute a vector instruction
 that depends upon `vtype` will raise an illegal-instruction exception.
@@ -1168,8 +1156,8 @@ include::vcfg-format.adoc[]
 
 include::vtype-format.adoc[]
 
-The new `vtype` setting is encoded in the immediate fields of
-`vsetvli` and `vsetivli`,  and in the `rs2` register for `vsetvl`.
+The new `vtype` value is encoded in the immediate fields of `vsetvli`
+and `vsetivli`, and in the `rs2` register for `vsetvl`.
 
 ----
  Suggested assembler names used for vset{i}vli vtypei immediate
@@ -1196,7 +1184,9 @@ Examples:
 The `vsetvl` variant operates similarly to `vsetvli` except that it
 takes a `vtype` value from `rs2` and can be used for context restore.
 
-If the `vtype` setting is not supported by the implementation, then
+==== Unsupported `vtype` Values
+
+If the `vtype` value is not supported by the implementation, then
 the `vill` bit is set in `vtype`, the remaining bits in `vtype` are
 set to zero, and the `vl` register is also set to zero.
 
@@ -1208,6 +1198,19 @@ setting `vill`, to allow emulation to support new configurations for
 forward-compatibility.  The current scheme supports light-weight
 runtime interrogation of the supported vector unit configurations by
 checking if `vill` is clear for a given setting.
+
+A `vtype` value with `vill` set is treated as an unsupported
+configuration.
+
+Implementations must consider all bits of the `vtype` value to
+determine if the configuration is supported.  An unsupported value in
+any location within the `vtype` value must result in `vill` being set.
+
+NOTE: In particular, all XLEN bits of the register `vtype` argument to
+the `vsetvl` instruction must be checked.  Implementations cannot
+ignore fields they do not implement. All bits must be checked to
+ensure that new code assuming unsupported vector features in `vtype`
+traps instead of executing incorrectly on an older implementation.
 
 === AVL encoding
 
