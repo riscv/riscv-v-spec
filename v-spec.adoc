@@ -27,6 +27,8 @@ Alex Solomatnikov, Steve Wallach, Andrew Waterman, Jim Wilson.
 
 === Moved discussion of illegal `vtype` values into section on configuration setting instructions, and expanded explanations.
 
+=== Make encodings reserved if the same vector register would be read with two or more different EEWs by the same instruction.
+
 :sectnums:
 
 == Introduction
@@ -964,6 +966,19 @@ depending on EMUL, but are always specified using the lowest-numbered
 vector register in the group.  Using other than the lowest-numbered
 vector register to specify a vector register group is a reserved
 encoding.
+
+A vector register cannot be used to provide source operands with more
+than one EEW for a single instruction.  A mask register source is
+considered to have EEW=1 for this constraint.  An encoding that would
+result in the same vector register being read with two or more
+different EEWs, including when the vector register appears at
+different positions within two or more vector register groups, is
+reserved.
+
+NOTE: In practice, there is no software benefit to reading the same
+register with different EEW in the same instruction, and this
+constraint reduces complexity for implementations that internally
+rearrange data dependent on EEW.
 
 A destination vector register group can overlap a source vector register
 group only if one of the following holds:
