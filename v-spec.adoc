@@ -3737,7 +3737,7 @@ vfmerge.vfm vd, vs2, rs1, v0  # vd[i] = v0.mask[i] ? f[rs1] : vs2[i]
 The vector floating-point move instruction __splats__ a floating-point
 scalar operand to a vector register group.  The instruction copies a
 scalar `f` register value to all active elements of a vector register
-group.  This instruction is encoded as a masked instruction (`vm=1`).
+group.  This instruction is encoded as an unmasked instruction (`vm=1`).
 The instruction must have the `vs2` field set to `v0`, with all other
 values for `vs2` reserved.
 
