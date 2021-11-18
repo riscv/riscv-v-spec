@@ -4118,10 +4118,10 @@ possibly binary logical functions of the two input masks:
 | 0 | 0 | 0 | 1 | vmand.mm vd, src1, src2     |
 | 1 | 0 | 0 | 1 | vmxnor.mm vd, src1, src2    |
 | 0 | 1 | 0 | 1 | vmand.mm vd, src2, src2     | vmmv.m vd, src2
-| 0 | 1 | 1 | 1 | vmor.mm vd, src1, src2      |
 | 1 | 1 | 0 | 1 | vmorn.mm vd, src2, src1     |
 | 0 | 0 | 1 | 1 | vmand.mm vd, src1, src1     | vmmv.m vd, src1
 | 1 | 0 | 1 | 1 | vmorn.mm vd, src1, src2     |
+| 0 | 1 | 1 | 1 | vmor.mm vd, src1, src2      |
 | 1 | 1 | 1 | 1 | vmxnor.mm vd, vd, vd        | vmset.m vd
 |===
 
