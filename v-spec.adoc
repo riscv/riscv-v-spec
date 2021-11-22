@@ -4571,7 +4571,7 @@ If XLEN > SEW, _OFFSET_ is _not_ truncated to SEW bits.
                VLMAX <= i+OFFSET           src[i] = 0
 
   vslidedown behavior for destination element i in slide
-                   0 <=  i < vstart         Unchanged
+                   0 <  i < vstart         Unchanged
               vstart <= i < vl             vd[i] = src[i] if v0.mask[i] enabled
                   vl <= i < VLMAX          Follow tail policy
 
