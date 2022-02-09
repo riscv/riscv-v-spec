@@ -5071,6 +5071,9 @@ single-width floating-point reductions (<<sec-vector-float-reduce>>)
 for EEW=32 and EEW=64 are supported as well as widening reductions
 from FP32 to FP64.
 
+NOTE:  Zve* depends upon other smaller Zve*. (e.g. Zve64x depends upon
+Zve32x, Zve64f depends upon Zve32f, Zve64d depends upon Zve64f)
+
 === V: Vector Extension for Application Processors
 
 The single-letter V extension is intended for use in application
@@ -5128,6 +5131,8 @@ well as widening reductions from FP32 to FP64.
 NOTE: As is the case with other RISC-V extensions, it is valid to
 include overlapping extensions in the same ISA string.  For example,
 RV64GCV and RV64GCV_Zve64f are both valid and equivalent ISA strings.
+
+NOTE: The V extension depends upon all of the Zve* extensions.
 
 == Vector Instruction Listing
 
