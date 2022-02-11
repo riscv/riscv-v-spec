@@ -5127,7 +5127,8 @@ well as widening reductions from FP32 to FP64.
 
 NOTE: As is the case with other RISC-V extensions, it is valid to
 include overlapping extensions in the same ISA string.  For example,
-RV64GCV and RV64GCV_Zve64f are both valid and equivalent ISA strings.
+RV64GCV and RV64GCV_Zve64f are both valid and equivalent ISA strings,
+as is RV64GCV_Zve64f_Zve32x_Zvl128b.
 
 == Vector Instruction Listing
 
