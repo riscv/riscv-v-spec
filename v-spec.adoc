@@ -4177,7 +4177,7 @@ index to a GPR.  If no active element has the value 1, -1 is written
 to the GPR.
 
 NOTE: Software can assume that any negative value (highest bit set)
-corresponds to no element found, as vector lengths will never exceed
+corresponds to no element found, as vector lengths will never reach
 2^(XLEN-1)^ on any implementation.
 
 The `vfirst.m` instruction writes `x[rd]` even if `vl`=0 (with the
