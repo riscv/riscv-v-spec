@@ -5051,15 +5051,14 @@ All Zve* extensions support all vector mask instructions (Section
 <<sec-vector-mask>>).
 
 All Zve* extensions support all vector permutation instructions
-(Section <<sec-vector-permute>>), except that Zve32x and Zve64x do not
-implement the floating-point scalar move instructions.
+(Section <<sec-vector-permute>>), except that Zve32x and Zve64x 
+do not include those with floating-point operands, and Zve64f does not include those
+with EEW=64 floating-point operands.
 
 The Zve32f and Zve64f extensions depend upon the F extension,
 and implement all
 vector floating-point instructions (Section <<sec-vector-float>>) for
-floating-point operands with EEW=32 (i.e., no widening floating-point
-operations), and conversion instructions are provided to and from all
-supported integer EEWs.  Vector single-width floating-point reduction
+floating-point operands with EEW=32. Vector single-width floating-point reduction
 operations (<<sec-vector-float-reduce>>) for EEW=32 are supported.
 
 The Zve64d extension depends upon the D extension,
