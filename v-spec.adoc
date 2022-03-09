@@ -5031,7 +5031,7 @@ All Zve* extensions support all vector mask instructions (Section
 
 All Zve* extensions support all vector permutation instructions
 (Section <<sec-vector-permute>>), except that Zve32x and Zve64x 
-does not include those with floating-point operands, and Zve64f does not include those
+do not include those with floating-point operands, and Zve64f does not include those
 with EEW=64 floating-point operands.
 
 The Zve32f and Zve64f extensions require the scalar processor to
