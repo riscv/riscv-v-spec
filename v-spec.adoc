@@ -4588,7 +4588,6 @@ element position.
 
 ----
  vslide1up.vx  vd, vs2, rs1, vm        # vd[0]=x[rs1], vd[i+1] = vs2[i]
- vfslide1up.vf vd, vs2, rs1, vm        # vd[0]=f[rs1], vd[i+1] = vs2[i]
 ----
 
 The `vslide1up` instruction places the `x` register argument at
@@ -4621,8 +4620,15 @@ The `vslide1up` instruction requires that the destination vector
 register group does not overlap the source vector register group.
 Otherwise, the instruction encoding is reserved.
 
-The `vfslide1up` instruction is defined analogously, but sources its
-scalar argument from an `f` register.
+[[sec-vfslide1up]]
+==== Vector Floating-Point Slide1up Instruction
+
+----
+ vfslide1up.vf vd, vs2, rs1, vm        # vd[0]=f[rs1], vd[i+1] = vs2[i]
+----
+
+The `vfslide1up` instruction is defined analogously to `vslide1up`,
+but sources its scalar argument from an `f` register.
 
 ==== Vector Slide1down Instruction
 
@@ -4637,7 +4643,6 @@ past `vl` are handled according to the current tail policy (Section
 
 ----
  vslide1down.vx  vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=x[rs1]
- vfslide1down.vf vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=f[rs1]
 ----
 
 The `vslide1down` instruction places the `x` register argument at
@@ -4656,14 +4661,21 @@ SEW-XLEN bits are ignored.
                  vl <= i < VLMAX   Follow tail policy
 ----
 
-The `vfslide1down` instruction is defined analogously, but sources its
-scalar argument from an `f` register.
-
 NOTE: The `vslide1down` instruction can be used to load values into a
 vector register without using memory and without disturbing other
 vector registers.  This provides a path for debuggers to modify the
 contents of a vector register, albeit slowly, with multiple repeated
 `vslide1down` invocations.
+
+[[sec-vfslide1down]]
+==== Vector Floating-Point Slide1down Instruction
+
+----
+ vfslide1down.vf vd, vs2, rs1, vm      # vd[i] = vs2[i+1], vd[vl-1]=f[rs1]
+----
+
+The `vfslide1down` instruction is defined analogously to `vslide1down`,
+but sources its scalar argument from an `f` register.
 
 === Vector Register Gather Instructions
 
