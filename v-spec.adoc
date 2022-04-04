@@ -4521,7 +4521,7 @@ undisturbed/agnostic policy is followed for inactive elements.
 ==== Vector Slideup Instructions
 
 ----
- vslideup.vx vd, vs2, rs1, vm        # vd[i+rs1] = vs2[i]
+ vslideup.vx vd, vs2, rs1, vm        # vd[i+x[rs1]] = vs2[i]
  vslideup.vi vd, vs2, uimm, vm       # vd[i+uimm] = vs2[i]
 ----
 
@@ -4554,7 +4554,7 @@ input vectors during execution, and enables restart with non-zero
 ==== Vector Slidedown Instructions
 
 ----
- vslidedown.vx vd, vs2, rs1, vm       # vd[i] = vs2[i+rs1]
+ vslidedown.vx vd, vs2, rs1, vm       # vd[i] = vs2[i+x[rs1]]
  vslidedown.vi vd, vs2, uimm, vm      # vd[i] = vs2[i+uimm]
 ----
 
