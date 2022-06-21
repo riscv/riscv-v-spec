@@ -2154,12 +2154,18 @@ Vector memory instructions appear to execute in program order on the
 local hart.
 
 Vector memory instructions follow RVWMO at the instruction level.
+If the Ztso extension is implemented, vector memory instructions additionally
+follow RVTSO at the instruction level.
 
 Except for vector indexed-ordered loads and stores, element operations
 are unordered within the instruction.
 
 Vector indexed-ordered loads and stores read and write elements
-from/to memory in element order respectively.
+from/to memory in element order respectively,
+obeying RVWMO at the element level.
+
+NOTE: Ztso only imposes RVTSO at the instruction level; intra-instruction
+ordering follows RVWMO regardless of whether Ztso is implemented.
 
 NOTE: More formal definitions required.
 
@@ -2174,9 +2180,6 @@ instructions ordinarily would have been used.
 Treating the mask as control allows masked vector load instructions to access
 memory before the mask value is known, without the need for
 a misspeculation-recovery mechanism.
-
-NOTE: The behavior of vector memory instructions under the proposed
-RVTSO memory model (Ztso extension) is not presently defined.
 
 == Vector Arithmetic Instruction Formats
 
