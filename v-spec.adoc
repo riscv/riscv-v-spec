@@ -1954,14 +1954,14 @@ EMUL=(EEW/SEW)*LMUL.
 
     # Examples
     vsetvli a1, t0, e8, ta, ma
-    vluxseg3ei32.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
-                              #  and bytes at addresses x5+v3[i]+1 into v5[i],
-                              #  and bytes at addresses x5+v3[i]+2 into v6[i].
+    vluxseg3ei8.v v4, (x5), v3   # Load bytes at addresses x5+v3[i]   into v4[i],
+                                 #  and bytes at addresses x5+v3[i]+1 into v5[i],
+                                 #  and bytes at addresses x5+v3[i]+2 into v6[i].
 
     # Examples
     vsetvli a1, t0, e32, ta, ma
     vsuxseg2ei32.v v2, (x5), v5   # Store words from v2[i] to address x5+v5[i]
-                              #   and words from v3[i] to address x5+v5[i]+4
+                                  #   and words from v3[i] to address x5+v5[i]+4
 ----
 
 For vector indexed segment loads, the destination vector register
