@@ -7,8 +7,8 @@ Some vector instructions treat operands as a vector of one or more
 _element_ _groups_, where each element group is a fixed number of
 elements.  For example, complex numbers can be viewed as a two-element
 group (one real element and one imaginary element).  As another
-example, an SHA-256 cryptographic operation operates on an 8-element
-group of 32-bit elements.
+example, the SHA-256 cryptographic instructions operate on 128-bit
+values represented as a 4-element group of 32-bit elements.
 
 This section describes recommendations and terminology for generic
 instruction set design for vector instructions that operate on element
@@ -33,7 +33,7 @@ encoded in the instruction.
 
 NOTE: Many operations only make sense with a certain number of
 elements per group (e.g., complex operations require a element group
-size of 2 and SHA-256 requires an element group size of 8).
+size of 2 and SHA-256 requires an element group size of 4).
 
 NOTE: Possible future vector instructions that might operate on
 variable-sized element groups are not considered here.
@@ -57,7 +57,7 @@ size, with other values of vl raising an illegal instruction
 exception.
 
 NOTE: For example, a SHA-256 instruction would require that `vl` is a
-multiple of 8. For power-of-2 element group sizes, `vl` error checking
+multiple of 4. For power-of-2 element group sizes, `vl` error checking
 simply involves checking that least-significant bits are zero.  For
 non-power-of-2 sizes the check is a little more complex but relatively
 straightforward compared to the other complexities of supporting a
@@ -100,8 +100,8 @@ different element group size, different EMUL, and/or different EEW.
 == Element Group Width
 
 The _element_ _group_ _width_ (EGW) is the number of bits in the
-element group as a whole.  For example, SHA-256 has an EGW of 256, due
-to an element group size of 8 with EEW=32.  It is possible to use LMUL
+element group as a whole.  For example, SHA-256 has an EGW of 128, due
+to an element group size of 4 with EEW=32.  It is possible to use LMUL
 to concatenate multiple vector registers together to support larger
 EGW>VLEN.
 
