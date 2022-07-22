@@ -58,22 +58,21 @@ Each source and destination operand to a vector instruction might be
 defined as either a single element group or a vector of element
 groups.  When the operand is a vector of element groups, the `vl`
 setting must correspond to an integer multiple of the element group
-size, with other values of vl _reserved_.
+size, with other values of vl raising an illegal instruction
+exception.
 
 NOTE: For example, a SHA-256 instruction would require that `vl` is a
-multiple of 8.
+multiple of 8. For power-of-2 element group sizes, `vl` error checking
+simply involves checking that least-significant bits are zero.  For
+non-power-of-2 sizes the check is a little more complex but relatively
+straightforward compared to the other complexities of supporting a
+non-power-of-2 element group size.
 
-NOTE: Implementations are recommended to raise an illegal instruction
-exception for a `vl` value that is not a multiple of the element group
-size.
-
-NOTE: For power-of-2 element group sizes, `vl` error checking simply
-involves checking that least-significant bits are zero.  Supporting
-element group sizes that are not a power of two is problematic for
-many reasons, not only `vl` error checking.  For LMUL>1,
-non-power-of-2 element group sizes can result in groups straddling the
-individual vector registers in a vector register group.  Also,
-conventional stripmining control with `vsetvl` will result in
+NOTE: Supporting element group sizes that are not a power of two is
+problematic for many reasons, not only `vl` error checking.  For
+LMUL>1, non-power-of-2 element group sizes can result in groups
+straddling the individual vector registers in a vector register group.
+Also, conventional stripmining control with `vsetvl` will result in
 fractional element groups, and so special logic would be needed.
 Hence we do not anticipate supporting non-power-of-2 element group
 sizes.
