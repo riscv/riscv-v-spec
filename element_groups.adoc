@@ -1,4 +1,5 @@
 = RISC-V Vector Element Groups
+:le: &#8804;
 
 *Concept - not part of any standard*
 
@@ -40,12 +41,16 @@ variable-sized element groups are not considered here.
 
 NOTE: Supporting element group sizes that are not a power of two is
 possible but problematic. Error checking for `vl` is a little more
-difficult.  For LMUL>1, non-power-of-2 element group sizes can result
+difficult.  For LMUL>1, non-power-of-2 element group sizes will result
 in groups straddling the individual vector registers in a vector
-register group.  Also, conventional stripmining control with `vsetvl`
-will result in fractional element groups, and so special logic would
-be needed.  Hence we do not anticipate supporting non-power-of-2
-element group sizes.
+register group. (A possible alternative design would be to require
+element groups to not straddle multiple registers in a vector register
+group, though this would require VLEN to be large enough to hold the
+largest element group width.)  Non-power-of-2 sizes also increase the
+lowest common multiple of element group sizes, which adds constraints
+to `vl` setting in order to avoid splitting an element group across
+stripmine iterations in vector-length-agnostic code.  Hence we
+recommend against supporting non-power-of-2 element group sizes.
 
 == Setting `vl`
 
@@ -62,6 +67,51 @@ simply involves checking that least-significant bits are zero.  For
 non-power-of-2 sizes the check is a little more complex but relatively
 straightforward compared to the other complexities of supporting a
 non-power-of-2 element group size.
+
+When element group instructions are present, an additional constraint
+is placed on the setting of `vl` based on an AVL value (Section 6.3 of
+vector spec 1.0).  The value of `vl` must be set to an integer
+multiple of any supported element group size for the argument SEW when
+AVL > VLMAX.
+
+NOTE: This constraint prevents element groups being broken across
+stripmining iterations in vector-length-agnostic code.
+
+NOTE: As the base vector extension only has element group size of 1,
+this constraint is backwards-compatible.
+
+For example, if an implementation supports an instruction operating on
+an 8-element group of 8-bit elements and also an instruction operating
+on a 4-element group of 32-bit elements, then `vsetvl` instructions
+must return a multiple of 8 when SEW=8 and AVL > VLMAX, and return a
+multiple of 4 when SEW=32 and AVL > VLMAX.
+
+NOTE: If another instruction were added to this example supporting a
+3-element group of 8-bit elements, then when SEW=8, `vl` must be set
+to a multiple of 24 when AVL > VLMAX, i.e. an integer multiple of the
+lowest common multiple of supported element group sizes at the same
+SEW.
+
+If VLMAX is not large enough to hold the lowest common multiple of
+element group sizes at the argument SEW when AVL > VLMAX, then `vill`
+is set.
+
+NOTE: For example, if element group sizes of 3 and 8 are supported
+when SEW=8, the lowest common multiple is 24.  For a system with
+VLEN=128 (i.e., 16 bytes) and LMUL=1, executing `vsetvli` with SEW=8
+and AVL=21 would set `vill`.  Increasing LMUL to 2 would enable `vl`
+to be set to exactly 21, and an instruction with an element group size
+of 3 could proceed.  Implementors should avoid configurations where
+`vill` can be set in this way, and profiles may explicitly prohibit
+these cases.
+
+NOTE: If EEW is encoded statically in the instruction, or if an
+instruction has multiple operands containing vectors of element groups
+with different EEW an appropriate SEW must be chosen for `vsetvl`
+instructions.
+
+NOTE: Additional constraints may be required for some element group
+instructions to ensure legal length values for all operands.
 
 == Determining EEW 
 
