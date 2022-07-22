@@ -4093,10 +4093,13 @@ common uses of mask logical operations:
     vmnot.m vd, vs => vmnand.mm vd, vs, vs  # Invert bits
 ----
 
-NOTE: The vmmv.m instruction was previously called vmcpy.m, but with
-new layout it is more consistent to name as a "mv" because bits are
-copied without interpretation.  The vmcpy.m assembler
-pseudoinstruction can be retained for compatibility.
+NOTE: The `vmmv.m` instruction was previously called `vmcpy.m`, but
+with new layout it is more consistent to name as a "mv" because bits
+are copied without interpretation.  The `vmcpy.m` assembler
+pseudoinstruction can be retained for compatibility.  For
+implementations that internally rearrange bits according to EEW, a
+`vmmv.m` instruction with same source and destination can be used as
+idiom to force an internal reformat into a mask vector.
 
 The set of eight mask logical instructions can generate any of the 16
 possibly binary logical functions of the two input masks:
