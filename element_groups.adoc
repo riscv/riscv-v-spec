@@ -23,7 +23,17 @@ larger groups.
 
 == Element Group Size
 
-The _element_ _group_ _size_ is the number of elements in one group.
+The _element_ _group_ _size_ (EGS) is the number of elements in one
+group, and must be a power-of-two (POT).
+
+NOTE: Support for non-POT EGS was considered but causes many practical
+complications and so has been dropped.  Error checking for `vl` is a
+little more difficult.  For LMUL>1, non-POT EGSs will result in groups
+straddling the individual vector registers in a vector register
+group. Non-POT EGS can also cause large increases in the
+lowest-common-multiple of element group sizes, which adds constraints
+to `vl` setting in order to avoid splitting an element group across
+stripmine iterations in vector-length-agnostic code.
 
 The element group size is statically encoded in the instruction, often
 implicitly as part of the opcode.
@@ -39,71 +49,42 @@ size of 2 and SHA-256 requires an element group size of 4).
 NOTE: Possible future vector instructions that might operate on
 variable-sized element groups are not considered here.
 
-NOTE: Supporting element group sizes that are not a power of two is
-possible but problematic. Error checking for `vl` is a little more
-difficult.  For LMUL>1, non-power-of-2 element group sizes will result
-in groups straddling the individual vector registers in a vector
-register group. (A possible alternative design would be to require
-element groups to not straddle multiple registers in a vector register
-group, though this would require VLEN to be large enough to hold the
-largest element group width.)  Non-power-of-2 sizes also increase the
-lowest common multiple of element group sizes, which adds constraints
-to `vl` setting in order to avoid splitting an element group across
-stripmine iterations in vector-length-agnostic code.  Hence we
-recommend against supporting non-power-of-2 element group sizes.
-
 == Setting `vl`
 
 Each source and destination operand to a vector instruction might be
 defined as either a single element group or a vector of element
-groups.  When the operand is a vector of element groups, the `vl`
+groups.  When an operand is a vector of element groups, the `vl`
 setting must correspond to an integer multiple of the element group
-size, with other values of vl raising an illegal instruction
+size, with other values of `vl` raising an illegal instruction
 exception.
 
+NOTE: More complex vector instructions could potentially have
+different non-unit vector lengths for different operands, but these
+are not considered here.
+
 NOTE: For example, a SHA-256 instruction would require that `vl` is a
-multiple of 4. For power-of-2 element group sizes, `vl` error checking
-simply involves checking that least-significant bits are zero.  For
-non-power-of-2 sizes the check is a little more complex but relatively
-straightforward compared to the other complexities of supporting a
-non-power-of-2 element group size.
+multiple of 4.
 
 When element group instructions are present, an additional constraint
 is placed on the setting of `vl` based on an AVL value (Section 6.3 of
-vector spec 1.0).  The value of `vl` must be set to an integer
-multiple of any supported element group size for the argument SEW when
-AVL > VLMAX.
-
-NOTE: This constraint prevents element groups being broken across
-stripmining iterations in vector-length-agnostic code.
+vector spec 1.0).  EGSMAX is the largest EGS supported by the
+implementation.  When AVL > VLMAX, the value of `vl` must be set to
+either VLMAX or a positive integer multiple of EGSMAX.
 
 NOTE: As the base vector extension only has element group size of 1,
 this constraint is backwards-compatible.
 
-For example, if an implementation supports an instruction operating on
-an 8-element group of 8-bit elements and also an instruction operating
-on a 4-element group of 32-bit elements, then `vsetvl` instructions
-must return a multiple of 8 when SEW=8 and AVL > VLMAX, and return a
-multiple of 4 when SEW=32 and AVL > VLMAX.
+NOTE: This constraint prevents element groups being broken across
+stripmining iterations in vector-length-agnostic code when a
+VLMAX-size vector would otherwise be able to accomodate a whole number
+of element groups.
 
-NOTE: If another instruction were added to this example supporting a
-3-element group of 8-bit elements, then when SEW=8, `vl` must be set
-to a multiple of 24 when AVL > VLMAX, i.e. an integer multiple of the
-lowest common multiple of supported element group sizes at the same
-SEW.
-
-If VLMAX is not large enough to hold the lowest common multiple of
-element group sizes at the argument SEW when AVL > VLMAX, then `vill`
-is set.
-
-NOTE: For example, if element group sizes of 3 and 8 are supported
-when SEW=8, the lowest common multiple is 24.  For a system with
-VLEN=128 (i.e., 16 bytes) and LMUL=1, executing `vsetvli` with SEW=8
-and AVL=21 would set `vill`.  Increasing LMUL to 2 would enable `vl`
-to be set to exactly 21, and an instruction with an element group size
-of 3 could proceed.  Implementors should avoid configurations where
-`vill` can be set in this way, and profiles may explicitly prohibit
-these cases.
+NOTE: When the SEW and LMUL settings cause VLMAX to be smaller than
+EGSMAX on a certain machine, then `vl` is set to VLMAX.  If an
+attempt is made to execute an element-group instruction with
+EGS > `vl`=VLMAX, an illegal instruction exception will be raised on that
+instruction.  Other element-group instructions with EGS {le} `vl`=VLMAX will
+proceed.
 
 NOTE: If EEW is encoded statically in the instruction, or if an
 instruction has multiple operands containing vectors of element groups
@@ -116,10 +97,10 @@ instructions to ensure legal length values for all operands.
 == Determining EEW 
 
 The `vtype` SEW can be used to indicate or calculate the effective
-element size (EEW) of one or more operands.  Where the operand is an
-element group, SEW and EEW refer to the number of bits in each
-individual element within a group not the number of bits in the group
-as a whole.
+element size (EEW) of one or more operands of an element group
+instruction.  Where the operand is an element group, SEW and EEW refer
+to the number of bits in each individual element within a group not
+the number of bits in the group as a whole.
 
 Alternatively, the opcode might encode EEW of all operands statically
 and ignore the value of SEW when the operation only makes sense for a
@@ -150,19 +131,19 @@ different element group size, different EMUL, and/or different EEW.
 == Element Group Width
 
 The _element_ _group_ _width_ (EGW) is the number of bits in the
-element group as a whole.  For example, SHA-256 has an EGW of 128, due
-to an element group size of 4 with EEW=32.  It is possible to use LMUL
-to concatenate multiple vector registers together to support larger
-EGW>VLEN.
+element group as a whole.  For example, the proposed SHA-256
+instructions operate on an EGW of 128, with EGS=4 and EEW=32.  It is
+possible to use LMUL to concatenate multiple vector registers together
+to support larger EGW>VLEN.
 
 NOTE: Implementations may choose not to support instructions with
 EGW>VLEN due to implementation complexity.
 
 NOTE: If software using large EGW instructions wants to be portable
-across across a range of implementations, some of which may have
-VLEN<EGW and hence require LMUL>1, then software can only use a subset
-of the architectural registers.  Profiles can set minimum VLEN
-requirements to inform authors of portable software.
+across a range of implementations, some of which may have VLEN<EGW and
+hence require LMUL>1, then software can only use a subset of the
+architectural registers.  Profiles can set minimum VLEN requirements
+to inform authors of portable software.
 
 NOTE: Element group operations by their nature will gather data from
 across a wider portion of a vector datapath than regular vector
@@ -173,10 +154,10 @@ functional unit at the same time.
 
 == Masking
 
-Some element-group instructions might not support masking.  Other
+Some element-group instructions might not support masking.  Some
+element-group instructions might support element-level masking.  Other
 instructions might define mask behavior in terms of a _mask_ _element_
 _group_ (e.g., update destination element group if any or all mask
 bits in mask element group are set, and/or update one or more
 destination mask values in a mask element group on basis of element
 group predicate).
-
