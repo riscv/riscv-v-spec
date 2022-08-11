@@ -1193,9 +1193,9 @@ and `vsetivli`, and in the `rs2` register for `vsetvl`.
  m8   # LMUL=8
 
 Examples:
-    vsetvli t0, a0, e8          # SEW= 8, LMUL=1
-    vsetvli t0, a0, e8, m2      # SEW= 8, LMUL=2
-    vsetvli t0, a0, e32, mf2    # SEW=32, LMUL=1/2
+    vsetvli t0, a0, e8, ta, ma          # SEW= 8, LMUL=1
+    vsetvli t0, a0, e8, m2, ta, ma      # SEW= 8, LMUL=2
+    vsetvli t0, a0, e32, mf2, ta, ma    # SEW=32, LMUL=1/2
 ----
 
 The `vsetvl` variant operates similarly to `vsetvli` except that it
@@ -2124,10 +2124,10 @@ following vector instruction needs a new SEW/LMUL. So, in best case
 only two instructions (of which only one performs vector operations) are needed to synthesize the effect of the
 dedicated instruction:
 ----
-  csrr t0, vl                # Save current vl (potentially not needed)
-  vsetvli t1, x0, e8, m8     # Maximum VLMAX
-  vlm.v v0, (a0)             # Load mask register
-  vsetvli x0, t0, <new type> # Restore vl (potentially already present)
+  csrr t0, vl                        # Save current vl (potentially not needed)
+  vsetvli t1, x0, e8, m8, ta, ma     # Maximum VLMAX
+  vlm.v v0, (a0)                     # Load mask register
+  vsetvli x0, t0, <new type>         # Restore vl (potentially already present)
 ----
 
 == Vector Memory Alignment Constraints
