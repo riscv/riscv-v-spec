@@ -5149,6 +5149,51 @@ include overlapping extensions in the same ISA string.  For example,
 RV64GCV and RV64GCV_Zve64f are both valid and equivalent ISA strings,
 as is RV64GCV_Zve64f_Zve32x_Zvl128b.
 
+=== Zvfhmin: Vector Extension for Minimal Half-Precision Floating-Point Arithmetic
+
+WARNING: This draft proposal for the Zvfhmin extension may change before
+being accepted as a standard by RISC-V International.
+
+The Zvfhmin extension provides minimal support for vectors of IEEE 754-2008
+binary16 values, adding conversions to and from binary32.
+When the Zvfhmin extension is implemented, the `vfwcvt.f.f.v` and
+`vfncvt.f.f.w` instructions become defined when SEW=16.
+The EEW=16 floating-point operands of these instructions use the binary16
+format.
+
+The Zvfhmin extension requires a standard vector extension with single-precision
+floating-point support (currently, Zve32f, Zve64f, Zve64d, or V).
+
+=== Zvfh: Vector Extension for Half-Precision Floating-Point Arithmetic
+
+WARNING: This draft proposal for the Zvfh extension may change before
+being accepted as a standard by RISC-V International.
+
+The Zvfh extension provides support for vectors of IEEE 754-2008
+binary16 values.
+When the Zvfh extension is implemented, all instructions in Sections
+<<sec-vector-float>>, <<sec-vector-float-reduce>>,
+<<sec-vector-float-reduce-widen>>, <<sec-vector-float-move>>,
+<<sec-vfslide1up>>, and <<sec-vfslide1down>>
+become defined when SEW=16.
+The EEW=16 floating-point operands of these instructions use the binary16
+format.
+
+Additionally, conversions between 8-bit integers and binary16 values are
+provided.  The floating-point-to-integer narrowing conversions
+(`vfncvt[.rtz].x[u].f.w`) and integer-to-floating-point
+widening conversions (`vfwcvt.f.x[u].v`) become defined when SEW=8.
+
+The Zvfh extension requires a standard vector extension with single-precision
+floating-point support (currently, Zve32f, Zve64f, Zve64d, or V).
+The Zvfh extension additionally requires the Zfhmin extension.
+
+NOTE: Requiring basic scalar half-precision support makes Zvfh's
+vector-scalar instructions substantially more useful.
+We considered requiring more complete scalar half-precision support, but we
+reasoned that, for many half-precision vector workloads, performing the scalar
+computation in single-precision will suffice.
+
 == Vector Instruction Listing
 
 include::inst-table.adoc[]
