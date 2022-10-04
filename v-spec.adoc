@@ -1025,6 +1025,9 @@ policy depending on the setting of the `vma` bit in `vtype` (Section
 The mask value used to control execution of a masked vector
 instruction is always supplied by vector register `v0`.
 
+NOTE: Masks are held in vector registers, rather than in a separate mask
+register file, to reduce total architectural state and to simplify the ISA.
+
 NOTE: Future vector extensions may provide longer instruction
 encodings with space for a full mask register specifier.
 
