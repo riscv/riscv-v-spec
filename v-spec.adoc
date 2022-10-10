@@ -4758,12 +4758,12 @@ elements according to the current tail policy (Section
 
         8 7 6 5 4 3 2 1 0   Element number
 
-        1 1 0 1 0 0 1 0 1   v0
-        8 7 6 5 4 3 2 1 0   v1
-        1 2 3 4 5 6 7 8 9   v2
+        1 1 0 1 0 0 1 0 1   vs1
+        8 7 6 5 4 3 2 1 0   vs2
+        1 2 3 4 5 6 7 8 9   vd
 
-                                vcompress.vm v2, v1, v0
-        1 2 3 4 8 7 5 2 0   v2
+                                vcompress.vm vd, vs2, vs1
+        1 2 3 4 8 7 5 2 0   vd
 ----
 
 `vcompress` is encoded as an unmasked instruction (`vm=1`). The equivalent
