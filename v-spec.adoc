@@ -1812,7 +1812,7 @@ segment, _NFIELDS_.
 The EMUL setting must be such that EMUL * NFIELDS {le} 8, otherwise
 the instruction encoding is reserved.
 
-NOTE: The product EMUL * NFIELDS represents the number of underlying
+NOTE: The product ceil(EMUL) * NFIELDS represents the number of underlying
 vector registers that will be touched by a segmented load or store
 instruction.  This constraint makes this total no larger than 1/4 of
 the architectural register file, and the same as for regular
