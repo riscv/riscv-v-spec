@@ -5035,6 +5035,10 @@ supported.
 | Zve64d    | 64    | 8, 16, 32, 64 |   Y   |  Y
 |===
 
+The Zve32f and Zve64x extensions depend on the Zve32x extension.
+The Zve64f extension depends on the Zve32f and Zve64x extensions.
+The Zve64d extension depends on the Zve64f extension.
+
 All Zve* extensions have precise traps.
 
 NOTE: There is currently no standard support for handling imprecise
@@ -5103,7 +5107,7 @@ supporting V.
 
 The V vector extension has precise traps.
 
-The V vector extension depends upon the Zvl128b extension.
+The V vector extension depends upon the Zvl128b and Zve64d extensions.
 
 NOTE: The value of 128 was chosen as a compromise for application
 processors. Providing a larger VLEN allows stripmining code to be
@@ -5164,8 +5168,7 @@ When the Zvfhmin extension is implemented, the `vfwcvt.f.f.v` and
 The EEW=16 floating-point operands of these instructions use the binary16
 format.
 
-The Zvfhmin extension requires a standard vector extension with single-precision
-floating-point support (currently, Zve32f, Zve64f, Zve64d, or V).
+The Zvfhmin extension depends on the Zve32f extension.
 
 === Zvfh: Vector Extension for Half-Precision Floating-Point Arithmetic
 
@@ -5187,9 +5190,7 @@ provided.  The floating-point-to-integer narrowing conversions
 (`vfncvt[.rtz].x[u].f.w`) and integer-to-floating-point
 widening conversions (`vfwcvt.f.x[u].v`) become defined when SEW=8.
 
-The Zvfh extension requires a standard vector extension with single-precision
-floating-point support (currently, Zve32f, Zve64f, Zve64d, or V).
-The Zvfh extension additionally requires the Zfhmin extension.
+The Zvfh extension depends on the Zve32f and Zfhmin extensions.
 
 NOTE: Requiring basic scalar half-precision support makes Zvfh's
 vector-scalar instructions substantially more useful.
