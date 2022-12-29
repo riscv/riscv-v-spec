@@ -559,7 +559,7 @@ setting (8) and the smallest SEW setting (8), so VLMAX_max = 8*VLEN/8
 represent indices from 0 through 255.
 
 The use of `vstart` values greater than the largest element index for
-the current SEW setting is reserved.
+the current `vtype` setting is reserved.
 
 NOTE: It is recommended that implementations trap if `vstart` is out
 of bounds.  It is not required to trap, as a possible future use of
