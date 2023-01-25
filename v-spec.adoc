@@ -5157,7 +5157,7 @@ include overlapping extensions in the same ISA string.  For example,
 RV64GCV and RV64GCV_Zve64f are both valid and equivalent ISA strings,
 as is RV64GCV_Zve64f_Zve32x_Zvl128b.
 
-=== Zvfhmin: Vector Extension for Minimal Half-Precision Floating-Point Arithmetic
+=== Zvfhmin: Vector Extension for Minimal Half-Precision Floating-Point Support
 
 WARNING: This draft proposal for the Zvfhmin extension may change before
 being accepted as a standard by RISC-V International.
