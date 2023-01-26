@@ -217,16 +217,16 @@ The value in `vsew` sets the dynamic _selected_ _element_ _width_
 VLEN/SEW elements.
 
 .vsew[2:0] (selected element width) encoding
-[cols="1,1,1,1,>13"]
+[cols="1,1,1,1"]
 [%autowidth]
 |===
-3+| vsew[2:0] | SEW |
+3+| vsew[2:0] | SEW
 
-| 0 | 0 | 0 |    8 |
-| 0 | 0 | 1 |   16 |
-| 0 | 1 | 0 |   32 |
-| 0 | 1 | 1 |   64 |
-| 1 | X | X |   Reserved |
+| 0 | 0 | 0 |    8
+| 0 | 0 | 1 |   16
+| 0 | 1 | 0 |   32
+| 0 | 1 | 1 |   64
+| 1 | X | X |   Reserved
 |===
 
 NOTE: While it is anticipated the larger `vsew[2:0]` encodings
@@ -1542,25 +1542,24 @@ encodings for unsupported EEW widths must raise an illegal
 instruction exception.
 
 .Width encoding for vector loads and stores.
-[cols="5,1,1,1,1,>3,>3,>3,3,2"]
+[cols="5,1,1,1,1,>3,>3,>3,3"]
 |===
-|                  | mew 3+| width [2:0] | Mem bits | Data Reg bits | Index bits | Opcodes |
+|                  | mew 3+| width [2:0] | Mem bits | Data Reg bits | Index bits | Opcodes
 
-| Standard scalar FP   | x |   0 | 0 | 1 |   16| FLEN | -  | FLH/FSH             |
-| Standard scalar FP   | x |   0 | 1 | 0 |   32| FLEN | -  | FLW/FSW             |
-| Standard scalar FP   | x |   0 | 1 | 1 |   64| FLEN | -  | FLD/FSD             |
-| Standard scalar FP   | x |   1 | 0 | 0 |  128| FLEN | -  | FLQ/FSQ             |
-| Vector 8b element    | 0 |   0 | 0 | 0 |    8|    8 | -  | VLxE8/VSxE8         |
-| Vector 16b element   | 0 |   1 | 0 | 1 |   16|   16 | -  | VLxE16/VSxE16       |
-| Vector 32b element   | 0 |   1 | 1 | 0 |   32|   32 | -  | VLxE32/VSxE32       |
-| Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64       |
-| Vector 8b index      | 0 |   0 | 0 | 0 | SEW | SEW  |  8 | VLxEI8/VSxEI8       |
-| Vector 16b index     | 0 |   1 | 0 | 1 | SEW | SEW  | 16 | VLxEI16/VSxEI16     |
-| Vector 32b index     | 0 |   1 | 1 | 0 | SEW | SEW  | 32 | VLxEI32/VSxEI32     |
-| Vector 64b index     | 0 |   1 | 1 | 1 | SEW | SEW  | 64 | VLxEI64/VSxEI64     |
-| Reserved             | 1 |   X | X | X |   - |    - | -  |                     |
+| Standard scalar FP   | x |   0 | 0 | 1 |   16| FLEN | -  | FLH/FSH
+| Standard scalar FP   | x |   0 | 1 | 0 |   32| FLEN | -  | FLW/FSW
+| Standard scalar FP   | x |   0 | 1 | 1 |   64| FLEN | -  | FLD/FSD
+| Standard scalar FP   | x |   1 | 0 | 0 |  128| FLEN | -  | FLQ/FSQ
+| Vector 8b element    | 0 |   0 | 0 | 0 |    8|    8 | -  | VLxE8/VSxE8
+| Vector 16b element   | 0 |   1 | 0 | 1 |   16|   16 | -  | VLxE16/VSxE16
+| Vector 32b element   | 0 |   1 | 1 | 0 |   32|   32 | -  | VLxE32/VSxE32
+| Vector 64b element   | 0 |   1 | 1 | 1 |   64|   64 | -  | VLxE64/VSxE64
+| Vector 8b index      | 0 |   0 | 0 | 0 | SEW | SEW  |  8 | VLxEI8/VSxEI8
+| Vector 16b index     | 0 |   1 | 0 | 1 | SEW | SEW  | 16 | VLxEI16/VSxEI16
+| Vector 32b index     | 0 |   1 | 1 | 0 | SEW | SEW  | 32 | VLxEI32/VSxEI32
+| Vector 64b index     | 0 |   1 | 1 | 1 | SEW | SEW  | 64 | VLxEI64/VSxEI64
+| Reserved             | 1 |   X | X | X |   - |    - | -  |
 |===
-
 
 Mem bits is the size of each element accessed in memory.
 
