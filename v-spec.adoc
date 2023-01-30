@@ -3988,7 +3988,8 @@ Each operator first computes an exact sum as a RISC-V scalar floating-point
 addition with infinite exponent range and precision, then converts this exact
 sum to a floating-point format with range and precision each at least as great
 as the element floating-point format indicated by SEW, rounding using the
-currently active floating-point dynamic rounding mode.
+currently active floating-point dynamic rounding mode and raising exception
+flags as necessary.
 A different floating-point range and precision may be chosen for the result of
 each operator.
 A node where one input is derived only from elements masked-off or beyond the
