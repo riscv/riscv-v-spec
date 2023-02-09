@@ -3471,8 +3471,8 @@ otherwise.
 If the input is subnormal, the normalized input significand is given by
 shifting the input significand left by 1 minus the normalized input exponent,
 discarding the leading 1 bit.
-The output exponent equals floor((3*B - 1 - the normalized input exponent) / 2).
-The output sign equals the input sign.
+The output exponent equals floor((3*B - 1 - the normalized input exponent) / 2),
+where B is the exponent bias. The output sign equals the input sign.
 
 The following table gives the seven MSBs of the output significand as a
 function of the LSB of the normalized input exponent and the six MSBs of the
