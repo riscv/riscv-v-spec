@@ -1650,7 +1650,7 @@ and may perform different numbers of memory operations across
 different dynamic executions of the same static instruction.
 
 NOTE: Compilers must be aware to not use the `x0` form for rs2 when
-the immediate stride is `0` if the intent to is to require all memory
+the immediate stride is `0` if the intent is to require all memory
 accesses are performed.
 
 When `rs2!=x0` and the value of `x[rs2]=0`, the implementation must
