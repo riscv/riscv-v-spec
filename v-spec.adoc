@@ -493,7 +493,7 @@ checking for illegal values with a branch on the sign bit.
 If the `vill` bit is set, then any attempt to execute a vector instruction
 that depends upon `vtype` will raise an illegal-instruction exception.
 
-NOTE: `vset{i}vl{i}` and whole-register loads, stores, and moves do not depend
+NOTE: `vset{i}vl{i}` and whole-register loads and stores do not depend
 upon `vtype`.
 
 When the `vill` bit is set, the other XLEN-1 bits in `vtype` shall be
