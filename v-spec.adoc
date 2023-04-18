@@ -558,8 +558,9 @@ setting (8) and the smallest SEW setting (8), so VLMAX_max = 8*VLEN/8
 = VLEN.  For example, for VLEN=256, `vstart` would have 8 bits to
 represent indices from 0 through 255.
 
-The use of `vstart` values greater than the largest element index for
-the current `vtype` setting is reserved.
+The use of `vstart` values greater than the largest element index is reserved.
+The largest element index is determined using the EEW and EMUL of any vector
+operand of the current instruction.
 
 NOTE: It is recommended that implementations trap if `vstart` is out
 of bounds.  It is not required to trap, as a possible future use of
