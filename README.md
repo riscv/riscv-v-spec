@@ -44,7 +44,7 @@ International License. See the LICENSE file for details.
 
 Requirements
 
-`node v6+`
+`node v18.16.0+`
 
 **Linux**: install using [nvm](https://github.com/creationix/nvm)
 

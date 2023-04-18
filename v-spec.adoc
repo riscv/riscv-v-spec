@@ -493,7 +493,7 @@ checking for illegal values with a branch on the sign bit.
 If the `vill` bit is set, then any attempt to execute a vector instruction
 that depends upon `vtype` will raise an illegal-instruction exception.
 
-NOTE: `vset{i}vl{i}` and whole-register loads and stores do not depend
+NOTE: `vset{i}vl{i}` and whole register loads and stores do not depend
 upon `vtype`.
 
 When the `vill` bit is set, the other XLEN-1 bits in `vtype` shall be
@@ -2087,7 +2087,8 @@ an ABI.
    vl1re16.v   v3, (a0)  # Load v3 with VLEN/16 halfwords held at address in a0
    vl1re32.v   v3, (a0)  # Load v3 with VLEN/32 words held at address in a0
    vl1re64.v   v3, (a0)  # Load v3 with VLEN/64 doublewords held at address in a0
-   vl2r.v v2, (a0)       # Pseudoinstruction equal to vl2re8.v v2, (a0)
+
+   vl2r.v v2, (a0)       # Pseudoinstruction equal to vl2re8.v
 
    vl2re8.v    v2, (a0)  # Load v2-v3 with 2*VLEN/8 bytes from address in a0
    vl2re16.v   v2, (a0)  # Load v2-v3 with 2*VLEN/16 halfwords held at address in a0
