@@ -1609,6 +1609,9 @@ policy.
 `lumop` and `sumop` encodings.  Since `vlm.v` and `vsm.v` operate as byte loads and stores,
 `vstart` is in units of bytes for these instructions.
 
+NOTE: `vlm.v` and `vsm.v` respect the `vill` field in `vtype`, as
+they depend on `vtype` indirectly through its constraints on `vl`.
+
 NOTE: The previous assembler mnemonics `vle1.v` and `vse1.v` were
 confusing as length was handled differently for these instructions
 versus other element load/store instructions.  To avoid software
