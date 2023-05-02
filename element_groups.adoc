@@ -38,6 +38,9 @@ stripmine iterations in vector-length-agnostic code.
 The element group size is statically encoded in the instruction, often
 implicitly as part of the opcode.
 
+Executing a vector instruction with EGS > VLMAX causes an illegal
+instruction exception to be raised.
+
 NOTE: The vector instructions in the base V vector ISA can be viewed
 as all having an element group size of 1 for all operands statically
 encoded in the instruction.
@@ -55,8 +58,7 @@ Each source and destination operand to a vector instruction might be
 defined as either a single element group or a vector of element
 groups.  When an operand is a vector of element groups, the `vl`
 setting must correspond to an integer multiple of the element group
-size, with other values of `vl` raising an illegal instruction
-exception.
+size, with other values of `vl` reserved.
 
 NOTE: More complex vector instructions could potentially have
 different non-unit vector lengths for different operands, but these
@@ -78,13 +80,6 @@ NOTE: This constraint prevents element groups being broken across
 stripmining iterations in vector-length-agnostic code when a
 VLMAX-size vector would otherwise be able to accomodate a whole number
 of element groups.
-
-NOTE: When the SEW and LMUL settings cause VLMAX to be smaller than
-EGSMAX on a certain machine, then `vl` is set to VLMAX.  If an
-attempt is made to execute an element-group instruction with
-EGS > `vl`=VLMAX, an illegal instruction exception will be raised on that
-instruction.  Other element-group instructions with EGS {le} `vl`=VLMAX will
-proceed.
 
 NOTE: If EEW is encoded statically in the instruction, or if an
 instruction has multiple operands containing vectors of element groups
