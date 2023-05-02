@@ -5161,9 +5161,6 @@ as is RV64GCV_Zve64f_Zve32x_Zvl128b.
 
 === Zvfhmin: Vector Extension for Minimal Half-Precision Floating-Point
 
-WARNING: This draft proposal for the Zvfhmin extension may change before
-being accepted as a standard by RISC-V International.
-
 The Zvfhmin extension provides minimal support for vectors of IEEE 754-2008
 binary16 values, adding conversions to and from binary32.
 When the Zvfhmin extension is implemented, the `vfwcvt.f.f.v` and
@@ -5174,9 +5171,6 @@ format.
 The Zvfhmin extension depends on the Zve32f extension.
 
 === Zvfh: Vector Extension for Half-Precision Floating-Point
-
-WARNING: This draft proposal for the Zvfh extension may change before
-being accepted as a standard by RISC-V International.
 
 The Zvfh extension provides support for vectors of IEEE 754-2008
 binary16 values.
