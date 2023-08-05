@@ -5196,7 +5196,7 @@ provided.  The floating-point-to-integer narrowing conversions
 (`vfncvt[.rtz].x[u].f.w`) and integer-to-floating-point
 widening conversions (`vfwcvt.f.x[u].v`) become defined when SEW=8.
 
-The Zvfh extension depends on the Zve32f and Zfhmin extensions.
+The Zvfh extension depends on the Zvfhmin and Zfhmin extensions.
 
 NOTE: Requiring basic scalar half-precision support makes Zvfh's
 vector-scalar instructions substantially more useful.
