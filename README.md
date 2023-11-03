@@ -33,8 +33,7 @@ International License. See the LICENSE file for details.
 - The [Spike simulator](https://github.com/riscv/riscv-isa-sim) supports v1.0.
 - The [RISC-V Proxy Kernel](https://github.com/riscv/riscv-pk)
   (to be used with e.g. Spike) supports v1.0 binaries.
-- The [Binutils port for v0.8](https://github.com/riscv/riscv-binutils-gdb/tree/rvv-0.8.x)
-- The [GNU toolchain port for v0.8](https://github.com/riscv/riscv-gnu-toolchain/tree/rvv-0.8.x)
+- The stable release GCC 13 and LLVM 17 toolchains ([pre-built](https://www.embecosm.com/resources/tool-chain-downloads/#riscv-stable)) support v1.0.
 - [riscvOVPsim](https://github.com/riscv/riscv-ovpsim) is a free
   RISC-V reference simulator that has support for v0.9, v0.8 and
   v0.7.1 (simulator is under a proprietary license, models are
