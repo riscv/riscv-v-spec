@@ -188,6 +188,11 @@ written with zero, and non-zero values in this field are reserved.
 
 include::vtype-format.adoc[]
 
+NOTE: When XLEN changes, the `vill` bit is copied from its old position
+(`vtype[OLD_XLEN-1]`) to its new position (`vtype[NEW_XLEN-1]`).  As `vtype`
+is a read-only CSR, the CSR Width Modulation rules in the privileged
+architecture specification do not apply.
+
 NOTE: A small implementation supporting ELEN=32 requires only seven
 bits of state in `vtype`: two bits for `ma` and `ta`, two bits for
 `vsew[1:0]` and three bits for `vlmul[2:0]`.  The illegal value
