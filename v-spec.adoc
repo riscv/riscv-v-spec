@@ -90,18 +90,18 @@ CSRs (`vstart`, `vxsat`, `vxrm`, `vcsr`, `vtype`, `vl`, `vlenb`) to a
 base scalar RISC-V ISA.
 
 .New vector CSRs
-[cols="2,2,2,10"]
+[cols="2,2,2,2,10"]
 [%autowidth]
 |===
-| Address | Privilege | Name   | Description
+| Address | Privilege | Name   | Width (bits) | Description
 
-| 0x008 | URW | vstart | Vector start position
-| 0x009 | URW | vxsat  | Fixed-Point Saturate Flag
-| 0x00A | URW | vxrm   | Fixed-Point Rounding Mode
-| 0x00F | URW | vcsr   | Vector control and status register
-| 0xC20 | URO | vl     | Vector length
-| 0xC21 | URO | vtype  | Vector data type register
-| 0xC22 | URO | vlenb  | VLEN/8 (vector register length in bytes)
+| 0x008 | URW | vstart | XLEN | Vector start position
+| 0x009 | URW | vxsat  | 32   | Fixed-Point Saturate Flag
+| 0x00A | URW | vxrm   | 32   | Fixed-Point Rounding Mode
+| 0x00F | URW | vcsr   | XLEN | Vector control and status register
+| 0xC20 | URO | vl     | XLEN | Vector length
+| 0xC21 | URO | vtype  | XLEN | Vector data type register
+| 0xC22 | URO | vlenb  | XLEN | VLEN/8 (vector register length in bytes)
 |===
 
 NOTE: The four CSR numbers `0x00B`-`0x00E` are tentatively reserved
