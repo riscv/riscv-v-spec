@@ -3435,13 +3435,13 @@ This is a unary vector-vector instruction.
     vfrsqrt7.v vd, vs2, vm
 ----
 
-This is a unary vector-vector instruction that returns an estimate of
-1/sqrt(x) accurate to 7 bits.
-
 NOTE: An earlier draft version had used the assembler name `vfrsqrte7`
 but this was deemed to cause confusion with the ``e``__x__ notation for element
 width.  The earlier name can be retained as alias in tool chains for
 backward compatibility.
+
+This is a unary vector-vector instruction that returns an estimate of
+1/sqrt(x) accurate to 7 bits.
 
 The following table describes the instruction's behavior for all
 classes of floating-point inputs:
